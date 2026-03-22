@@ -4,7 +4,7 @@
 //   license: you are granted a perpetual, irrevocable license to copy, modify,
 //   publish, and distribute this file as you see fit.
 //
-// VERSION 
+// VERSION
 //   0.2.0  (2017-02-18)  Scored matches perform exhaustive search for best score
 //   0.1.0  (2016-03-28)  Initial release
 //
@@ -50,8 +50,8 @@ namespace fts {
 
     // Forward declarations for "private" implementation
     namespace fuzzy_internal {
-        static bool fuzzy_match_recursive(const char * pattern, const char * str, int & outScore, const char * strBegin,          
-            uint8_t const * srcMatches,  uint8_t * newMatches,  int maxMatches, int nextMatch, 
+        static bool fuzzy_match_recursive(const char * pattern, const char * str, int & outScore, const char * strBegin,
+            uint8_t const * srcMatches,  uint8_t * newMatches,  int maxMatches, int nextMatch,
             int & recursionCount, int recursionLimit);
     }
 
@@ -67,7 +67,7 @@ namespace fts {
     }
 
     static bool fuzzy_match(char const * pattern, char const * str, int & outScore) {
-        
+
         uint8_t matches[256];
         return fuzzy_match(pattern, str, outScore, matches, sizeof(matches));
     }
@@ -80,8 +80,8 @@ namespace fts {
     }
 
     // Private implementation
-    static bool fuzzy_internal::fuzzy_match_recursive(const char * pattern, const char * str, int & outScore, 
-        const char * strBegin, uint8_t const * srcMatches, uint8_t * matches, int maxMatches, 
+    static bool fuzzy_internal::fuzzy_match_recursive(const char * pattern, const char * str, int & outScore,
+        const char * strBegin, uint8_t const * srcMatches, uint8_t * matches, int maxMatches,
         int nextMatch, int & recursionCount, int recursionLimit)
     {
         // Count recursions
@@ -101,14 +101,14 @@ namespace fts {
         // Loop through pattern and str looking for a match
         bool first_match = true;
         while (*pattern != '\0' && *str != '\0') {
-            
+
             // Found match
             if (tolower(*pattern) == tolower(*str)) {
 
                 // Supplied matches buffer was too short
                 if (nextMatch >= maxMatches)
                     return false;
-                
+
                 // "Copy-on-Write" srcMatches into matches
                 if (first_match && srcMatches) {
                     memcpy(matches, srcMatches, nextMatch);
@@ -119,7 +119,7 @@ namespace fts {
                 uint8_t recursiveMatches[256];
                 int recursiveScore;
                 if (fuzzy_match_recursive(pattern, str + 1, recursiveScore, strBegin, matches, recursiveMatches, sizeof(recursiveMatches), nextMatch, recursionCount, recursionLimit)) {
-                    
+
                     // Pick best recursive score
                     if (!recursiveMatch || recursiveScore > bestRecursiveScore) {
                         memcpy(bestRecursiveMatches, recursiveMatches, 256);

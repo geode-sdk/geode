@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <unordered_map>
 #include <string_view>
@@ -32,6 +32,13 @@ static auto const& getGDVersionTimestampMap() {
         { 1704948277, "2.203" },
         { 1705041028, "2.204" },
         { 1717243515, "2.206" },
+        { 1731098609, "2.2070" },
+        { 1731117052, "2.2071" },
+        { 1731130219, "2.2072" },
+        { 1731156923, "2.2073" },
+        { 1731376950, "2.2074" },
+        { 1768823161, "2.2080" },
+        { 1768959392, "2.2081" },
     };
     return map;
 }
@@ -41,11 +48,11 @@ static std::string timestampToVersion(uint32_t timestamp) {
     if (it != getGDVersionTimestampMap().end()) {
         return std::string(it->second);
     } else {
-        return std::to_string(timestamp);
+        return fmt::to_string(timestamp);
     }
 }
 
-static uint32_t versionToTimestamp(std::string_view const targetVersion) {
+static uint32_t versionToTimestamp(std::string_view targetVersion) {
     for (const auto& [stamp, ver] : getGDVersionTimestampMap()) {
         if (ver == targetVersion) {
             return stamp;

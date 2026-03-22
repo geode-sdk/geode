@@ -91,6 +91,11 @@ protected:
     virtual void deleteBackward() {}
 
     /**
+    @brief    Called by CCIMEDispatcher after the user clicks the delete-forward key.
+     */
+    virtual void deleteForward() {}
+
+    /**
     @brief    Called by CCIMEDispatcher for text stored in delegate.
     */
     virtual const char * getContentText() { return 0; }
@@ -102,8 +107,6 @@ protected:
     virtual void keyboardDidShow(CCIMEKeyboardNotificationInfo& info)    {CC_UNUSED_PARAM(info);}
     virtual void keyboardWillHide(CCIMEKeyboardNotificationInfo& info)   {CC_UNUSED_PARAM(info);}
     virtual void keyboardDidHide(CCIMEKeyboardNotificationInfo& info)    {CC_UNUSED_PARAM(info);}
-
-	virtual void deleteForward();
 
 protected:
     CCIMEDelegate();

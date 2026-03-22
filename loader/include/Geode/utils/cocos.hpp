@@ -4,54 +4,72 @@
 #include "casts.hpp"
 #include "general.hpp"
 #include "../DefaultInclude.hpp"
+#include <Geode/utils/ZStringView.hpp>
 #include <cocos2d.h>
 #include <functional>
 #include <type_traits>
 #include "../loader/Event.hpp"
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
-#include "MiniFunction.hpp"
+#include <unordered_map>
+#include "../ui/Layout.hpp"
+#include "../ui/SpacerNode.hpp"
 
 // support converting ccColor3B / ccColor4B to / from json
 
 template <>
 struct matjson::Serialize<cocos2d::ccColor3B> {
-    static matjson::Value GEODE_DLL to_json(cocos2d::ccColor3B const& color);
-    static cocos2d::ccColor3B GEODE_DLL from_json(matjson::Value const& color);
-    static bool GEODE_DLL is_json(matjson::Value const& json);
+    static geode::Result<cocos2d::ccColor3B> GEODE_DLL fromJson(Value const& value);
+    static Value GEODE_DLL toJson(cocos2d::ccColor3B const& value);
 };
 
 template <>
 struct matjson::Serialize<cocos2d::ccColor4B> {
-    static matjson::Value GEODE_DLL to_json(cocos2d::ccColor4B const& color);
-    static cocos2d::ccColor4B GEODE_DLL from_json(matjson::Value const& color);
-    static bool GEODE_DLL is_json(matjson::Value const& json);
+    static geode::Result<cocos2d::ccColor4B> GEODE_DLL fromJson(Value const& value);
+    static Value GEODE_DLL toJson(cocos2d::ccColor4B const& value);
+};
+
+namespace geode::cocos {
+    template <class InpT, bool Retain>
+    class CCArrayExt;
+    template <class Key, class ValueInpT, bool Retain>
+    class CCDictionaryExt;
+}
+
+template <typename T>
+struct ::geode::CCArrayExtCheck<T, void> {
+    using type = cocos::CCArrayExt<T, true>;
+};
+
+template <typename K, typename V>
+struct ::geode::CCDictionaryExtCheck<K, V, void> {
+    using type = cocos::CCDictionaryExt<K, V, true>;
 };
 
 // operators for CC geometry
 namespace cocos2d {
-    static cocos2d::CCPoint& operator*=(cocos2d::CCPoint& pos, float mul) {
+    static constexpr cocos2d::CCPoint& operator*=(cocos2d::CCPoint& pos, float mul) {
         pos.x *= mul;
         pos.y *= mul;
         return pos;
     }
-    static cocos2d::CCSize& operator*=(cocos2d::CCSize& size, float mul) {
+    static constexpr cocos2d::CCSize& operator*=(cocos2d::CCSize& size, float mul) {
         size.width *= mul;
         size.height *= mul;
         return size;
     }
-    static cocos2d::CCSize operator*(cocos2d::CCSize const& size, cocos2d::CCPoint const& point) {
+    static constexpr cocos2d::CCSize operator*(cocos2d::CCSize const& size, cocos2d::CCPoint const& point) {
         return {
             size.width * point.x,
             size.height * point.y,
         };
     }
-    static cocos2d::CCRect operator*=(cocos2d::CCRect& rect, float mul) {
+    static constexpr cocos2d::CCRect operator*=(cocos2d::CCRect& rect, float mul) {
         rect.origin *= mul;
         rect.size *= mul;
         return rect;
     }
-    static cocos2d::CCRect operator*(cocos2d::CCRect const& rect, float mul) {
+    static constexpr cocos2d::CCRect operator*(cocos2d::CCRect const& rect, float mul) {
         return {
             rect.origin.x * mul,
             rect.origin.y * mul,
@@ -59,131 +77,131 @@ namespace cocos2d {
             rect.size.height * mul,
         };
     }
-    static cocos2d::CCPoint operator/=(cocos2d::CCPoint& pos, float div) {
+    static constexpr cocos2d::CCPoint operator/=(cocos2d::CCPoint& pos, float div) {
         pos.x /= div;
         pos.y /= div;
         return pos;
     }
-    static cocos2d::CCSize operator/=(cocos2d::CCSize& size, float div) {
+    static constexpr cocos2d::CCSize operator/=(cocos2d::CCSize& size, float div) {
         size.width /= div;
         size.height /= div;
         return size;
     }
-    static cocos2d::CCRect operator/=(cocos2d::CCRect& rect, float div) {
+    static constexpr cocos2d::CCRect operator/=(cocos2d::CCRect& rect, float div) {
         rect.origin /= div;
         rect.size /= div;
         return rect;
     }
-    static cocos2d::CCPoint operator+=(cocos2d::CCPoint& pos, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCPoint operator+=(cocos2d::CCPoint& pos, cocos2d::CCPoint const& add) {
         pos.x += add.x;
         pos.y += add.y;
         return pos;
     }
-    static cocos2d::CCSize operator+=(cocos2d::CCSize& size, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCSize operator+=(cocos2d::CCSize& size, cocos2d::CCPoint const& add) {
         size.width += add.x;
         size.height += add.y;
         return size;
     }
-    static cocos2d::CCSize operator+=(cocos2d::CCSize& size, cocos2d::CCSize const& add) {
+    static constexpr cocos2d::CCSize operator+=(cocos2d::CCSize& size, cocos2d::CCSize const& add) {
         size.width += add.width;
         size.height += add.height;
         return size;
     }
-    static cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCPoint const& add) {
         rect.origin += add;
         return rect;
     }
-    static cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCSize const& add) {
+    static constexpr cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCSize const& add) {
         rect.size += add;
         return rect;
     }
-    static cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCRect const& add) {
+    static constexpr cocos2d::CCRect operator+=(cocos2d::CCRect& rect, cocos2d::CCRect const& add) {
         rect.origin += add.origin;
         rect.size += add.size;
         return rect;
     }
-    static cocos2d::CCPoint operator-=(cocos2d::CCPoint& pos, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCPoint operator-=(cocos2d::CCPoint& pos, cocos2d::CCPoint const& add) {
         pos.x -= add.x;
         pos.y -= add.y;
         return pos;
     }
-    static cocos2d::CCSize operator-=(cocos2d::CCSize& size, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCSize operator-=(cocos2d::CCSize& size, cocos2d::CCPoint const& add) {
         size.width -= add.x;
         size.height -= add.y;
         return size;
     }
-    static cocos2d::CCSize operator-=(cocos2d::CCSize& size, cocos2d::CCSize const& add) {
+    static constexpr cocos2d::CCSize operator-=(cocos2d::CCSize& size, cocos2d::CCSize const& add) {
         size.width -= add.width;
         size.height -= add.height;
         return size;
     }
-    static cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCPoint const& add) {
+    static constexpr cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCPoint const& add) {
         rect.origin -= add;
         return rect;
     }
-    static cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCSize const& add) {
+    static constexpr cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCSize const& add) {
         rect.size -= add;
         return rect;
     }
-    static cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCRect const& add) {
+    static constexpr cocos2d::CCRect operator-=(cocos2d::CCRect& rect, cocos2d::CCRect const& add) {
         rect.origin -= add.origin;
         rect.size -= add.size;
         return rect;
     }
-    static cocos2d::CCSize operator-(cocos2d::CCSize const& size, float f) {
+    static constexpr cocos2d::CCSize operator-(cocos2d::CCSize const& size, float f) {
         return {size.width - f, size.height - f};
     }
-    static cocos2d::CCSize operator-(cocos2d::CCSize const& size) {
+    static constexpr cocos2d::CCSize operator-(cocos2d::CCSize const& size) {
         return {-size.width, -size.height};
     }
-    static bool operator==(cocos2d::CCPoint const& p1, cocos2d::CCPoint const& p2) {
+    static constexpr bool operator==(cocos2d::CCPoint const& p1, cocos2d::CCPoint const& p2) {
         return p1.x == p2.x && p1.y == p2.y;
     }
-    static bool operator!=(cocos2d::CCPoint const& p1, cocos2d::CCPoint const& p2) {
+    static constexpr bool operator!=(cocos2d::CCPoint const& p1, cocos2d::CCPoint const& p2) {
         return p1.x != p2.x || p1.y != p2.y;
     }
-    static bool operator==(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+    static constexpr bool operator==(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
         return s1.width == s2.width && s1.height == s2.height;
     }
-    static bool operator!=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+    static constexpr bool operator!=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
         return s1.width != s2.width || s1.height != s2.height;
     }
-    static bool operator<(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+    static constexpr bool operator<(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
         return s1.width < s2.width && s1.height < s2.height;
     }
-    static bool operator<=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+    static constexpr bool operator<=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
         return s1.width <= s2.width && s1.height <= s2.height;
     }
-    static bool operator>(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+    static constexpr bool operator>(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
         return s1.width > s2.width && s1.height > s2.height;
     }
-    static bool operator>=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
+    static constexpr bool operator>=(cocos2d::CCSize const& s1, cocos2d::CCSize const& s2) {
         return s1.width >= s2.width && s1.height >= s2.height;
     }
-    static bool operator==(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
+    static constexpr bool operator==(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
         return r1.origin == r2.origin && r1.size == r2.size;
     }
-    static bool operator!=(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
+    static constexpr bool operator!=(cocos2d::CCRect const& r1, cocos2d::CCRect const& r2) {
         return r1.origin != r2.origin || r1.size != r2.size;
     }
-    static bool operator==(cocos2d::ccColor4B const& c1, cocos2d::ccColor4B const& c2) {
+    static constexpr bool operator==(cocos2d::ccColor4B const& c1, cocos2d::ccColor4B const& c2) {
         return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b && c1.a == c2.a;
     }
-    static bool operator!=(cocos2d::ccColor4B const& c1, cocos2d::ccColor4B const& c2) {
+    static constexpr bool operator!=(cocos2d::ccColor4B const& c1, cocos2d::ccColor4B const& c2) {
         return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b || c1.a != c2.a;
     }
-    static bool operator==(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
+    static constexpr bool operator==(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
         return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b;
     }
-    static bool operator!=(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
+    static constexpr bool operator!=(cocos2d::ccColor3B const& c1, cocos2d::ccColor3B const& c2) {
         return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b;
     }
-    static bool operator==(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
-        return c1.h == c2.h && c1.s == c2.s && c1.v == c2.v && 
-            c1.absoluteSaturation == c2.absoluteSaturation && 
+    static constexpr bool operator==(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
+        return c1.h == c2.h && c1.s == c2.s && c1.v == c2.v &&
+            c1.absoluteSaturation == c2.absoluteSaturation &&
             c1.absoluteBrightness == c2.absoluteBrightness;
     }
-    static bool operator!=(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
+    static constexpr bool operator!=(cocos2d::ccHSVValue const& c1, cocos2d::ccHSVValue const& c2) {
         return !(c1 == c2);
     }
 }
@@ -197,7 +215,7 @@ namespace geode {
      *
      * Use-cases include, for example, non-CCNode class members, or nodes that
      * are not always in the scene tree.
-     * 
+     *
      * @tparam T A type that inherits from CCObject.
      *
      * @example
@@ -207,14 +225,14 @@ namespace geode {
      *      // release on this array; Ref manages it
      *      // for you :3
      *      Ref<CCArray> m_list = CCArray::create();
-     * 
+     *
      *      bool init() {
      *          if (!CCNode::init())
      *              return false;
-     * 
+     *
      *          // No need to do m_list = CCArray::create()
      *          // or m_list->retain() :3
-     * 
+     *
      *          return true;
      *      }
      * };
@@ -222,10 +240,10 @@ namespace geode {
      * @example
      * // Save a child from the current layer into a menu
      * Ref<CCMenu> menu = static_cast<CCMenu*>(this->getChildByID("main-menu"));
-     *          
+     *
      * // Remove the menu from its parent
      * menu->removeFromParent();
-     *          
+     *
      * // Menu will still point to a valid CCMenu as long as the menu variable exist
      */
     template <class T>
@@ -258,6 +276,17 @@ namespace geode {
          */
         Ref() = default;
 
+        /**
+         * Construct a Ref of an object, without retaining it.
+         * The object will still be released when Ref goes out of scope.
+         * @param obj Object to construct the Ref from
+         */
+        static Ref<T> adopt(T* obj) {
+            Ref<T> ref;
+            ref.m_obj = obj;
+            return ref;
+        }
+
         ~Ref() {
             CC_SAFE_RELEASE(m_obj);
         }
@@ -271,6 +300,18 @@ namespace geode {
             CC_SAFE_RELEASE(m_obj);
             m_obj = other;
             CC_SAFE_RETAIN(other);
+        }
+
+        /**
+         * Takes out the object from the Ref, without calling `release` on it.
+         * This is like a symmetric counterpart to `Ref::adopt`, it essentially "leaks" the object,
+         * making the Ref empty and making you responsible for releasing it manually.
+         * @returns The managed object
+         */
+        T* take() {
+            auto obj = m_obj;
+            m_obj = nullptr;
+            return obj;
         }
 
         /**
@@ -350,10 +391,10 @@ namespace geode {
         WeakRefController(WeakRefController&&) = delete;
 
         friend class WeakRefPool;
-    
+
     public:
         WeakRefController() = default;
-        
+
         bool isManaged();
         void swap(cocos2d::CCObject* other);
         cocos2d::CCObject* get() const;
@@ -361,33 +402,39 @@ namespace geode {
 
     class GEODE_DLL WeakRefPool final {
         std::unordered_map<cocos2d::CCObject*, std::shared_ptr<WeakRefController>> m_pool;
-    
+
         void check(cocos2d::CCObject* obj);
+
+        // Releases the object from the pool, removing the strong reference to it
+        void forget(cocos2d::CCObject* obj);
 
         friend class WeakRefController;
 
+        template <class T>
+        friend class WeakRef;
+
     public:
         static WeakRefPool* get();
-        
+
         std::shared_ptr<WeakRefController> manage(cocos2d::CCObject* obj);
     };
 
     /**
-     * A smart pointer to a managed CCObject-deriving class. Like Ref, except 
-     * only holds a weak reference to the targeted object. When all non-weak 
-     * references (Refs, manual retain() calls) to the object are dropped, so 
+     * A smart pointer to a managed CCObject-deriving class. Like Ref, except
+     * only holds a weak reference to the targeted object. When all non-weak
+     * references (Refs, manual retain() calls) to the object are dropped, so
      * are all weak references.
-     * 
-     * In essence, WeakRef is like a raw pointer, except that you can know if 
-     * the pointer is still valid or not, as WeakRef::lock() returns nullptr if 
+     *
+     * In essence, WeakRef is like a raw pointer, except that you can know if
+     * the pointer is still valid or not, as WeakRef::lock() returns nullptr if
      * the pointed-to-object has already been freed.
      *
-     * Note that an object pointed to by WeakRef is only released once some 
-     * WeakRef pointing to it checks for it after all other references to the 
-     * object have been dropped. If you store WeakRefs in a global map, you may 
-     * want to periodically lock all of them to make sure any memory that should 
+     * Note that an object pointed to by WeakRef is only released once some
+     * WeakRef pointing to it checks for it after all other references to the
+     * object have been dropped. If you store WeakRefs in a global map, you may
+     * want to periodically lock all of them to make sure any memory that should
      * be freed is freed.
-     * 
+     *
      * @tparam T A type that inherits from CCObject.
      */
     template <class T>
@@ -401,17 +448,20 @@ namespace geode {
 
         WeakRef(std::shared_ptr<WeakRefController> obj) : m_controller(obj) {}
 
+        friend class std::hash<WeakRef<T>>;
+
+
     public:
         /**
-         * Construct a WeakRef of an object. A weak reference is one that will 
-         * be valid as long as the object is referenced by other strong 
-         * references (such as Ref or manual retain calls), but once all strong 
-         * references are dropped, so are all weak references. The object is 
-         * freed once no strong references exist to it, and any WeakRef pointing 
+         * Construct a WeakRef of an object. A weak reference is one that will
+         * be valid as long as the object is referenced by other strong
+         * references (such as Ref or manual retain calls), but once all strong
+         * references are dropped, so are all weak references. The object is
+         * freed once no strong references exist to it, and any WeakRef pointing
          * to it is freed or locked
          * @param obj Object to construct the WeakRef from
          */
-        WeakRef(T* obj) : m_controller(WeakRefPool::get()->manage(obj)) {}
+        WeakRef(T* obj) : m_controller(obj ? WeakRefPool::get()->manage(obj) : nullptr) {}
 
         WeakRef(WeakRef<T> const& other) : WeakRef(other.m_controller) {}
 
@@ -427,15 +477,20 @@ namespace geode {
             // If the WeakRef is moved, m_controller is null
             if (m_controller) {
                 m_controller->isManaged();
+
+                if (m_controller.use_count() == 2) {
+                    // if refcount is 2 (this WeakRef + pool), free the object to avoid leaks
+                    WeakRefPool::get()->forget(m_controller->get());
+                }
             }
         }
 
         /**
-         * Lock the WeakRef, returning a Ref if the pointed object is valid or 
+         * Lock the WeakRef, returning a Ref if the pointed object is valid or
          * a null Ref if the object has been freed
          */
         Ref<T> lock() const {
-            if (m_controller->isManaged()) {
+            if (m_controller && m_controller->isManaged()) {
                 return Ref(static_cast<T*>(m_controller->get()));
             }
             return Ref<T>(nullptr);
@@ -445,7 +500,7 @@ namespace geode {
          * Check if the WeakRef points to a valid object
          */
         bool valid() const {
-            return m_controller->isManaged();
+            return m_controller && m_controller->isManaged();
         }
 
         /**
@@ -454,7 +509,13 @@ namespace geode {
          * @param other The new object to swap to
          */
         void swap(T* other) {
-            m_controller->swap(other);
+            if (m_controller) {
+                m_controller->swap(other);
+            } else if (other) {
+                m_controller = WeakRefPool::get()->manage(other);
+            } else {
+                m_controller = nullptr;
+            }
         }
 
         Ref<T> operator=(T* obj) {
@@ -463,7 +524,7 @@ namespace geode {
         }
 
         WeakRef<T>& operator=(WeakRef<T> const& other) {
-            this->swap(static_cast<T*>(other.m_controller->get()));
+            this->swap(static_cast<T*>(other.m_controller ? other.m_controller->get() : nullptr));
             return *this;
         }
 
@@ -477,47 +538,68 @@ namespace geode {
         }
 
         bool operator==(T* other) const {
-            return m_controller->get() == other;
+            return (m_controller && m_controller->get() == other) || (!m_controller && !other);
         }
 
         bool operator==(WeakRef<T> const& other) const {
+            if (!m_controller && !other.m_controller) return true;
+            if (!m_controller || !other.m_controller) return false;
+
             return m_controller->get() == other.m_controller->get();
         }
 
         bool operator!=(T* other) const {
-            return m_controller->get() != other;
+            return !(*this == other);
         }
 
         bool operator!=(WeakRef<T> const& other) const {
-            return m_controller->get() != other.m_controller->get();
+            return !(*this == other);
         }
 
         // for containers
         bool operator<(WeakRef<T> const& other) const {
+            if (!m_controller && !other.m_controller) return false;
+            if (!m_controller) return true;
+            if (!other.m_controller) return false;
+
             return m_controller->get() < other.m_controller->get();
         }
         bool operator<=(WeakRef<T> const& other) const {
-            return m_controller->get() <= other.m_controller->get();
+            return !(*this > other);
         }
         bool operator>(WeakRef<T> const& other) const {
-            return m_controller->get() > other.m_controller->get();
+            return other < *this;
         }
         bool operator>=(WeakRef<T> const& other) const {
-            return m_controller->get() >= other.m_controller->get();
+            return !(*this < other);
         }
     };
 
-    template <class Filter>
+    /**
+     * A utility node that allows for EventListener's to be added
+     * as a node to a class, delegating memory handling onto cocos.
+     * This is helpful when there is a need to tie a listener onto
+     * a node.
+     *
+     * @example
+     * this->addChild(EventListenerNode<MyFilter>::create([&](){
+     *     // handling code here
+     * }));
+     * @example
+     *
+     * @tparam Filter The event filter this listener uses. See
+     * `EventListener` for more information.
+     */
     class EventListenerNode : public cocos2d::CCNode {
     protected:
-        EventListener<Filter> m_listener;
+        ListenerHandle m_handle;
 
-        EventListenerNode(EventListener<Filter>&& listener)
-          : m_listener(std::move(listener)) {}
-    
+        EventListenerNode(ListenerHandle&& handle)
+          : m_handle(std::move(handle)) {}
+
     public:
-        static EventListenerNode* create(EventListener<Filter> listener) {
-            auto ret = new EventListenerNode(std::move(listener));
+        static EventListenerNode* create(ListenerHandle&& handle) {
+            auto ret = new EventListenerNode(std::move(handle));
             if (ret->init()) {
                 ret->autorelease();
                 return ret;
@@ -526,24 +608,9 @@ namespace geode {
             return nullptr;
         }
 
-        static EventListenerNode* create(typename Filter::Callback callback, Filter filter = Filter()) {
-            auto ret = new EventListenerNode(EventListener<Filter>(callback, filter));
-            if (ret->init()) {
-                ret->autorelease();
-                return ret;
-            }
-            delete ret;
-            return nullptr;
-        }
-
-        template <class C>
-        static EventListenerNode* create(
-            C* cls, typename EventListener<Filter>::template MemberFn<C> callback
-        ) {
-            // for some reason msvc won't let me just call EventListenerNode::create...
-            // it claims no return value...
-            // despite me writing return EventListenerNode::create()......
-            auto ret = new EventListenerNode(EventListener<Filter>(cls, callback));
+        template <class Event, class Callback>
+        static EventListenerNode* create(Event event, Callback&& callback, int priority) {
+            auto ret = new EventListenerNode(event.listen(std::forward<Callback>(callback), priority));
             if (ret->init()) {
                 ret->autorelease();
                 return ret;
@@ -554,7 +621,11 @@ namespace geode {
     };
 
     /**
-     * A simple `CCObject` wrapper for a non-`CCObject` type
+     * A simple `CCObject` wrapper for a non-`CCObject` type. This is
+     * useful for storing custom types in a `CCNode::setUserObject` without
+     * making a new class for it.
+     *
+     * @tparam T The type to wrap into a CCObject
      */
     template <class T>
         requires (!std::is_base_of_v<T, cocos2d::CCObject>)
@@ -583,8 +654,7 @@ namespace geode {
             return new ObjWrapper(value);
         }
 
-        // @note This returns a const& to allow move-only types to be returned!
-        T const& getValue() const& {
+        T& getValue() {
             return m_value;
         }
         void setValue(T&& value) {
@@ -595,61 +665,6 @@ namespace geode {
 
 // Cocos2d utils
 namespace geode::cocos {
-    /**
-     * Get child at index. Checks bounds. A negative
-     * index will get the child starting from the end
-     * @returns Child at index cast to the given type,
-     * or nullptr if index exceeds bounds
-     */
-    template <class T = cocos2d::CCNode>
-    static T* getChild(cocos2d::CCNode* x, int i) {
-        // start from end for negative index
-        if (i < 0) i = x->getChildrenCount() + i;
-        // check if backwards index is out of bounds
-        if (i < 0) return nullptr;
-        // check if forwards index is out of bounds
-        if (static_cast<int>(x->getChildrenCount()) <= i) return nullptr;
-        return static_cast<T*>(x->getChildren()->objectAtIndex(i));
-    }
-
-    /**
-     * Get nth child that is a given type. Checks bounds.
-     * @returns Child at index cast to the given type,
-     * or nullptr if index exceeds bounds
-     */
-    template <class Type = cocos2d::CCNode>
-    static Type* getChildOfType(cocos2d::CCNode* node, int index) {
-        size_t indexCounter = 0;
-        if (node->getChildrenCount() == 0) return nullptr;
-        // start from end for negative index
-        if (index < 0) {
-            index = -index - 1;
-            for (size_t i = node->getChildrenCount() - 1; i >= 0; i--) {
-                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
-                if (obj != nullptr) {
-                    if (indexCounter == index) {
-                        return obj;
-                    }
-                    ++indexCounter;
-                }
-                if (i == 0) break;
-            }
-        }
-        else {
-            for (size_t i = 0; i < node->getChildrenCount(); i++) {
-                auto obj = cast::typeinfo_cast<Type*>(node->getChildren()->objectAtIndex(i));
-                if (obj != nullptr) {
-                    if (indexCounter == index) {
-                        return obj;
-                    }
-                    ++indexCounter;
-                }
-            }
-        }
-
-        return nullptr;
-    }
-
     /**
      * Return a node, or create a default one if it's
      * nullptr. Syntactic sugar function
@@ -666,7 +681,7 @@ namespace geode::cocos {
      * @returns Rectangle fitting all nodes. Origin
      * will be <= 0 and size will be >= 0
      */
-    GEODE_DLL cocos2d::CCRect calculateNodeCoverage(std::vector<cocos2d::CCNode*> const& nodes);
+    GEODE_DLL cocos2d::CCRect calculateNodeCoverage(std::span<cocos2d::CCNode*> nodes);
     /**
      * Get bounds for a set of nodes. Based on content
      * size
@@ -693,7 +708,7 @@ namespace geode::cocos {
      */
     GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer);
 
-    using CreateLayerFunc = utils::MiniFunction<cocos2d::CCLayer*()>;
+    using CreateLayerFunc = geode::Function<cocos2d::CCLayer*()>;
 
     /**
      * Reload textures, overwriting the scene to return to after the loading
@@ -714,10 +729,28 @@ namespace geode::cocos {
     GEODE_DLL void limitNodeSize(cocos2d::CCNode* node, cocos2d::CCSize const& size, float def, float min);
 
     /**
+     * Rescale node to fit inside given width
+     * @param node Node to rescale
+     * @param width Width to fit inside
+     * @param def Default scale
+     * @param min Minimum scale
+     */
+    GEODE_DLL void limitNodeWidth(cocos2d::CCNode* node, float width, float def, float min);
+
+    /**
+     * Rescale node to fit inside given height
+     * @param node Node to rescale
+     * @param height Height to fit inside
+     * @param def Default scale
+     * @param min Minimum scale
+     */
+    GEODE_DLL void limitNodeHeight(cocos2d::CCNode* node, float height, float def, float min);
+
+    /**
      * Checks if a node is visible (recursively
      * checks parent visibility)
      * @param node Node to check if visible
-     * @returns True if node is visibile. Does
+     * @returns True if node is visible. Does
      * not take into account if node is off-screen
      */
     GEODE_DLL bool nodeIsVisible(cocos2d::CCNode* node);
@@ -734,36 +767,10 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCNode* getChildByTagRecursive(cocos2d::CCNode* node, int tag);
 
     /**
-     *  Get first node that conforms to the predicate
-     *  by traversing children recursively
-     *
-     *  @param node Parent node
-     *  @param predicate Predicate used to evaluate nodes
-     * @return Child node if one is found, or null if
-     * there is none
-     */
-    template <class Type = cocos2d::CCNode>
-    Type* findFirstChildRecursive(cocos2d::CCNode* node, utils::MiniFunction<bool(Type*)> predicate) {
-        if (cast::typeinfo_cast<Type*>(node) && predicate(static_cast<Type*>(node)))
-            return static_cast<Type*>(node);
-
-        auto children = node->getChildren();
-        if (!children) return nullptr;
-
-        for (int i = 0; i < children->count(); ++i) {
-            auto newParent = static_cast<cocos2d::CCNode*>(children->objectAtIndex(i));
-            auto child = findFirstChildRecursive(newParent, predicate);
-            if (child) return child;
-        }
-
-        return nullptr;
-    }
-
-    /**
      * Checks if a node has the given sprite frame
      * name either in the sprite or in the sprite inside
      * the button.
-     * 
+     *
      * @param node Node to check
      * @param name Name of the sprite frame to search for
      * @returns True if the node has the given sprite frame
@@ -786,7 +793,7 @@ namespace geode::cocos {
     /**
      * Checks if a node has the given sprite name either
      * in the sprite or in the sprite inside the button.
-     * 
+     *
      * @param node Node to check
      * @param name Name of the sprite to search for
      * @returns True if the node has the given sprite name
@@ -806,6 +813,13 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCNode* getChildBySpriteName(cocos2d::CCNode* parent, const char* name);
 
     /**
+     * Gets the demangled name of an object using RTTI. The returned name does not include 'struct' or 'class'
+     * @param obj Object to get the name of
+     * @returns Demangled name of the object
+     */
+    GEODE_DLL std::string_view getObjectName(cocos2d::CCObject const* obj);
+
+    /**
      * Checks if a given file exists in CCFileUtils
      * search paths.
      * @param filename File to check
@@ -818,10 +832,21 @@ namespace geode::cocos {
      */
     GEODE_DLL bool fileExistsInSearchPaths(char const* filename);
 
+    /**
+     * Calls `cocos2d::ccDrawColor4B` directly with a `cocos2d::ccColor4B` color
+     *
+     * @param color The color to draw
+     */
     inline void ccDrawColor4B(cocos2d::ccColor4B const& color) {
         cocos2d::ccDrawColor4B(color.r, color.g, color.b, color.a);
     }
 
+    /**
+     * Inverts the color's rgb values.
+     *
+     * @param color The color to invert
+     * @returns Converted color
+     */
     inline cocos2d::ccColor4B invert4B(cocos2d::ccColor4B const& color) {
         return {
             static_cast<GLubyte>(255 - color.r),
@@ -830,6 +855,12 @@ namespace geode::cocos {
             color.a};
     }
 
+    /**
+     * Inverts the color's rgb values.
+     *
+     * @param color The color to invert
+     * @returns Converted color
+     */
     inline cocos2d::ccColor3B invert3B(cocos2d::ccColor3B const& color) {
         return {
             static_cast<GLubyte>(255 - color.r),
@@ -837,123 +868,103 @@ namespace geode::cocos {
             static_cast<GLubyte>(255 - color.b)};
     }
 
+    /**
+     * Lightens the color's rgb values by a given amount.
+     *
+     * @param color The color to lighten
+     * @param amount The amount to lighten
+     * @returns Converted color
+     */
     inline cocos2d::ccColor3B lighten3B(cocos2d::ccColor3B const& color, int amount) {
         return {
-            static_cast<GLubyte>(utils::clamp(color.r + amount, 0, 255)),
-            static_cast<GLubyte>(utils::clamp(color.g + amount, 0, 255)),
-            static_cast<GLubyte>(utils::clamp(color.b + amount, 0, 255)),
+            static_cast<GLubyte>(std::clamp(color.r + amount, 0, 255)),
+            static_cast<GLubyte>(std::clamp(color.g + amount, 0, 255)),
+            static_cast<GLubyte>(std::clamp(color.b + amount, 0, 255)),
         };
     }
 
+    /**
+     * Darkens the color's rgb values by a given amount.
+     *
+     * @param color The color to darken
+     * @param amount The amount to darken
+     * @returns Converted color
+     */
     inline cocos2d::ccColor3B darken3B(cocos2d::ccColor3B const& color, int amount) {
         return lighten3B(color, -amount);
     }
 
+    /**
+     * Converts a `cocos2d::ccColor4B` into `cocos2d::ccColor3B`
+     *
+     * @param color The color to convert
+     * @returns Converted color
+     */
     inline cocos2d::ccColor3B to3B(cocos2d::ccColor4B const& color) {
         return {color.r, color.g, color.b};
     }
 
+    /**
+     * Converts a `cocos2d::ccColor3B` into `cocos2d::ccColor4B`
+     *
+     * @param color The color to convert
+     * @param alpha The additional alpha value
+     * @returns Converted color
+     */
     inline cocos2d::ccColor4B to4B(cocos2d::ccColor3B const& color, GLubyte alpha = 255) {
         return {color.r, color.g, color.b, alpha};
     }
 
+    /**
+     * Converts a `cocos2d::ccColor4B` into `cocos2d::ccColor`4F
+     *
+     * @param color The color to convert
+     * @returns Converted color
+     */
     inline cocos2d::ccColor4F to4F(cocos2d::ccColor4B const& color) {
         return {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
     }
 
-    [[deprecated("This function may have unintended behavior, use cc3bFromHexString or manually expand the color instead")]]
-    constexpr cocos2d::ccColor3B cc3x(int hexValue) {
-        if (hexValue <= 0xf)
-            return cocos2d::ccColor3B{
-                static_cast<GLubyte>(hexValue * 17),
-                static_cast<GLubyte>(hexValue * 17),
-                static_cast<GLubyte>(hexValue * 17)};
-        if (hexValue <= 0xff)
-            return cocos2d::ccColor3B{
-                static_cast<GLubyte>(hexValue),
-                static_cast<GLubyte>(hexValue),
-                static_cast<GLubyte>(hexValue)};
-        if (hexValue <= 0xfff)
-            return cocos2d::ccColor3B{
-                static_cast<GLubyte>((hexValue >> 8 & 0xf) * 17),
-                static_cast<GLubyte>((hexValue >> 4 & 0xf) * 17),
-                static_cast<GLubyte>((hexValue >> 0 & 0xf) * 17)};
-        else
-            return cocos2d::ccColor3B{
-                static_cast<GLubyte>(hexValue >> 16 & 0xff),
-                static_cast<GLubyte>(hexValue >> 8 & 0xff),
-                static_cast<GLubyte>(hexValue >> 0 & 0xff)};
-    }
-
     /**
-     * Parse a ccColor3B from a hexadecimal string. The string may contain 
+     * Parse a ccColor3B from a hexadecimal string. The string may contain
      * a leading '#'
      * @param hexValue The string to parse into a color
-     * @param permissive If true, strings like "f" are considered valid 
-     * representations of the color white. Useful for UIs that allow entering 
+     * @param permissive If true, strings like "f" are considered valid
+     * representations of the color white. Useful for UIs that allow entering
      * a hex color. Empty strings evaluate to pure white
-     * @returns A ccColor3B if it could be succesfully parsed, or an error 
+     * @returns A ccColor3B if it could be successfully parsed, or an error
      * indicating the failure reason
      */
-    GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string const& hexValue, bool permissive = false);
+    GEODE_DLL Result<cocos2d::ccColor3B> cc3bFromHexString(std::string_view hexValue, bool permissive = false);
     /**
-     * Parse a ccColor4B from a hexadecimal string. The string may contain 
+     * Parse a ccColor4B from a hexadecimal string. The string may contain
      * a leading '#'
      * @param hexValue The string to parse into a color
-     * @param requireAlpha Require the alpha component to be passed. If false, 
+     * @param requireAlpha Require the alpha component to be passed. If false,
      * alpha defaults to 255
-     * @param permissive If true, strings like "f" are considered valid 
-     * representations of the color white. Useful for UIs that allow entering 
+     * @param permissive If true, strings like "f" are considered valid
+     * representations of the color white. Useful for UIs that allow entering
      * a hex color. Empty strings evaluate to pure white
-     * @returns A ccColor4B if it could be succesfully parsed, or an error 
+     * @returns A ccColor4B if it could be successfully parsed, or an error
      * indicating the failure reason
      */
-    GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string const& hexValue, bool requireAlpha = false, bool permissive = false);
+    GEODE_DLL Result<cocos2d::ccColor4B> cc4bFromHexString(std::string_view hexValue, bool requireAlpha = false, bool permissive = false);
+
+    /**
+     * Converts a `cocos2d::ccColor3B` into a string based on the `RRGGBB` format.
+     *
+     * @param color The color to convert
+     * @returns Hex string
+     */
     GEODE_DLL std::string cc3bToHexString(cocos2d::ccColor3B const& color);
+
+    /**
+     * Converts a `cocos2d::ccColor4B` into a string based on the `RRGGBBAA` format.
+     *
+     * @param color The color to convert
+     * @returns Hex string
+     */
     GEODE_DLL std::string cc4bToHexString(cocos2d::ccColor4B const& color);
-
-    template <typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
-    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec) {
-        auto res = cocos2d::CCArray::createWithCapacity(vec.size());
-        for (auto const& item : vec)
-            res->addObject(item);
-        return res;
-    }
-
-    template <typename T, typename C, typename = std::enable_if_t<std::is_pointer_v<C>>>
-    static cocos2d::CCArray* vectorToCCArray(std::vector<T> const& vec, utils::MiniFunction<C(T)> convFunc) {
-        auto res = cocos2d::CCArray::createWithCapacity(vec.size());
-        for (auto const& item : vec)
-            res->addObject(convFunc(item));
-        return res;
-    }
-
-    template <typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
-    std::vector<T> ccArrayToVector(cocos2d::CCArray* arr) {
-        return std::vector<T>(
-            reinterpret_cast<T*>(arr->data->arr), reinterpret_cast<T*>(arr->data->arr) + arr->data->num
-        );
-    }
-
-    template <
-        typename K, typename V,
-        typename = std::enable_if_t<std::is_same_v<K, std::string> || std::is_same_v<K, intptr_t>>>
-    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map) {
-        auto res = cocos2d::CCDictionary::create();
-        for (auto const& [key, value] : map)
-            res->setObject(value, key);
-        return res;
-    }
-
-    template <
-        typename K, typename V, typename C,
-        typename = std::enable_if_t<std::is_same_v<C, std::string> || std::is_same_v<C, intptr_t>>>
-    static cocos2d::CCDictionary* mapToCCDict(std::map<K, V> const& map, utils::MiniFunction<C(K)> convFunc) {
-        auto res = cocos2d::CCDictionary::create();
-        for (auto const& [key, value] : map)
-            res->setObject(value, convFunc(key));
-        return res;
-    }
 
     /**
      * Gets the mouse position in cocos2d coordinates.
@@ -961,6 +972,35 @@ namespace geode::cocos {
      * @returns The mouse position
      */
     GEODE_DLL cocos2d::CCPoint getMousePos();
+
+
+    /**
+     * Create an ObjWrapper without having to specify the template argument
+     * @param value The value to pass into ObjWrapper::create
+     * @returns The created ObjWrapper
+     */
+    template <typename T>
+    ObjWrapper<T>* makeObjWrapper(T&& value) {
+        return ObjWrapper<T>::create(std::forward<T>(value));
+    }
+
+    /**
+     * Get the size of a label with given text and font
+     * @param text The text of the label
+     * @param font The font name of the label
+     * @param kerning Extra kerning to apply to the label
+     * @returns The size of the label
+     */
+    GEODE_DLL cocos2d::CCSize getLabelSize(std::u16string_view text, const char* font, int kerning = 0);
+
+    /**
+     * Get the size of a label with given text and font
+     * @param text The text of the label
+     * @param font The font name of the label
+     * @param kerning Extra kerning to apply to the label
+     * @returns The size of the label
+     */
+    GEODE_DLL cocos2d::CCSize getLabelSize(std::string_view text, const char* font, int kerning = 0);
 }
 
 // std specializations
@@ -972,10 +1012,22 @@ namespace std {
             return std::hash<T*>()(ref.data());
         }
     };
+
+    template <typename T>
+    struct hash<geode::WeakRef<T>> {
+        size_t operator()(geode::WeakRef<T> const& ref) const {
+            // the explicit template argument is needed here because it would otherwise cast to WeakRef and recurse
+            return std::hash<std::shared_ptr<geode::WeakRefController>>{}(ref.m_controller);
+        }
+    };
 }
 
 // more utils
 namespace geode::cocos {
+    /**
+     * A `std::back_inserter` like utility class that acts as an inserter
+     * for `CCArray`.
+     */
     struct GEODE_DLL CCArrayInserter {
     public:
         CCArrayInserter(cocos2d::CCArray* p) : m_array(p) {}
@@ -997,32 +1049,38 @@ namespace geode::cocos {
     };
 
     template <class T>
+    concept CocosObject = std::derived_from<T, cocos2d::CCObject>;
+
+    template <class T>
     concept CocosObjectPtr = std::is_pointer_v<T> && std::is_convertible_v<T, cocos2d::CCObject const*>;
 
     template <class K>
-    concept CocosDictionaryKey = std::same_as<K, int> || std::same_as<K, intptr_t> || std::same_as<K, gd::string> || std::same_as<K, std::string>;
+    concept CocosDictionaryKey = std::same_as<K, int> || std::same_as<K, intptr_t> || std::same_as<K, gd::string> || std::same_as<K, std::string> || std::same_as<K, std::string_view> || std::same_as<K, const char*>;
 
     /**
      * A templated wrapper over CCArray, providing easy iteration and indexing.
      * This will keep ownership of the given CCArray*.
-     * 
+     *
      * @tparam Type Pointer to a type that inherits CCObject.
      *
      * @example
      * CCArrayExt<GameObject*> objects = PlayLayer::get()->m_objects;
      * // Easy indexing, giving you the type you assigned
      * GameObject* myObj = objects[2];
-     * 
+     *
      * // Easy iteration using C++ range-based for loops
      * for (auto* obj : objects) {
      *   log::info("{}", obj->m_objectID);
      * }
      */
-    template <CocosObjectPtr Type>
+    template <class InpT = cocos2d::CCObject, bool Retain = true>
     class CCArrayExt {
     protected:
-        Ref<cocos2d::CCArray> m_arr;
-        using T = std::remove_pointer_t<Type>;
+        using T = std::remove_pointer_t<InpT>;
+        using Container = std::conditional_t<Retain, Ref<cocos2d::CCArray>, cocos2d::CCArray*>;
+        static_assert(CocosObject<T>);
+
+        Container m_arr;
 
     public:
         using value_type = T*;
@@ -1031,12 +1089,18 @@ namespace geode::cocos {
 
         CCArrayExt() : m_arr(cocos2d::CCArray::create()) {}
 
-        CCArrayExt(cocos2d::CCArray* arr)
-          : m_arr(arr) {}
+        CCArrayExt(cocos2d::CCArray* arr) : m_arr(arr) {}
+
+        template <typename Cont> requires (std::ranges::input_range<Cont>)
+        CCArrayExt(Cont const& vec) : m_arr(cocos2d::CCArray::createWithCapacity(vec.size())) {
+            for (auto obj : vec) {
+                m_arr->addObject(obj);
+            }
+        }
 
         CCArrayExt(CCArrayExt const& a) : m_arr(a.m_arr) {}
 
-        CCArrayExt(CCArrayExt&& a) : m_arr(a.m_arr) {
+        CCArrayExt(CCArrayExt&& a) noexcept : m_arr(a.m_arr) {
             a.m_arr = nullptr;
         }
 
@@ -1077,7 +1141,7 @@ namespace geode::cocos {
         }
 
         T* pop_back() {
-            T ret = m_arr->lastObject();
+            T* ret = static_cast<T*>(m_arr->lastObject());
             m_arr->removeLastObject();
             return ret;
         }
@@ -1085,21 +1149,54 @@ namespace geode::cocos {
         cocos2d::CCArray* inner() {
             return m_arr;
         }
+
+        template <template <typename...> typename Cont = std::vector, typename Elem = T*>
+        Cont<Elem> to() const {
+            return Cont<Elem>(this->begin(), this->end());
+        }
+
+        template <typename Elem = T*>
+        auto toVector() const {
+            return this->to<std::vector, Elem>();
+        }
+
+        bool empty() const {
+            return this->size() == 0;
+        }
+
+        T* front() const {
+            return static_cast<T*>(m_arr->firstObject());
+        }
+
+        T* back() const {
+            return static_cast<T*>(m_arr->lastObject());
+        }
     };
 
-    template <typename K, typename T>
+    /**
+     * A templated wrapper over `CCDictElement`, acting as a simple iterator over
+     * `CCDictionary`.
+     *
+     * @tparam Type Pointer to a type that inherits CCObject.
+     */
+    template <class K, class T>
     struct CCDictIterator {
     public:
         CCDictIterator(cocos2d::CCDictElement* p) : m_ptr(p) {}
 
         cocos2d::CCDictElement* m_ptr;
 
-        std::pair<K, T> operator*() {
-            if constexpr (std::is_same_v<K, std::string> || std::is_same_v<K, gd::string>) {
-                return {m_ptr->getStrKey(), static_cast<T>(m_ptr->getObject())};
+        std::pair<K, T*> operator*() {
+            if constexpr (
+                std::is_same_v<K, std::string>
+                || std::is_same_v<K, gd::string>
+                || std::is_same_v<K, std::string_view>
+                || std::is_same_v<K, const char*>)
+            {
+                return {m_ptr->getStrKey(), static_cast<T*>(m_ptr->getObject())};
             }
             else {
-                return {m_ptr->getIntKey(), static_cast<T>(m_ptr->getObject())};
+                return {m_ptr->getIntKey(), static_cast<T*>(m_ptr->getObject())};
             }
         }
 
@@ -1108,35 +1205,36 @@ namespace geode::cocos {
             return *this;
         }
 
-        friend bool operator==(CCDictIterator<K, T> const& a, CCDictIterator<K, T> const& b) {
+        friend bool operator==(CCDictIterator const& a, CCDictIterator const& b) {
             return a.m_ptr == b.m_ptr;
-        };
+        }
 
-        friend bool operator!=(CCDictIterator<K, T> const& a, CCDictIterator<K, T> const& b) {
+        friend bool operator!=(CCDictIterator const& a, CCDictIterator const& b) {
             return a.m_ptr != b.m_ptr;
-        };
-
-        bool operator!=(int b) {
-            return m_ptr != nullptr;
         }
     };
 
-    template <typename K, typename T>
+    /**
+     * A simple struct that as an entry to a `CCDictionary`.
+     *
+     * @tparam Type Pointer to a type that inherits CCObject.
+     */
+    template <class K, class T>
     struct CCDictEntry {
         K m_key;
         cocos2d::CCDictionary* m_dict;
 
         CCDictEntry(K key, cocos2d::CCDictionary* dict) : m_key(key), m_dict(dict) {}
 
-        T operator->() {
-            return static_cast<T>(m_dict->objectForKey(m_key));
+        T* operator->() {
+            return static_cast<T*>(m_dict->objectForKey(m_key));
         }
 
-        operator T() {
-            return static_cast<T>(m_dict->objectForKey(m_key));
+        operator T*() {
+            return static_cast<T*>(m_dict->objectForKey(m_key));
         }
 
-        CCDictEntry& operator=(T f) {
+        CCDictEntry& operator=(T* f) {
             m_dict->setObject(f, m_key);
             return *this;
         }
@@ -1145,54 +1243,66 @@ namespace geode::cocos {
     /**
      * A templated wrapper over CCDictionary, providing easy iteration and indexing.
      * This will keep ownership of the given CCDictionary*.
-     * 
-     * @tparam Key Type of the key. MUST only be int or gd::string or std::string.
+     *
+     * @tparam Key Type of the key. MUST be one of: int, std::string_view (recommended), gd::string, std::string.
      * @tparam ValuePtr Pointer to a type that inherits CCObject.
      *
      * @example
-     * CCDictionaryExt<std::string, GJGameLevel*> levels = getSomeDict();
+     * CCDictionaryExt<std::string_view, GJGameLevel*> levels = getSomeDict();
      * // Easy indexing, giving you the type you assigned
      * GJGameLevel* myLvl = levels["Cube Adventures"];
-     * 
+     *
      * // Easy iteration using C++ range-based for loops
      * for (auto [name, level] : levels) {
      *   log::info("{}: {}", name, level->m_levelID);
      * }
      */
-    template <CocosDictionaryKey Key, CocosObjectPtr ValuePtr>
+    template <class Key = std::string_view, class ValueInpT = cocos2d::CCObject, bool Retain = true>
     struct CCDictionaryExt {
     protected:
-        Ref<cocos2d::CCDictionary> m_dict;
+        using Value = std::remove_pointer_t<ValueInpT>;
+        using ValuePtr = Value*;
+        using Container = std::conditional_t<Retain, Ref<cocos2d::CCDictionary>, cocos2d::CCDictionary*>;
+        using Entry = CCDictEntry<Key, Value>;
+        using Iterator = CCDictIterator<Key, Value>;
+        static_assert(CocosDictionaryKey<Key>);
+        static_assert(CocosObject<Value>);
+
+        Container m_dict;
 
     public:
         CCDictionaryExt() : m_dict(cocos2d::CCDictionary::create()) {}
 
         CCDictionaryExt(cocos2d::CCDictionary* dict) : m_dict(dict) {}
 
+        template<CocosDictionaryKey MapKey>
+        CCDictionaryExt(std::unordered_map<MapKey, ValuePtr> const& map) : m_dict(cocos2d::CCDictionary::create()) {
+            for (auto& [k, v] : map) {
+                m_dict->setObject(v, k);
+            }
+        }
+
         CCDictionaryExt(CCDictionaryExt const& d) : m_dict(d.m_dict) {}
 
-        CCDictionaryExt(CCDictionaryExt&& d) : m_dict(d.m_dict) {
-            d.m_dict = nullptr;
-        }
+        CCDictionaryExt(CCDictionaryExt&& d) noexcept : m_dict(std::exchange(d.m_dict, nullptr)) {}
 
         auto begin() {
-            return CCDictIterator<Key, ValuePtr>(m_dict->m_pElements);
+            return Iterator(m_dict->m_pElements);
         }
 
-        // do not use this
         auto end() {
-            return nullptr;
+            return Iterator(nullptr);
         }
 
         size_t size() {
             return m_dict->count();
         }
 
-        auto operator[](const Key& key) {
+        Entry operator[](const Key& key) {
             auto ret = static_cast<ValuePtr>(m_dict->objectForKey(key));
             if (!ret) m_dict->setObject(cocos2d::CCNode::create(), key);
 
-            return CCDictEntry<Key, ValuePtr>(key, m_dict);
+            return Entry(key, m_dict);
         }
 
         bool contains(const Key& key) {
@@ -1206,18 +1316,25 @@ namespace geode::cocos {
         cocos2d::CCDictionary* inner() {
             return m_dict;
         }
+
+        bool empty() const {
+            return this->size() == 0;
+        }
     };
 
+    /**
+     * Contains various utility functions related to `CCMenuItem` set of classes.
+     */
     struct CCMenuItemExt {
     private:
         template <class Node>
         class LambdaCallback : public cocos2d::CCObject {
         public:
-            utils::MiniFunction<void(Node*)> m_callback;
+            geode::Function<void(Node*)> m_callback;
 
-            static LambdaCallback* create(utils::MiniFunction<void(Node*)>&& callback) {
+            static LambdaCallback* create(geode::Function<void(Node*)> callback) {
                 auto ret = new (std::nothrow) LambdaCallback();
-                if (ret->init(std::forward<std::remove_reference_t<decltype(callback)>>(callback))) {
+                if (ret->init(std::move(callback))) {
                     ret->autorelease();
                     return ret;
                 }
@@ -1225,8 +1342,8 @@ namespace geode::cocos {
                 return nullptr;
             }
 
-            bool init(utils::MiniFunction<void(Node*)>&& callback) {
-                m_callback = std::forward<std::remove_reference_t<decltype(callback)>>(callback);
+            bool init(geode::Function<void(Node*)> callback) {
+                m_callback = std::move(callback);
                 return true;
             }
 
@@ -1236,79 +1353,140 @@ namespace geode::cocos {
         };
 
     public:
+        /**
+         * Creates a `CCMenuItem` with a callback.
+         *
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static cocos2d::CCMenuItem* create(
-            utils::MiniFunction<void(cocos2d::CCMenuItem*)>&& callback
+            geode::Function<void(cocos2d::CCMenuItem*)> callback
         ) {
             auto item = cocos2d::CCMenuItem::create();
-            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            assignCallback(item, std::move(callback));
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemSprite` with a normal and a selected sprite.
+         *
+         * @param normalSprite The sprite used on idle
+         * @param selectedSprite The sprite used when selected
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static cocos2d::CCMenuItemSprite* createSprite(
-            cocos2d::CCNode* normalSprite, 
+            cocos2d::CCNode* normalSprite,
             cocos2d::CCNode* selectedSprite,
-            utils::MiniFunction<void(cocos2d::CCMenuItemSprite*)>&& callback
+            geode::Function<void(cocos2d::CCMenuItemSprite*)> callback
         ) {
             auto item = cocos2d::CCMenuItemSprite::create(normalSprite, selectedSprite);
-            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            assignCallback(item, std::move(callback));
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemSprite` with a disabled, normal and a selected sprite.
+         *
+         * @param normalSprite The sprite used on idle
+         * @param selectedSprite The sprite used when selected
+         * @param disabledSprite The sprite used when disabled
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static cocos2d::CCMenuItemSprite* createSprite(
-            cocos2d::CCNode* normalSprite, 
+            cocos2d::CCNode* normalSprite,
             cocos2d::CCNode* selectedSprite,
             cocos2d::CCNode* disabledSprite,
-            utils::MiniFunction<void(cocos2d::CCMenuItemSprite*)>&& callback
+            geode::Function<void(cocos2d::CCMenuItemSprite*)> callback
         ) {
             auto item = cocos2d::CCMenuItemSprite::create(normalSprite, selectedSprite, disabledSprite);
-            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            assignCallback(item, std::move(callback));
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemSpriteExtra` with a sprite and a callback.
+         *
+         * @param normalSprite The sprite for the button
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static CCMenuItemSpriteExtra* createSpriteExtra(
-            cocos2d::CCNode* normalSprite, 
-            utils::MiniFunction<void(CCMenuItemSpriteExtra*)>&& callback
+            cocos2d::CCNode* normalSprite,
+            geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
             auto item = CCMenuItemSpriteExtra::create(normalSprite, nullptr, nullptr);
-            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            assignCallback(item, std::move(callback));
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemSpriteExtra` with a file name and a sprite scale.
+         *
+         * @param normalSpriteName The file name used for the normal sprite
+         * @param scale The scale used for the sprite
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static CCMenuItemSpriteExtra* createSpriteExtraWithFilename(
-            std::string_view normalSpriteName,
+            ZStringView normalSpriteName,
             float scale,
-            utils::MiniFunction<void(CCMenuItemSpriteExtra*)>&& callback
+            geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
-            auto sprite = cocos2d::CCSprite::create(normalSpriteName.data());
+            auto sprite = cocos2d::CCSprite::create(normalSpriteName.c_str());
             sprite->setScale(scale);
 
-            return createSpriteExtra(sprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createSpriteExtra(sprite, std::move(callback));
         }
 
+        /**
+         * Creates a `CCMenuItemSpriteExtra` with a frame name and a sprite scale.
+         *
+         * @param normalSpriteName The frame name used for the normal sprite
+         * @param scale The scale used for the sprite
+         * @param callback The callback for the button
+         * @returns The created button
+         */
         static CCMenuItemSpriteExtra* createSpriteExtraWithFrameName(
-            std::string_view normalSpriteName,
+            ZStringView normalSpriteName,
             float scale,
-            utils::MiniFunction<void(CCMenuItemSpriteExtra*)>&& callback
+            geode::Function<void(CCMenuItemSpriteExtra*)> callback
         ) {
-            auto sprite = cocos2d::CCSprite::createWithSpriteFrameName(normalSpriteName.data());
+            auto sprite = cocos2d::CCSprite::createWithSpriteFrameName(normalSpriteName.c_str());
             sprite->setScale(scale);
 
-            return createSpriteExtra(sprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createSpriteExtra(sprite, std::move(callback));
         }
 
+        /**
+         * Creates a `CCMenuItemToggler` with an on and off sprite.
+         *
+         * @param onSprite The sprite used when toggled on
+         * @param offSprite The sprite used when toggled off
+         * @param callback The callback for the toggle
+         * @returns The created toggle
+         */
         static CCMenuItemToggler* createToggler(
-            cocos2d::CCNode* onSprite, 
+            cocos2d::CCNode* onSprite,
             cocos2d::CCNode* offSprite,
-            utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
+            geode::Function<void(CCMenuItemToggler*)> callback
         ) {
             auto item = CCMenuItemToggler::create(offSprite, onSprite, nullptr, nullptr);
-            assignCallback(item, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            assignCallback(item, std::move(callback));
             return item;
         }
 
+        /**
+         * Creates a `CCMenuItemToggler` with standard toggle sprites GD uses.
+         *
+         * @param scale The scale of the sprites
+         * @param callback The callback for the toggle
+         * @returns The created toggle
+         */
         static CCMenuItemToggler* createTogglerWithStandardSprites(
             float scale,
-            utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
+            geode::Function<void(CCMenuItemToggler*)> callback
         ) {
             auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
             auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
@@ -1316,50 +1494,164 @@ namespace geode::cocos {
             offSprite->setScale(scale);
             onSprite->setScale(scale);
 
-            return createToggler(onSprite, offSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createToggler(onSprite, offSprite, std::move(callback));
         }
 
+        /**
+         * Creates a `CCMenuItemToggler` with an on and off sprite file name
+         *
+         * @param onSpriteName The file name thats used to create the toggled on sprite
+         * @param offSpriteName The file name thats used to create the toggled off sprite
+         * @param callback The callback for the toggle
+         * @returns The created toggle
+         */
         static CCMenuItemToggler* createTogglerWithFilename(
-            std::string_view onSpriteName,
-            std::string_view offSpriteName,
+            ZStringView onSpriteName,
+            ZStringView offSpriteName,
             float scale,
-            utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
+            geode::Function<void(CCMenuItemToggler*)> callback
         ) {
-            auto offSprite = cocos2d::CCSprite::create(offSpriteName.data());
-            auto onSprite = cocos2d::CCSprite::create(onSpriteName.data());
+            auto offSprite = cocos2d::CCSprite::create(offSpriteName.c_str());
+            auto onSprite = cocos2d::CCSprite::create(onSpriteName.c_str());
 
             offSprite->setScale(scale);
             onSprite->setScale(scale);
 
-            return createToggler(onSprite, offSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createToggler(onSprite, offSprite, std::move(callback));
         }
 
+        /**
+         * Creates a `CCMenuItemToggler` with an on and off sprite frame name
+         *
+         * @param onSpriteName The frame name thats used to create the toggled on sprite
+         * @param offSpriteName The frame name thats used to create the toggled off sprite
+         * @param callback The callback for the toggle
+         * @returns The created toggle
+         */
         static CCMenuItemToggler* createTogglerWithFrameName(
-            std::string_view onSpriteName,
-            std::string_view offSpriteName,
+            ZStringView onSpriteName,
+            ZStringView offSpriteName,
             float scale,
-            utils::MiniFunction<void(CCMenuItemToggler*)>&& callback
+            geode::Function<void(CCMenuItemToggler*)> callback
         ) {
-            auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName(offSpriteName.data());
-            auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName(onSpriteName.data());
+            auto offSprite = cocos2d::CCSprite::createWithSpriteFrameName(offSpriteName.c_str());
+            auto onSprite = cocos2d::CCSprite::createWithSpriteFrameName(onSpriteName.c_str());
 
             offSprite->setScale(scale);
             onSprite->setScale(scale);
 
-            return createToggler(onSprite, offSprite, std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            return createToggler(onSprite, offSprite, std::move(callback));
         }
 
+        /**
+         * Assigns a lambda callback to a `CCMenuItem`
+         *
+         * @param item The item to assign callback to
+         * @param callback The callback to assign
+         */
         template <class Node>
         static void assignCallback(
             cocos2d::CCMenuItem* item,
-            utils::MiniFunction<void(Node*)>&& callback
+            geode::Function<void(Node*)> callback
         ) {
-            auto lambda = LambdaCallback<Node>::create(std::forward<std::remove_reference_t<decltype(callback)>>(callback));
+            auto lambda = LambdaCallback<Node>::create(std::move(callback));
             item->setTarget(lambda, menu_selector(LambdaCallback<Node>::execute));
             item->setUserObject("lambda-callback", lambda);
         }
     };
 
+    /**
+     *  Get first node that conforms to the predicate
+     *  by traversing children recursively
+     *
+     *  @param node Parent node
+     *  @param predicate Predicate used to evaluate nodes
+     * @return Child node if one is found, or null if
+     * there is none
+     */
+    template <class Type = cocos2d::CCNode>
+    Type* findFirstChildRecursive(cocos2d::CCNode* gnode, geode::FunctionRef<bool(Type*)> predicate) {
+        auto node = cast::typeinfo_cast<Type*>(gnode);
+        if (node && predicate(node))
+            return node;
+
+        for (auto child : gnode->getChildrenExt()) {
+            auto result = findFirstChildRecursive(child, predicate);
+            if (result) return result;
+        }
+
+        return nullptr;
+    }
+
+    /**
+     * CCCallFunc alternative that accepts a lambda (or any function object)
+     *
+     * @tparam The type of the function object
+     */
+    template <std::invocable F>
+    class CallFuncExtImpl : public cocos2d::CCActionInstant {
+    public:
+        static CallFuncExtImpl* create(const F& func) {
+            auto ret = new CallFuncExtImpl(func);
+            ret->autorelease();
+            return ret;
+        }
+
+        static CallFuncExtImpl* create(F&& func) {
+            auto ret = new CallFuncExtImpl(std::move(func));
+            ret->autorelease();
+            return ret;
+        }
+
+    private:
+        F m_func;
+
+        // F may not be default-constructible
+        CallFuncExtImpl(F&& func) : m_func(std::move(func)) {}
+        CallFuncExtImpl(F const& func) : m_func(func) {}
+
+        void update(float) override {
+            // Make sure any `geode::Function`s are valid
+            if constexpr (requires { static_cast<bool>(m_func); }) {
+                if (m_func) m_func();
+            } else {
+                m_func();
+            }
+        }
+    };
+
+    // small hack to allow template deduction
+    struct CallFuncExt {
+        template <std::invocable F>
+        static auto create(F&& func) {
+            using Fd = std::decay_t<F>;
+
+            return CallFuncExtImpl<Fd>::create(std::forward<F>(func));
+        }
+    };
+
+    /**
+     * A utility function that recursively sets the touch priorities
+     * of a node and its children.
+     *
+     * Not very recommended for use but there are cases it can quickly
+     * fix some touch handler related problems.
+     *
+     * @param node The parent node to set touch priority to
+     * @param priority The priority value to set to
+     * @param force Whether it should force set without smaller-than checks
+     */
     void GEODE_DLL handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force = false);
+
+    /**
+     * A utility function that recursively sets the touch priorities
+     * of a node and its children.
+     *
+     * Not very recommended for use but there are cases it can quickly
+     * fix some touch handler related problems.
+     *
+     * @param node The parent node to set touch priority to
+     * @param force Whether it should force set without smaller-than checks
+     */
     void GEODE_DLL handleTouchPriority(cocos2d::CCNode* node, bool force = false);
 }

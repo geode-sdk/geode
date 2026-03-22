@@ -1,28 +1,39 @@
-#include <Geode/ui/SceneManager.hpp>
+#include <Geode/ui/OverlayManager.hpp>
+#include <Geode/modify/CCDirector.hpp>
+#include <Geode/modify/CCEGLView.hpp>
 
 using namespace geode::prelude;
 
-
 #ifdef GEODE_IS_WINDOWS
-
 #include <Geode/modify/AppDelegate.hpp>
-struct SceneSwitch : Modify<SceneSwitch, AppDelegate> {
-    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
-    void willSwitchToScene(CCScene* scene) {
-        AppDelegate::willSwitchToScene(scene);
-        SceneManager::get()->willSwitchToScene(scene);
-    }
-};
-
 #else
-
 #include <Geode/modify/AchievementNotifier.hpp>
-struct SceneSwitch : Modify<SceneSwitch, AchievementNotifier> {
+#endif
+
+namespace geode {
+
+struct SceneSwitch2 : Modify<SceneSwitch2, CCDirector> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("persist disabled")
-    void willSwitchToScene(CCScene* scene) {
-        AchievementNotifier::willSwitchToScene(scene);
-        SceneManager::get()->willSwitchToScene(scene);
+    // CCDirector does not call willSwitchToScene in these 2 instances,
+    // so we have to do it ourselves to make everything behave as expected
+    void popScene() {
+        CCDirector::popScene();
+    #ifdef GEODE_IS_WINDOWS
+        AppDelegate::get()->willSwitchToScene(m_pNextScene);
+    #else
+        AchievementNotifier::sharedState()->willSwitchToScene(m_pNextScene);
+    #endif
+    }
+
+    void popToSceneStackLevel(int level) {
+        CCDirector::popToSceneStackLevel(level);
+    #ifdef GEODE_IS_WINDOWS
+        AppDelegate::get()->willSwitchToScene(m_pNextScene);
+    #else
+        AchievementNotifier::sharedState()->willSwitchToScene(m_pNextScene);
+    #endif
     }
 };
 
-#endif
+
+}

@@ -4,21 +4,23 @@
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
 #include <matjson.hpp>
-#include <fstream>
 #include <mz.h>
 #include <mz_os.h>
 #include <mz_strm.h>
 #include <mz_strm_os.h>
 #include <mz_strm_mem.h>
 #include <mz_zip.h>
-#include <internal/FileWatcher.hpp>
 #include <Geode/utils/ranges.hpp>
 
 #ifdef GEODE_IS_WINDOWS
-#include <filesystem>
+# include <filesystem>
+#else
+# include <unistd.h>
+# include <fcntl.h>
+# include <sys/stat.h>
 #endif
 
-#if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_MACOS)
+#if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
 struct path_hash_t {
     std::size_t operator()(std::filesystem::path const& path) const noexcept {
         return std::filesystem::hash_value(path);
@@ -31,109 +33,259 @@ using path_hash_t = std::hash<std::filesystem::path>;
 using namespace geode::prelude;
 using namespace geode::utils::file;
 
-Result<std::string> utils::file::readString(std::filesystem::path const& path) {
-    if (!std::filesystem::exists(path))
-        return Err("File does not exist");
+#ifdef GEODE_IS_WINDOWS
+static std::string formatError(DWORD error = GetLastError()) {
+    LPSTR buffer = nullptr;
+    DWORD size = FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        error,
+        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+        (LPSTR)&buffer,
+        0,
+        nullptr
+    );
 
-#if _WIN32
-    std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
-#else
-    std::ifstream in(path.string(), std::ios::in | std::ios::binary);
-#endif
-    if (!in)
-        return Err("Unable to open file");
-
-    std::string contents;
-    in.seekg(0, std::ios::end);
-    contents.resize((const size_t)in.tellg());
-    in.seekg(0, std::ios::beg);
-    in.read(&contents[0], contents.size());
-    in.close();
-    return Ok(contents);
-}
-
-Result<matjson::Value> utils::file::readJson(std::filesystem::path const& path) {
-    auto str = utils::file::readString(path);
-    if (!str)
-        return Err(str.unwrapErr());
-    std::string error;
-    auto res = matjson::parse(str.value(), error);
-    if (error.size())
-        return Err("Unable to parse JSON: " + error);
-    return Ok(res.value());
-}
-
-Result<ByteVector> utils::file::readBinary(std::filesystem::path const& path) {
-    if (!std::filesystem::exists(path))
-        return Err("File does not exist");
-
-#if _WIN32
-    std::ifstream in(path.wstring(), std::ios::in | std::ios::binary);
-#else
-    std::ifstream in(path.string(), std::ios::in | std::ios::binary);
-#endif
-    if (!in)
-        return Err("Unable to open file");
-
-    return Ok(ByteVector(std::istreambuf_iterator<char>(in), {}));
-}
-
-Result<> utils::file::writeString(std::filesystem::path const& path, std::string const& data) {
-    std::ofstream file;
-#if _WIN32
-    file.open(path.wstring());
-#else
-    file.open(path.string());
-#endif
-    if (!file.is_open()) {
-        file.close();
-        return Err("Unable to open file");
+    if (size == 0 || !buffer) {
+        return fmt::format("Win error {}", error);
     }
 
-    file << data;
-    file.close();
+    std::string message(buffer, size);
+    LocalFree(buffer);
+
+    while (!message.empty() && (message.back() == '\n' || message.back() == '\r')) {
+        message.pop_back();
+    }
+
+    return message;
+}
+#else
+static std::string formatError(int error = errno) {
+    return strerror(error); // thank you posix for making it simple
+}
+#endif
+
+#ifdef GEODE_IS_WINDOWS
+template <typename T>
+Result<> readFileInto(std::filesystem::path const& path, T& out) {
+    HANDLE file = CreateFileW(
+        path.c_str(),
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+
+    if (file == INVALID_HANDLE_VALUE) {
+        return Err("Unable to open file: {}", formatError());
+    }
+
+    LARGE_INTEGER fileSize;
+    if (!GetFileSizeEx(file, &fileSize)) {
+        CloseHandle(file);
+        return Err("Unable to get file size: {}", formatError());
+    }
+
+    out.resize(fileSize.QuadPart);
+    DWORD read = 0;
+    if (!ReadFile(file, out.data(), static_cast<DWORD>(out.size()), &read, nullptr)) {
+        CloseHandle(file);
+        return Err("Unable to read file: {}", formatError());
+    }
+
+    CloseHandle(file);
+
+    if (read < out.size()) {
+        return Err("Unable to read entire file: only read {} of {}", read, out.size());
+    }
+
     return Ok();
 }
 
-Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteVector const& data) {
-    std::ofstream file;
-#if _WIN32
-    file.open(path.wstring(), std::ios::out | std::ios::binary);
-#else
-    file.open(path.string(), std::ios::out | std::ios::binary);
-#endif
-    if (!file.is_open()) {
-        file.close();
-        return Err("Unable to open file");
+static Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
+    HANDLE file = CreateFileW(
+        path.c_str(),
+        GENERIC_WRITE,
+        0,
+        nullptr,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+
+    if (file == INVALID_HANDLE_VALUE) {
+        return Err("Unable to open file: {}", formatError());
     }
 
-    file.write(reinterpret_cast<char const*>(data.data()), data.size());
-    file.close();
+    DWORD written = 0;
+    if (!WriteFile(file, data, static_cast<DWORD>(size), &written, nullptr)) {
+        CloseHandle(file);
+        return Err("Unable to write file: {}", formatError());
+    }
+
+    if (written < size) {
+        CloseHandle(file);
+        return Err("Unable to write entire file: only wrote {} of {}", written, size);
+    }
+
+    CloseHandle(file);
+
+    return Ok();
+}
+
+#else
+
+template <typename T>
+Result<> readFileInto(std::filesystem::path const& path, T& out) {
+    int file = open(path.c_str(), O_RDONLY);
+
+    if (file == -1) {
+        return Err("Unable to open file: {}", formatError());
+    }
+
+    struct stat fst;
+    if (fstat(file, &fst) == -1) {
+        close(file);
+        return Err("Unable to get file size: {}", formatError());
+    }
+
+    out.resize(fst.st_size);
+    ssize_t bread = read(file, out.data(), out.size());
+    close(file);
+
+    if (bread < 0) {
+        return Err("Unable to read file: {}", formatError());
+    }
+
+    if (bread < out.size()) {
+        return Err("Unable to read entire file: only read {} of {}", bread, out.size());
+    }
+
+    return Ok();
+}
+
+static Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
+    int file = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+    if (file < 0) {
+        return Err("Unable to open file: {}", formatError());
+    }
+
+    size_t written = 0;
+    while (written < size) {
+        ssize_t bwrite = write(file, (uint8_t*)data + written, size - written);
+        if (bwrite < 0) {
+            if (errno == EINTR) continue;
+            close(file);
+            return Err("Unable to write file: {}", formatError());
+        }
+        written += bwrite;
+    }
+
+    close(file);
+
+    return Ok();
+}
+
+#endif
+
+Result<std::string> utils::file::readString(std::filesystem::path const& path) {
+    std::string contents;
+    GEODE_UNWRAP(readFileInto(path, contents));
+    return Ok(std::move(contents));
+}
+
+Result<matjson::Value> utils::file::readJson(std::filesystem::path const& path) {
+    auto str = GEODE_UNWRAP(utils::file::readString(path));
+    return matjson::parse(str).mapErr([&](auto const& err) {
+        return fmt::format("Unable to parse JSON: {}", err);
+    });
+}
+
+Result<ByteVector> utils::file::readBinary(std::filesystem::path const& path) {
+    std::vector<uint8_t> contents;
+    GEODE_UNWRAP(readFileInto(path, contents));
+    return Ok(std::move(contents));
+}
+
+Result<> utils::file::writeString(std::filesystem::path const& path, std::string_view data) {
+    return writeFileFrom(path, (void*)data.data(), data.size());
+}
+
+Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string_view data) {
+    GEODE_ANDROID(
+        return utils::file::writeString(path, data); // safe approach causes significant performance issues on Android
+    )
+
+    std::error_code ec;
+
+    auto tmpPath = path;
+    tmpPath += ".tmp";
+
+    auto res = utils::file::writeString(tmpPath, data);
+    if (!res) {
+        if (std::filesystem::exists(tmpPath, ec)) {
+            std::filesystem::remove(tmpPath, ec);
+        }
+        return res;
+    }
+
+    std::filesystem::rename(tmpPath, path, ec);
+    if (ec) {
+        return Err("Unable to rename temporary file: " + ec.message());
+    }
+
+    return Ok();
+}
+
+Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteSpan data) {
+    return writeFileFrom(path, (void*)data.data(), data.size());
+}
+
+Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteSpan data) {
+    GEODE_ANDROID(
+        return utils::file::writeBinary(path, data); // safe approach causes significant performance issues on Android
+    )
+
+    std::error_code ec;
+
+    auto tmpPath = path;
+    tmpPath += ".tmp";
+
+    auto res = utils::file::writeBinary(tmpPath, data);
+    if (!res) {
+        if (std::filesystem::exists(tmpPath, ec)) {
+            std::filesystem::remove(tmpPath, ec);
+        }
+        return res;
+    }
+
+    std::filesystem::rename(tmpPath, path, ec);
+    if (ec) {
+        return Err("Unable to rename temporary file: " + ec.message());
+    }
+
     return Ok();
 }
 
 Result<> utils::file::createDirectory(std::filesystem::path const& path) {
     std::error_code ec;
-#ifdef GEODE_IS_WINDOWS
-    std::filesystem::create_directory(path.wstring(), ec);
-#else
     std::filesystem::create_directory(path, ec);
-#endif
+
     if (ec) {
-        return Err("Unable to create directory");
+        return Err("Unable to create directory: {}", ec.message());
     }
     return Ok();
 }
 
 Result<> utils::file::createDirectoryAll(std::filesystem::path const& path) {
     std::error_code ec;
-#ifdef GEODE_IS_WINDOWS
-    std::filesystem::create_directories(path.wstring(), ec);
-#else
     std::filesystem::create_directories(path, ec);
-#endif
+
     if (ec) {
-        return Err("Unable to create directory");
+        return Err("Unable to create directory: {}", ec.message());
     }
     return Ok();
 }
@@ -141,10 +293,13 @@ Result<> utils::file::createDirectoryAll(std::filesystem::path const& path) {
 Result<std::vector<std::filesystem::path>> utils::file::readDirectory(
     std::filesystem::path const& path, bool recursive
 ) {
-    if (!std::filesystem::exists(path)) {
+    std::error_code ec;
+
+    if (!std::filesystem::exists(path, ec) || ec) {
         return Err("Directory does not exist");
     }
-    if (!std::filesystem::is_directory(path)) {
+
+    if (!std::filesystem::is_directory(path, ec) || ec) {
         return Err("Path is not a directory");
     }
     std::vector<std::filesystem::path> res;
@@ -180,7 +335,7 @@ private:
     int32_t m_mode;
     std::variant<Path, ByteVector> m_srcDest;
     std::unordered_map<Path, ZipEntry, path_hash_t> m_entries;
-    utils::MiniFunction<void(uint32_t, uint32_t)> m_progressCallback;
+    geode::Function<void(uint32_t, uint32_t)> m_progressCallback;
 
     Result<> init() {
         // open stream from file
@@ -191,9 +346,12 @@ private:
             if (!m_stream) {
                 return Err("Unable to open file");
             }
+
+            auto pathstr = utils::string::pathToString(path);
+
             if (mz_stream_os_open(
                 m_stream,
-                reinterpret_cast<const char*>(path.u8string().c_str()),
+                pathstr.c_str(),
                 m_mode
             ) != MZ_OK) {
                 return Err("Unable to read file");
@@ -206,7 +364,7 @@ private:
             if (!m_stream) {
                 return Err("Unable to create memory stream");
             }
-            // mz_stream_mem_set_buffer doesn't memcpy so we gotta store the data 
+            // mz_stream_mem_set_buffer doesn't memcpy so we gotta store the data
             // elsewhere
             if (m_mode == MZ_OPEN_MODE_READ) {
                 mz_stream_mem_set_buffer(m_stream, src.data(), src.size());
@@ -266,7 +424,7 @@ private:
             return Ok();
         }
         else {
-            return Err(std::to_string(code));
+            return Err("{}", code);
         }
     }
 
@@ -279,10 +437,10 @@ public:
         return Ok(std::move(ret));
     }
 
-    static Result<std::unique_ptr<Impl>> fromMemory(ByteVector const& raw) {
+    static Result<std::unique_ptr<Impl>> fromMemory(ByteSpan raw) {
         auto ret = std::make_unique<Impl>();
         ret->m_mode = MZ_OPEN_MODE_READ;
-        ret->m_srcDest = raw;
+        ret->m_srcDest = ByteVector{raw.begin(), raw.end()};
         GEODE_UNWRAP(ret->init());
         return Ok(std::move(ret));
     }
@@ -295,8 +453,8 @@ public:
         return Ok(std::move(ret));
     }
 
-    void setProgressCallback(utils::MiniFunction<void(uint32_t, uint32_t)> callback) {
-        m_progressCallback = callback;
+    void setProgressCallback(geode::Function<void(uint32_t, uint32_t)> callback) {
+        m_progressCallback = std::move(callback);
     }
 
     Result<> extractAt(Path const& dir, Path const& name) {
@@ -304,7 +462,9 @@ public:
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_read_open(m_handle, 0, nullptr))
-            .expect("Unable to open entry (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to open entry (code {})", error);
+            })
         );
 
         // if the file is empty, its data is empty (duh)
@@ -317,13 +477,15 @@ public:
         auto read = mz_zip_entry_read(m_handle, res.data(), entry.uncompressedSize);
         if (read < 0) {
             mz_zip_entry_close(m_handle);
-            return Err("Unable to read entry (code " + std::to_string(read) + ")");
+            return Err("Unable to read entry (code {})", read);
         }
 
         mz_zip_entry_close(m_handle);
 
         GEODE_UNWRAP(file::createDirectoryAll((dir / name).parent_path()));
-        GEODE_UNWRAP(file::writeBinary(dir / name, res).expect("Unable to write to {}: {error}", dir / name));
+        GEODE_UNWRAP(file::writeBinary(dir / name, res).mapErr([&](auto error) {
+            return fmt::format("Unable to write to {}: {}", dir / name, error);
+        }));
 
         return Ok();
     }
@@ -333,14 +495,18 @@ public:
 
         GEODE_UNWRAP(
             mzTry(mz_zip_goto_first_entry(m_handle))
-            .expect("Unable to navigate to first entry (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to navigate to first entry (code {})", error);
+            })
         );
 
         uint64_t numEntries;
 
         GEODE_UNWRAP(
             mzTry(mz_zip_get_number_entry(m_handle, &numEntries))
-            .expect("Unable to get number of entries (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to get number of entries (code {})", error);
+            })
         );
 
         uint32_t currentEntry = 0;
@@ -355,13 +521,10 @@ public:
             Path filePath;
             filePath.assign(info->filename, info->filename + info->filename_size);
 
-            // make sure zip files like root/../../file.txt don't get extracted to 
+            // make sure zip files like root/../../file.txt don't get extracted to
             // avoid zip attacks
-#ifdef GEODE_IS_WINDOWS
-            if (!std::filesystem::relative((dir / filePath).wstring(), dir.wstring()).empty()) {
-#else
-            if (!std::filesystem::relative(dir / filePath, dir).empty()) {
-#endif
+            std::error_code ec;
+            if (!std::filesystem::relative(dir / filePath, dir, ec).empty()) {
                 if (m_entries.at(filePath).isDirectory) {
                     GEODE_UNWRAP(file::createDirectoryAll(dir / filePath));
                 }
@@ -377,6 +540,10 @@ public:
                     "Zip entry '{}' is not contained within zip bounds",
                     dir / filePath
                 );
+
+                if (ec) {
+                    return Err(fmt::format("Unable to check relative: {}", ec.message()));
+                }
             }
         } while (mz_zip_goto_next_entry(m_handle) == MZ_OK);
 
@@ -395,20 +562,29 @@ public:
 
         GEODE_UNWRAP(
             mzTry(mz_zip_goto_first_entry(m_handle))
-            .expect("Unable to navigate to first entry (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to navigate to first entry (code {})", error);
+            })
         );
+
+        auto namestr = utils::string::pathToString(name);
 
         GEODE_UNWRAP(
             mzTry(mz_zip_locate_entry(
                 m_handle,
-                reinterpret_cast<const char*>(name.u8string().c_str()),
+                namestr.c_str(),
                 1
-            )).expect("Unable to navigate to entry (code {error})")
+            ))
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to locate entry (code {})", error);
+            })
         );
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_read_open(m_handle, 0, nullptr))
-            .expect("Unable to open entry (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to open entry (code {})", error);
+            })
         );
 
         // if the file is empty, its data is empty (duh)
@@ -421,7 +597,7 @@ public:
         auto read = mz_zip_entry_read(m_handle, res.data(), entry.uncompressedSize);
         if (read < 0) {
             mz_zip_entry_close(m_handle);
-            return Err("Unable to read entry (code " + std::to_string(read) + ")");
+            return Err("Unable to read entry (code {})", read);
         }
         mz_zip_entry_close(m_handle);
 
@@ -440,37 +616,45 @@ public:
         info.filename = reinterpret_cast<const char*>(strPath.c_str());
         info.uncompressed_size = 0;
         info.flag = MZ_ZIP_FLAG_UTF8;
-    #ifdef GEODE_IS_WINDOWS
+#ifdef GEODE_IS_WINDOWS
         info.external_fa = FILE_ATTRIBUTE_DIRECTORY;
-    #endif
         info.aes_version = MZ_AES_VERSION;
+#endif
 
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_write_open(m_handle, &info, MZ_COMPRESS_LEVEL_DEFAULT, 0, nullptr))
-            .expect("Unable to open entry for writing (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to open entry for writing (code {})", error);
+            })
         );
         mz_zip_entry_close(m_handle);
 
         return Ok();
     }
 
-    Result<> add(Path const& path, ByteVector const& data) {
+    Result<> add(Path const& path, ByteSpan data) {
+        auto namestr = utils::string::pathToString(path);
+
         mz_zip_file info = { 0 };
         info.version_madeby = MZ_VERSION_MADEBY;
         info.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
-        info.filename = reinterpret_cast<const char*>(path.u8string().c_str());
+        info.filename = namestr.c_str();
         info.uncompressed_size = data.size();
+#ifdef GEODE_IS_WINDOWS
         info.aes_version = MZ_AES_VERSION;
+#endif
 
         GEODE_UNWRAP(
             mzTry(mz_zip_entry_write_open(m_handle, &info, MZ_COMPRESS_LEVEL_DEFAULT, 0, nullptr))
-            .expect("Unable to open entry for writing (code {error})")
+            .mapErr([&](auto error) {
+                return fmt::format("Unable to open entry for writing (code {})", error);
+            })
         );
         auto written = mz_zip_entry_write(m_handle, data.data(), data.size());
         if (written < 0) {
             mz_zip_entry_close(m_handle);
-            return Err("Unable to write entry data (code " + std::to_string(written) + ")");
+            return Err("Unable to write entry data (code {})", written);
         }
         mz_zip_entry_close(m_handle);
 
@@ -517,16 +701,14 @@ Unzip::~Unzip() {}
 
 Unzip::Unzip(std::unique_ptr<Unzip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
-Unzip::Unzip(Unzip&& other) : m_impl(std::move(other.m_impl)) {
-    other.m_impl = nullptr;
-}
+Unzip::Unzip(Unzip&& other) noexcept = default;
 
 Result<Unzip> Unzip::create(Path const& file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_READ));
     return Ok(Unzip(std::move(impl)));
 }
 
-Result<Unzip> Unzip::create(ByteVector const& data) {
+Result<Unzip> Unzip::create(ByteSpan data) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::fromMemory(data));
     return Ok(Unzip(std::move(impl)));
 }
@@ -536,9 +718,9 @@ Unzip::Path Unzip::getPath() const {
 }
 
 void Unzip::setProgressCallback(
-    utils::MiniFunction<void(uint32_t, uint32_t)> callback
+    geode::Function<void(uint32_t, uint32_t)> callback
 ) {
-    return m_impl->setProgressCallback(callback);
+    return m_impl->setProgressCallback(std::move(callback));
 }
 
 std::vector<Unzip::Path> Unzip::getEntries() const {
@@ -550,16 +732,22 @@ bool Unzip::hasEntry(Path const& name) {
 }
 
 Result<ByteVector> Unzip::extract(Path const& name) {
-    return m_impl->extract(name).expect("{error} (entry {})", name.string());
+    return m_impl->extract(name).mapErr([&](auto error) {
+        return fmt::format("Unable to extract entry {}: {}", name, error);
+    });
 }
 
 Result<> Unzip::extractTo(Path const& name, Path const& path) {
-    GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name).expect("{error} (entry {})", name.string()));
+    GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name).mapErr([&](auto error) {
+        return fmt::format("Unable to extract entry {}: {}", name, error);
+    }));
     // create containing directories for target path
     if (path.has_parent_path()) {
         GEODE_UNWRAP(file::createDirectoryAll(path.parent_path()));
     }
-    GEODE_UNWRAP(file::writeBinary(path, bytes).expect("Unable to write file {}: {error}", path.string()));
+    GEODE_UNWRAP(file::writeBinary(path, bytes).mapErr([&](auto error) {
+        return fmt::format("Unable to write file {}: {}", path, error);
+    }));
     return Ok();
 }
 
@@ -572,7 +760,7 @@ Result<> Unzip::intoDir(
     Path const& to,
     bool deleteZipAfter
 ) {
-    // scope to ensure the zip is closed after extracting so the zip can be 
+    // scope to ensure the zip is closed after extracting so the zip can be
     // removed
     {
         GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
@@ -587,13 +775,13 @@ Result<> Unzip::intoDir(
 }
 
 Result<> Unzip::intoDir(
-    utils::MiniFunction<void(uint32_t, uint32_t)> progressCallback,
+    geode::Function<void(uint32_t, uint32_t)> progressCallback,
     Path const& from,
     Path const& to,
     bool deleteZipAfter
 ) {
     GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
-    unzip.setProgressCallback(progressCallback);
+    unzip.setProgressCallback(std::move(progressCallback));
     GEODE_UNWRAP(unzip.extractAllTo(to));
     if (deleteZipAfter) {
         std::error_code ec;
@@ -610,9 +798,7 @@ Zip::~Zip() {}
 
 Zip::Zip(std::unique_ptr<Zip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
-Zip::Zip(Zip&& other) : m_impl(std::move(other.m_impl)) {
-    other.m_impl = nullptr;
-}
+Zip::Zip(Zip&& other) noexcept = default;
 
 Result<Zip> Zip::create(Path const& file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE));
@@ -632,12 +818,13 @@ ByteVector Zip::getData() const {
     return m_impl->compressedData();
 }
 
-Result<> Zip::add(Path const& path, ByteVector const& data) {
+Result<> Zip::add(Path const& path, ByteSpan data) {
     return m_impl->add(path, data);
 }
 
-Result<> Zip::add(Path const& path, std::string const& data) {
-    return this->add(path, ByteVector(data.begin(), data.end()));
+Result<> Zip::add(Path const& path, std::string_view data) {
+    auto vec = ByteVector{data.begin(), data.end()};
+    return this->add(path, vec);
 }
 
 Result<> Zip::addFrom(Path const& file, Path const& entryDir) {
@@ -667,55 +854,4 @@ Result<> Zip::addAllFrom(Path const& dir) {
 
 Result<> Zip::addFolder(Path const& entry) {
     return m_impl->addFolder(entry);
-}
-
-FileWatchEvent::FileWatchEvent(std::filesystem::path const& path)
-  : m_path(path) {}
-
-std::filesystem::path FileWatchEvent::getPath() const {
-    return m_path;
-}
-
-ListenerResult FileWatchFilter::handle(
-    MiniFunction<Callback> callback,
-    FileWatchEvent* event
-) {
-    std::error_code ec;
-    if (std::filesystem::equivalent(event->getPath(), m_path, ec)) {
-        callback(event);
-    }
-    return ListenerResult::Propagate;
-}
-
-FileWatchFilter::FileWatchFilter(std::filesystem::path const& path) 
-  : m_path(path) {}
-
-// This is a vector because need to use std::filesystem::equivalent for 
-// comparisons and removal is not exactly performance-critical here
-// (who's going to add and remove 500 file watchers every frame)
-static std::vector<std::unique_ptr<FileWatcher>> FILE_WATCHERS {};
-
-Result<> file::watchFile(std::filesystem::path const& file) {
-    if (!std::filesystem::exists(file)) {
-        return Err("File does not exist");
-    }
-    auto watcher = std::make_unique<FileWatcher>(
-        file,
-        [](auto const& path) {
-            Loader::get()->queueInMainThread([=] {
-                FileWatchEvent(path).post();
-            });
-        }
-    );
-    if (!watcher->watching()) {
-        return Err("Unknown error watching file");
-    }
-    FILE_WATCHERS.emplace_back(std::move(watcher));
-    return Ok();
-}
-
-void file::unwatchFile(std::filesystem::path const& file) {
-    ranges::remove(FILE_WATCHERS, [=](std::unique_ptr<FileWatcher> const& watcher) {
-        return std::filesystem::equivalent(file, watcher->path());
-    });
 }

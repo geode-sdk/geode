@@ -16,23 +16,25 @@ using namespace geode::prelude;
     #define GEODE_TESTDEP_DLL
 #endif
 
-class GEODE_TESTDEP_DLL TestEvent : public Event {
-protected:
-    std::string data;
+#ifdef MY_MOD_ID
+    #undef MY_MOD_ID
+#endif
+#define MY_MOD_ID "geode.testdep"
 
+namespace api {
+    // Important: The function must be declared inline, and return a geode::Result,
+    // as it can fail if the api is not available.
+    inline geode::Result<int> addNumbers(int a, int b) GEODE_EVENT_EXPORT(&addNumbers, (a, b));
+
+    struct Test {
+        geode::Result<int> addNumbers(int a, int b) GEODE_EVENT_EXPORT(&Test::addNumbers, (this, a, b));
+    };
+}
+
+class TestEvent : public Event<TestEvent, bool(std::string_view)> {
 public:
-    std::string getData() const;
-    TestEvent(std::string const& data);
+    // listener params data
+    using Event::Event;
 };
 
-class GEODE_TESTDEP_DLL TestEventFilter : public EventFilter<TestEvent> {
-public:
-    using Callback = void(TestEvent*);
-
-    ListenerResult handle(utils::MiniFunction<Callback> fn, TestEvent* event);
-    TestEventFilter();
-    TestEventFilter(TestEventFilter const&) = default;
-};
-
-using MyDispatchEvent = geode::DispatchEvent<GJGarageLayer*>;
-using MyDispatchFilter = geode::DispatchFilter<GJGarageLayer*>;
+using MyDispatchEvent = geode::Dispatch<GJGarageLayer*>;

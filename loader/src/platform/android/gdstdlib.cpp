@@ -82,6 +82,8 @@ void setEmptyInternalString(gd::string* str) {
 
 namespace geode::stl {
     void StringImpl::setEmpty() {
+        this->free();
+        
         data.m_data = emptyInternalString();
     }
 
@@ -90,7 +92,7 @@ namespace geode::stl {
 
         if (data.m_data[-1].m_refcount <= 0) {
             gd::operatorDelete(&data.m_data[-1]);
-            data.m_data = nullptr; 
+            data.m_data = nullptr;
         } else {
             --data.m_data[-1].m_refcount;
         }
@@ -101,7 +103,7 @@ namespace geode::stl {
     }
     // TODO: add a copyFrom(string const&) to take advantage
     // of gnustl refcounted strings
-    void StringImpl::setStorage(const std::string_view str) {
+    void StringImpl::setStorage(std::string_view str) {
         this->free();
 
         if (str.size() == 0) {

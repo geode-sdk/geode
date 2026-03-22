@@ -51,7 +51,7 @@ All features from CCNode are valid, plus the following features:
 class CC_DLL CCAtlasNode : public CCNodeRGBA, public CCTextureProtocol
 {
     GEODE_FRIEND_MODIFY
-protected:
+public:
 
     //! chars per row
     unsigned int m_uItemsPerRow;
@@ -69,7 +69,7 @@ protected:
 
     // protocol variables
     bool m_bIsOpacityModifyRGB;
-    
+
     CC_PROPERTY(ccBlendFunc, m_tBlendFunc, BlendFunc);
 
     // quads to draw
@@ -78,8 +78,9 @@ protected:
     GLint    m_nUniformColor;
     // This varible is only used for CCLabelAtlas FPS display. So plz don't modify its value.
     bool m_bIgnoreContentScaleFactor;
-    
+
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAtlasNode, CCNodeRGBA)
     /**
      *  @js ctor
      */
@@ -91,7 +92,7 @@ public:
     virtual ~CCAtlasNode();
 
 	/** creates a CCAtlasNode  with an Atlas file the width and height of each item and the quantity of items to render*/
-	static CCAtlasNode * create(const char* tile,unsigned int tileWidth, unsigned int tileHeight, 
+	static CCAtlasNode * create(const char* tile,unsigned int tileWidth, unsigned int tileHeight,
 		unsigned int itemsToRender);
 
     /** initializes an CCAtlasNode  with an Atlas file the width and height of each item and the quantity of items to render*/
@@ -99,7 +100,7 @@ public:
 
     /** initializes an CCAtlasNode  with a texture the width and height of each item measured in points and the quantity of items to render*/
     bool initWithTexture(CCTexture2D* texture, unsigned int tileWidth, unsigned int tileHeight, unsigned int itemsToRender);
-    
+
     /** updates the Atlas (indexed vertex array).
     * Shall be overridden in subclasses
     */
@@ -114,7 +115,7 @@ public:
 
     /** sets a new texture. it will be retained*/
     virtual void setTexture(CCTexture2D *texture);
-    
+
     virtual bool isOpacityModifyRGB();
     virtual void setOpacityModifyRGB(bool isOpacityModifyRGB);
     virtual const ccColor3B& getColor(void);
@@ -125,7 +126,7 @@ private :
     void calculateMaxItems();
     void updateBlendFunc();
     void updateOpacityModifyRGB();
-    
+
     friend class CCDirector;
     void setIgnoreContentScaleFactor(bool bIgnoreContentScaleFactor);
 };

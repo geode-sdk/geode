@@ -5,12 +5,21 @@
 #include <type_traits>
 #include <typeinfo>
 #include "ItaniumCast.hpp"
+#include "clang.hpp"
 
 namespace geode {
     using dylib_t = void*;
 
     struct PlatformInfo {
         dylib_t m_dylib;
+    };
+
+    struct PlatformDetails {
+        uint32_t majorVersion;
+        uint32_t minorVersion;
+        uint32_t patchVersion;
+        std::string arch; // can be x86_64 or arm64
+        bool rosetta;
     };
 }
 

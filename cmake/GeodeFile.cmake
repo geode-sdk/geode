@@ -46,11 +46,11 @@ set(GEODE_MODS_BEING_BUILT "" CACHE INTERNAL "GEODE_MODS_BEING_BUILT")
 function(setup_geode_mod proname)
     # Get DONT_INSTALL argument
     set(options DONT_INSTALL)
-    set(multiValueArgs EXTERNALS)
+    set(multiValueArgs EXTERNALS LINK_TYPE)
     cmake_parse_arguments(SETUP_GEODE_MOD "${options}" "" "${multiValueArgs}" ${ARGN})
 
     # Link Geode to the mod
-    target_link_libraries(${proname} geode-sdk)
+    target_link_libraries(${proname} ${SETUP_GEODE_MOD_LINK_TYPE} geode-sdk)
 
     if (ANDROID)
         if (CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -90,7 +90,10 @@ function(setup_geode_mod proname)
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
     string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
 
-    if ("${TARGET_GEODE_VERSION}" STREQUAL "${GEODE_VERSION_FULL}")
+    string(REGEX REPLACE "([0-9]+\\.[0-9]+)\\.[0-9]+" "\\1" TARGET_GEODE_VERSION_SHORT ${TARGET_GEODE_VERSION})
+    string(REGEX REPLACE "([0-9]+\\.[0-9]+)\\.[0-9]+" "\\1" GEODE_VERSION_SHORT ${GEODE_VERSION_FULL})
+
+    if ("${TARGET_GEODE_VERSION_SHORT}" STREQUAL "${GEODE_VERSION_SHORT}")
         message(STATUS "Mod ${MOD_ID} is compiling for Geode version ${GEODE_VERSION_FULL}")
     else()
         message(FATAL_ERROR
@@ -164,7 +167,27 @@ function(setup_geode_mod proname)
         set(HAS_HEADERS Off)
     endif()
 
-    if (HAS_HEADERS AND WIN32)
+    if (GEODE_BUNDLE_PDB AND WIN32 AND (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
+        if (HAS_HEADERS)
+            add_custom_target(${proname}_PACKAGE ALL
+                DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
+                COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+                    --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}> $<TARGET_PDB_FILE:${proname}>
+                    --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
+                    ${INSTALL_ARG} ${PDB_ARG}
+                VERBATIM USES_TERMINAL
+            )
+        else()
+            add_custom_target(${proname}_PACKAGE ALL
+                DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
+                COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+                    --binary $<TARGET_FILE:${proname}> $<TARGET_PDB_FILE:${proname}>
+                    --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
+                    ${INSTALL_ARG} ${PDB_ARG}
+                VERBATIM USES_TERMINAL
+            )
+        endif()
+    elseif (HAS_HEADERS AND WIN32)
         # this adds the .lib file on windows, which is needed for linking with the headers
         add_custom_target(${proname}_PACKAGE ALL
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
@@ -218,8 +241,13 @@ function(setup_geode_mod proname)
                 if (WIN32 OR LINUX)
                     file(GLOB libs ${dir}/*.lib)
                     list(APPEND libs_to_link ${libs})
+                elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
+                    file(GLOB libs ${dir}/*.ios.dylib)
+                    list(APPEND libs_to_link ${libs})
                 elseif (APPLE)
                     file(GLOB libs ${dir}/*.dylib)
+                    file(GLOB ios_libs ${dir}/*.ios.dylib)
+                    list(REMOVE_ITEM libs ${ios_libs})
                     list(APPEND libs_to_link ${libs})
                 elseif (ANDROID)
                     if (CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
@@ -236,8 +264,12 @@ function(setup_geode_mod proname)
         endforeach()
 
         # Link libs
-        target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
-        target_link_libraries(${proname} ${libs_to_link})
+        if (GEODE_SET_TARGET_AS_SYSTEM)
+            target_include_directories(${proname} SYSTEM PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        else()
+            target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        endif()
+        target_link_libraries(${proname} ${SETUP_GEODE_MOD_LINK_TYPE} ${libs_to_link})
         
     endif()
 
@@ -247,17 +279,6 @@ function(setup_geode_mod proname)
         set_target_properties(${proname} PROPERTIES SUFFIX ${GEODE_MOD_BINARY_SUFFIX})
     endif()
     set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
-endfunction()
-
-function(create_geode_file proname)
-    # todo: deprecate at some point ig
-    # message(DEPRECATION
-    #     "create_geode_file has been replaced with setup_geode_mod - "
-    #     "please replace the function call"
-    # )
-
-    # forward all args
-    setup_geode_mod(${proname} ${ARGN})
 endfunction()
 
 function(package_geode_resources proname src dest)

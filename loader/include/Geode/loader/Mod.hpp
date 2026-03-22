@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../cocos/support/zip_support/ZipUtils.h"
-#include "../utils/Result.hpp"
+#include <Geode/Result.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "../utils/general.hpp"
 
@@ -12,6 +12,7 @@
 #include "Setting.hpp"
 #include "Types.hpp"
 #include "Loader.hpp"
+#include "../utils/string.hpp"
 
 #include <matjson.hpp>
 #include <matjson/stl_serialize.hpp>
@@ -21,6 +22,8 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+#include <arc/future/Future.hpp>
+#include "Signal.hpp"
 
 namespace geode {
     template <class T>
@@ -28,8 +31,8 @@ namespace geode {
         Mod* m_mod;
         std::string m_key;
 
-        HandleToSaved(std::string const& key, Mod* mod, T const& value) :
-            T(value), m_key(key), m_mod(mod) {}
+        HandleToSaved(std::string key, Mod* mod, T value) :
+            T(std::move(value)), m_key(std::move(key)), m_mod(mod) {}
 
         HandleToSaved(HandleToSaved const&) = delete;
         HandleToSaved(HandleToSaved&&) = delete;
@@ -41,7 +44,8 @@ namespace geode {
         Enable,
         Disable,
         Uninstall,
-        UninstallWithSaveData
+        UninstallWithSaveData,
+        Update
     };
 
     static constexpr bool modRequestedActionIsToggle(ModRequestedAction action) {
@@ -51,23 +55,7 @@ namespace geode {
         return action == ModRequestedAction::Uninstall || action == ModRequestedAction::UninstallWithSaveData;
     }
 
-    template <class T>
-    static consteval bool typeImplementsIsJSON() {
-        using namespace matjson;
-        if constexpr (requires(const Value& json) { Serialize<std::decay_t<T>>::is_json(json); })
-            return true;
-        if constexpr (std::is_same_v<T, Value>) return true;
-        if constexpr (std::is_same_v<T, Array>) return true;
-        if constexpr (std::is_same_v<T, Object>) return true;
-        if constexpr (std::is_constructible_v<std::string, T>) return true;
-        if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) return true;
-        if constexpr (std::is_same_v<T, bool>) return true;
-        if constexpr (std::is_same_v<T, std::nullptr_t>) return true;
-
-        return false;
-    }
-
-    GEODE_HIDDEN Mod* takeNextLoaderMod();
+    Mod* takeNextLoaderMod();
 
     class ModImpl;
 
@@ -93,6 +81,7 @@ namespace geode {
 
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
+        void settingReact(geode::Function<void()> fn);
     public:
         // no copying
         Mod(Mod const&) = delete;
@@ -103,20 +92,26 @@ namespace geode {
         Mod(ModMetadata const& metadata);
         ~Mod();
 
-        std::string getID() const;
-        std::string getName() const;
-        [[deprecated("Use Mod::getDevelopers instead")]]
-        std::string getDeveloper() const;
+        ZStringView getID() const;
+        ZStringView getName() const;
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
         std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
-        bool isEnabled() const;
+        bool isLoaded() const;
+        /**
+         * Whether the mod is currently enabled, or marked as to be enabled 
+         * after a restart. Useful for UI
+         * @note This does not communicate whether the mod is actually 
+         * *loaded* – for that, use `Mod::isLoaded`
+         */
         bool isOrWillBeEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
-        ModMetadata getMetadata() const;
+
+        ModMetadata const& getMetadata() const;
+
         std::filesystem::path getTempDir() const;
         /**
          * Get the path to the mod's platform binary (.dll on Windows, .dylib
@@ -129,31 +124,30 @@ namespace geode {
          */
         std::filesystem::path getResourcesDir() const;
 
+        /**
+         * Get the dependency settings for a specific dependency via its ID. For
+         * example, if this mod depends on Custom Keybinds, it can specify the
+         * keybinds it wants to add in `mod.json` under
+         * `dependencies."geode.custom-keybinds".settings.keybinds`
+         * @returns Null JSON value if there are no settings or if the mod
+         * doesn't depend on the given mod ID
+         */
+        matjson::Value getDependencySettingsFor(std::string_view dependencyID) const;
+
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
         std::vector<Mod*> getDependants() const;
 #endif
 
+        using CheckUpdatesTask = arc::Future<Result<std::optional<VersionInfo>>>;
         /**
-         * Check if this Mod has updates available on the mods index. If 
-         * you're using this for automatic update checking, use 
-         * `openInfoPopup` or `openIndexPopup` from the `ui/GeodeUI.hpp` 
-         * header to open the Mod's page to let the user install the update
-         * @returns The latest available version on the index if there are 
-         * updates for this mod
-         */
-        [[deprecated("Use Mod::checkUpdates instead; this function always returns nullopt")]]
-        std::optional<VersionInfo> hasAvailableUpdate() const;
-
-        using CheckUpdatesTask = Task<Result<std::optional<VersionInfo>, std::string>>;
-        /**
-         * Check if this Mod has updates available on the mods index. If 
-         * you're using this for automatic update checking, use 
-         * `openInfoPopup` from the `ui/GeodeUI.hpp` header to open the Mod's 
+         * Check if this Mod has updates available on the mods index. If
+         * you're using this for automatic update checking, use
+         * `openInfoPopup` from the `ui/GeodeUI.hpp` header to open the Mod's
          * page to let the user install the update
-         * @returns A task that resolves to an option, either the latest 
-         * available version on the index if there are updates available, or 
-         * `std::nullopt` if there are no updates. On error, the Task returns 
+         * @returns A task that resolves to an option, either the latest
+         * available version on the index if there are updates available, or
+         * `std::nullopt` if there are no updates. On error, the Task returns
          * an error
          */
         CheckUpdatesTask checkUpdates() const;
@@ -163,52 +157,55 @@ namespace geode {
 
         /**
          * Get the mod's save directory path
+         * `geode::dirs::getModsSaveDir()`/{mod_id}/
          */
         std::filesystem::path getSaveDir() const;
         /**
          * Get the mod's config directory path
+         * `geode::dirs::getModConfigDir()`/{mod_id}/
          */
         std::filesystem::path getConfigDir(bool create = true) const;
+        /**
+         * Get the mod's persistent directory path
+         * This directory is not deleted even when Geode/mod is uninstalled
+         * `geode::dirs::getModPersistentDir()`/{mod_id}/
+         */
+        std::filesystem::path getPersistentDir(bool create = true) const;
 
+        /**
+         * Returns true if this mod has any settings
+         */
         bool hasSettings() const;
+        /**
+         * Get a list of all this mod's setting keys (in the order they were
+         * declared in `mod.json`)
+         */
         std::vector<std::string> getSettingKeys() const;
-        bool hasSetting(std::string_view const key) const;
-        std::optional<Setting> getSettingDefinition(std::string_view const key) const;
-        SettingValue* getSetting(std::string_view const key) const;
+        bool hasSetting(std::string_view key) const;
 
         /**
-         * Register a custom setting's value class. See Mod::addCustomSetting
-         * for a convenience wrapper that creates the value in-place to avoid
-         * code duplication. Also see
-         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for
-         * more information about custom settings
-         * @param key The setting's key
-         * @param value The SettingValue class that shall handle this setting
-         * @see addCustomSetting
+         * Get the definition of a setting, or null if the setting was not found,
+         * or if it's a custom setting that has not yet been registered using
+         * `Mod::registerCustomSettingType`
+         * @param key The key of the setting as defined in `mod.json`
          */
-        void registerCustomSetting(std::string_view const key, std::unique_ptr<SettingValue> value);
+        std::shared_ptr<Setting> getSetting(std::string_view key) const;
+
         /**
-         * Register a custom setting's value class. The new SettingValue class
-         * will be created in-place using `std::make_unique`. See
-         * [the tutorial page](https://docs.geode-sdk.org/mods/settings) for
-         * more information about custom settings
-         * @param key The setting's key
-         * @param value The value of the custom setting
-         * @example
-         * $on_mod(Loaded) {
-         *     Mod::get()->addCustomSetting<MySettingValue>("setting-key", DEFAULT_VALUE);
-         * }
+         * Register a custom setting type. See
+         * [the setting docs](https://docs.geode-sdk.org/mods/settings) for more
+         * @param type The type of the setting. This should **not** include the
+         * `custom:` prefix!
+         * @param generator A pointer to a function that, when called, returns a
+         * newly-created instance of the setting type
          */
-        template <class T, class V>
-        void addCustomSetting(std::string_view const key, V const& value) {
-            this->registerCustomSetting(key, std::make_unique<T>(std::string(key), this->getID(), value));
-        }
+        Result<> registerCustomSettingType(std::string_view type, SettingGenerator generator);
 
         /**
          * Returns a prefixed launch argument name. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
          */
-        std::string getLaunchArgumentName(std::string_view const name) const;
+        std::string getLaunchArgumentName(std::string_view name) const;
         /**
          * Returns the names of the available mod-specific launch arguments.
          */
@@ -218,7 +215,7 @@ namespace geode {
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
-        bool hasLaunchArgument(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
         /**
          * Get a mod-specific launch argument. This is equivalent to `Loader::getLaunchArgument`
          * with the argument name prefixed by the mod ID. For example, a launch argument named
@@ -226,68 +223,86 @@ namespace geode {
          * @param name The argument name
          * @return The value, if present
          */
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
         /**
          * Equivalent to a prefixed `Loader::getLaunchFlag` call. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
-        bool getLaunchFlag(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view name) const;
         /**
          * Equivalent to a prefixed `Loader::parseLaunchArgument` call. See `Mod::getLaunchArgument`
          * for details about mod-specific launch arguments.
          * @param name The argument name
          */
         template <class T>
-        std::optional<T> parseLaunchArgument(std::string_view const name) const {
+        std::optional<T> parseLaunchArgument(std::string_view name) const {
             return Loader::get()->parseLaunchArgument<T>(this->getLaunchArgumentName(name));
         }
 
         matjson::Value& getSaveContainer();
         matjson::Value& getSavedSettingsData();
 
+        /**
+         * Get the value of a [setting](https://docs.geode-sdk.org/mods/settings).
+         * To use this for custom settings, first specialize the
+         * `SettingTypeForValueType` class, and then make sure your custom
+         * setting type has a `getValue` function which returns the value
+         */
         template <class T>
-        T getSettingValue(std::string_view const key) const {
-            if (auto sett = this->getSetting(key)) {
-                return SettingValueSetter<T>::get(sett);
+        T getSettingValue(std::string_view key) const {
+            using S = typename SettingTypeForValueType<T>::SettingType;
+            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
+                return T(sett->getValue());
             }
             return T();
         }
 
         template <class T>
-        T setSettingValue(std::string_view const key, T const& value) {
-            if (auto sett = this->getSetting(key)) {
-                auto old = this->getSettingValue<T>(key);
-                SettingValueSetter<T>::set(sett, value);
+        comm::Signal<T> makeSettingSignal(std::string_view key) {
+            comm::Signal<T> sig = getSettingValue<T>(key);
+            settingReact([=, this] { setSettingValue<T>(key, *sig); });
+
+            listenForSettingChanges(key, [=](T value) mutable {
+                *sig = value;
+            }, this);
+
+            return sig;
+        }
+
+        template <class T>
+        T setSettingValue(std::string_view key, T const& value) {
+            using S = typename SettingTypeForValueType<T>::SettingType;
+            if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
+                auto old = sett->getValue();
+                sett->setValue(value);
                 return old;
             }
             return T();
         }
 
-        bool hasSavedValue(std::string_view const key);
+        bool hasSavedValue(std::string_view key);
 
         template <class T>
-        T getSavedValue(std::string_view const key) {
-            static_assert(geode::typeImplementsIsJSON<T>(), "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
+        T getSavedValue(std::string_view key) {
             auto& saved = this->getSaveContainer();
-            if (saved.contains(key)) {
-                if (auto value = saved.try_get<T>(key)) {
-                    return *value;
-                }
+            if (auto res = saved.get(key).andThen([](auto&& v) {
+                return v.template as<T>();
+            }); res.isOk()) {
+                return res.unwrap();
             }
             return T();
         }
 
         template <class T>
-        T getSavedValue(std::string_view const key, T const& defaultValue) {
-            static_assert(geode::typeImplementsIsJSON<T>(), "T must implement is_json in matjson::Serialize<T>, otherwise this always returns default value.");
+        T getSavedValue(std::string_view key, T const& defaultValue) {
             auto& saved = this->getSaveContainer();
-            if (saved.contains(key)) {
-                if (auto value = saved.try_get<T>(key)) {
-                    return *value;
-                }
+            if (auto res = saved.get(key).andThen([](auto&& v) {
+                return v.template as<T>();
+            }); res.isOk()) {
+                return res.unwrap();
             }
-            saved[key] = defaultValue;
+            saved[key] = matjson::Value(defaultValue);
             return defaultValue;
         }
 
@@ -299,7 +314,7 @@ namespace geode {
          * @returns The old value
          */
         template <class T>
-        T setSavedValue(std::string_view const key, T const& value) {
+        T setSavedValue(std::string_view key, T const& value) {
             auto& saved = this->getSaveContainer();
             auto old = this->getSavedValue<T>(key);
             saved[key] = value;
@@ -335,21 +350,21 @@ namespace geode {
          */
         template<class DetourType>
         Result<Hook*> hook(
-            void* address, DetourType detour, std::string const& displayName = "",
+            void* address, DetourType detour, std::string displayName = "",
             tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
-            tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
+            tulip::hook::HookMetadata hookMetadata = tulip::hook::HookMetadata()
         ) {
-            auto hook = Hook::create(address, detour, displayName, convention, hookMetadata);
+            auto hook = Hook::create(address, detour, std::move(displayName), convention, std::move(hookMetadata));
             GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
             return Ok(ptr);
         }
 
         Result<Hook*> hook(
-            void* address, void* detour, std::string const& displayName,
-            tulip::hook::HandlerMetadata const& handlerMetadata,
-            tulip::hook::HookMetadata const& hookMetadata
+            void* address, void* detour, std::string displayName,
+            tulip::hook::HandlerMetadata handlerMetadata,
+            tulip::hook::HookMetadata hookMetadata
         ) {
-            auto hook = Hook::create(address, detour, displayName, handlerMetadata, hookMetadata);
+            auto hook = Hook::create(address, detour, std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata));
             GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
             return Ok(ptr);
         }
@@ -383,10 +398,14 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<Patch*> patch(void* address, ByteVector const& data) {
+        Result<Patch*> patch(void* address, ByteSpan data) {
             auto patch = Patch::create(address, data);
             GEODE_UNWRAP_INTO(auto ptr, this->claimPatch(std::move(patch)));
             return Ok(ptr);
+        }
+
+        Result<Patch*> patch(void* address, ByteVector data) {
+            return this->patch(address, ByteSpan(data));
         }
 
         /**
@@ -440,7 +459,7 @@ namespace geode {
          * Check whether or not this Mod
          * depends on another mod
          */
-        bool depends(std::string_view const id) const;
+        bool depends(std::string_view id) const;
 
         /**
          * Check whether all the required
@@ -458,7 +477,7 @@ namespace geode {
          */
         bool hasUnresolvedIncompatibilities() const;
 
-        std::string_view expandSpriteName(std::string_view name);
+        std::string expandSpriteName(std::string_view name);
 
         /**
          * Get info about the mod as JSON
@@ -466,19 +485,53 @@ namespace geode {
          */
         ModJson getRuntimeInfo() const;
 
+        /**
+         * Get the current logging status for this mod.
+         */
         bool isLoggingEnabled() const;
+        /**
+         * Set the logging status for this mod.
+         * @param enabled Whether to enable or disable logging
+         */
         void setLoggingEnabled(bool enabled);
 
-        bool hasProblems() const;
-        std::vector<LoadProblem> getAllProblems() const;
-        std::vector<LoadProblem> getProblems() const;
-        std::vector<LoadProblem> getRecommendations() const;
+        /**
+         * Get the minimum log level for this mod.
+         */
+        Severity getLogLevel() const;
+        /**
+         * Set the minimum log level for this mod.
+         * @param level The new log level
+         */
+        void setLogLevel(Severity level);
+
+        /**
+         * If this mod is built for an outdated GD or Geode version, returns the
+         * `LoadProblem` describing the situation. Otherwise `nullopt` if the
+         * mod is made for the correct version of the game and Geode
+         */
+        std::optional<LoadProblem> targetsOutdatedVersion() const;
+        std::optional<LoadProblem> failedToLoad() const;
+        std::optional<LoadProblem> getLoadProblem() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
+
+        /**
+         * Get the load priority of this mod.
+         */
+        int getLoadPriority() const;
+
+        /**
+         * Get if the user has the mod pinned.
+         */
+        bool isPinned() const;
+        void setPinned(bool pinned);
 
         friend class ModImpl;
     };
 }
+
+#ifdef GEODE_MOD_ID
 
 namespace geode::geode_internal {
     // this impl relies on the GEODE_MOD_ID macro set by cmake
@@ -503,3 +556,65 @@ template <geode::geode_internal::StringConcatModIDSlash Str>
 constexpr auto operator""_spr() {
     return Str.buffer;
 }
+
+#else
+
+// can't really work without the mod id macro
+// GEODE_HIDDEN inline char const* operator""_spr(char const* str, size_t len) {
+//     return geode::Mod::get()->expandSpriteName({ str, len }).data();
+// }
+
+GEODE_HIDDEN inline char const* operator""_spr(char const* str, size_t len) {
+    geode::log::error("GEODE_MOD_ID not defined, _spr cannot be used");
+    return nullptr;
+}
+
+#endif
+
+/**
+ * Leaves a marker in the binary that can be used to patch
+ * the game at a specific offset with a specific byte sequence.
+ * Used for runtime patchless install.
+ * @example
+ * ```cpp
+ * GEODE_MOD_STATIC_PATCH(0x1234, "\x12\x34\x56\x78");
+ * GEODE_MOD_STATIC_PATCH(0x5678, {0x12, 0x34, 0x56, 0x78});
+ * ```
+ */
+#define GEODE_MOD_STATIC_PATCH(Offset_, ...) \
+    geode::doNotOptimize(geode::utils::string::ConstexprString<>::toLiteral([](){ \
+        geode::utils::string::ConstexprString<> str2;            \
+        str2.push(__VA_ARGS__);                                  \
+        geode::utils::string::ConstexprString<> str;             \
+        str.push("[GEODE_PATCH_SIZE]");                          \
+        str.push(str2.size(), 16);                               \
+        str.push("[GEODE_PATCH_BYTES]");                         \
+        str.push(str2);                                          \
+        str.push("[GEODE_PATCH_OFFSET]");                        \
+        str.push(Offset_, 16);                                   \
+        str.push("[GEODE_PATCH_END]");                           \
+        return str;                                              \
+    }))
+
+/**
+ * Leaves a marker in the binary that can be used to hook
+ * the game at a specific offset with a specific detour.
+ * Used for runtime patchless install.
+ * @example
+ * ```cpp
+ * auto res = GEODE_MOD_STATIC_HOOK(0x1234, &myDetour, "MenuLayer::init");
+ * ```
+ */
+#define GEODE_MOD_STATIC_HOOK(Offset_, Detour_, ...) \
+    (geode::doNotOptimize(geode::utils::string::ConstexprString<>::toLiteral([](){ \
+        geode::utils::string::ConstexprString<> str;               \
+        str.push("[GEODE_MODIFY_NAME]");                           \
+        str.push(GEODE_STR(__VA_ARGS__));                          \
+        str.push("[GEODE_MODIFY_OFFSET]");                         \
+        str.push(Offset_, 16);                                     \
+        str.push("[GEODE_MODIFY_END]");                            \
+        return str;                                                \
+    })), geode::Mod::get()->hook(                                  \
+        reinterpret_cast<void*>(geode::base::get() + Offset_),     \
+        Detour_,                                                   \
+        GEODE_STR(__VA_ARGS__)))

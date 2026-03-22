@@ -1,20 +1,22 @@
+#pragma once
+#include <Geode/modify/Modify.hpp>
 #include "cocos.hpp"
 
 namespace geode::node_ids {
     using namespace cocos2d;
 
-    static constexpr int32_t GEODE_ID_PRIORITY = 0x100000;
+    static constexpr int32_t GEODE_ID_PRIORITY = Priority::VeryEarlyPost;
 
     template <class T = CCNode>
         requires std::is_base_of_v<CCNode, T>
     T* setIDSafe(CCNode* node, int index, char const* id) {
         if constexpr (std::is_same_v<CCNode, T>) {
-            if (auto child = cocos::getChild(node, index)) {
+            if (auto child = node->getChildByIndex(index)) {
                 child->setID(id);
                 return child;
             }
         } else {
-            if (auto child = cocos::getChildOfType<T>(node, index)) {
+            if (auto child = node->getChildByType<T>(index)) {
                 child->setID(id);
                 return child;
             }
@@ -41,9 +43,9 @@ namespace geode::node_ids {
 
     static void switchToMenu(CCNode* node, CCNode* menu) {
         if (!node || !menu) return;
-        
+
         auto worldPos = node->getParent() ?
-            node->getParent()->convertToWorldSpace(node->getPosition()) : 
+            node->getParent()->convertToWorldSpace(node->getPosition()) :
             node->getPosition();
 
         node->retain();
@@ -94,7 +96,7 @@ namespace geode::node_ids {
         first->release();
 
         (switchToMenu(args, newMenu), ...);
-        
+
         newMenu->setLayout(layout);
 
         return newMenu;

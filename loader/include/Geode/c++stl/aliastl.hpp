@@ -21,4 +21,7 @@ namespace gd {
 
     template <class K>
     using unordered_set = std::unordered_set<K>;
+
+    template <class T1, class T2>
+    using pair = std::pair<T1, T2>;
 }

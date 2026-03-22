@@ -63,6 +63,7 @@ public:
     static void purgeConfiguration(void);
 
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCConfiguration, CCObject)
     /**
      *  @js NA
      *  @lua NA
@@ -82,7 +83,7 @@ public:
 
     /** Whether or not the GPU supports NPOT (Non Power Of Two) textures.
      OpenGL ES 2.0 already supports NPOT (iOS).
-     
+
      @since v0.99.2
      */
 	bool supportsNPOT(void) const;
@@ -141,8 +142,8 @@ private:
     CCConfiguration(void);
     static CCConfiguration *s_gSharedConfiguration;
 	static gd::string		s_sConfigfile;
-    
-protected:
+
+public:
     GLint           m_nMaxTextureSize;
     GLint           m_nMaxModelviewStackDepth;
     bool            m_bSupportsPVRTC;
@@ -153,7 +154,7 @@ protected:
     GLint           m_nMaxSamplesAllowed;
     GLint           m_nMaxTextureUnits;
     char *          m_pGlExtensions;
-	
+
 	CCDictionary	*m_pValueDict;
 };
 

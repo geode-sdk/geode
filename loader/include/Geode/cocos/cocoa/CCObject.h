@@ -72,24 +72,12 @@ public:
     virtual CCObject* copyWithZone(CCZone* pZone)  { return 0; }
 };
 
-/**
- * This class is used to fix the problem of destructor recursion.
- */
-class CCDestructor : public CCCopying {
-private:
-	static std::unordered_map<void*, bool>& destructorLock();
-public:
-	static bool& globalLock();
-	static bool& lock(void* self);
-	~CCDestructor();
-};
-
 #pragma warning(push)
 #pragma warning(disable: 4275)
 /**
  * @js NA
  */
-class CC_DLL CCObject : public CCDestructor
+class CC_DLL CCObject : public CCCopying
 {
     GEODE_FRIEND_MODIFY
 public:
@@ -97,7 +85,7 @@ public:
     unsigned int        m_uID;
     // Lua reference id
     int                 m_nLuaID;
-protected:
+public:
     // the object's tag
     int m_nTag;
     // count of references
@@ -123,7 +111,7 @@ public:
      *  @lua NA
      */
     virtual ~CCObject(void);
-    
+
     void release(void);
     void retain(void);
     CCObject* autorelease(void);
@@ -137,21 +125,21 @@ public:
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
     virtual void update(float dt) {CC_UNUSED_PARAM(dt);};
-    
+
     virtual void encodeWithCoder(DS_Dictionary*);
 
     static CCObject* createWithCoder(DS_Dictionary*);
-    
+
     virtual bool canEncode();
 
     inline CCObjectType getObjType() const {
         return m_eObjType;
     }
- 
+
     virtual int getTag() const;
 
     virtual void setTag(int nTag);
-    
+
     inline void setObjType(CCObjectType type) {
         m_eObjType = type;
     }
@@ -182,5 +170,20 @@ typedef int (CCObject::*SEL_Compare)(CCObject*);
 /// @}
 
 NS_CC_END
+
+namespace geode {
+    /**
+     * This class is used to fix the problem of destructor recursion.
+     */
+    class GEODE_DLL DestructorLock {
+    public:
+        static bool isLocked(cocos2d::CCNode* self);
+        static bool isLocked(void* self);
+        static void addLock(cocos2d::CCNode* self);
+        static void addLock(void* self);
+        static void removeLock(cocos2d::CCNode* self);
+        static void removeLock(void* self);
+    };
+}
 
 #endif // __CCOBJECT_H__

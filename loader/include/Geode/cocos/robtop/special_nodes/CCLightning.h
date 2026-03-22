@@ -11,6 +11,7 @@ class CCLightning : public CCNode, public CCRGBAProtocol {
 public:
     CCLightning();
     virtual ~CCLightning();
+    GEODE_CUTOFF_CONSTRUCTOR_GD(CCLightning, CCNode);
 
     static CCLightning* lightningWithStrikePoint(CCPoint strikePoint, CCPoint strikePoint2, float duration);
     static CCLightning* lightningWithStrikePoint(CCPoint strikePoint);
@@ -42,7 +43,7 @@ public:
     bool isCascadeOpacityEnabled();
     void setCascadeColorEnabled(bool);
 
-protected:
+public:
     CCPoint m_strikePoint;
     CCPoint m_strikePoint2;
     bool m_split;

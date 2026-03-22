@@ -2,8 +2,12 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/modify/Field.hpp>
 #include <Geode/modify/CCNode.hpp>
+#include <Geode/utils/ranges.hpp>
+#include <Geode/utils/terminate.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include <cocos2d.h>
 #include <queue>
+#include <stack>
 
 using namespace geode::prelude;
 using namespace geode::modifier;
@@ -17,13 +21,14 @@ struct ProxyCCNode;
 
 class GeodeNodeMetadata final : public cocos2d::CCObject {
 private:
-    std::unordered_map<std::string, FieldContainer*> m_classFieldContainers;
+    StringMap<FieldContainer*> m_classFieldContainers;
     std::string m_id = "";
     Ref<Layout> m_layout = nullptr;
     Ref<LayoutOptions> m_layoutOptions = nullptr;
-    std::unordered_map<std::string, Ref<CCObject>> m_userObjects;
-    std::unordered_set<std::unique_ptr<EventListenerProtocol>> m_eventListeners;
-    std::unordered_map<std::string, std::unique_ptr<EventListenerProtocol>> m_idEventListeners;
+    StringMap<Ref<CCObject>> m_userObjects;
+    std::vector<Ref<CCObject>> m_tethers;
+    StringSet m_userFlags;
+    StringMultimap<std::unique_ptr<ListenerHandle>> m_eventListeners;
 
     friend class ProxyCCNode;
     friend class cocos2d::CCNode;
@@ -55,22 +60,90 @@ public:
         meta->retain();
 
         if (old) {
-            meta->m_userObjects.insert({ "", old });
+            meta->setUserObject("", old);
             // the old user object is now managed by Ref
             old->release();
         }
         return meta;
     }
 
-    FieldContainer* getFieldContainer() {
-        return nullptr;
+    FieldContainer* getFieldContainer(char const* forClass) {
+        auto it = m_classFieldContainers.find(forClass);
+        if (it != m_classFieldContainers.end()) {
+            return it->second;
+        }
+
+        auto container = new FieldContainer();
+        m_classFieldContainers.insert(it, std::make_pair(forClass, container));
+
+        return container;
     }
 
-    FieldContainer* getFieldContainer(char const* forClass) {
-        if (!m_classFieldContainers.count(forClass)) {
-            m_classFieldContainers[forClass] = new FieldContainer();
+    CCObject* getUserObject(std::string_view id) {
+        auto it = m_userObjects.find(id);
+        return it != m_userObjects.end() ? it->second : nullptr;
+    }
+
+    void setUserObject(std::string id, CCObject* object) {
+        if (object) {
+            auto it = m_userObjects.find(id);
+            if (it == m_userObjects.end()) {
+                m_userObjects.emplace(std::move(id), object);
+            } else {
+                it->second = object;
+            }
+        } else {
+            m_userObjects.erase(id);
         }
-        return m_classFieldContainers[forClass];
+    }
+
+    void addTether(CCObject* object) {
+        if (!utils::ranges::contains(m_tethers, object)) {
+            m_tethers.emplace_back(object);
+        }
+    }
+
+    void removeTether(CCObject* object) {
+        utils::ranges::remove(m_tethers, object);
+    }
+
+    bool getUserFlag(std::string_view id) {
+        return m_userFlags.contains(id);
+    }
+
+    void setUserFlag(std::string id, bool state) {
+        if (state) {
+            m_userFlags.emplace(std::move(id));
+        } else {
+            m_userFlags.erase(id);
+        }
+    }
+
+    ListenerHandle* getEventListener(std::string_view id) {
+        auto it = m_eventListeners.find(id);
+        return it != m_eventListeners.end() ? it->second.get() : nullptr;
+    }
+
+    ListenerHandle* addEventListener(std::string id, ListenerHandle handle) {
+        auto wrap = std::make_unique<ListenerHandle>(std::move(handle));
+        auto ret = wrap.get();
+        m_eventListeners.emplace(std::move(id), std::move(wrap));
+        return ret;
+    }
+
+    void removeEventListener(std::string_view id) {
+        auto range = m_eventListeners.equal_range(id);
+        m_eventListeners.erase(range.first, range.second);
+    }
+
+    void removeEventListener(ListenerHandle* handle) {
+        std::erase_if(m_eventListeners, [=](auto& l) {
+            return l.second.get() == handle;
+        });
+    }
+
+    size_t getEventListenerCount() {
+        return m_eventListeners.size();
     }
 };
 
@@ -82,7 +155,7 @@ struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
             return asNode->getUserObject("");
         }
         else {
-            // apparently this function is the same as 
+            // apparently this function is the same as
             // CCDirector::getNextScene so yeah
             return m_pUserObject;
         }
@@ -99,29 +172,26 @@ struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     }
 };
 
-static inline std::unordered_map<std::string, size_t> s_nextIndex;
+// it is mostly safe to use string_view here to reduce heap allocations,
+// since passed names are obtained by typed().name() which is static
+static inline std::unordered_map<std::string_view, size_t> s_nextIndex;
 size_t modifier::getFieldIndexForClass(char const* name) {
 	return s_nextIndex[name]++;
-}
-
-// not const because might modify contents
-FieldContainer* CCNode::getFieldContainer() {
-    return GeodeNodeMetadata::set(this)->getFieldContainer();
 }
 
 FieldContainer* CCNode::getFieldContainer(char const* forClass) {
     return GeodeNodeMetadata::set(this)->getFieldContainer(forClass);
 }
 
-std::string CCNode::getID() {
+ZStringView CCNode::getID() {
     return GeodeNodeMetadata::set(this)->m_id;
 }
 
-void CCNode::setID(std::string const& id) {
-    GeodeNodeMetadata::set(this)->m_id = id;
+void CCNode::setID(std::string id) {
+    GeodeNodeMetadata::set(this)->m_id = std::move(id);
 }
 
-CCNode* CCNode::getChildByID(std::string const& id) {
+CCNode* CCNode::getChildByID(std::string_view id) {
     for (auto child : CCArrayExt<CCNode*>(this->getChildren())) {
         if (child->getID() == id) {
             return child;
@@ -130,7 +200,7 @@ CCNode* CCNode::getChildByID(std::string const& id) {
     return nullptr;
 }
 
-CCNode* CCNode::getChildByIDRecursive(std::string const& id) {
+CCNode* CCNode::getChildByIDRecursive(std::string_view id) {
     if (auto child = this->getChildByID(id)) {
         return child;
     }
@@ -149,7 +219,7 @@ private:
 
 public:
     BFSNodeTreeCrawler(CCNode* target) {
-        if (auto first = getChild(target, 0)) {
+        if (auto first = target->getChildByIndex(0)) {
             m_explored.insert(first);
             m_queue.push(first);
         }
@@ -189,7 +259,7 @@ private:
     std::unique_ptr<NodeQuery> m_next = nullptr;
 
 public:
-    static Result<std::unique_ptr<NodeQuery>> parse(std::string const& query) {
+    static Result<std::unique_ptr<NodeQuery>> parse(std::string_view query) {
         if (query.empty()) {
             return Err("Query may not be empty");
         }
@@ -229,7 +299,7 @@ public:
                 }
                 collectedID.push_back(c);
             }
-            // Any other character is syntax error due to needing to reserve 
+            // Any other character is syntax error due to needing to reserve
             // stuff for possible future features
             else {
                 return Err("Unexpected character '{}' at index {}", c, i);
@@ -287,18 +357,18 @@ public:
     }
 };
 
-CCNode* CCNode::querySelector(std::string const& queryStr) {
+CCNode* CCNode::querySelector(std::string_view queryStr) {
     auto res = NodeQuery::parse(queryStr);
     if (!res) {
         log::error("Invalid CCNode::querySelector query '{}': {}", queryStr, res.unwrapErr());
         return nullptr;
     }
     auto query = std::move(res.unwrap());
-    log::info("parsed query: {}", query->toString());
+    // log::info("parsed query: {}", query->toString());
     return query->match(this);
 }
 
-void CCNode::removeChildByID(std::string const& id) {
+void CCNode::removeChildByID(std::string_view id) {
     if (auto child = this->getChildByID(id)) {
         this->removeChild(child);
     }
@@ -333,7 +403,7 @@ LayoutOptions* CCNode::getLayoutOptions() {
 }
 
 void CCNode::updateLayout(bool updateChildOrder) {
-    if (updateChildOrder) {
+    if (updateChildOrder && m_pChildren) {
         this->sortAllChildren();
     }
     if (auto layout = GeodeNodeMetadata::set(this)->m_layout.data()) {
@@ -341,80 +411,41 @@ void CCNode::updateLayout(bool updateChildOrder) {
     }
 }
 
-UserObjectSetEvent::UserObjectSetEvent(CCNode* node, std::string const& id, CCObject* value)
-  : node(node), id(id), value(value) {}
-
-ListenerResult AttributeSetFilter::handle(MiniFunction<Callback> fn, UserObjectSetEvent* event) {
-    if (event->id == m_targetID) {
-        fn(event);
-    }
-    return ListenerResult::Propagate;
+void CCNode::setUserObject(std::string id, CCObject* value) {
+    GeodeNodeMetadata::set(this)->setUserObject(id, value);
+    UserObjectSetEvent(std::move(id)).send(this, std::move(value));
 }
 
-AttributeSetFilter::AttributeSetFilter(std::string const& id) : m_targetID(id) {}
-
-void CCNode::setUserObject(std::string const& id, CCObject* value) {
-    auto meta = GeodeNodeMetadata::set(this);
-    if (value) {
-        meta->m_userObjects[id] = value;
-    }
-    else {
-        meta->m_userObjects.erase(id);
-    }
-    UserObjectSetEvent(this, id, value).post();
+CCObject* CCNode::getUserObject(std::string_view id) {
+    return GeodeNodeMetadata::set(this)->getUserObject(id);
 }
 
-CCObject* CCNode::getUserObject(std::string const& id) {
-    auto meta = GeodeNodeMetadata::set(this);
-    if (meta->m_userObjects.count(id)) {
-        return meta->m_userObjects.at(id);
-    }
-    return nullptr;
+void CCNode::setUserFlag(std::string id, bool state) {
+    GeodeNodeMetadata::set(this)->setUserFlag(std::move(id), state);
 }
 
-void CCNode::addEventListenerInternal(std::string const& id, EventListenerProtocol* listener) {
-    auto meta = GeodeNodeMetadata::set(this);
-    if (id.size()) {
-        if (meta->m_idEventListeners.contains(id)) {
-            meta->m_idEventListeners.at(id).reset(listener);
-        }
-        else {
-            meta->m_idEventListeners.emplace(id, listener);
-        }
-    }
-    else {
-        std::erase_if(meta->m_eventListeners, [=](auto& l) {
-            return l.get() == listener;
-        });
-        meta->m_eventListeners.emplace(listener);
-    }
+bool CCNode::getUserFlag(std::string_view id) {
+    return GeodeNodeMetadata::set(this)->getUserFlag(id);
 }
 
-void CCNode::removeEventListener(EventListenerProtocol* listener) {
-    auto meta = GeodeNodeMetadata::set(this);
-    std::erase_if(meta->m_eventListeners, [=](auto& l) {
-        return l.get() == listener;
-    });
-    std::erase_if(meta->m_idEventListeners, [=](auto& l) {
-        return l.second.get() == listener;
-    });
+ListenerHandle* CCNode::addEventListenerInternal(std::string id, ListenerHandle handle) {
+    return GeodeNodeMetadata::set(this)->addEventListener(std::move(id), std::move(handle));
 }
 
-void CCNode::removeEventListener(std::string const& id) {
-    GeodeNodeMetadata::set(this)->m_idEventListeners.erase(id);
+void CCNode::removeEventListener(ListenerHandle* handle) {
+    GeodeNodeMetadata::set(this)->removeEventListener(handle);
 }
 
-EventListenerProtocol* CCNode::getEventListener(std::string const& id) {
-    auto meta = GeodeNodeMetadata::set(this);
-    if (meta->m_idEventListeners.contains(id)) {
-        return meta->m_idEventListeners.at(id).get();
-    }
-    return nullptr;
+void CCNode::removeEventListener(std::string_view id) {
+    GeodeNodeMetadata::set(this)->removeEventListener(id);
+}
+
+ListenerHandle* CCNode::getEventListener(std::string_view id) {
+    return GeodeNodeMetadata::set(this)->getEventListener(id);
 }
 
 size_t CCNode::getEventListenerCount() {
-    return GeodeNodeMetadata::set(this)->m_idEventListeners.size() +
-        GeodeNodeMetadata::set(this)->m_eventListeners.size();
+    return GeodeNodeMetadata::set(this)->getEventListenerCount();
 }
 
 void CCNode::addChildAtPosition(CCNode* child, Anchor anchor, CCPoint const& offset, bool useAnchorLayout) {
@@ -455,13 +486,106 @@ void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset, CCPoin
     }
 }
 
-#ifdef GEODE_EXPORTING
+namespace {
+    template <class T, size_t N>
+    struct LocalStack {
+        std::array<T, N> m_stack;
+        size_t m_index = 0;
 
-void CCNode::setAttribute(std::string const& attr, matjson::Value const& value) {}
-std::optional<matjson::Value> CCNode::getAttributeInternal(std::string const& attr) {
-    return std::nullopt;
+        LocalStack() : m_stack{0} {}
+
+        bool push(T value) {
+            m_index++;
+            if (m_index == N) m_index = 0;
+            m_stack[m_index] = value;
+            return true;
+        }
+
+        bool pop() {
+            if (m_index == 0) m_index = N;
+            m_index--;
+            return true;
+        }
+
+        T top() {
+            return m_stack[m_index];
+        }
+
+        bool empty() {
+            return false;
+        }
+    };
+
+    static thread_local LocalStack<void*, 32> s_lockStack;
 }
 
-#endif
+
+namespace geode {
+    // okay so you might be asking why the hell this exists
+    // i'm asking the same question
+    // so basically, cocos devs decided it was a very good idea to allocate 
+    // twice for every ccnode instead of once cause why not
+    // which means there is a new call in the constructor of ccnode
+    // thats not _that_ bad on its own, but the problem is that there is no
+    // nullptr check in the destructor while calling removeAll
+    // meaning if the pointer is null for some reason it will just crash
+    // well, in geode's case the pointer is null for the custom constructors
+    // we have, the zero and cutoff constructors. but that means that using
+    // them will crash. i have no idea why this hasn't came up sooner, i did
+    // not touch any code related to it yet it started to crash in v5
+    // for some reason. this is basically a hack for that, if we set the value
+    // to be, you know, a null class, then it won't crash. well, at least 
+    // that's the hope 
+    class NullComponentContainer final {
+    private:
+        NullComponentContainer() {}
+        ~NullComponentContainer() = default;
+
+    public:
+        static inline NullComponentContainer* get() {
+            static auto* instance = new NullComponentContainer();
+            return instance;
+        }
+        virtual cocos2d::CCComponent* get(const char *pName) const {return nullptr;}
+        virtual bool add(cocos2d::CCComponent*) { return false; }
+        virtual bool remove(const char*) { return false; }
+        virtual bool remove(cocos2d::CCComponent*) { return false; }
+        virtual void removeAll() {}
+        virtual void visit(float) {}
+
+        static void operator delete(void* ptr) {
+            // this is a disgusting hack oh my god 
+        }
+    };
+}
+
+bool geode::DestructorLock::isLocked(cocos2d::CCNode* self) {
+    return DestructorLock::isLocked(static_cast<void*>(self));
+}
+bool geode::DestructorLock::isLocked(void* self) {
+    // only the top of the stack matters
+    if (s_lockStack.empty()) return false;
+    return s_lockStack.top() == self;
+}
+void geode::DestructorLock::addLock(cocos2d::CCNode* self) {
+    self->m_pComponentContainer = reinterpret_cast<cocos2d::CCComponentContainer*>(geode::NullComponentContainer::get());
+    return DestructorLock::addLock(static_cast<void*>(self));
+}
+void geode::DestructorLock::addLock(void* self) {
+    if (!s_lockStack.push(self)) {
+        geode::utils::terminate("DestructorLock lock stack overflow (tried to add too many locks at once)");
+    }
+}
+void geode::DestructorLock::removeLock(cocos2d::CCNode* self) {
+    return DestructorLock::removeLock(static_cast<void*>(self));
+}
+void geode::DestructorLock::removeLock(void* self) {
+    if (s_lockStack.top() != self) {
+        geode::utils::terminate("DestructorLock lock stack corruption (tried to unlock a destructor that was not the top of the stack)");
+    }
+    if (!s_lockStack.pop()) {
+        geode::utils::terminate("DestructorLock lock stack underflow (tried to unlock a destructor that was never locked)");
+    }
+}
 
 #pragma warning(pop)

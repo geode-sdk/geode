@@ -2,6 +2,8 @@
 
 #include "../DefaultInclude.hpp"
 #include <exception>
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
     class Mod;
@@ -32,19 +34,19 @@ namespace geode::utils {
 
     template <class = void>
     [[noreturn]]
-    void terminate(std::string const& reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
+    void terminate(ZStringView reason, Mod* mod = getMod(), size_t platformCode = GEODE_TERMINATE_EXCEPTION_CODE) {
         // Add the error to the logfile
         detail::logTerminationError(reason.c_str(), mod);
 
     #ifdef GEODE_IS_WINDOWS
         // If a debugger is attached, start debugging
         if (IsDebuggerPresent()) {
-            OutputDebugStringA(reason.c_str());
+            OutputDebugStringW(utils::string::utf8ToWide(reason).c_str());
             DebugBreak();
         }
         // Otherwise terminate by raising an exception (which is caught by the crashlog handler)
         else {
-            std::array<const void*, 2> errorList { static_cast<const void*>(reason.c_str()), mod };
+            std::array<const void*, 2> errorList { reason.c_str(), mod };
             RaiseException(
                 platformCode,
                 EXCEPTION_NONCONTINUABLE,
@@ -52,13 +54,13 @@ namespace geode::utils {
             );
         }
     #endif
-        
+
         std::terminate();
     }
-    
+
     template <class = void>
     [[noreturn]]
-    void unreachable(std::string const& reason = "Unspecified", Mod* mod = getMod()) {
+    void unreachable(ZStringView reason = "Unspecified", Mod* mod = getMod()) {
         terminate(reason, mod, GEODE_UNREACHABLE_EXCEPTION_CODE);
     }
 }

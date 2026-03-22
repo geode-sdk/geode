@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <matjson.hpp>
-#include <Geode/utils/MiniFunction.hpp>
 #include <Geode/loader/Event.hpp>
+#include <Geode/utils/function.hpp>
+#include <Geode/utils/general.hpp>
 
 namespace geode::updater {
     using UpdateFinished = std::monostate;
@@ -11,42 +12,24 @@ namespace geode::updater {
     using UpdateFailed = std::string;
     using UpdateStatus = std::variant<UpdateFinished, UpdateProgress, UpdateFailed>;
 
-    struct ResourceDownloadEvent : public Event {
-        const UpdateStatus status;
-        explicit ResourceDownloadEvent(UpdateStatus status);
-    };
-
-    class ResourceDownloadFilter : public EventFilter<ResourceDownloadEvent> {
+    class ResourceDownloadEvent : public ThreadSafeEvent<ResourceDownloadEvent, bool(UpdateStatus const&)> {
     public:
-        using Callback = void(ResourceDownloadEvent*);
-
-        static ListenerResult handle(const utils::MiniFunction<Callback>& fn, ResourceDownloadEvent* event);
-        ResourceDownloadFilter();
+        // listener params status
+        using ThreadSafeEvent::ThreadSafeEvent;
     };
 
-    struct LoaderUpdateEvent : public Event {
-        const UpdateStatus status;
-        explicit LoaderUpdateEvent(UpdateStatus status);
-    };
-
-    class LoaderUpdateFilter : public EventFilter<LoaderUpdateEvent> {
+    class LoaderUpdateEvent : public ThreadSafeEvent<LoaderUpdateEvent, bool(UpdateStatus const&)> {
     public:
-        using Callback = void(LoaderUpdateEvent*);
-
-        static ListenerResult handle(const utils::MiniFunction<Callback>& fn, LoaderUpdateEvent* event);
-        LoaderUpdateFilter();
+        // listener params status
+        using ThreadSafeEvent::ThreadSafeEvent;
     };
 
     void updateSpecialFiles();
-    void tryDownloadLoaderResources(std::string const& url, bool tryLatestOnError = true);
+    Result<> extractLoaderResources(ByteSpan data);
+    void tryDownloadLoaderResources(std::string url, bool tryLatestOnError = true);
     void downloadLoaderResources(bool useLatestRelease = false);
     void downloadLatestLoaderResources();
-    void downloadLoaderUpdate(std::string const& url);
-    void fetchLatestGithubRelease(
-        const utils::MiniFunction<void(matjson::Value const&)>& then,
-        utils::MiniFunction<void(std::string const&)> expect,
-        bool force = false
-    );
+    void downloadLoaderUpdate(std::string url);
 
     bool verifyLoaderResources();
     void checkForLoaderUpdates();

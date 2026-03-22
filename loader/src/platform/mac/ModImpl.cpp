@@ -17,7 +17,7 @@ T findSymbolOrMangled(void* dylib, char const* name, char const* mangled) {
 
 Result<> Mod::Impl::loadPlatformBinary() {
     auto dylib =
-        dlopen((m_tempDirName / m_metadata.getBinaryName()).string().c_str(), RTLD_LAZY);
+        dlopen(utils::string::pathToString(this->getBinaryPath()).c_str(), RTLD_LAZY);
     if (dylib) {
         if (m_platformInfo) {
             delete m_platformInfo;

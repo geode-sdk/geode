@@ -1,8 +1,7 @@
 #pragma once
 
 #include <filesystem>
-#include "../utils/Result.hpp"
-#include "../utils/MiniFunction.hpp"
+#include <Geode/Result.hpp>
 #include "Log.hpp"
 #include "ModEvent.hpp"
 #include "ModMetadata.hpp"
@@ -15,38 +14,30 @@
 #include <string_view>
 
 namespace geode {
-    using ScheduledFunction = utils::MiniFunction<void()>;
-
-    struct InvalidGeodeFile {
-        std::filesystem::path path;
-        std::string reason;
-    };
+    using ScheduledFunction = geode::Function<void()>;
 
     struct LoadProblem {
         enum class Type : uint8_t {
-            Unknown,
-            Suggestion,
-            Recommendation,
-            Conflict,
-            OutdatedConflict,
-            InvalidFile,
-            Duplicate,
-            SetupFailed,
-            LoadFailed,
-            EnableFailed,
-            MissingDependency,
-            PresentIncompatibility,
-            UnzipFailed,
-            UnsupportedVersion,
-            UnsupportedGeodeVersion,
-            NeedsNewerGeodeVersion,
-            DisabledDependency,
-            OutdatedDependency,
-            OutdatedIncompatibility,
+            /// Some other fatal error (like binary loading failing)
+            Unknown = 0,
+            /// This mod has an invalid .geode package
+            InvalidGeodeFile = 1,
+            /// This mod is missing dependencies
+            MissingDependencies = 2,
+            /// This mod is outdated (targets an old GD or Geode version)
+            Outdated = 3,
+            /// This mod is explicitly incompatible with another mod
+            HasIncompatibilities = 4,
         };
         Type type;
         std::variant<std::filesystem::path, ModMetadata, Mod*> cause;
+        /// Human-readable message (that should also suggest a fix; aka be UI-ready)
         std::string message;
+
+        // Outdated mods are not shown in main menu
+        bool isProblemTheUserShouldCareAbout() const {
+            return type != Type::Outdated;
+        }
     };
 
     class LoaderImpl;
@@ -86,14 +77,12 @@ namespace geode {
         bool isModVersionSupported(VersionInfo const& version);
 
         LoadingState getLoadingState();
-        bool isModInstalled(std::string const& id) const;
-        Mod* getInstalledMod(std::string const& id) const;
-        bool isModLoaded(std::string const& id) const;
-        Mod* getLoadedMod(std::string const& id) const;
+        bool isModInstalled(std::string_view id) const;
+        Mod* getInstalledMod(std::string_view id) const;
+        bool isModLoaded(std::string_view id) const;
+        Mod* getLoadedMod(std::string_view id) const;
         std::vector<Mod*> getAllMods();
-        std::vector<LoadProblem> getAllProblems() const;
-        std::vector<LoadProblem> getProblems() const;
-        std::vector<LoadProblem> getRecommendations() const;
+        std::vector<LoadProblem> getLoadProblems() const;
 
         /**
          * Returns the available launch argument names.
@@ -103,41 +92,36 @@ namespace geode {
          * Returns whether the specified launch argument was passed in via the command line.
          * @param name The argument name
          */
-        bool hasLaunchArgument(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
         /**
          * Get a launch argument. These are passed into the game as command-line arguments
          * with the format `--geode:arg-name=value`.
          * @param name The argument name
          * @return The value, if present
          */
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
         /**
          * Get a launch argument flag. Returns whether the argument is present and its
          * value is exactly `true`.
          * @param name The argument name
          */
-        bool getLaunchFlag(std::string_view const name) const;
+        bool getLaunchFlag(std::string_view name) const;
         /**
          * Get and parse a launch argument value using the setting value system.
          * @param name The argument name
          */
         template <class T>
-        std::optional<T> parseLaunchArgument(std::string_view const name) const {
+        Result<T> parseLaunchArgument(std::string_view name) const {
             auto str = this->getLaunchArgument(name);
             if (!str.has_value()) {
-                return std::nullopt;
+                return Err(fmt::format("Launch argument '{}' not found", name));
             }
-            std::string parseError;
-            auto jsonOpt = matjson::parse(str.value(), parseError);
-            if (!jsonOpt.has_value()) {
-                log::debug("Parsing launch argument '{}' failed: {}", name, parseError);
-                return std::nullopt;
+            auto jsonOpt = matjson::Value::parse(str.value());
+            if (jsonOpt.isErr()) {
+                return Err(fmt::format("Parsing launch argument '{}' failed: {}", name, jsonOpt.unwrapErr()));
             }
-            auto value = jsonOpt.value();
-            if (!value.is<T>()) {
-                return std::nullopt;
-            }
-            return value.as<T>();
+            auto value = jsonOpt.unwrap();
+            return value.template as<T>();
         }
 
         void queueInMainThread(ScheduledFunction&& func);
@@ -148,6 +132,17 @@ namespace geode {
          */
         std::string getGameVersion();
 
+        /**
+         * Returns whether the loader does not use dynamic patching or hooking.
+         * You should use GEODE_MOD_STATIC_PATCH macro instead of Mod::patch and
+         * GEODE_MOD_STATIC_HOOK macro instead of Mod::hook if that is the case.
+         * Modify classes are handled automatically, and enabling/disabling hooks
+         * works fine too.
+         * @return True if the loader does not use dynamic patching or hooking,
+         * false if it does.
+         */
+        bool isPatchless() const;
+
         friend class LoaderImpl;
 
         friend Mod* takeNextLoaderMod();
@@ -155,11 +150,11 @@ namespace geode {
 
     /**
      * @brief Queues a function to run on the main thread
-     * 
+     *
      * @param func the function to queue
     */
-    inline GEODE_HIDDEN void queueInMainThread(ScheduledFunction&& func) {
-        Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
+    inline void queueInMainThread(ScheduledFunction&& func) {
+        Loader::get()->queueInMainThread(std::move(func));
     }
 
     /**
@@ -167,7 +162,7 @@ namespace geode {
      *
      * @return Mod* The next mod to load
     */
-    inline GEODE_HIDDEN Mod* takeNextLoaderMod() {
+    inline Mod* takeNextLoaderMod() {
         return Loader::get()->takeNextMod();
     }
 }

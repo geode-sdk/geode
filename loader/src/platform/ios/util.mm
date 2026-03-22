@@ -3,42 +3,603 @@
 using namespace geode::prelude;
 
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/GameEvent.hpp>
 #include <UIKit/UIKit.h>
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#include <AVFoundation/AVFoundation.h>
 #include <iostream>
 #include <sstream>
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/permission.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/binding/GameManager.hpp>
+#include <Geode/binding/AppDelegate.hpp>
+#include <Geode/binding/MenuLayer.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/Utils.hpp>
+#include <mach-o/utils.h>
+#include <objc/runtime.h>
+#include <objc/message.h>
+#include <stdlib.h>
+#include <string.h>
 
-bool utils::clipboard::write(std::string const& data) {
+#import <Foundation/Foundation.h>
+
+using geode::utils::permission::Permission;
+
+bool utils::clipboard::write(ZStringView data) {
     [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
     return true;
 }
-
 std::string utils::clipboard::read() {
     return std::string([[UIPasteboard generalPasteboard].string UTF8String]);
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     [[UIApplication sharedApplication]
-        openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]]];
+        openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]] options:{} completionHandler:nil];
 }
 
-void geode_nslog(uintptr_t x) {
-    NSLog(@"geode %lx", x);
+#pragma region Folder Pick Delegate
+
+@interface PickerDelegate : NSObject <UIDocumentPickerDelegate>
+@property (nonatomic, copy) void (^completion)(NSArray<NSURL*>* urls);
+- (instancetype)initWithCompletion:(void (^)(NSArray<NSURL*>* urls))completion;
+@end
+
+@implementation PickerDelegate
+- (instancetype)initWithCompletion:(void (^)(NSArray<NSURL*>* urls))completion {
+    self = [super init];
+    if (self) {
+        _completion = [completion copy];
+    }
+    return self;
 }
 
+- (void)documentPicker:(UIDocumentPickerViewController*)controller didPickDocumentsAtURLs:(NSArray<NSURL*>*)urls {
+    if (self.completion) {
+        self.completion(urls);
+    }
+}
+
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController*)controller {
+    if (self.completion) {
+        self.completion(nil);
+    }
+}
+
+@end
+
+PickerDelegate* PickerDelegate_instance = nil;
+
+#pragma endregion
+
+UIViewController* getCurrentViewController() {
+    NSSet<UIScene*>* windowScenes = [UIApplication sharedApplication].connectedScenes;
+    UIWindow *window = nil;
+    for (UIScene* scene in windowScenes) {
+        if ([scene isKindOfClass:[UIWindowScene class]]) {
+            UIWindowScene* windowScene = (UIWindowScene*)scene;
+            for (UIWindow* win in windowScene.windows) {
+                if (win.isKeyWindow) {
+                    window = win;
+                    break;
+                }
+            }
+            if (window) {
+                break;
+            }
+        }
+    }
+    if (!window) {
+        return nil;
+    }
+
+    UIViewController *rootViewController = window.rootViewController;
+
+    while (rootViewController.presentedViewController) {
+        rootViewController = rootViewController.presentedViewController;
+    }
+
+    return rootViewController;
+}
+
+bool utils::file::openFolder(std::filesystem::path const& path) {
+    std::string newPath = fmt::format("{}://{}", getenv("GEODEINJECT_LOADED") ? "filza" : "shareddocuments", path);
+    NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:newPath.c_str()]];
+    if ([[UIApplication sharedApplication] canOpenURL:url]) {
+        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+        return true;
+    }
+    return false;
+}
+
+GEODE_DLL arc::Future<file::PickResult> file::pick(file::PickMode mode, file::FilePickOptions options) {
+    auto [tx, rx] = arc::oneshot::channel<PickManyResult>();
+    __block auto sender = std::move(tx);
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSMutableArray<UTType*> *documentTypes = [NSMutableArray array];
+        for (const auto& filter : options.filters) {
+            for (const auto& file : filter.files) {
+                UTType* uti = [UTType typeWithFilenameExtension:@(file.c_str())];
+                if (uti) {
+                    [documentTypes addObject:uti];
+                }
+            }
+        }
+
+        NSURL *FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp.file"]];
+        if (options.defaultPath && !options.defaultPath->parent_path().empty()) {
+            FileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:options.defaultPath->c_str()]];
+        }
+        else if (options.defaultPath) {
+            auto FileExtension = [NSString stringWithUTF8String:options.defaultPath->c_str()];
+            FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:FileExtension]];
+        }
+        
+        // just for the picker not to crash, it gotta have a file to "save" then the writing is handled in the mod once we save the file somewhere
+        [@"" writeToURL:FileURL atomically:NO encoding:NSUTF8StringEncoding error:nil];
+
+        if (documentTypes.count == 0) {
+            [documentTypes addObject:UTTypeItem]; // Default to any file type if no filters are provided
+        }
+
+        UIDocumentPickerViewController *picker;
+        switch (mode) {
+            case file::PickMode::OpenFile:
+                picker = [[UIDocumentPickerViewController alloc]
+                    initForOpeningContentTypes:documentTypes
+                    asCopy:YES];
+                break;
+            case file::PickMode::SaveFile:
+                picker = [[UIDocumentPickerViewController alloc]
+                    initForExportingURLs:@[FileURL]
+                    asCopy:YES];
+                break;
+            case file::PickMode::OpenFolder:
+                picker = [[UIDocumentPickerViewController alloc]
+                    initForOpeningContentTypes:@[UTTypeFolder]
+                    asCopy:YES];
+                break;
+        }
+        picker.allowsMultipleSelection = NO;
+        picker.shouldShowFileExtensions = YES;
+
+        PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls) {
+            PickerDelegate_instance = nil;
+
+            std::vector<std::filesystem::path> paths;
+            if (urls && urls.count > 0) {
+                for (NSURL* url : urls) {
+                    if (url && url.path) {
+                        paths.emplace_back(std::string([url.path UTF8String]));
+                    }
+                }
+            }
+            (void)sender.send(Ok(std::move(paths)));
+        }];
+
+        picker.delegate = PickerDelegate_instance;
+
+        UIViewController *currentViewController = getCurrentViewController();
+        if (!currentViewController) {
+            (void)sender.send(Err("Failed to get view controller"));
+            return;
+        }
+        [currentViewController presentViewController:picker animated:YES completion:nil];
+    });
+
+    auto recvResult = co_await rx.recv();
+
+    if (!recvResult) {
+        co_return Err("Error occured while picking file");
+    }
+
+    auto res = std::move(recvResult).unwrap();
+    if (res.isErr()) {
+        co_return Err(std::move(res).unwrapErr());
+    }
+
+    auto paths = std::move(res).unwrap();
+    if (paths.empty()) {
+        co_return Ok(std::nullopt);
+    }
+
+    co_return Ok(std::move(paths[0]));
+}
+
+GEODE_DLL arc::Future<file::PickManyResult> file::pickMany(file::FilePickOptions options) {
+    auto [tx, rx] = arc::oneshot::channel<PickManyResult>();
+    __block auto sender = std::move(tx);
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSMutableArray<UTType*> *documentTypes = [NSMutableArray array];
+        for (const auto& filter : options.filters) {
+            for (const auto& file : filter.files) {
+                UTType* uti = [UTType typeWithFilenameExtension:@(file.c_str())];
+                if (uti) {
+                    [documentTypes addObject:uti];
+                }
+            }
+        }
+        if (documentTypes.count == 0) {
+            [documentTypes addObject:UTTypeItem]; // Default to any file type if no filters are provided
+        }
+
+        UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc]
+            initForOpeningContentTypes:documentTypes
+            asCopy:YES];
+        picker.allowsMultipleSelection = YES;
+
+        PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls) {
+            PickerDelegate_instance = nil;
+
+            if (urls && urls.count > 0) {
+                std::vector<std::filesystem::path> paths;
+                if (urls && urls.count > 0) {
+                    for (NSURL* url : urls) {
+                        if (url && url.path) {
+                            paths.emplace_back(std::string([url.path UTF8String]));
+                        }
+                    }
+                }
+                (void)sender.send(Ok(std::move(paths)));
+            } else {
+                (void)sender.send(Ok(std::vector<std::filesystem::path>()));
+            }
+        }];
+
+        picker.delegate = PickerDelegate_instance;
+
+        UIViewController *currentViewController = getCurrentViewController();
+        if (!currentViewController) {
+            (void)sender.send(Err("Failed to get view controller"));
+            return;
+        }
+        [currentViewController presentViewController:picker animated:YES completion:nil];
+    });
+
+    auto recvResult = co_await rx.recv();
+    if (!recvResult) {
+        co_return Err("Error occured while picking file");
+    }
+
+    auto res = std::move(recvResult).unwrap();
+    if (res.isErr()) {
+        co_return Err(std::move(res).unwrapErr());
+    }
+
+    co_return Ok(std::move(res).unwrap());
+}
+
+// TODO: copied those two from android but idk maybe shouldve copied from mac
+void geode::utils::game::exit(bool save) {
+    // TODO: yeah
+    // if (CCApplication::sharedApplication() &&
+    //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
+    //     log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
+    //     return;
+    // }
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
+    // AppDelegate::get()->showLoadingCircle(false, true);
+
+    class Exit : public CCObject {
+        public:
+        void shutdown() {
+            // someone please look into this, I'm unsure if this will cause issues with saving!
+            GameEvent(GameEventType::Exiting).send();
+            std::exit(0);
+        }
+    };
+
+    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+        CCDelayTime::create(0.5f),
+        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+        nullptr
+    ), CCDirector::get()->getRunningScene(), false);
+}
+
+void geode::utils::game::restart(bool save) {
+    if (save) {
+        AppDelegate::get()->trySaveGame(true);
+    }
+
+    class Exit : public CCObject {
+        public:
+        void shutdown() {
+            NSURL* url = [NSURL URLWithString:@"geode://relaunch"];
+            if ([[UIApplication sharedApplication] canOpenURL:url]) {
+                GameEvent(GameEventType::Exiting).send();
+                [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+            } else {
+                // this would only happen if you don't have the launcher
+                FLAlertLayer::create(
+                     "Unavailable",
+                     "Restarting is currently <cr>unavailable</c>. Please <cy>restart the game</c> manually.",
+                     "OK"
+                 )->show();
+            }
+        }
+    };
+
+    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+        CCDelayTime::create(0.5f),
+        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+        nullptr
+    ), CCDirector::get()->getRunningScene(), false);
+}
+
+void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
+    log::error("Launching Geode uninstaller is not supported on iOS");
+}
+
+CCPoint cocos::getMousePos() {
+    return CCPoint(0, 0);
+}
+
+namespace {
+    std::string s_savedBaseDir = "";
+
+    std::filesystem::path getBaseDir() {
+        if (!s_savedBaseDir.empty()) {
+            return std::filesystem::path(s_savedBaseDir);
+        }
+
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsDirectory = [paths firstObject];
+
+        std::filesystem::path documentsPath = [documentsDirectory UTF8String];
+
+        s_savedBaseDir = documentsPath;
+        return std::filesystem::path(documentsPath);
+    }
+}
 
 std::filesystem::path dirs::getGameDir() {
-    return std::filesystem::current_path();
+    return getBaseDir() / "game";
+}
+
+std::filesystem::path dirs::getModRuntimeDir() {
+    return dirs::getGeodeDir() / "unzipped";
 }
 
 std::filesystem::path dirs::getSaveDir() {
-    return weaklyCanonical(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
+    return getBaseDir() / "save";
+}
+
+std::filesystem::path dirs::getResourcesDir() {
+    return [[[NSBundle mainBundle] resourcePath] UTF8String];
 }
 
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
-    return true; // unimplemented
+    switch (permission) {
+        case Permission::RecordAudio: 
+            return [[AVAudioSession sharedInstance] recordPermission] == AVAudioSessionRecordPermissionGranted;
+        default: 
+            return false;
+    }
 }
 
-void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
-    callback(true); // unimplemented
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
+    switch (permission) {
+        case Permission::RecordAudio: {
+            __block geode::Function<void(bool)> cb = std::move(callback);
+            return [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
+                cb(granted == YES);
+            }];
+        }
+        default: // ios doesnt have a "access all files" permission
+            return callback(false);
+    }
+}
+
+#include "../../utils/thread.hpp"
+
+std::string geode::utils::thread::getDefaultName() {
+    uint64_t tid = 0ul;
+    pthread_threadid_np(nullptr, &tid);
+
+    return fmt::format("Thread #{}", tid);
+}
+
+void geode::utils::thread::platformSetName(ZStringView name) {
+    pthread_setname_np(name.c_str());
+}
+
+
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
+    if (!cls)
+        return Err("Class not found");
+
+    auto sel = sel_registerName(selectorName);
+
+    class_addMethod(cls, sel, (IMP)imp, "v@:");
+
+    return Ok();
+}
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
+    auto cls = objc_getClass(className);
+    if (!cls)
+        return Err("Class not found");
+
+    auto sel = sel_registerName(selectorName);
+
+    auto method = class_getInstanceMethod(cls, sel);
+    if (!method)
+        return Err("Method not found");
+
+    return Ok((void*)method_getImplementation(method));
+}
+
+Result<void*> geode::hook::replaceObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
+    if (!cls)
+        return Err("Class not found");
+
+    auto sel = sel_registerName(selectorName);
+
+    auto method = class_getInstanceMethod(cls, sel);
+    if (!method)
+        return Err("Method not found");
+
+    auto oldImp = method_setImplementation(method, (IMP)imp);
+
+    return Ok((void*)oldImp);
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
+}
+
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    // making calls to get primitive types is annoying... >~<
+    id eaglView = [NSClassFromString(@"EAGLView") performSelector:@selector(sharedEGLView)];
+    auto screenInsets = reinterpret_cast<UIEdgeInsets(*)(id, SEL)>(objc_msgSend)(eaglView, @selector(safeAreaInsets));
+    auto scaleFactor = reinterpret_cast<CGFloat(*)(id, SEL)>(objc_msgSend)(eaglView, @selector(contentScaleFactor));
+
+    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+    auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
+
+    if (!glView)
+        return cocos2d::CCRect(
+            0, 0,
+            winSize.width, winSize.height
+        );
+    
+    auto scaleX = glView->m_fScaleX;
+    auto scaleY = glView->m_fScaleY;
+
+    auto insetLeft = scaleFactor * screenInsets.left / scaleX;
+    auto insetBottom = scaleFactor * screenInsets.bottom / scaleY;
+    auto insetRight = scaleFactor * screenInsets.right / scaleX;
+    auto insetTop = scaleFactor * screenInsets.top / scaleY;
+
+    auto insetX = std::max(insetLeft, insetRight);
+    auto insetY = std::max(insetTop, insetBottom);
+
+    return cocos2d::CCRect(
+        insetX, insetY,
+        winSize.width - 2 * insetX, winSize.height - 2 * insetY
+    );
+}
+
+double geode::utils::getInputTimestamp() {
+    return [[NSProcessInfo processInfo] systemUptime];
+}
+
+bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
+    uint8_t* data = m_pData;
+    bool usePNG = std::string_view(pszFilePath).ends_with(".png");
+    int channels = !usePNG || bIsToRGB || !m_bHasAlpha ? 3 : 4;
+    if (channels == 3) {
+        data = new uint8_t[m_nWidth * m_nHeight * 3];
+        for (uint32_t i = 0; i < m_nWidth * m_nHeight; i++) {
+            data[i * 3] = m_pData[i * 4];
+            data[i * 3 + 1] = m_pData[i * 4 + 1];
+            data[i * 3 + 2] = m_pData[i * 4 + 2];
+        }
+    }
+
+    CGDataProviderRef provider = CGDataProviderCreateWithData(nullptr, data, m_nWidth * m_nHeight * channels, nullptr);
+    if (!provider) {
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpace) {
+        CGDataProviderRelease(provider);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGImageRef imageRef = CGImageCreate(
+        m_nWidth,
+        m_nHeight,
+        8,
+        channels * 8,
+        m_nWidth * channels,
+        colorSpace,
+        channels == 4 ? kCGImageAlphaPremultipliedLast : kCGImageAlphaNone,
+        provider,
+        nullptr,
+        false,
+        kCGRenderingIntentDefault
+    );
+    if (!imageRef) {
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    UIImage* uiImage = [UIImage imageWithCGImage:imageRef];
+    if (!uiImage) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    NSData* imageData = usePNG ? UIImagePNGRepresentation(uiImage) : UIImageJPEGRepresentation(uiImage, 1.0);
+    if (!imageData) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    bool success = [imageData writeToFile:[NSString stringWithUTF8String:pszFilePath] atomically:YES];
+    CGImageRelease(imageRef);
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+    if (data != m_pData) {
+        delete[] data;
+    }
+    return success;
+}
+
+bool geode::utils::platform::isWine() {
+    return false;
+}
+
+const char* getCurrentArch() {
+    if (@available(iOS 16.0, *)) {
+        return macho_arch_name_for_mach_header(nullptr);
+    } else {
+        return "arm64";
+    }
+}
+
+// https://stackoverflow.com/questions/11072804/how-do-i-determine-the-os-version-at-runtime-in-os-x-or-ios-without-using-gesta
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    auto version = [[NSProcessInfo processInfo] operatingSystemVersion];
+    details.majorVersion = version.majorVersion;
+    details.minorVersion = version.minorVersion;
+    details.patchVersion = version.patchVersion;
+    details.arch = getCurrentArch();
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    return fmt::format("iOS {} {}.{}.{}", details.arch, details.majorVersion, details.minorVersion, details.patchVersion);
 }

@@ -4,6 +4,9 @@
 #include <cocos2d.h>
 #include <cocos-ext.h>
 
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/NineSlice.hpp>
+
 namespace geode {
     /**
      * Creates the usual blue gradient BG for a layer. You should use this over
@@ -39,7 +42,7 @@ namespace geode {
      * Add side art (corner pieces) for a layer
      * @param to Layer to add corner pieces to
      * @param sides Which corners to populate; by default, populates all
-     * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the 
+     * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the
      * corners' positions are dynamically updated
      */
     GEODE_DLL void addSideArt(
@@ -52,7 +55,7 @@ namespace geode {
      * @param to Layer to add corner pieces to
      * @param sides Which corners to populate; by default, populates all
      * @param style Which side art sprites to use
-     * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the 
+     * @param useAnchorLayout If true, `to` is given an `AnchorLayout` and the
      * corners' positions are dynamically updated
      */
     GEODE_DLL void addSideArt(
@@ -71,30 +74,62 @@ namespace geode {
         cocos2d::CCPoint const& center,
         cocos2d::CCSize const& size
     );
-    
-    class GEODE_DLL ListBorders : public cocos2d::CCNode {
-    protected:
-        cocos2d::extension::CCScale9Sprite* m_top = nullptr;
-        cocos2d::extension::CCScale9Sprite* m_bottom = nullptr;
-        cocos2d::CCSprite* m_left = nullptr;
-        cocos2d::CCSprite* m_right = nullptr;
-        float m_topPadding = 7.5f;
-        float m_bottomPadding = 7.5f;
-    
-        bool init() override;
 
+    class GEODE_DLL ListBorders : public cocos2d::CCNode {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+    protected:
+        ListBorders();
+        ~ListBorders();
+        bool init() override;
     public:
         static ListBorders* create();
 
-        void setSpriteFrames(const char* topAndBottom, const char* sides, float topPadding = 7.5f);
+        void setSpriteFrames(char const* topAndBottom, char const* sides, float horizontalPadding = 7.5f);
         void setSprites(
-            cocos2d::extension::CCScale9Sprite* top,
-            cocos2d::extension::CCScale9Sprite* bottom,
+            NineSlice* top,
+            NineSlice* bottom,
             cocos2d::CCSprite* left,
             cocos2d::CCSprite* right,
             float topPadding = 7.5f,
             float bottomPadding = 7.5f
         );
         void setContentSize(cocos2d::CCSize const& size) override;
+        NineSlice* getTop();
+        NineSlice* getBottom();
+        cocos2d::CCSprite* getLeft();
+        cocos2d::CCSprite* getRight();
+        float getTopPadding();
+        float getBottomPadding();
     };
+
+    enum class BackButtonStyle {
+        Green,
+        Blue,
+        Pink
+    };
+
+    /**
+     * Add a back button to a layer, will call `CCDirector::get()->popSceneWithTransition()` on activate
+     * @param to Layer to add the back button to
+     * @param style Style of button to use
+     * @returns The created back button
+     */
+    GEODE_DLL CCMenuItemSpriteExtra* addBackButton(
+        cocos2d::CCNode* to,
+        BackButtonStyle style = BackButtonStyle::Green
+    );
+
+    /**
+     * Add a back button to a layer with a custom callback
+     * @param to Layer to add the back button to
+     * @param callback Callback to call on activate
+     * @param style Style of button to use
+     * @returns The created back button
+     */
+    GEODE_DLL CCMenuItemSpriteExtra* addBackButton(
+        cocos2d::CCNode* to,
+        geode::Function<void(cocos2d::CCMenuItem*)> callback,
+        BackButtonStyle style = BackButtonStyle::Green
+    );
 }

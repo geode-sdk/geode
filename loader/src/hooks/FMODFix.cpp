@@ -1,43 +1,31 @@
 #include <Geode/Geode.hpp>
+#include <Geode/modify/ChannelControl.hpp>
+#include <Geode/modify/System.hpp>
 
 using namespace geode::prelude;
 
+// Workaround for a bug where FMOD::ChannelControl::setVolume is called with
+//   uninitialized (invalid) channel pointers from FMODAudioEngine.
+// This creates a very annoying crash during load in some cases.
+
 auto g_systemInitialized = false;
 
-FMOD_RESULT FMOD_System_init_hook(
-    FMOD::System* system, int maxChannels, FMOD_INITFLAGS flags, void* extraData
-) {
-    g_systemInitialized = true;
-    return system->init(maxChannels, flags, extraData);
-}
-
-FMOD_RESULT FMOD_ChannelControl_setVolume_hook(FMOD::ChannelControl* channel, float volume) {
-    if (!g_systemInitialized) {
-        return FMOD_ERR_UNINITIALIZED;
+struct FMODSystemFix : Modify<FMODSystemFix, FMOD::System> {
+    FMOD_RESULT init(int maxChannels, FMOD_INITFLAGS flags, void* extraData) {
+        g_systemInitialized = true;
+        return FMOD::System::init(maxChannels, flags, extraData);
     }
+};
 
-    return channel->setVolume(volume);
-}
+struct FMODChannelControlFix : Modify<FMODChannelControlFix, FMOD::ChannelControl> {
+    FMOD_RESULT setVolume(float volume) {
+        if (!g_systemInitialized) {
+            return FMOD_ERR_UNINITIALIZED;
+        }
 
-$execute {
-    // Workaround for a bug where FMOD::ChannelControl::setVolume is called with
-    //   uninitialized (invalid) channel pointers from FMODAudioEngine.
-    // This creates a very annoying crash during load in some cases.
-
-    (void)geode::Mod::get()->hook(
-        reinterpret_cast<void*>(geode::addresser::getNonVirtual(&FMOD::System::init)),
-        &FMOD_System_init_hook,
-        "FMOD::System::init"
-        GEODE_WINDOWS32(, tulip::hook::TulipConvention::Stdcall)
-    );
-
-    (void)geode::Mod::get()->hook(
-        reinterpret_cast<void*>(geode::addresser::getNonVirtual(&FMOD::ChannelControl::setVolume)),
-        &FMOD_ChannelControl_setVolume_hook,
-        "FMOD::ChannelControl::setVolume"
-        GEODE_WINDOWS32(, tulip::hook::TulipConvention::Stdcall)
-    );
-}
+        return FMOD::ChannelControl::setVolume(volume);
+    }
+};
 
 /*
 // this hook requires a tuliphook update

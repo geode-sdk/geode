@@ -46,12 +46,13 @@ class CC_DLL CCTMXObjectGroup : public CCObject
 {
     GEODE_FRIEND_MODIFY
     /** offset position of child objects */
-    CC_SYNTHESIZE_PASS_BY_REF(CCPoint, m_tPositionOffset, PositionOffset);
+    CC_SYNTHESIZE_NV_PASS_BY_REF(CCPoint, m_tPositionOffset, PositionOffset);
     /** list of properties stored in a dictionary */
     CC_PROPERTY(CCDictionary*, m_pProperties, Properties);
     /** array of the objects */
     CC_PROPERTY(CCArray*, m_pObjects, Objects);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTMXObjectGroup, CCObject)
     /**
      * @js ctor
      */
@@ -72,7 +73,7 @@ public:
     It will return the 1st object found on the array for the given name.
     */
     CCDictionary* objectNamed(const char *objectName);
-protected:    
+public:
     /** name of the group */
     gd::string m_sGroupName;
 };

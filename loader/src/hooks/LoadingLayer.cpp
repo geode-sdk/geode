@@ -1,3 +1,4 @@
+#include <Geode/loader/Event.hpp>
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/modify/CCLayer.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -17,6 +18,11 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         CCLabelBMFont* m_smallLabel2 = nullptr;
         int m_geodeLoadStep = 0;
         int m_totalMods = 0;
+        ~Fields() {
+            queueInMainThread([] {
+                GameEvent(GameEventType::TexturesLoaded).send();
+            });
+        }
     };
 
     static void onModify(auto& self) {
@@ -29,7 +35,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     void updateLoadedModsLabel() {
         auto allMods = Loader::get()->getAllMods();
         auto count = std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
-            return item->isEnabled();
+            return item->isLoaded();
         });
         auto str = fmt::format("Geode: Loaded {}/{} mods", count, m_fields->m_totalMods);
         this->setSmallText(str);
@@ -38,13 +44,13 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
         this->setSmallText2(modName);
     }
 
-    void setSmallText(std::string const& text) {
+    void setSmallText(ZStringView text) {
         if (!m_fields->m_menuDisabled) {
             m_fields->m_smallLabel->setString(text.c_str());
         }
     }
 
-    void setSmallText2(std::string const& text) {
+    void setSmallText2(ZStringView text) {
         if (!m_fields->m_menuDisabled) {
             m_fields->m_smallLabel2->setString(text.c_str());
         }
@@ -94,35 +100,35 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
     void setupLoaderResources() {
         log::debug("Verifying Loader Resources");
-        this->setSmallText("Verifying Loader Resources");
+        this->setSmallText("Verifying Geode Resources");
         // verify loader resources
         Loader::get()->queueInMainThread([&]() {
             if (!updater::verifyLoaderResources()) {
                 log::debug("Downloading Loader Resources");
-                this->setSmallText("Downloading Loader Resources");
-                this->addChild(EventListenerNode<updater::ResourceDownloadFilter>::create(
-                    this, &CustomLoadingLayer::updateResourcesProgress
-                ));
+                this->setSmallText("Downloading Geode Resources");
+                this->addEventListener(updater::ResourceDownloadEvent(), [this](updater::UpdateStatus const& status) {
+                    this->updateResourcesProgress(status);
+                });
             }
             else {
                 log::debug("Loading Loader Resources");
-                this->setSmallText("Loading Loader Resources");
+                this->setSmallText("Loading Geode Resources");
                 updater::updateSpecialFiles();
                 this->continueLoadAssets();
             }
         });
     }
 
-    void updateResourcesProgress(updater::ResourceDownloadEvent* event) {
+    ListenerResult updateResourcesProgress(updater::UpdateStatus status) {
         std::visit(makeVisitor {
             [&](updater::UpdateProgress const& progress) {
                 this->setSmallText(fmt::format(
-                    "Downloading Loader Resources: {}%", progress.first
+                    "Downloading Geode Resources: {}%", progress.first
                 ));
             },
             [&](updater::UpdateFinished) {
                 log::debug("Downloaded Loader Resources");
-                this->setSmallText("Downloaded Loader Resources");
+                this->setSmallText("Downloaded Geode Resources");
                 this->continueLoadAssets();
             },
             [&](updater::UpdateFailed const& error) {
@@ -136,10 +142,12 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
                     "The game will be loaded as normal, but please be aware "
                     "that it is very likely to crash. "
                 );
-                this->setSmallText("Failed Loader Resources");
+                this->setSmallText("Failed to Download Geode Resources");
                 this->continueLoadAssets();
             }
-        }, event->status);
+        }, status);
+
+        return ListenerResult::Propagate;
     }
 
     void setupModResources() {
@@ -152,7 +160,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     int getLoadedMods() {
         auto allMods = Loader::get()->getAllMods();
         return std::count_if(allMods.begin(), allMods.end(), [&](auto& item) {
-            return item->isEnabled();
+            return item->isLoaded();
         });
     }
 
@@ -162,7 +170,7 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
             return item->shouldLoad();
         });
     }
-    
+
     int getCurrentStep() {
         return m_fields->m_geodeLoadStep + m_loadStep + getLoadedMods();
     }

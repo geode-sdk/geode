@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <type_traits>
 #include <unordered_map>
+#include <algorithm>
 
 #define CLASSPARAM(...)
 #define STRUCTPARAM(...)

@@ -59,7 +59,6 @@ THE SOFTWARE.
 // base_nodes
 #include "../base_nodes/CCNode.h"
 #include "../base_nodes/CCAtlasNode.h"
-#include "../base_nodes/SpacerNode.hpp"
 
 // cocoa
 #include "../cocoa/CCAffineTransform.h"
@@ -326,6 +325,9 @@ THE SOFTWARE.
 #include "../robtop/scene_nodes/CCSceneTransitionDelegate.h"
 
 #include "../robtop/special_nodes/CCLightning.h"
+
+#include "../robtop/sprite_nodes/CCFontSprite.h"
+#include "../robtop/sprite_nodes/CCSpriteExtra.h"
 
 #include "../robtop/xml/DS_Dictionary.h"
 #include "../robtop/xml/ObjectDecoder.h"

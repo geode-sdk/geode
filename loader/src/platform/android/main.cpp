@@ -62,7 +62,7 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
         delete cc;
     }
 
-    reportPlatformCapability("extended_input");
+    reportPlatformCapability("internal_callbacks_v2");
 
     geodeEntry(nullptr);
     return JNI_VERSION_1_6;

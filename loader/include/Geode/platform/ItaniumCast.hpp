@@ -1,5 +1,7 @@
 #pragma once
 
+#include "_casts_shared.hpp"
+
 namespace geode::cast {
 
     struct DummyClass {
@@ -81,7 +83,7 @@ namespace geode::cast {
 
     inline void* typeinfoCastInternal(void* ptr, ClassTypeinfoType const* beforeTypeinfo, ClassTypeinfoType const* afterTypeinfo, size_t hint) {
         // we're not using either because uhhh idk
-        // hint is for diamond inheritance iirc which is never 
+        // hint is for diamond inheritance iirc which is never
         // used in gd, so should be pretty safe to ignore
         if (!ptr) {
             return nullptr;
@@ -90,8 +92,8 @@ namespace geode::cast {
         (void)beforeTypeinfo;
         (void)hint;
 
-        auto vftable = *reinterpret_cast<VtableType**>(ptr);
-        auto dataPointer = static_cast<VtableTypeinfoType*>(static_cast<CompleteVtableType*>(vftable));
+        auto vftable = *reinterpret_cast<VtableType const* const*>(ptr);
+        auto dataPointer = static_cast<VtableTypeinfoType const*>(static_cast<CompleteVtableType const*>(vftable));
         auto typeinfo = dataPointer->m_typeinfo;
         auto basePtr = static_cast<std::byte*>(ptr) + dataPointer->m_offset;
 
@@ -102,16 +104,32 @@ namespace geode::cast {
 
     template <class After, class Before>
     inline After typeinfo_cast(Before ptr) {
-        static_assert(
-            std::is_polymorphic_v<std::remove_pointer_t<Before>> && std::is_polymorphic_v<std::remove_pointer_t<After>>, 
-            "Input is not a polymorphic type"
-        );
+        ::geode::geode_internal::typeinfoCastChecks<After, Before>();
+
         if (!ptr) {
             return static_cast<After>(nullptr);
         }
 
         auto beforeTypeinfo = reinterpret_cast<ClassTypeinfoType const*>(&typeid(std::remove_pointer_t<Before>));
         auto afterTypeinfo = reinterpret_cast<ClassTypeinfoType const*>(&typeid(std::remove_pointer_t<After>));
-        return static_cast<After>(typeinfoCastInternal(ptr, beforeTypeinfo, afterTypeinfo, 0));
+        return static_cast<After>(typeinfoCastInternal((void*)ptr, beforeTypeinfo, afterTypeinfo, 0));
+    }
+
+    inline char const* getRuntimeTypeName(void const* ptr) {
+        if (!ptr) {
+            return "<null>";
+        }
+
+        auto vftable = *reinterpret_cast<VtableType const* const*>(ptr);
+
+        auto dataPointer = static_cast<VtableTypeinfoType const*>(static_cast<CompleteVtableType const*>(vftable));
+
+        auto typeinfo = dataPointer->m_typeinfo;
+
+        return typeinfo->m_typeinfoName;
+    }
+
+    inline char const* getRuntimeTypeName(std::type_info const& info) {
+        return reinterpret_cast<ClassTypeinfoType const*>(&info)->m_typeinfoName;
     }
 }

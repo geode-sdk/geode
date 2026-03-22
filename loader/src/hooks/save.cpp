@@ -8,7 +8,7 @@ using namespace geode::prelude;
 namespace {
     void saveModData() {
         log::info("Saving mod data...");
-        log::pushNest();
+        log::NestScope nest;
 
         auto begin = std::chrono::high_resolution_clock::now();
 
@@ -17,8 +17,6 @@ namespace {
         auto end = std::chrono::high_resolution_clock::now();
         auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
         log::info("Took {}s", static_cast<float>(time) / 1000.f);
-
-        log::popNest();
     }
 }
 
@@ -50,7 +48,7 @@ struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
 // redirects the save path to what geode knows, in case launcher's fopen hook fails
 struct FileOperationOverride : Modify<FileOperationOverride, FileOperation> {
     static gd::string getFilePath() {
-        return dirs::getSaveDir().string() + "/";
+        return utils::string::pathToString(dirs::getSaveDir()) + "/";
     }
 };
 

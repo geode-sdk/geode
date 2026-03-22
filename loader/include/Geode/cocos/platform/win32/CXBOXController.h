@@ -31,6 +31,14 @@ public:
     bool m_buttonB;
     bool m_buttonX;
     bool m_buttonY;
+    bool m_leftThumbUp;
+    bool m_leftThumbDown;
+    bool m_leftThumbLeft;
+    bool m_leftThumbRight;
+    bool m_rightThumbUp;
+    bool m_rightThumbDown;
+    bool m_rightThumbLeft;
+    bool m_rightThumbRight;
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/binding/SetTextPopupDelegate.hpp>
 #include <Geode/binding/SetIDPopupDelegate.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
@@ -12,6 +13,7 @@
 #include "sources/ModListSource.hpp"
 #include "UpdateModListState.hpp"
 #include <server/DownloadManager.hpp>
+#include <Geode/loader/Setting.hpp>
 
 using namespace geode::prelude;
 
@@ -26,8 +28,8 @@ protected:
         SomeFetching,
         SomeDownloading,
     };
-    
-    CCScale9Sprite* m_statusBG;
+
+    NineSlice* m_statusBG;
     CCLabelBMFont* m_status;
     CCLabelBMFont* m_statusPercentage;
     Slider* m_progressBar;
@@ -36,10 +38,11 @@ protected:
     CCMenuItemSpriteExtra* m_viewBtn;
     CCMenuItemSpriteExtra* m_cancelBtn;
     CCMenuItemSpriteExtra* m_restartBtn;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
-    EventListener<server::ModDownloadFilter> m_downloadListener;
+    ListenerHandle m_updateStateHandle;
+    ListenerHandle m_downloadHandle;
     DownloadState m_lastState = DownloadState::None;
-    
+    ListenerHandle m_settingNodeHandle;
+
     bool init();
     void updateState();
 
@@ -62,24 +65,28 @@ protected:
     CCLabelBMFont* m_pageLabel;
     CCMenuItemSpriteExtra* m_goToPageBtn;
     ModsStatusNode* m_statusNode;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
+    ListenerHandle m_updateStateHandle;
     bool m_showSearch = true;
-    bool m_bigView = false;
+    std::vector<CCMenuItemSpriteExtra*> m_displayBtns;
+    ModListDisplay m_modListDisplay;
 
     bool init();
 
-    void keyDown(enumKeyCodes key) override;
+    void keyDown(enumKeyCodes key, double) override;
     void keyBackClicked() override;
     void setIDPopupClosed(SetIDPopup*, int value) override;
-    
+
     void onTab(CCObject* sender);
     void onOpenModsFolder(CCObject*);
-    void onBigView(CCObject*);
+    void onAddModFromFile(CCObject*);
+    void onRestartGD(CCObject*);
+    void onDisplay(CCObject*);
     void onSearch(CCObject*);
     void onGoToPage(CCObject*);
     void onRefreshList(CCObject*);
     void onTheme(CCObject*);
     void onSettings(CCObject*);
+    void onKeybinds(CCObject*);
     void onBack(CCObject*);
 
     void updateState();
@@ -88,7 +95,9 @@ public:
     static ModsLayer* create();
     static ModsLayer* scene();
 
-    static server::ServerRequest<std::vector<std::string>> checkInstalledModsForUpdates();
+    static server::ServerFuture<InstalledModsUpdateCheck> checkInstalledModsForUpdates();
+    static void installModFromFile();
 
-    void gotoTab(ModListSource* src);
+    void gotoTab(ModListSource* src, bool searchingDev = false);
+    void refreshList();
 };

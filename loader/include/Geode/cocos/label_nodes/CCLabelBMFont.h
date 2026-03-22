@@ -125,8 +125,9 @@ public://@public
     tCCKerningHashElement *m_pKerningDictionary;
 
     // Character Set defines the letters that actually exist in the font
-    std::set<unsigned int> *m_pCharacterSet;
+    gd::set<unsigned int> *m_pCharacterSet;
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCBMFontConfiguration, CCObject)
     CCBMFontConfiguration();
     /**
      *  @js NA
@@ -148,9 +149,9 @@ public:
     inline const char* getAtlasName(){ return m_sAtlasName.c_str(); }
     inline void setAtlasName(const char* atlasName) { m_sAtlasName = atlasName; }
 
-    inline std::set<unsigned int>* getCharacterSet() const { return m_pCharacterSet; }
+    inline gd::set<unsigned int>* getCharacterSet() const { return m_pCharacterSet; }
 private:
-    std::set<unsigned int>* parseConfigFile(const char *controlFile);
+    gd::set<unsigned int>* parseConfigFile(const char *controlFile);
     void parseCharacterDefinition(gd::string line, ccBMFontDef *characterDefinition);
     void parseInfoArguments(gd::string line);
     void parseCommonArguments(gd::string line);
@@ -273,21 +274,6 @@ public:
     // @note RobTop Addition
     void limitLabelWidth(float width, float defaultScale, float minScale);
 
-	// @note RobTop Addition
-    int getExtraKerning() const;
-	// @note RobTop Addition
-    void setExtraKerning(int);
-
-	// @note RobTop Addition
-    bool getIsBatched() const;
-	// @note RobTop Addition
-    void setIsBatched(bool);
-
-	// @note RobTop Addition
-    cocos2d::CCArray* getTargetArray() const;
-	// @note RobTop Addition
-    void setTargetArray(cocos2d::CCArray*);
-
 private:
     char * atlasNameFromFntFile(const char *fntFile);
     int kerningAmountForFirst(unsigned short first, unsigned short second);
@@ -296,6 +282,7 @@ private:
 
 protected:
     virtual void setString(unsigned short *newString, bool needUpdateLabel);
+public:
     // string to render
     unsigned short* m_sString;
 
@@ -331,13 +318,13 @@ protected:
     bool        m_bIsOpacityModifyRGB;
 
     // @note RobTop Addition
-    bool m_bIsBatched;
+    CC_SYNTHESIZE_NV(bool, m_bIsBatched, IsBatched);
     // @note RobTop Addition
-    CCArray* m_pTargetArray;
+    CC_SYNTHESIZE_NV(CCArray*, m_pTargetArray, TargetArray);
     // @note RobTop Addition
     CCTexture2D* m_pSomeTexture;
     // @note RobTop Addition
-    void* m_pUnknown; // 2.2 addition, might be positioned somewhere else
+    CC_SYNTHESIZE_NV(int, m_nExtraKerning, ExtraKerning);
 
 };
 

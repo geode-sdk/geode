@@ -87,7 +87,7 @@ public:
 
     /**
     @brief    Callback by CCDirector for limit FPS.
-    @interval       The time, expressed in seconds, between current frame and next. 
+    @interval       The time, expressed in seconds, between current frame and next.
     */
     virtual void setAnimationInterval(double interval) {}
 
@@ -96,7 +96,7 @@ public:
     @return Current language config
     */
     virtual ccLanguageType getCurrentLanguage() { return kLanguageEnglish; }
-    
+
     /**
      @brief Get target platform
      */

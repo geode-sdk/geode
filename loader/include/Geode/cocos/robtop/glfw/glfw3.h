@@ -182,13 +182,22 @@ extern "C" {
    #include <GLES3/gl2ext.h>
   #endif
  #elif !defined(GLFW_INCLUDE_NONE)
-  #include <GL/gl.h>
+  // AWESOME: Splat puts stuff in "gl" instead of "GL" which breaks Linux because their paths are case-sensitive
+  #if defined(__linux__)
+    #include <gl/gl.h>
+  #else
+    #include <GL/gl.h>
+  #endif
   #if defined(GLFW_INCLUDE_GLEXT)
    #include <GL/glext.h>
   #endif
  #endif
  #if defined(GLFW_INCLUDE_GLU)
-  #include <GL/glu.h>
+  #if defined(__linux__)
+    #include <gl/GLU.h>
+  #else
+    #include <GL/glu.h>
+  #endif
  #endif
 #endif
 

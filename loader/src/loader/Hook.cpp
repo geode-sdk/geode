@@ -9,11 +9,11 @@ Hook::~Hook() = default;
 std::shared_ptr<Hook> Hook::create(
     void* address,
     void* detour,
-    std::string const& displayName,
-    tulip::hook::HandlerMetadata const& handlerMetadata,
-    tulip::hook::HookMetadata const& hookMetadata
+    std::string displayName,
+    tulip::hook::HandlerMetadata handlerMetadata,
+    tulip::hook::HookMetadata hookMetadata
 ) {
-    return Impl::create(address, detour, displayName, handlerMetadata, hookMetadata);
+    return Impl::create(address, detour, std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata));
 }
 
 Mod* Hook::getOwner() const {
@@ -30,6 +30,14 @@ Result<> Hook::enable() {
 
 Result<> Hook::disable() {
     return m_impl->disable();
+}
+
+Result<> Hook::toggle() {
+    return m_impl->toggle();
+}
+
+Result<> Hook::toggle(bool enable) {
+    return m_impl->toggle(enable);
 }
 
 bool Hook::getAutoEnable() const {

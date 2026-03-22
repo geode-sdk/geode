@@ -1,7 +1,9 @@
 
 #include <Geode/loader/Tulip.hpp>
 
-tulip::hook::Result<void*> geode::hook::createWrapper(
+using namespace geode::prelude;
+
+Result<void*> geode::hook::createWrapper(
     void* address,
     tulip::hook::WrapperMetadata const& metadata
 ) noexcept {

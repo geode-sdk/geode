@@ -1,0 +1,8 @@
+# EditorConfig is awesome: https://editorconfig.org
+
+# top-most EditorConfig file
+root = true
+
+[*.{cpp,hpp,h,c,md,toml,json}]
+charset = utf-8
+trim_trailing_whitespace = true

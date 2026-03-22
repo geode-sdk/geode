@@ -36,17 +36,17 @@ namespace cocos2d
     {
     }
 
-    CCAccelerometer::~CCAccelerometer() 
+    CCAccelerometer::~CCAccelerometer()
     {
 
     }
 
-    void CCAccelerometer::setDelegate(CCAccelerometerDelegate* pDelegate) 
+    void CCAccelerometer::setDelegate(CCAccelerometerDelegate* pDelegate)
     {
         m_pAccelDelegate = pDelegate;
 
         if (pDelegate)
-        {        
+        {
             enableAccelerometerJNI();
         }
         else
@@ -55,13 +55,13 @@ namespace cocos2d
         }
     }
 
-    void CCAccelerometer::setAccelerometerInterval(float interval) 
+    void CCAccelerometer::setAccelerometerInterval(float interval)
     {
         setAccelerometerIntervalJNI(interval);
     }
 
 
-    void CCAccelerometer::update(float x, float y, float z, long sensorTimeStamp) 
+    void CCAccelerometer::update(float x, float y, float z, long sensorTimeStamp)
     {
         if (m_pAccelDelegate)
         {
@@ -71,7 +71,7 @@ namespace cocos2d
             m_obAccelerationValue.timestamp = (double)sensorTimeStamp;
 
             m_pAccelDelegate->didAccelerate(&m_obAccelerationValue);
-        }    
+        }
     }
 } // end of namespace cococs2d
 

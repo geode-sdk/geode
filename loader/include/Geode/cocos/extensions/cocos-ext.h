@@ -20,8 +20,6 @@
 #include "physics_nodes/CCPhysicsSprite.h"
 #endif
 
-#ifndef RT_ADD
-#include "spine/spine-cocos2dx.h"
-#endif
+// #include "spine/spine-cocos2dx.h"
 
 #endif /* __COCOS2D_EXT_H__ */

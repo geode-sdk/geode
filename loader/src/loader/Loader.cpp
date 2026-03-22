@@ -9,7 +9,7 @@ Loader::Loader() : m_impl(new Impl) {}
 Loader::~Loader() {}
 
 Loader* Loader::get() {
-    static auto g_geode = new Loader;
+    static auto g_geode = new Loader();
     return g_geode;
 }
 
@@ -45,19 +45,19 @@ Loader::LoadingState Loader::getLoadingState() {
     return m_impl->m_loadingState;
 }
 
-bool Loader::isModInstalled(std::string const& id) const {
+bool Loader::isModInstalled(std::string_view id) const {
     return m_impl->isModInstalled(id);
 }
 
-Mod* Loader::getInstalledMod(std::string const& id) const {
+Mod* Loader::getInstalledMod(std::string_view id) const {
     return m_impl->getInstalledMod(id);
 }
 
-bool Loader::isModLoaded(std::string const& id) const {
+bool Loader::isModLoaded(std::string_view id) const {
     return m_impl->isModLoaded(id);
 }
 
-Mod* Loader::getLoadedMod(std::string const& id) const {
+Mod* Loader::getLoadedMod(std::string_view id) const {
     return m_impl->getLoadedMod(id);
 }
 
@@ -65,32 +65,14 @@ std::vector<Mod*> Loader::getAllMods() {
     return m_impl->getAllMods();
 }
 
-std::vector<LoadProblem> Loader::getAllProblems() const {
-    return m_impl->getProblems();
-}
-std::vector<LoadProblem> Loader::getProblems() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (
-            problem.type != LoadProblem::Type::Recommendation && 
-            problem.type != LoadProblem::Type::Suggestion
-        ) {
-            result.push_back(problem);
+std::vector<LoadProblem> Loader::getLoadProblems() const {
+    std::vector<LoadProblem> problems;
+    for (auto& problem : m_impl->getProblems()) {
+        if (problem.isProblemTheUserShouldCareAbout()) {
+            problems.push_back(problem);
         }
     }
-    return result;
-}
-std::vector<LoadProblem> Loader::getRecommendations() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (
-            problem.type == LoadProblem::Type::Recommendation || 
-            problem.type == LoadProblem::Type::Suggestion
-        ) {
-            result.push_back(problem);
-        }
-    }
-    return result;
+    return problems;
 }
 
 void Loader::queueInMainThread(ScheduledFunction&& func) {
@@ -109,14 +91,18 @@ std::vector<std::string> Loader::getLaunchArgumentNames() const {
     return m_impl->getLaunchArgumentNames();
 }
 
-bool Loader::hasLaunchArgument(std::string_view const name) const {
+bool Loader::hasLaunchArgument(std::string_view name) const {
     return m_impl->hasLaunchArgument(name);
 }
 
-std::optional<std::string> Loader::getLaunchArgument(std::string_view const name) const {
+std::optional<std::string> Loader::getLaunchArgument(std::string_view name) const {
     return m_impl->getLaunchArgument(name);
 }
 
-bool Loader::getLaunchFlag(std::string_view const name) const {
+bool Loader::getLaunchFlag(std::string_view name) const {
     return m_impl->getLaunchFlag(name);
+}
+
+bool Loader::isPatchless() const {
+    return m_impl->isPatchless();
 }

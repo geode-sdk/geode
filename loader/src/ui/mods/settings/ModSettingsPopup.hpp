@@ -1,29 +1,21 @@
 #pragma once
 
-#include <Geode/loader/SettingNode.hpp>
-#include <Geode/ui/Popup.hpp>
-#include <Geode/utils/cocos.hpp>
-#include "../GeodeStyle.hpp"
+#include "BaseSettingsPopup.hpp"
 
 using namespace geode::prelude;
 
-class ModSettingsPopup : public GeodePopup<Mod*>, public SettingNodeDelegate {
+class ModSettingsPopup : public BaseSettingsPopup {
 protected:
     Mod* m_mod;
-    std::vector<SettingNode*> m_settings;
-    CCMenuItemSpriteExtra* m_applyBtn;
-    ButtonSprite* m_applyBtnSpr;
 
-    void settingValueChanged(SettingNode*) override;
-    void settingValueCommitted(SettingNode*) override;
+    bool init(Mod* mod, bool forceDisableTheme);
 
-    bool setup(Mod* mod) override;
-    bool hasUncommitted() const;
-    void onClose(CCObject*) override;
-    void onApply(CCObject*);
-    void onResetAll(CCObject*);
+    void updateState(SettingNode* invoker = nullptr) override;
+
     void onOpenSaveDirectory(CCObject*);
+    void onOpenConfigDirectory(CCObject*);
+    void onOpenPersistentDirectory(CCObject*);
 
 public:
-    static ModSettingsPopup* create(Mod* mod);
+    static ModSettingsPopup* create(Mod* mod, bool forceDisableTheme = false);
 };

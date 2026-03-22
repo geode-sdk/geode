@@ -4,20 +4,39 @@
 using namespace geode::prelude;
 
 #include <Geode/loader/Dirs.hpp>
-#import <AppKit/AppKit.h>
+#include <Geode/loader/GameEvent.hpp>
 #include <Geode/Utils.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <objc/runtime.h>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/Task.hpp>
+#include <string.h>
+#include <arc/sync/oneshot.hpp>
+#include <mach-o/utils.h>
+#include <sys/sysctl.h>
 
 #define CommentType CommentTypeDummy
+#import <AppKit/AppKit.h>
 #import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 #undef CommentType
 
-bool utils::clipboard::write(std::string const& data) {
+
+NSString* intoNS(std::string const& str) {
+    return [NSString stringWithUTF8String:str.c_str()];
+}
+
+NSString* intoNS(std::string_view str) {
+    return [[NSString alloc] initWithBytes:str.data() length:str.size() encoding:NSUTF8StringEncoding];
+}
+
+NSString* intoNS(ZStringView str) {
+    return intoNS(std::string_view(str));
+}
+
+bool utils::clipboard::write(ZStringView data) {
     [[NSPasteboard generalPasteboard] clearContents];
-    [[NSPasteboard generalPasteboard] setString:[NSString stringWithUTF8String:data.c_str()]
+    [[NSPasteboard generalPasteboard] setString:intoNS(std::string_view{data})
                                         forType:NSPasteboardTypeString];
 
     return true;
@@ -31,15 +50,14 @@ std::string utils::clipboard::read() {
 }
 
 bool utils::file::openFolder(std::filesystem::path const& path) {
-    NSURL* fileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:path.string().c_str()]];
-    NSURL* folderURL = [fileURL URLByDeletingLastPathComponent];
+    NSURL* folderURL = [NSURL fileURLWithPath:intoNS(utils::string::pathToString(path))];
     [[NSWorkspace sharedWorkspace] openURL:folderURL];
     return true;
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkInBrowser(ZStringView url) {
     [[NSWorkspace sharedWorkspace]
-        openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]]];
+        openURL:[NSURL URLWithString:intoNS(url)]];
 }
 
 /*@interface FileDialog : NSObject
@@ -78,7 +96,7 @@ namespace {
 
 @interface FileDialog : NSObject
 +(Result<std::vector<std::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult;
-+(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion;
++(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult&&))onCompletion;
 @end
 
 @implementation FileDialog
@@ -94,11 +112,21 @@ namespace {
 
     // default path
     if (options.defaultPath) {
-        auto defaultPath = [NSString stringWithUTF8String:options.defaultPath->c_str()];
-        [panel setDirectoryURL: [NSURL URLWithString: defaultPath]];
+        auto path = options.defaultPath.value();
+
+        if (std::filesystem::is_directory(path) || mode == file::PickMode::OpenFolder) {
+            auto defaultPath = intoNS(options.defaultPath.value());
+            [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
+        } else {
+            auto defaultPath = intoNS(options.defaultPath->parent_path());
+            auto name = intoNS(options.defaultPath->filename());
+
+            [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
+            [panel setNameFieldStringValue: name];
+        }
     }
 
-    // other
+    // title
     if (mode != file::PickMode::SaveFile) {
         auto openPanel = (NSOpenPanel*)panel;
 
@@ -113,21 +141,18 @@ namespace {
 
         [openPanel setAllowsMultipleSelection: mult];
 
-        // allowed files
-        // TODO: allowed files using the NSOpenSavePanelDelegate xd
-        // NSMutableArray* allowed = [NSMutableArray array];
-
-        // for (auto& f : options.filters) {
-        //     for (auto& i : f.files) {
-        //         auto nsstr = [NSString stringWithUTF8String: i.c_str()];
-
-        //         if (![allowed containsObject: nsstr])
-        //             [allowed addObject: nsstr];
-        //     }
-        // }
-
-        // if (options.filters.size())
-        //     [panel setAllowedFileTypes: allowed];
+        if (options.filters.size() > 0) {
+            NSMutableArray* allowedFileTypes = [NSMutableArray new];
+            for (auto& filter : options.filters) {
+                for (auto& ext : filter.files) {
+                    if (ext.size() > 2 && strncmp(ext.c_str(), "*.", 2) == 0)
+                        [allowedFileTypes addObject: intoNS(ext.substr(2))];
+                    else
+                        [allowedFileTypes addObject: intoNS(ext)];
+                }
+            }
+            [openPanel setAllowedFileTypes: allowedFileTypes];
+        }
     }
 
     // run thing
@@ -152,44 +177,70 @@ namespace {
     }
 }
 
-+(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult))onCompletion {
++(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult&&))onCompletion {
+    file::FilePickOptions optionsCopy = options;
     dispatch_async(dispatch_get_main_queue(), ^{
-        auto result = [self filePickerWithMode:mode options:options multiple:mult];
-        onCompletion(result);
+        auto result = [self filePickerWithMode:mode options:optionsCopy multiple:mult];
+        onCompletion(std::move(result));
     });
 }
 
 @end
 
-GEODE_DLL Task<Result<std::filesystem::path>> file::pick(file::PickMode mode, file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
-    return RetTask::runWithCallback([mode, options](auto resultCallback, auto progress, auto cancelled) {
-        [FileDialog dispatchFilePickerWithMode:mode options:options multiple:false onCompletion: ^(FileResult result) {
-            if (cancelled()) {
-                resultCallback(RetTask::Cancel());
-            } else {
-                if (result.isOk()) {
-                    std::filesystem::path path = result.unwrap()[0];
-                    resultCallback(Ok(path));
-                } else {
-                    resultCallback(Err(result.err().value()));
-                }
-            }
-        }];
+GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(file::PickMode mode, file::FilePickOptions options) {
+    auto [tx, rx] = arc::oneshot::channel<FileResult>();
+    __block auto sender = std::move(tx);
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        auto result = [FileDialog filePickerWithMode:mode options:options multiple:false];
+        (void) sender.send(std::move(result));
     });
+
+    auto recvResult = co_await rx.recv();
+    if (!recvResult) {
+        co_return Err("Error occurred while picking file");
+    }
+
+    auto res = std::move(recvResult).unwrap();
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        if (err == "File picker cancelled") {
+            co_return Ok(std::nullopt);
+        }
+        co_return Err(std::move(err));
+    }
+
+    auto paths = std::move(res).unwrap();
+    if (paths.empty()) {
+        co_return Ok(std::nullopt);
+    }
+    co_return Ok(std::move(paths[0]));
 }
 
-GEODE_DLL Task<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-    return RetTask::runWithCallback([options](auto resultCallback, auto progress, auto cancelled) {
-        [FileDialog dispatchFilePickerWithMode: file::PickMode::OpenFile options:options multiple:true onCompletion: ^(FileResult result) {
-            if (cancelled()) {
-                resultCallback(RetTask::Cancel());
-            } else {
-                resultCallback(result);
-            }
-        }];
+GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions options) {
+    auto [tx, rx] = arc::oneshot::channel<FileResult>();
+    __block auto sender = std::move(tx);
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        auto result = [FileDialog filePickerWithMode:file::PickMode::OpenFile options:options multiple:true];
+        (void) sender.send(std::move(result));
     });
+
+    auto recvResult = co_await rx.recv();
+    if (!recvResult) {
+        co_return Err("Error occurred while picking file");
+    }
+
+    auto res = std::move(recvResult).unwrap();
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        if (err == "File picker cancelled") {
+            co_return Ok(std::vector<std::filesystem::path>{});
+        }
+        co_return Err(std::move(err));
+    }
+
+    co_return Ok(std::move(res).unwrap());
 }
 
 CCPoint cocos::getMousePos() {
@@ -232,7 +283,11 @@ std::filesystem::path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
-void geode::utils::game::exit() {
+std::filesystem::path dirs::getResourcesDir() {
+    return dirs::getGameDir() / "Resources";
+}
+
+void geode::utils::game::exit(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
         log::error("Cannot exit in PlayLayer or LevelEditorLayer!");
@@ -244,19 +299,27 @@ void geode::utils::game::exit() {
         void shutdown() {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-method-access"
+            // event will be called through shutdownGame
+            // GameEvent(GameEventType::Exiting).send();
             [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
 #pragma clang diagnostic pop
+        }
+
+        void shutdownNoSave() {
+            // this crashes due to being called from non starting thread :(
+            GameEvent(GameEventType::Exiting).send();
+            std::exit(0); // i don't know if this is the best
         }
     };
 
     CCDirector::get()->getActionManager()->addAction(CCSequence::create(
         CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+        CCCallFunc::create(nullptr, save ? callfunc_selector(Exit::shutdown) : callfunc_selector(Exit::shutdownNoSave)),
         nullptr
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart() {
+void geode::utils::game::restart(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
         log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
@@ -268,35 +331,35 @@ void geode::utils::game::restart() {
         auto gdExec = dirs::getGameDir() / "MacOS" / "Geometry Dash";
 
         NSTask *task = [NSTask new];
-        [task setLaunchPath: [NSString stringWithUTF8String: gdExec.string().c_str()]];
+        [task setLaunchPath: intoNS(utils::string::pathToString(gdExec))];
         [task launch];
     };
 
     std::atexit(restart);
-    exit();
+    exit(save);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on macOS");
 }
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
-    auto cls = objc_getClass(className.c_str());
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     class_addMethod(cls, sel, (IMP)imp, "v@:");
 
     return Ok();
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
-    auto cls = objc_getClass(className.c_str());
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
+    auto cls = objc_getClass(className);
     if (!cls)
         return Err("Class not found");
 
-    auto sel = sel_registerName(selectorName.c_str());
+    auto sel = sel_registerName(selectorName);
 
     auto method = class_getInstanceMethod(cls, sel);
     if (!method)
@@ -305,11 +368,27 @@ Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::s
     return Ok((void*)method_getImplementation(method));
 }
 
+Result<void*> geode::hook::replaceObjcMethod(char const* className, char const* selectorName, void* imp) {
+    auto cls = objc_getClass(className);
+    if (!cls)
+        return Err("Class not found");
+
+    auto sel = sel_registerName(selectorName);
+
+    auto method = class_getInstanceMethod(cls, sel);
+    if (!method)
+        return Err("Method not found");
+
+    auto oldImp = method_setImplementation(method, (IMP)imp);
+
+    return Ok((void*)oldImp);
+}
+
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, utils::MiniFunction<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 
@@ -322,19 +401,187 @@ std::string geode::utils::thread::getDefaultName() {
     return fmt::format("Thread #{}", tid);
 }
 
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(name.c_str());
 }
 
+@interface EAGLView : NSOpenGLView
++(EAGLView*) sharedEGLView;
+
+-(float) getBackingFactor;
+@end
+
 float geode::utils::getDisplayFactor() {
-    float displayScale = 1.f;
-    if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]) {
-        NSArray* screens = [NSScreen screens];
-        for (int i = 0; i < screens.count; i++) {
-            float s = [screens[i] backingScaleFactor];
-            if (s > displayScale)
-                displayScale = s;
+    // while this is also accessible from the NSWindow, the game uses the value in EAGLView
+    // return [[[NSApplication sharedApplication] mainWindow] backingScaleFactor];
+    static Class eaglViewClass = objc_getClass("EAGLView");
+    return [[eaglViewClass sharedEGLView] getBackingFactor];
+}
+
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
+    auto result = std::getenv(name.c_str());
+    return result ? result : "";
+}
+
+std::string geode::utils::formatSystemError(int code) {
+    return strerror(code);
+}
+
+cocos2d::CCRect geode::utils::getSafeAreaRect() {
+    auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+    return cocos2d::CCRect(0.0f, 0.0f, winSize.width, winSize.height);
+}
+
+double geode::utils::getInputTimestamp() {
+    return [[NSProcessInfo processInfo] systemUptime];
+}
+
+bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
+    uint8_t* data = m_pData;
+    bool usePNG = std::string_view(pszFilePath).ends_with(".png");
+    int channels = !usePNG || bIsToRGB || !m_bHasAlpha ? 3 : 4;
+    if (channels == 3) {
+        data = new uint8_t[m_nWidth * m_nHeight * 3];
+        for (uint32_t i = 0; i < m_nWidth * m_nHeight; i++) {
+            data[i * 3] = m_pData[i * 4];
+            data[i * 3 + 1] = m_pData[i * 4 + 1];
+            data[i * 3 + 2] = m_pData[i * 4 + 2];
         }
     }
-    return displayScale;
+
+    CGDataProviderRef provider = CGDataProviderCreateWithData(nullptr, data, m_nWidth * m_nHeight * channels, nullptr);
+    if (!provider) {
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpace) {
+        CGDataProviderRelease(provider);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGImageRef imageRef = CGImageCreate(
+        m_nWidth,
+        m_nHeight,
+        8,
+        channels * 8,
+        m_nWidth * channels,
+        colorSpace,
+        channels == 4 ? kCGImageAlphaPremultipliedLast : kCGImageAlphaNone,
+        provider,
+        nullptr,
+        false,
+        kCGRenderingIntentDefault
+    );
+    if (!imageRef) {
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CFStringRef file = CFStringCreateWithCString(kCFAllocatorDefault, pszFilePath, kCFStringEncodingUTF8);
+    if (!file) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, file, kCFURLPOSIXPathStyle, false);
+    CFRelease(file);
+    if (!url) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGImageDestinationRef destination = CGImageDestinationCreateWithURL(url, usePNG ? kUTTypePNG : kUTTypeJPEG, 1, nullptr);
+    CFRelease(url);
+    if (!destination) {
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        if (data != m_pData) {
+            delete[] data;
+        }
+        return false;
+    }
+
+    CGImageDestinationAddImage(destination, imageRef, nullptr);
+    bool success = CGImageDestinationFinalize(destination);
+    CFRelease(destination);
+    CGImageRelease(imageRef);
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+    if (data != m_pData) {
+        delete[] data;
+    }
+    return success;
+}
+
+bool geode::utils::platform::isWine() {
+    return false;
+}
+
+bool isRosetta() {
+#if defined(GEODE_IS_ARM_MAC)
+    return false;
+#else
+    int translated = 0;
+    size_t size = 0;
+
+    sysctlbyname("sysctl.proc_translated", nullptr, &size, nullptr, 0);
+    if (sysctlbyname("sysctl.proc_translated", &translated, &size, nullptr, 0) == 0) {
+        if (translated == 1) {
+            return true;
+        }
+    }
+
+    return false;
+#endif
+}
+
+const char* currentArchName() {
+    #if defined(GEODE_IS_ARM_MAC)
+        return "arm64";
+    #elif defined(GEODE_IS_INTEL_MAC)
+        return "x86_64";
+    #else
+        #error "Unsupported architecture!"
+    #endif
+}
+
+// https://stackoverflow.com/questions/11072804/how-do-i-determine-the-os-version-at-runtime-in-os-x-or-ios-without-using-gesta
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    auto version = [[NSProcessInfo processInfo] operatingSystemVersion];
+    details.majorVersion = version.majorVersion;
+    details.minorVersion = version.minorVersion;
+    details.patchVersion = version.patchVersion;
+    details.arch = currentArchName();
+    details.rosetta = isRosetta();
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    auto rosettaText = details.rosetta ? " (Rosetta)" : "";
+    return fmt::format("MacOS {}{} {}.{}.{}", details.arch, rosettaText, details.majorVersion, details.minorVersion, details.patchVersion);
 }

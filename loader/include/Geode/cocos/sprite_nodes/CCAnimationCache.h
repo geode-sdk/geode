@@ -51,6 +51,7 @@ class CC_DLL CCAnimationCache : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCAnimationCache, CCObject)
     /**
      * @js ctor
      */
@@ -60,7 +61,7 @@ public:
      * @lua NA
      */
     ~CCAnimationCache();
-    /** Returns the shared instance of the Animation cache 
+    /** Returns the shared instance of the Animation cache
      *  @js getInstance
      */
     static CCAnimationCache* sharedAnimationCache(void);
@@ -104,8 +105,9 @@ public:
 private:
     void parseVersion1(CCDictionary* animations);
     void parseVersion2(CCDictionary* animations);
-private:
+public:
     CCDictionary* m_pAnimations;
+private:
     static CCAnimationCache* s_pSharedAnimationCache;
 };
 

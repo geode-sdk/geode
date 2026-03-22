@@ -13,7 +13,15 @@ if (GEODE_BUILDING_DOCS)
 	set(GEODE_DONT_BUILD_TEST_MODS ON)
 endif()
 
-option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
+option(GEODE_UNITY_BUILD "Enables unity builds" OFF)
+option(GEODE_SET_TARGET_AS_SYSTEM "Sets the target include directories for Geode as SYSTEM, silencing Geode related warning on mod build." OFF)
+option(GEODE_NO_PUGIXML_HEADER "Makes the pugixml.hpp and DS_Dictionary.h headers in Geode blank" OFF)
+
+# Check if git is installed, raise a fatal error if not
+find_program(GIT_EXECUTABLE git)
+if (NOT GIT_EXECUTABLE)
+	message(FATAL_ERROR "Git not found! Please install Git and try again.\nhttps://git-scm.com/")
+endif()
 
 # Read version
 file(READ VERSION GEODE_VERSION)
@@ -116,11 +124,11 @@ if (NOT GEODE_DONT_USE_CCACHE)
 			else()
 				set(GEODE_CCACHE_VARIANT "ccache")
 			endif()
-			message(STATUS "Looking for ccache/sccache - found ${GEODE_CCACHE_VARIANT}")
+			message(STATUS "Looking for ccache/sccache - found ${GEODE_CCACHE_VARIANT} (${GEODE_CCACHE})")
 			message(NOTICE "Compiler launcher not set but ccache/sccache was found. "
 				"Setting compiler launcher to that")
-			set(CMAKE_C_COMPILER_LAUNCHER ${GEODE_CCACHE})
-			set(CMAKE_CXX_COMPILER_LAUNCHER ${GEODE_CCACHE})
+			set(CMAKE_C_COMPILER_LAUNCHER "${GEODE_CCACHE}" PARENT_SCOPE)
+			set(CMAKE_CXX_COMPILER_LAUNCHER "${GEODE_CCACHE}" PARENT_SCOPE)
 		else()
 			message(STATUS "Looking for ccache/sccache - not found")
 		endif()
@@ -133,18 +141,31 @@ endif()
 if (DEFINED GEODE_CCACHE_VARIANT)
 	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
 		if (${GEODE_CCACHE_VARIANT} STREQUAL "sccache" AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-			message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be enabled.")
-			set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+			if (APPLE AND DEFINED CMAKE_OSX_ARCHITECTURES AND (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64;x86_64" OR CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64;arm64"))
+				message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID} while building multiple architectures, PCH will be disabled due to issues with sccache.")
+				message("(You can override this by setting GEODE_DISABLE_PRECOMPILED_HEADERS to ON).")
+
+				set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
+			else()
+				message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be enabled.")
+				set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
+			endif()
 		else()
 			message(NOTICE "Using ${GEODE_CCACHE_VARIANT} with ${CMAKE_CXX_COMPILER_ID}, PCH will be disabled.")
 			set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
 		endif()
 	endif()
 else()
-	message(NOTICE "Not using a caching compiler (ccache/sccache). "
-		"It is recommended to install one to improve build times.")
-	message(NOTICE "We recommend sccache, check its README for installation instructions, "
-		"normally you can just use your usual package manager (e.g. 'scoop install sccache').")
+	if (APPLE)
+		# when building for multiple architectures, a caching compiler is not recommended
+		message(NOTICE "Not using a caching compiler (ccache/sccache).")
+	else()
+		message(NOTICE "Not using a caching compiler (ccache/sccache). "
+			"It is recommended to install one to improve build times.")
+		message(NOTICE "We recommend sccache, check its README for installation instructions, "
+			"normally you can just use your usual package manager (e.g. 'scoop install sccache').")
+	endif()
+
 	if (NOT DEFINED GEODE_DISABLE_PRECOMPILED_HEADERS)
 		message(NOTICE "Because of this, PCH will be enabled.")
 		set(GEODE_DISABLE_PRECOMPILED_HEADERS OFF)
@@ -175,19 +196,34 @@ set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
 
+# there is now a script that runs over these lines to determine the gd version
+# so please update them when you set the game version
+
+# begin GEODE_GD_VERSION
+# win:     2.2081
+# mac:     2.2081
+# ios:     2.2081
+# android: 2.2081
+# end GEODE_GD_VERSION
+
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.206)
-	set(GEODE_COMP_GD_VERSION 22060)
+	set(GEODE_GD_VERSION 2.2081)
+	set(GEODE_COMP_GD_VERSION 22081)
 endif()
 
-target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_GD_VERSION=${GEODE_GD_VERSION} GEODE_COMP_GD_VERSION=${GEODE_COMP_GD_VERSION})
+target_compile_definitions(
+	${PROJECT_NAME} INTERFACE
+	GEODE_GD_VERSION=${GEODE_GD_VERSION}
+	GEODE_COMP_GD_VERSION=${GEODE_COMP_GD_VERSION}
+	GEODE_GD_VERSION_STRING="${GEODE_GD_VERSION}"
+)
 
 if (WIN32)
 	# This allows you to compile in debug mode
 	# add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 	add_definitions(-D_HAS_ITERATOR_DEBUGGING=0)
 	target_compile_definitions(${PROJECT_NAME} INTERFACE _HAS_ITERATOR_DEBUGGING=0)
-	
+
 	target_link_libraries(${PROJECT_NAME} INTERFACE delayimp ws2_32)
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
 		CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
@@ -197,6 +233,15 @@ if (WIN32)
 		add_compile_options(--target=x86_64-pc-windows-msvc)
 		add_link_options(--target=x86_64-pc-windows-msvc)
 	endif()
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	# force an error on a missing return type, as this is unfortunately a common mistake people make
+	target_compile_options(${PROJECT_NAME} INTERFACE -Werror=return-type)
+endif()
+
+if (GEODE_NO_PUGIXML_HEADER)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_NO_PUGIXML_HEADER=1)
 endif()
 
 # if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -213,8 +258,33 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/json#cda9807")
-CPMAddPackage("gh:fmtlib/fmt#10.2.1")
+CPMAddPackage("gh:geode-sdk/result@1.4.1")
+CPMAddPackage("gh:geode-sdk/json@3.3.0")
+CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
+CPMAddPackage("gh:fmtlib/fmt#12.1.0")
+
+# allow overriding asp / arc versions
+if (NOT DEFINED GEODE_ARC_VERSION)
+	set(GEODE_ARC_VERSION "@1.5.5" CACHE STRING "")
+endif()
+if (NOT DEFINED GEODE_ASP_VERSION)
+	set(GEODE_ASP_VERSION "#51d3773" CACHE STRING "")
+endif()
+
+CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")
+# enable all arc features in geode, but let mods do it granularly
+if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
+	set(ARC_FEATURE_FULL OFF CACHE BOOL "" FORCE)
+endif()
+CPMAddPackage("gh:dankmeme01/arc${GEODE_ARC_VERSION}")
+
+# use unity for both arc and its dependencies,
+# they're fairly small libs so it helps a lot with compile times
+set_target_properties(asp PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+set_target_properties(arc PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+if (TARGET qsox)
+	set_target_properties(qsox PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -223,6 +293,17 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 if (GEODE_DISABLE_FMT_CONSTEVAL)
 	message(VERBOSE "Disabling FMT_CONSTEVAL")
 	target_compile_definitions(fmt PUBLIC -DFMT_CONSTEVAL=)
+endif()
+
+# throw an error if the compiler is too old, for async we require Clang 19 and MSVC 19.44+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0")
+		message(FATAL_ERROR "Clang version is too old, 19.0 or higher required. Please update your LLVM installation.")
+	endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.44")
+		message(FATAL_ERROR "MSVC version is too old, 19.44 or higher required. Please update your Visual Studio installation or install Visual Studio 2026.")
+	endif()
 endif()
 
 # Tulip hook (hooking)
@@ -243,7 +324,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook#fbf79b4")
+	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.11")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
@@ -266,15 +347,28 @@ if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	)
 endif()
 
-target_include_directories(GeodeBindings PUBLIC
-	${GEODE_LOADER_PATH}/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
-	${GEODE_LOADER_PATH}/include/Geode/fmod
-)
+if (GEODE_SET_TARGET_AS_SYSTEM)
+	target_include_directories(GeodeBindings SYSTEM PUBLIC
+		${GEODE_LOADER_PATH}/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
+		${GEODE_LOADER_PATH}/include/Geode/fmod
+	)
+else()
+	target_include_directories(GeodeBindings PUBLIC
+		${GEODE_LOADER_PATH}/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
+		${GEODE_LOADER_PATH}/include/Geode/fmod
+	)
+endif()
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json)
-target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
+target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json std23::nontype_functional GeodeResult asp arc)
+if (TARGET debase-rt)
+  debase_depends(${PROJECT_NAME} GeodeBindings)
+else()
+  target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
+endif()
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
 	file(MAKE_DIRECTORY ${GEODE_BIN_PATH})
@@ -308,7 +402,6 @@ elseif (EXISTS ${GEODE_PLATFORM_BIN_PATH})
 else()
 	message(FATAL_ERROR
 		"No valid loader binary to link to! Install pre-built binaries with `geode sdk install-binaries`, "
-		"or build Geode from source and add `set(GEODE_LINK_NIGHTLY ON)` to your CMakeLists.txt "
-		"in the line before calling add_subdirectory for Geode."
+		"or build Geode from source."
 	)
 endif()

@@ -7,10 +7,11 @@
 NS_CC_BEGIN
 
 // @note RobTop Addition
-class CC_DLL CCMouseDispatcher : public CCObject 
+class CC_DLL CCMouseDispatcher : public CCObject
 {
 	GEODE_FRIEND_MODIFY
 public:
+	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMouseDispatcher, CCObject)
 	CCMouseDispatcher();
 	virtual ~CCMouseDispatcher();
 
@@ -22,9 +23,9 @@ public:
 
 	void forceRemoveDelegate(CCMouseDelegate* pDelegate);
 
-	bool dispatchScrollMSG(float x, float y);
+	bool dispatchScrollMSG(float y, float x);
 
-protected:
+public:
 	CCArray* m_pMouseHandlers;
 	bool m_bLocked;
 	bool m_bToAdd;

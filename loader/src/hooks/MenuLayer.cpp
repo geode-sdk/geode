@@ -1,4 +1,5 @@
 #include "../ui/mods/ModsLayer.hpp"
+#include <Geode/loader/GameEvent.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/IDManager.hpp>
@@ -19,6 +20,10 @@ using namespace geode::prelude;
 
 #pragma warning(disable : 4217)
 
+static size_t FOUND_MOD_UPDATES = 0;
+static size_t FOUND_MOD_DEPRECATIONS = 0;
+static size_t FOUND_MOD_ERRORS = 0;
+
 class CustomMenuLayer;
 
 struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
@@ -32,8 +37,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     struct Fields {
         bool m_menuDisabled = false;
         CCSprite* m_geodeButton = nullptr;
-        CCSprite* m_exclamation = nullptr;
-        Task<std::monostate> m_updateCheckTask;
+        async::TaskHolder<Result<InstalledModsUpdateCheck, server::ServerError>> m_updateCheckTask;
     };
 
     bool init() {
@@ -56,7 +60,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                 CircleBaseSize::MediumAlt
             );
             auto geodeBtnSelector = &CustomMenuLayer::onGeode;
-            if (!m_fields->m_geodeButton) {
+            if (!m_fields->m_geodeButton || m_fields->m_geodeButton->isUsingFallback()) {
                 geodeBtnSelector = &CustomMenuLayer::onMissingTextures;
                 m_fields->m_geodeButton = ButtonSprite::create("!!");
             }
@@ -75,6 +79,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
             this->fixSocialMenu();
 
+            //this code doesnt run have fun figuring out why idc enough
             if (auto node = this->getChildByID("settings-gamepad-icon")) {
                 node->setPositionX(
                     bottomMenu->getChildByID("settings-button")->getPositionX() + winSize.width / 2
@@ -82,40 +87,72 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             }
         }
 
+        // show "download mods here" tip if the geode menu hasnt ever been opened and there arent mods already installed
+        if (!Mod::get()->getSavedValue<bool>("has-used-geode-before") && Loader::get()->getAllMods().size() == 1) {
+			if (auto bottomMenu = this->getChildByID("bottom-menu")) {
+				auto geodeBtn = bottomMenu->getChildByID("geode-button"_spr);
+
+				if (auto downloadModsHereSpr = CCSprite::createWithSpriteFrameName("download-mods-here.png"_spr)) {
+					downloadModsHereSpr->setID("download-mods-here"_spr);
+					downloadModsHereSpr->setPosition(this->convertToNodeSpace(geodeBtn->convertToWorldSpace(CCPointZero) + CCPoint(75.f, 55.f)));
+					downloadModsHereSpr->setScale(0.8f);
+					this->addChild(downloadModsHereSpr);
+				}
+			}
+		}
+
         // show if some mods failed to load
-        if (Loader::get()->getProblems().size()) {
-            static bool shownProblemPopup = false;
-            if (!shownProblemPopup) {
-                shownProblemPopup = true;
+        static bool checkedLoadProblems = false;
+        if (!checkedLoadProblems) {
+            checkedLoadProblems = true;
+            if ((FOUND_MOD_ERRORS = Loader::get()->getLoadProblems().size())) {
                 Notification::create("There were errors - see Geode page!", NotificationIcon::Error)->show();
             }
-
-            m_fields->m_exclamation = CCSprite::createWithSpriteFrameName("exMark_001.png");
-            m_fields->m_exclamation->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
-            m_fields->m_exclamation->setID("errors-found");
-            m_fields->m_exclamation->setZOrder(99);
-            m_fields->m_exclamation->setScale(.6f);
-            m_fields->m_geodeButton->addChild(m_fields->m_exclamation);
         }
-        
-        // show if the user tried to be naughty and load arbitrary DLLs
-        static bool shownTriedToLoadDlls = false;
-        if (!shownTriedToLoadDlls) {
-            shownTriedToLoadDlls = true;
-            if (LoaderImpl::get()->userTriedToLoadDLLs()) {
-                auto popup = FLAlertLayer::create(
-                    "Hold up!",
-                    "It appears that you have tried to <cr>load DLLs</c> with Geode. "
-                    "Please note that <cy>Geode is incompatible with ALL DLLs</c>, "
-                    "as they can cause Geode mods to <cr>error</c>, or even "
-                    "<cr>crash</c>.\n\n"
-                    "Remove the DLLs / other mod loaders you have, or <cr>proceed at "
-                    "your own risk.</c>",
-                    "OK"
+
+        // show in safe mode
+        auto isSafeMode = LoaderImpl::get()->isSafeMode();
+        if (isSafeMode) {
+            Loader::get()->queueInMainThread([] {
+                auto popup = createQuickPopup(
+                    "Safe Mode",
+                    "Geode is running in <cy>Safe Mode</c>.\n"
+                    "Mods are <cr>not loaded</c> in this mode.\n"
+                    "\n"
+                    "You can use this to <co>disable</c> or <co>update</c> mods "
+                    "causing issues but all mod features\n"
+                    "<cy>are not available</c>.",
+                    "OK",
+                    nullptr,
+                    [](auto, bool btn2) {},
+                    false
                 );
-                popup->m_scene = this;
+
                 popup->m_noElasticity = true;
                 popup->show();
+            });
+        }
+
+        // show if the user tried to be naughty and load arbitrary DLLs
+        static bool shownTriedToLoadDlls = false;
+        if (!isSafeMode && !shownTriedToLoadDlls) {
+            shownTriedToLoadDlls = true;
+            if (LoaderImpl::get()->userTriedToLoadDLLs()) {
+                Loader::get()->queueInMainThread([] {
+                    auto popup = FLAlertLayer::create(
+                        "Hold up!",
+                        "It appears that you have tried to <cr>load DLLs</c> with Geode. "
+                        "Please note that <cy>Geode is incompatible with ALL DLLs</c>, "
+                        "as they can cause Geode mods to <cr>error</c>, or even "
+                        "<cr>crash</c>.\n\n"
+                        "Remove the DLLs / other mod loaders you have, or <cr>proceed at "
+                        "your own risk.</c>",
+                        "OK"
+                    );
+
+                    popup->m_noElasticity = true;
+                    popup->show();
+                });
             }
         }
 
@@ -123,15 +160,18 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         static bool shownUpdateInfo = false;
         if (updater::isNewUpdateDownloaded() && !shownUpdateInfo) {
             shownUpdateInfo = true;
-            auto popup = FLAlertLayer::create(
-                "Update downloaded",
-                "A new <cy>update</c> for Geode has been installed! "
-                "Please <cy>restart the game</c> to apply.",
-                "OK"
-            );
-            popup->m_scene = this;
-            popup->m_noElasticity = true;
-            popup->show();
+
+            Loader::get()->queueInMainThread([] {
+                auto popup = FLAlertLayer::create(
+                    "Update downloaded",
+                    "A new <cy>update</c> for Geode has been installed! "
+                    "Please <cy>restart the game</c> to apply.",
+                    "OK"
+                );
+
+                popup->m_noElasticity = true;
+                popup->show();
+            });
         }
 
         // show crash info
@@ -139,25 +179,30 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (
             crashlog::didLastLaunchCrash() &&
             !shownLastCrash &&
-            !Mod::get()->template getSettingValue<bool>("disable-last-crashed-popup")
+            !Mod::get()->getSettingValue<bool>("disable-last-crashed-popup")
         ) {
             shownLastCrash = true;
-            auto popup = createQuickPopup(
-                "Crashed",
-                "It appears that the last session crashed. Would you like to "
-                "open the <cy>crashlog folder</c>?",
-                "No",
-                "Yes",
-                [](auto, bool btn2) {
-                    if (btn2) {
-                        file::openFolder(dirs::getCrashlogsDir());
-                    }
-                },
-                false
-            );
-            popup->m_scene = this;
-            popup->m_noElasticity = true;
-            popup->show();
+
+            // open the dialog a frame later (after the scene is set) for proper key priority
+            Loader::get()->queueInMainThread([] {
+                auto popup = createQuickPopup(
+                    "Crashed",
+                    "It appears that the last session crashed. Would you like to "
+                    "open the <cy>crashlog folder</c>?",
+                    "No",
+                    "Yes",
+                    [](auto, bool btn2) {
+                        if (btn2) {
+                            file::openFolder(dirs::getCrashlogsDir());
+                        }
+                    },
+                    false,
+                    false
+                );
+                popup->m_noElasticity = true;
+
+                popup->show();
+            });
         }
 
         // Check for mod updates
@@ -165,54 +210,106 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         if (!checkedModUpdates) {
             // only run it once
             checkedModUpdates = true;
-            m_fields->m_updateCheckTask = ModsLayer::checkInstalledModsForUpdates().map(
-                [this](server::ServerRequest<std::vector<std::string>>::Value* result) {
-                    if (result->isOk()) {
-                        auto updatesFound = result->unwrap();
-                        if (updatesFound.size() && !m_fields->m_geodeButton->getChildByID("updates-available")) {
-                            log::info("Found updates for mods: {}!", updatesFound);
-                            
-                            if(auto icon = CCSprite::createWithSpriteFrameName("updates-available.png"_spr)) {
-                                // Remove errors icon if it was added, to prevent overlap
-                                if (m_fields->m_exclamation) {
-                                    m_fields->m_exclamation->removeFromParent();
-                                    m_fields->m_exclamation = nullptr;
-                                }
 
-                                icon->setPosition(
-                                    m_fields->m_geodeButton->getContentSize() - CCSize { 10.f, 10.f }
-                                );
-                                icon->setID("updates-available");
-                                icon->setZOrder(99);
-                                icon->setScale(.5f);
-                                m_fields->m_geodeButton->addChild(icon);
-                            }
+            m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
+                if (result.isOk()) {
+                    auto updatesFound = result.unwrap();
+                    if (updatesFound.modsWithUpdates.size() || updatesFound.modsWithDeprecations.size()) {
+                        if (updatesFound.modsWithUpdates.size()) {
+                            log::info(
+                                "Found updates for mods: {}!",
+                                ranges::map<std::vector<std::string>>(
+                                    updatesFound.modsWithUpdates,
+                                    +[](Mod* mod) { return mod->getID(); }
+                                )
+                            );
+                            FOUND_MOD_UPDATES = updatesFound.modsWithUpdates.size();
                         }
-                        else {
-                            log::info("All mods up to date!");
+                        if (updatesFound.modsWithDeprecations.size()) {
+                            log::info(
+                                "Found deprecations for mods: {}!",
+                                ranges::map<std::vector<std::string>>(
+                                    updatesFound.modsWithDeprecations,
+                                    +[](Mod* mod) { return mod->getID(); }
+                                )
+                            );
+                            FOUND_MOD_DEPRECATIONS = updatesFound.modsWithDeprecations.size();
                         }
+                        this->updateGeodeButtonMarkers();
                     }
                     else {
-                        auto error = result->unwrapErr();
-                        log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
+                        log::info("All mods up to date!");
                     }
-                    return std::monostate();
-                },
-                [](auto) { return std::monostate(); }
-            );
+                }
+                else {
+                    auto error = result.unwrapErr();
+                    log::error("Unable to check for mod updates ({}): {}", error.code, error.details);
+                }
+            });
         }
 
-        for (auto mod : Loader::get()->getAllMods()) {
-            if (mod->getMetadata().usesDeprecatedIDForm()) {
-                log::error(
-                    "Mod ID '{}' will be rejected in the future - "
-                    "IDs must match the regex `[a-z0-9\\-_]+\\.[a-z0-9\\-_]+`",
-                    mod->getID()
-                );
-            }
+        // Update markers on Geode button (errors, updates, etc.)
+        this->updateGeodeButtonMarkers();
+
+        // Delay the event by a frame so that MenuLayer is already in the scene
+        // and popups show up fine
+        static bool gameEventPosted = false;
+        if (!gameEventPosted) {
+            gameEventPosted = true;
+            Loader::get()->queueInMainThread([] {
+                GameEvent(GameEventType::Loaded).send();
+            });
         }
-    
+
         return true;
+    }
+
+    void addMarkerToGeodeButton(ZStringView spr, ZStringView id, size_t count) {
+        m_fields->m_geodeButton->removeChildByID(id);
+        if (auto icon = CCSprite::createWithSpriteFrameName(spr.c_str())) {
+            icon->setPosition(m_fields->m_geodeButton->getContentSize() - ccp(10, 10));
+            icon->setID(id);
+            icon->setZOrder(99);
+            icon->setScale(.65f);
+
+            if (count > 0) {
+                auto countLabel = CCLabelBMFont::create(std::to_string(count).c_str(), "bigFont.fnt");
+                countLabel->setScale(.5f);
+                icon->addChildAtPosition(countLabel, Anchor::Center);
+            }
+
+            m_fields->m_geodeButton->addChild(icon);
+        }
+    }
+    void updateGeodeButtonMarkers() {
+        auto geodeButton = m_fields->m_geodeButton;
+        if (!geodeButton) {
+            return;
+        }
+
+        // clear all old markers first
+        geodeButton->removeChildByID("multiple-notifications");
+        geodeButton->removeChildByID("updates-deprecated");
+        geodeButton->removeChildByID("updates-available");
+        geodeButton->removeChildByID("errors-found");
+
+        if (((FOUND_MOD_UPDATES > 0) + (FOUND_MOD_DEPRECATIONS > 0) + (FOUND_MOD_ERRORS > 0)) > 1) {
+            this->addMarkerToGeodeButton(
+                "updates-multiple.png"_spr,
+                "multiple-notifications",
+                FOUND_MOD_UPDATES + FOUND_MOD_DEPRECATIONS + FOUND_MOD_ERRORS
+            );
+        }
+        else if (FOUND_MOD_DEPRECATIONS) {
+            this->addMarkerToGeodeButton("updates-deprecated.png"_spr, "updates-deprecated", FOUND_MOD_DEPRECATIONS);
+        }
+        else if (FOUND_MOD_UPDATES) {
+            this->addMarkerToGeodeButton("updates-available.png"_spr, "updates-available", FOUND_MOD_UPDATES);
+        }
+        else if (FOUND_MOD_ERRORS) {
+            // Don't show a silly number on top of the error exclamation
+            this->addMarkerToGeodeButton("exMark_001.png", "errors-found", 0);
+        }
     }
 
     void fixSocialMenu() {
@@ -228,7 +325,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         float horizontalGap = 3.5f;
         float verticalGap = 5.0f;
         auto facebookButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("facebook-button"));
-        facebookButton->setPosition({ 
+        facebookButton->setPosition({
             facebookButton->getScaledContentSize().width / 2,
             robtopButton->getScaledContentSize().height + verticalGap + facebookButton->getScaledContentSize().height / 2
         });
@@ -274,7 +371,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
     }
 
     void onMissingTextures(CCObject*) {
-        
+
     #ifdef GEODE_IS_DESKTOP
 
         (void) utils::file::createDirectoryAll(dirs::getGeodeDir() / "update" / "resources" / "geode.loader");
@@ -287,9 +384,9 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             "and <cy>unzip its contents</c> into <cb>geode/update/resources/geode.loader</c>.\n"
             "Afterwards, <cg>restart the game</c>.\n"
             "You may also continue without installing resources, but be aware that "
-            "you won't be able to open <cr>the Geode menu</c>.",
-            "Dismiss", "Open Github",
-            [](auto, bool btn2) {
+            "the Geode menu won't render properly.",
+            "Continue Anyway", "Open Github",
+            [this](auto, bool btn2) {
                 if (btn2) {
                     web::openLinkInBrowser("https://github.com/geode-sdk/geode/releases/latest");
                     file::openFolder(dirs::getGeodeDir() / "update" / "resources");
@@ -303,23 +400,31 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                         "<cb>Don't add any new folders to the destination!</c>",
                         "OK"
                     )->show();
+                } else {
+                    this->onGeode(nullptr);
                 }
-            }
+            },
+            true,
+            false
         );
 
     #else
 
-        // dunno if we can auto-create target directory on mobile, nor if the 
+        // dunno if we can auto-create target directory on mobile, nor if the
         // user has access to moving stuff there
 
-        FLAlertLayer::create(
+        createQuickPopup(
             "Missing Textures",
             "You appear to be missing textures, and the automatic texture fixer "
             "hasn't fixed the issue.\n"
             "**<cy>Report this bug to the Geode developers</c>**. It is very likely "
             "that your game <cr>will crash</c> until the issue is resolved.",
-            "OK"
-        )->show();
+            "OK",
+            nullptr,
+            [this](auto, bool btn2) {
+                this->onGeode(nullptr);
+            }
+        );
 
     #endif
     }

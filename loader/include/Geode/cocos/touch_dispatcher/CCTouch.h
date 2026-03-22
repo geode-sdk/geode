@@ -61,7 +61,7 @@ public:
     CCPoint getPreviousLocationInView() const;
     /** returns the start touch location in screen coordinates */
     CCPoint getStartLocationInView() const;
-    
+
     void setTouchInfo(int id, float x, float y)
     {
         m_nId = id;
@@ -88,6 +88,8 @@ public:
     CCPoint m_startPoint;
     CCPoint m_point;
     CCPoint m_prevPoint;
+    // @note RobTop Addition
+    CC_SYNTHESIZE_NV(double, m_timestamp, Timestamp);
 };
 
 class CC_DLL CCEvent : public CCObject

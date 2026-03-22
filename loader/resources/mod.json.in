@@ -3,7 +3,8 @@
     "gd": {
         "win": "*",
         "mac": "*",
-        "android": "*"
+        "android": "*",
+        "ios": "*"
     },
     "id": "geode.loader",
     "version": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
@@ -60,16 +61,24 @@
             ],
             "BlankSheet": [
                 "blanks/*.png"
+            ],
+            "EventSheet": [
+                "modtober/*.png"
             ]
         }
     },
     "settings": {
-        "show-platform-console": {
-            "type": "bool",
-            "default": false,
-            "name": "Show Platform Console",
-            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>",
-            "platforms": ["win", "mac"]
+        "geode-settings-info": {
+            "type": "info",
+            "description": "These are settings for the <co>Geode Mod Loader</c>, NOT for mods. To edit settings for <cj>mods</c>, press <cy>View</c> on the mod and then the settings button in the <cg>bottom left</c> of the popup."
+        },
+        "action-buttons": {
+            "type": "button",
+            "buttons": {
+                "open-mods-folder": "Open Mods Folder",
+                "copy-mods-list": "Copy Mods List",
+                "install-from-file": "Install From File"
+            }
         },
         "auto-check-updates": {
             "type": "bool",
@@ -83,6 +92,102 @@
             "name": "Disable Crash Popup",
             "description": "Disables the popup at startup asking if you'd like to send a bug report; intended for developers"
         },
+        "enable-geode-theme": {
+            "type": "bool",
+            "default": true,
+            "name": "Enable Geode-Themed Colors",
+            "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
+        },
+        "infinite-local-mods-list": {
+            "type": "bool",
+            "default": false,
+            "name": "Expand Installed Mods List",
+            "description": "Make the installed mods list a single infinite scrollable list instead of having pages"
+        },
+        "developer-title": {
+            "type": "title",
+            "name": "Developer Settings"
+        },
+        "show-platform-console": {
+            "type": "bool",
+            "default": false,
+            "name": "Show Platform Console",
+            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>",
+            "platforms": [
+                "win",
+                "mac"
+            ],
+            "requires-restart": true
+        },
+        "restart-button": {
+            "type": "bool",
+            "default": false,
+            "name": "Show Restart Button",
+            "description": "Show a button in the Geode Menu to restart the game"
+        },
+        "console-log-level": {
+            "type": "string",
+            "default": "info",
+            "name": "Console Log Level",
+            "description": "Sets the log level for the <cb>platform console</c>.",
+            "one-of": ["trace", "debug", "info", "warn", "error"]
+        },
+        "file-log-level": {
+            "type": "string",
+            "default": "debug",
+            "name": "File Log Level",
+            "description": "Sets the log level for the <cb>log files</c>.",
+            "one-of": ["trace", "debug", "info", "warn", "error"]
+        },
+        "log-retention-period": {
+            "type": "int",
+            "default": 30,
+            "min": 0,
+            "max": 365,
+            "name": "Log Retention Period",
+            "description": "The number of days to keep logs for. Logs older than this will be deleted every launch. 0 to disable deletion."
+        },
+        "log-milliseconds": {
+            "type": "bool",
+            "default": false,
+            "name": "Log Milliseconds",
+            "description": "Shows milliseconds in all logs"
+        },
+        "log-thread": {
+            "type": "bool",
+            "default": true,
+            "name": "Log Thread",
+            "description": "Pushes all logs to a worker thread that handles console & file writing. This makes logging much faster, especially on Windows, but if your console can't keep up, it will see stale logs and might miss some.",
+            "requires-restart": true
+        },
+        "verbose-curl-logs": {
+            "type": "bool",
+            "default": false,
+            "name": "Verbose Curl Logs",
+            "description": "When performing web requests, prints detailed information about the request immediately, as well as information when requests are added/removed. Otherwise, some information will only be printed on request failure."
+        },
+        "curl-dns3": {
+            "type": "string",
+            "name": "Web DNS Server",
+            "description": "Change the DNS server that Geode and mods will use to make web requests.",
+            "default": "Auto",
+            "one-of": [
+                "Auto",
+                "System",
+                "Cloudflare",
+                "Google",
+                "Cloudflare DoH"
+            ],
+            "requires-restart": true
+        },
+        "curl-custom-dns3": {
+            "type": "string",
+            "name": "Custom Web DNS Server(s)",
+            "description": "Manually specify DNS server IPs that Geode and mods will use to make web requests (separate each IP by a comma). This will override what you have set for Web DNS Server.",
+            "filter": "abcdefghijklmnopqrstuvwxyz0123456789.,[]:",
+            "default": "",
+            "requires-restart": true
+        },
         "server-cache-size-limit": {
             "type": "int",
             "default": 20,
@@ -90,12 +195,6 @@
             "max": 100,
             "name": "Server Cache Size Limit",
             "description": "Limits the size of the cache used for loading mods. Higher values result in higher memory usage."
-        },
-        "enable-geode-theme": {
-            "type": "bool",
-            "default": true,
-            "name": "Enable Geode-Themed Colors",
-            "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
         }
     },
     "issues": {

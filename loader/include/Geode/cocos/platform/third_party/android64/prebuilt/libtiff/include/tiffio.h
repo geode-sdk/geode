@@ -4,18 +4,18 @@
  * Copyright (c) 1988-1997 Sam Leffler
  * Copyright (c) 1991-1997 Silicon Graphics, Inc.
  *
- * Permission to use, copy, modify, distribute, and sell this software and 
+ * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee, provided
  * that (i) the above copyright notices and this permission notice appear in
  * all copies of the software and related documentation, and (ii) the names of
  * Sam Leffler and Silicon Graphics may not be used in any advertising or
  * publicity relating to the software without the specific, prior written
  * permission of Sam Leffler and Silicon Graphics.
- * 
- * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
- * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
- * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
- * 
+ *
+ * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+ *
  * IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
  * ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
  * OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
@@ -115,7 +115,7 @@ typedef	void* thandle_t;	/* client data handle */
 #define	TIFFPRINT_JPEGACTABLES	0x200		/* JPEG AC tables */
 #define	TIFFPRINT_JPEGDCTABLES	0x200		/* JPEG DC tables */
 
-/* 
+/*
  * Colour conversion stuff
  */
 
@@ -175,7 +175,7 @@ typedef struct _TIFFRGBAImage TIFFRGBAImage;
 /*
  * The image reading and conversion routines invoke
  * ``put routines'' to copy/image/whatever tiles of
- * raw image data.  A default set of routines are 
+ * raw image data.  A default set of routines are
  * provided to convert/copy raw image data to 8-bit
  * packed ABGR format rasters.  Applications can supply
  * alternate routines that unpack the data into a
@@ -270,7 +270,7 @@ typedef	int (*TIFFCloseProc)(thandle_t);
 typedef	toff_t (*TIFFSizeProc)(thandle_t);
 typedef	int (*TIFFMapFileProc)(thandle_t, tdata_t*, toff_t*);
 typedef	void (*TIFFUnmapFileProc)(thandle_t, tdata_t, toff_t);
-typedef	void (*TIFFExtendProc)(TIFF*); 
+typedef	void (*TIFFExtendProc)(TIFF*);
 
 extern	const char* TIFFGetVersion(void);
 
@@ -296,13 +296,13 @@ extern	void _TIFFfree(tdata_t);
 */
 extern  int  TIFFGetTagListCount( TIFF * );
 extern  ttag_t TIFFGetTagListEntry( TIFF *, int tag_index );
-    
+
 #define	TIFF_ANY	TIFF_NOTYPE	/* for field descriptor searching */
 #define	TIFF_VARIABLE	-1		/* marker for variable length tags */
 #define	TIFF_SPP	-2		/* marker for SamplesPerPixel tags */
 #define	TIFF_VARIABLE2	-3		/* marker for uint32 var-length tags */
 
-#define FIELD_CUSTOM    65    
+#define FIELD_CUSTOM    65
 
 typedef	struct {
 	ttag_t	field_tag;		/* field's tag */
@@ -331,13 +331,13 @@ extern	const TIFFFieldInfo* TIFFFieldWithName(TIFF*, const char *);
 typedef	int (*TIFFVSetMethod)(TIFF*, ttag_t, va_list);
 typedef	int (*TIFFVGetMethod)(TIFF*, ttag_t, va_list);
 typedef	void (*TIFFPrintMethod)(TIFF*, FILE*, long);
-    
+
 typedef struct {
     TIFFVSetMethod	vsetfield;	/* tag set routine */
     TIFFVGetMethod	vgetfield;	/* tag get routine */
     TIFFPrintMethod	printdir;	/* directory print routine */
 } TIFFTagMethods;
-        
+
 extern  TIFFTagMethods *TIFFAccessTagMethods( TIFF * );
 extern  void *TIFFGetClientInfo( TIFF *, const char * );
 extern  void TIFFSetClientInfo( TIFF *, void *, const char * );
@@ -503,7 +503,7 @@ extern	uint32 LogLuv24fromXYZ(float*, int);
 extern	uint32 LogLuv32fromXYZ(float*, int);
 #endif
 #endif /* LOGLUV_PUBLIC */
-    
+
 extern int TIFFCIELabToRGBInit(TIFFCIELabToRGB*, TIFFDisplay *, float*);
 extern void TIFFCIELabToXYZ(TIFFCIELabToRGB *, uint32, int32, int32,
 			    float *, float *, float *);

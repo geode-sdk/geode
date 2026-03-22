@@ -1,14 +1,51 @@
 include(cmake/PlatformDetect.cmake)
 
 if (NOT ${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
-	set(GEODE_TARGET_PLATFORM GEODE_TARGET_PLATFORM PARENT_SCOPE)
+	set(GEODE_TARGET_PLATFORM ${GEODE_TARGET_PLATFORM} PARENT_SCOPE)
 endif()
 
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
+	# make sure that we get the ios sdk
+
+	message(STATUS "iOS c++ compiler: ${CMAKE_CXX_COMPILER}")
+	set(CMAKE_OSX_ARCHITECTURES arm64)
+	if (NOT DEFINED CMAKE_OSX_SYSROOT OR CMAKE_OSX_SYSROOT STREQUAL "")
+		if (NOT DEFINED GEODE_IOS_SDK OR GEODE_IOS_SDK STREQUAL "")
+			execute_process(COMMAND xcrun --show-sdk-path --sdk iphoneos
+			OUTPUT_VARIABLE GEODE_IOS_SDK
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		endif()
+
+		set(CMAKE_OSX_SYSROOT ${GEODE_IOS_SDK})
+	else()
+		set(GEODE_IOS_SDK ${CMAKE_OSX_SYSROOT})
+	endif()
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0")
+	set(CMAKE_SYSTEM_NAME "iOS")
+
+	message(STATUS "Using iOS SDK: ${GEODE_IOS_SDK}")
+
+	# this fails on ios builds
+	set(BUILD_MD2HTML_EXECUTABLE "OFF")
+
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		SYSTEM_NAME iOS
 		OSX_SYSROOT ${GEODE_IOS_SDK}
 		OSX_ARCHITECTURES arm64
+	)
+
+	target_link_libraries(${PROJECT_NAME} INTERFACE
+		"-framework OpenGLES"       # needed for CCClippingNode reimpl and ScrollLayer
+		"-framework UIKit"          # needed for file picking (UIApplication)
+		"-framework Foundation"     # needed for many things
+		"-framework AVFoundation"   # needed for microphone access
+		"-framework CoreGraphics"   # needed for image saving
+		"-framework GameController" # needed for controller input
+	)
+
+	target_compile_definitions(${PROJECT_NAME} INTERFACE
+		-DGLES_SILENCE_DEPRECATION
 	)
 
 	set(GEODE_OUTPUT_NAME "Geode.ios")
@@ -17,6 +54,8 @@ if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 
 	if (NOT ${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
 		set(GEODE_TARGET_PLATFORM_SHORT "ios" PARENT_SCOPE)
+		# this is needed because else loading mods will fail below ios 14.5
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0" PARENT_SCOPE)
 	else()
 		set(GEODE_TARGET_PLATFORM_SHORT "ios")
 	endif()
@@ -31,20 +70,13 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	endif()
 
 	# only exists as a global property
-	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
+	set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
 
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		"-framework Cocoa"
 		"-framework OpenGL"
 		"-framework SystemConfiguration"
 		${GEODE_LOADER_PATH}/include/link/macos/libfmod.dylib
-		${GEODE_LOADER_PATH}/include/link/macos/libssl.a
-		${GEODE_LOADER_PATH}/include/link/macos/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/macos/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2.a
-		${GEODE_LOADER_PATH}/include/link/macos/libnghttp3.a
-		${GEODE_LOADER_PATH}/include/link/macos/libngtcp2_crypto_boringssl.a
-		${GEODE_LOADER_PATH}/include/link/macos/libcurl.a
 	)
 
 	target_compile_definitions(${PROJECT_NAME} INTERFACE
@@ -72,18 +104,16 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 	target_link_libraries(${PROJECT_NAME} INTERFACE 
 		${GEODE_LOADER_PATH}/include/link/win64/libcocos2d.lib
 		${GEODE_LOADER_PATH}/include/link/win64/libExtensions.lib
-		${GEODE_LOADER_PATH}/include/link/win64/ssl.lib
-		${GEODE_LOADER_PATH}/include/link/win64/crypto.lib
-		${GEODE_LOADER_PATH}/include/link/win64/nghttp2.lib
-		${GEODE_LOADER_PATH}/include/link/win64/ngtcp2.lib
-		${GEODE_LOADER_PATH}/include/link/win64/nghttp3.lib
-		${GEODE_LOADER_PATH}/include/link/win64/ngtcp2_crypto_boringssl.lib
-		${GEODE_LOADER_PATH}/include/link/win64/libcurl.lib
 		${GEODE_LOADER_PATH}/include/link/win64/glew32.lib
-		${GEODE_LOADER_PATH}/include/link/win64/gdstring.lib
 		${GEODE_LOADER_PATH}/include/link/win64/fmod.lib
 		opengl32
 	)
+
+	if (PROJECT_IS_TOP_LEVEL AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+		target_link_libraries(${PROJECT_NAME} INTERFACE
+			${GEODE_LOADER_PATH}/include/link/win64/gd-libcurl.lib
+		)
+	endif()
 
 	# Windows links against .lib and not .dll
 	set(GEODE_OUTPUT_NAME "Geode")
@@ -103,13 +133,6 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		c
 		unwind
-		${GEODE_LOADER_PATH}/include/link/android32/libssl.a
-		${GEODE_LOADER_PATH}/include/link/android32/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/android32/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2.a
-		${GEODE_LOADER_PATH}/include/link/android32/libnghttp3.a
-		${GEODE_LOADER_PATH}/include/link/android32/libngtcp2_crypto_boringssl.a
-		${GEODE_LOADER_PATH}/include/link/android32/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/android32/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android32/libfmod.so
 		GLESv2
@@ -133,13 +156,6 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	target_link_libraries(${PROJECT_NAME} INTERFACE
 		c
 		unwind
-		${GEODE_LOADER_PATH}/include/link/android64/libssl.a
-		${GEODE_LOADER_PATH}/include/link/android64/libcrypto.a
-		${GEODE_LOADER_PATH}/include/link/android64/libnghttp2.a
-		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2.a
-		${GEODE_LOADER_PATH}/include/link/android64/libnghttp3.a
-		${GEODE_LOADER_PATH}/include/link/android64/libngtcp2_crypto_boringssl.a
-		${GEODE_LOADER_PATH}/include/link/android64/libcurl.a
 		${GEODE_LOADER_PATH}/include/link/android64/libcocos2dcpp.so
 		${GEODE_LOADER_PATH}/include/link/android64/libfmod.so
 		GLESv2
@@ -148,7 +164,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 
 	# this should help with fixing exceptions
 	set(ANDROID_STL c++_shared)
-  # a little desperate
+	# a little desperate
 	add_definitions(-DANDROID_STL=c++_shared)
 
 	set(GEODE_OUTPUT_NAME "Geode.android64")

@@ -43,10 +43,10 @@ enum {
  * @{
  */
 
-/** 
+/**
 @brief Base class for CCAction objects.
  */
-class CC_DLL CCAction : public CCObject 
+class CC_DLL CCAction : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
@@ -77,7 +77,7 @@ public:
     //! called before the action start. It will also set the target.
     virtual void startWithTarget(CCNode *pTarget);
 
-    /** 
+    /**
     called after the action has finished. It will set the 'target' to nil.
     IMPORTANT: You should never call "[action stop]" manually. Instead, use: "target->stopAction(action);"
     */
@@ -86,21 +86,21 @@ public:
     //! called every frame with it's delta time. DON'T override unless you know what you are doing.
     virtual void step(float dt);
 
-    /** 
+    /**
     called once per frame. time a value between 0 and 1
 
-    For example: 
+    For example:
     - 0 means that the action just started
     - 0.5 means that the action is in the middle
     - 1 means that the action is over
     */
     virtual void update(float time);
-    
+
     inline CCNode* getTarget(void) { return m_pTarget; }
     /** The action will modify the target properties. */
     inline void setTarget(CCNode *pTarget) { m_pTarget = pTarget; }
-    
-    inline CCNode* getOriginalTarget(void) { return m_pOriginalTarget; } 
+
+    inline CCNode* getOriginalTarget(void) { return m_pOriginalTarget; }
     /** Set the original target, since target can be nil.
     Is the target that were used to run the action. Unless you are doing something complex, like CCActionManager, you should NOT call this method.
     The target is 'assigned', it is not 'retained'.
@@ -110,17 +110,11 @@ public:
 
     inline int getTag(void) { return m_nTag; }
     inline void setTag(int nTag) { m_nTag = nTag; }
-    
-    // @note RobTop Addition
-    void setSpeedMod(float mod);
-
-    // 2.2 addition
-    float getSpeedMod();
 
 public:
     /** Create an action */
     static CCAction* create();
-protected:
+public:
     CCNode    *m_pOriginalTarget;
     /** The "target".
     The target will be set with the 'startWithTarget' method.
@@ -131,11 +125,11 @@ protected:
     /** The action tag. An identifier of the action */
     int     m_nTag;
     // @note RobTop Addition
-    float m_fSpeedMod;
+    CC_SYNTHESIZE_NV(float, m_fSpeedMod, SpeedMod);
 };
 
-/** 
-@brief 
+/**
+@brief
  Base class actions that do have a finite time duration.
  Possible actions:
    - An action with a duration of 0 seconds
@@ -167,7 +161,7 @@ public:
 
     /** returns a reversed action */
     virtual CCFiniteTimeAction* reverse(void);
-protected:
+public:
     //! duration in seconds
     float m_fDuration;
 };
@@ -175,7 +169,7 @@ protected:
 class CCActionInterval;
 class CCRepeatForever;
 
-/** 
+/**
  @brief Changes the speed of an action, making it take longer (speed>1)
  or less (speed<1) time.
  Useful to simulate 'slow motion' or 'fast forward' effect.
@@ -185,6 +179,7 @@ class CC_DLL CCSpeed : public CCAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCSpeed, CCAction)
     /**
      *  @js ctor
      */
@@ -225,12 +220,12 @@ public:
 public:
     /** create the action */
     static CCSpeed* create(CCActionInterval* pAction, float fSpeed);
-protected:
+public:
     float m_fSpeed;
     CCActionInterval *m_pInnerAction;
 };
 
-/** 
+/**
 @brief CCFollow is an action that "follows" a node.
 
 Eg:
@@ -243,13 +238,14 @@ class CC_DLL CCFollow : public CCAction
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFollow, CCAction)
     /**
      *  @js ctor
      */
     CCFollow()
         : m_pobFollowedNode(NULL)
         , m_bBoundarySet(false)
-        , m_bBoundaryFullyCovered(false)        
+        , m_bBoundaryFullyCovered(false)
         , m_fLeftBoundary(0.0)
         , m_fRightBoundary(0.0)
         , m_fTopBoundary(0.0)
@@ -260,7 +256,7 @@ public:
      *  @lua NA
      */
     virtual ~CCFollow(void);
-    
+
     inline bool isBoundarySet(void) { return m_bBoundarySet; }
     /** alter behavior - turn on/off boundary */
     inline void setBoudarySet(bool bValue) { m_bBoundarySet = bValue; }
@@ -281,7 +277,7 @@ public:
     It will work with no boundary if @param rect is equal to CCRectZero.
     */
     static CCFollow* create(CCNode *pFollowedNode, const CCRect& rect = CCRectZero);
-protected:
+public:
     // node to follow
     CCNode *m_pobFollowedNode;
 

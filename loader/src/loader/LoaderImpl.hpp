@@ -1,16 +1,15 @@
 #pragma once
 
-#include "FileWatcher.hpp"
-
 #include <matjson.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/utils/MiniFunction.hpp>
+#include <Geode/utils/function.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include "ModImpl.hpp"
 #include <crashlog.hpp>
 #include <mutex>
@@ -34,14 +33,15 @@ namespace geode {
 
         std::vector<std::filesystem::path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
-        std::unordered_map<std::string, Mod*> m_mods;
+        StringMap<Mod*> m_mods;
         std::deque<Mod*> m_modsToLoad;
         std::vector<std::filesystem::path> m_texturePaths;
         bool m_isSetup = false;
 
         LoadingState m_loadingState = LoadingState::None;
 
-        std::vector<utils::MiniFunction<void(void)>> m_mainThreadQueue;
+        std::vector<geode::Function<void(void)>> m_mainThreadQueue;
+        std::vector<geode::Function<void(void)>> m_mainThreadQueueExec; // see comments in loaderimpl.cpp for the purpose
         mutable std::mutex m_mainThreadMutex;
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;
@@ -58,7 +58,7 @@ namespace geode {
         int m_refreshedModCount = 0;
         int m_lateRefreshedModCount = 0;
 
-        std::unordered_map<std::string, std::string> m_launchArgs;
+        utils::StringMap<std::string> m_launchArgs;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
 
@@ -69,10 +69,15 @@ namespace geode {
         Mod* takeNextMod();
         void releaseNextMod();
 
-        std::unordered_map<void*, tulip::hook::HandlerHandle> m_handlerHandles;
+        std::unordered_map<void*, std::pair<tulip::hook::HandlerHandle, size_t>> m_handlerHandles;
+
+        bool m_isPatchless = false;
+        std::optional<std::string> m_binaryPath;
 
         Result<tulip::hook::HandlerHandle> getHandler(void* address);
         Result<tulip::hook::HandlerHandle> getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
+        Result<tulip::hook::HandlerHandle> getAndDecreaseHandler(void* address);
+        Result<> removeHandlerIfNeeded(void* address);
 
         bool loadHooks();
 
@@ -80,6 +85,7 @@ namespace geode {
         ~Impl();
 
         void createDirectories();
+        void removeDirectories();
 
         void updateModResources(Mod* mod);
         void addSearchPaths();
@@ -105,10 +111,10 @@ namespace geode {
         void refreshModGraph();
         void continueRefreshModGraph();
 
-        bool isModInstalled(std::string const& id) const;
-        Mod* getInstalledMod(std::string const& id) const;
-        bool isModLoaded(std::string const& id) const;
-        Mod* getLoadedMod(std::string const& id) const;
+        bool isModInstalled(std::string_view id) const;
+        Mod* getInstalledMod(std::string_view id) const;
+        bool isModLoaded(std::string_view id) const;
+        Mod* getLoadedMod(std::string_view id) const;
         std::vector<Mod*> getAllMods();
         std::vector<LoadProblem> getProblems() const;
 
@@ -116,9 +122,9 @@ namespace geode {
         std::string getLaunchCommand() const;
         void initLaunchArguments();
         std::vector<std::string> getLaunchArgumentNames() const;
-        bool hasLaunchArgument(std::string_view const name) const;
-        std::optional<std::string> getLaunchArgument(std::string_view const name) const;
-        bool getLaunchFlag(std::string_view const name) const;
+        bool hasLaunchArgument(std::string_view name) const;
+        std::optional<std::string> getLaunchArgument(std::string_view name) const;
+        bool getLaunchFlag(std::string_view name) const;
 
         void updateResources(bool forceReload);
 
@@ -131,6 +137,11 @@ namespace geode {
         Mod* getInternalMod();
         Result<> setupInternalMod();
 
+        // called on a separate thread
+        Result<> unzipGeodeFile(ModMetadata metadata);
+
+        Result<> extractBinary(ModMetadata metadata);
+
         bool userTriedToLoadDLLs() const;
 
         void addProblem(LoadProblem const& problem);
@@ -139,6 +150,19 @@ namespace geode {
         bool isSafeMode() const;
         // enables safe mode, even if the launch arg wasnt provided
         void forceSafeMode();
+
+        // This will potentially start a whole sequence of popups that guide the
+        // user through installing the specific .geode file
+        void installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after);
+
+        bool isRestartRequired() const;
+
+        bool isPatchless() const;
+        std::optional<std::string> getBinaryPath() const;
+
+        std::unordered_map<Keybind, std::vector<std::shared_ptr<KeybindSettingV3>>> m_keybindSettings;
+        std::unordered_map<KeybindSettingV3*, Keybind> m_activeKeybinds;
+        void onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds);
     };
 
     class LoaderImpl : public Loader::Impl {

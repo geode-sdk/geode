@@ -51,7 +51,7 @@ public:
     virtual ~CCParticleFire(){}
     bool init(){ return initWithTotalParticles(250); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleFire* create();
     static CCParticleFire* createWithTotalParticles(unsigned int numberOfParticles);
 };
@@ -72,7 +72,7 @@ public:
     virtual ~CCParticleFireworks(){}
     bool init(){ return initWithTotalParticles(1500); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleFireworks* create();
     static CCParticleFireworks* createWithTotalParticles(unsigned int numberOfParticles);
 };
@@ -93,7 +93,7 @@ public:
     virtual ~CCParticleSun(){}
     bool init(){ return initWithTotalParticles(350); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleSun* create();
     static CCParticleSun* createWithTotalParticles(unsigned int numberOfParticles);
 };
@@ -114,7 +114,7 @@ public:
     virtual ~CCParticleGalaxy(){}
     bool init(){ return initWithTotalParticles(200); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleGalaxy* create();
     static CCParticleGalaxy* createWithTotalParticles(unsigned int numberOfParticles);
 };
@@ -135,7 +135,7 @@ public:
     virtual ~CCParticleFlower(){}
     bool init(){ return initWithTotalParticles(250); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleFlower* create();
     static CCParticleFlower* createWithTotalParticles(unsigned int numberOfParticles);
 };
@@ -177,7 +177,7 @@ public:
     virtual ~CCParticleSpiral(){}
     bool init(){ return initWithTotalParticles(500); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleSpiral* create();
     static CCParticleSpiral* createWithTotalParticles(unsigned int numberOfParticles);
 };
@@ -198,7 +198,7 @@ public:
     virtual ~CCParticleExplosion(){}
     bool init(){ return initWithTotalParticles(700); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleExplosion* create();
     static CCParticleExplosion* createWithTotalParticles(unsigned int numberOfParticles);
 };
@@ -219,7 +219,7 @@ public:
     virtual ~CCParticleSmoke(){}
     bool init(){ return initWithTotalParticles(200); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleSmoke* create();
     static CCParticleSmoke* createWithTotalParticles(unsigned int numberOfParticles);
 };
@@ -240,7 +240,7 @@ public:
     virtual ~CCParticleSnow(){}
     bool init(){ return initWithTotalParticles(700); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleSnow* create();
     static CCParticleSnow* createWithTotalParticles(unsigned int numberOfParticles);
 };
@@ -261,7 +261,7 @@ public:
     virtual ~CCParticleRain(){}
     bool init(){ return initWithTotalParticles(1000); }
     virtual bool initWithTotalParticles(unsigned int numberOfParticles);
-    
+
     static CCParticleRain* create();
     static CCParticleRain* createWithTotalParticles(unsigned int numberOfParticles);
 };

@@ -32,14 +32,14 @@
 // our own version of the Accelerometer
 @interface AccelerometerSimulation : UIAccelerometer <NSMachPortDelegate>
 {
-    
+
     //CFSocketRef udpSocket;
     int udpSocket;
     NSThread *thread;
     BOOL isExiting;
     id<UIAccelerometerDelegate> accelDelegate;
     UIAccelerationSimulation *accObject;
-    // Threaded notification support 
+    // Threaded notification support
     NSMutableArray *notifications;
     NSThread *notificationThread;
     NSLock *notificationLock;

@@ -53,7 +53,7 @@ namespace geode {
         if (cls->CCNode::getID() != For::CLASS_NAME) {
             cls->CCNode::setID(For::CLASS_NAME);
             cls->provide();
-            EnterLayerEvent(For::CLASS_NAME, cls).post();
+            EnterLayerEvent<For>(For::CLASS_NAME).send(cls);
         }
     }
 }
@@ -67,4 +67,4 @@ namespace geode {
             &geodeInternalProvideIDsFor<GEODE_CONCAT(ProvideIDsFor, Layer_)>\
         );\
 	};\
-    void GEODE_CONCAT(ProvideIDsFor, Layer_)::provide() 
+    void GEODE_CONCAT(ProvideIDsFor, Layer_)::provide()

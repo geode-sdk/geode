@@ -59,7 +59,7 @@ typedef enum
 /*
     ===================================================================================================
 
-    FMOD built in effect parameters.  
+    FMOD built in effect parameters.
     Use DSP::setParameter with these enums for the 'index' parameter.
 
     ===================================================================================================
@@ -219,8 +219,8 @@ typedef enum
 
 typedef enum
 {
-    FMOD_DSP_COMPRESSOR_THRESHOLD, 
-    FMOD_DSP_COMPRESSOR_RATIO, 
+    FMOD_DSP_COMPRESSOR_THRESHOLD,
+    FMOD_DSP_COMPRESSOR_RATIO,
     FMOD_DSP_COMPRESSOR_ATTACK,
     FMOD_DSP_COMPRESSOR_RELEASE,
     FMOD_DSP_COMPRESSOR_GAINMAKEUP,

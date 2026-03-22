@@ -1,13 +1,12 @@
 #pragma once
 
-#include "SceneManager.hpp"
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
-#include "../utils/cocos.hpp"
+#include <Geode/ui/NineSlice.hpp>
 
 namespace geode {
-    constexpr auto NOTIFICATION_DEFAULT_TIME = 1.f;
+    constexpr auto NOTIFICATION_DEFAULT_TIME = 1.8f;
     constexpr auto NOTIFICATION_LONG_TIME = 4.f;
 
     enum class NotificationIcon {
@@ -20,36 +19,36 @@ namespace geode {
     };
 
     class GEODE_DLL Notification : public cocos2d::CCNodeRGBA {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
-        static Ref<cocos2d::CCArray> s_queue;
-        cocos2d::extension::CCScale9Sprite* m_bg;
-        cocos2d::CCLabelBMFont* m_label;
-        cocos2d::CCSprite* m_icon = nullptr;
-        float m_time;
-        bool m_showing = false;
+        Notification();
+        ~Notification();
 
-        bool init(std::string const& text, cocos2d::CCSprite* icon, float time);
+        bool init(ZStringView text, cocos2d::CCNode* icon, float time);
         void updateLayout();
 
-        static cocos2d::CCSprite* createIcon(NotificationIcon icon);
+        static cocos2d::CCNode* createIcon(NotificationIcon icon);
 
-        void animateIn();
-        void animateOut();
         void showNextNotification();
-        void wait();
+        void waitThenHide();
+
+        NineSlice* getBG();
+        cocos2d::CCLabelBMFont* getLabel();
+        cocos2d::CCNodeRGBA* getContent();
 
     public:
         /**
          * Create a notification, similar to TextAlertPopup but more customizable
          * @param text Notification text
          * @param icon Icon to show in the notification
-         * @param time Time to show the notification on screen; pass 0 to show 
+         * @param time Time to show the notification on screen; pass 0 to show
          * the notification indefinitely until hide() is called
-         * @returns The new notification. Make sure to call show() to show the 
+         * @returns The new notification. Make sure to call show() to show the
          * notification
          */
         static Notification* create(
-            std::string const& text,
+            ZStringView text,
             NotificationIcon icon = NotificationIcon::None,
             float time = NOTIFICATION_DEFAULT_TIME
         );
@@ -57,40 +56,38 @@ namespace geode {
          * Create a notification with a custom icon
          * @param text Notification text
          * @param icon Icon to show in the notification
-         * @param time Time to show the notification on screen; pass 0 to show 
+         * @param time Time to show the notification on screen; pass 0 to show
          * the notification indefinitely until hide() is called
-         * @returns The new notification. Make sure to call show() to show the 
+         * @returns The new notification. Make sure to call show() to show the
          * notification
          */
         static Notification* create(
-            std::string const& text,
-            cocos2d::CCSprite* icon,
+            ZStringView text,
+            cocos2d::CCNode* icon,
             float time = NOTIFICATION_DEFAULT_TIME
         );
 
-        void setString(std::string const& text);
+        void setString(ZStringView text);
         void setIcon(NotificationIcon icon);
-        void setIcon(cocos2d::CCSprite* icon);
+        void setIcon(cocos2d::CCNode* icon);
+        cocos2d::CCNode* getIcon();
         void setTime(float time);
 
-        /**
-         * Set the wait time to default, wait the time and hide the notification. 
-         * Equivalent to setTime(NOTIFICATION_DEFAULT_TIME)
-        */
-        void waitAndHide();
+        float getTime();
+        bool isShowing();
 
         /**
-         * Adds the notification to the current scene if it doesn't have a 
-         * parent yet, and displays the show animation. If the time for the 
-         * notification was specified, the notification waits that time and 
+         * Adds the notification to the current scene if it doesn't have a
+         * parent yet, and displays the show animation. If the time for the
+         * notification was specified, the notification waits that time and
          * then automatically hides
         */
         void show();
 
         /**
-         * Hide the notification. If you passed a time to the create function, 
-         * this function doesn't need to be called manually, unless you want 
-         * to prematurily hide the notification
+         * Hide the notification. If you passed a time to the create function,
+         * this function doesn't need to be called manually, unless you want
+         * to prematurely hide the notification
          */
         void hide();
 
@@ -101,3 +98,4 @@ namespace geode {
         void cancel();
     };
 }
+

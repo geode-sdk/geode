@@ -139,10 +139,10 @@ Config of cocos2d-x project, per target platform.
 // check user set platform
 #if ! CC_TARGET_PLATFORM
     #error  "Cannot recognize the target platform; are you targeting an unsupported platform?"
-#endif 
+#endif
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
-#pragma warning (disable:4127)  
+#pragma warning (disable:4127)
 #endif  // CC_PLATFORM_WIN32
 
 #endif  // __CC_PLATFORM_CONFIG_H__

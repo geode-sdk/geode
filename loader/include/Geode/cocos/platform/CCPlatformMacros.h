@@ -174,7 +174,7 @@ namespace geode {
  */
 #define CC_PROPERTY_READONLY(varType, varName, funName) \
                                                         \
-protected:                                              \
+public:                                                 \
     varType varName;                                    \
                                                         \
 public:                                                 \
@@ -182,7 +182,7 @@ public:                                                 \
 
 #define CC_PROPERTY_READONLY_PASS_BY_REF(varType, varName, funName) \
                                                                     \
-protected:                                                          \
+public:                                                             \
     varType varName;                                                \
                                                                     \
 public:                                                             \
@@ -202,7 +202,7 @@ public:                                                             \
  */
 #define CC_PROPERTY(varType, varName, funName) \
                                                \
-protected:                                     \
+public:                                        \
     varType varName;                           \
                                                \
 public:                                        \
@@ -213,7 +213,7 @@ public:                                        \
 
 #define CC_PROPERTY_PASS_BY_REF(varType, varName, funName) \
                                                            \
-protected:                                                 \
+public:                                                    \
     varType varName;                                       \
                                                            \
 public:                                                    \
@@ -233,7 +233,7 @@ public:                                                    \
  */
 #define CC_SYNTHESIZE_READONLY(varType, varName, funName) \
                                                           \
-protected:                                                \
+public:                                                   \
     varType varName;                                      \
                                                           \
 public:                                                   \
@@ -241,7 +241,7 @@ public:                                                   \
 
 #define CC_SYNTHESIZE_READONLY_NC(varType, varName, funName) \
                                                              \
-protected:                                                   \
+public:                                                      \
     varType varName;                                         \
                                                              \
 public:                                                      \
@@ -249,7 +249,7 @@ public:                                                      \
 
 #define CC_SYNTHESIZE_READONLY_PASS_BY_REF(varType, varName, funName) \
                                                                       \
-protected:                                                            \
+public:                                                               \
     varType varName;                                                  \
                                                                       \
 public:                                                               \
@@ -267,7 +267,7 @@ public:                                                               \
  */
 #define CC_SYNTHESIZE(varType, varName, funName)                 \
                                                                  \
-protected:                                                       \
+public:                                                          \
     varType varName;                                             \
                                                                  \
 public:                                                          \
@@ -278,7 +278,7 @@ public:                                                          \
 
 #define CC_SYNTHESIZE_PASS_BY_REF(varType, varName, funName)            \
                                                                         \
-protected:                                                              \
+public:                                                                 \
     varType varName;                                                    \
                                                                         \
 public:                                                                 \
@@ -289,7 +289,7 @@ public:                                                                 \
 
 #define CC_SYNTHESIZE_RETAIN(varType, varName, funName)          \
                                                                  \
-private:                                                         \
+public:                                                          \
     varType varName;                                             \
                                                                  \
 public:                                                          \
@@ -452,7 +452,7 @@ public:                                                          \
  */
 #define CC_SYNTHESIZE_NV(varType, varName, funName)      \
                                                          \
-protected:                                               \
+public:                                                  \
     varType varName;                                     \
                                                          \
 public:                                                  \
@@ -461,11 +461,39 @@ public:                                                  \
 public:                                                  \
     void set##funName(varType var) { varName = var; }
 
+#define CC_SYNTHESIZE_NV_PASS_BY_REF(varType, varName, funName) \
+                                                                \
+public:                                                         \
+    varType varName;                                            \
+                                                                \
+public:                                                         \
+    const varType& get##funName(void) const { return varName; } \
+                                                                \
+public:                                                         \
+    void set##funName(const varType& var) { varName = var; }
+
+#define CC_SYNTHESIZE_NV_RETAIN(varType, varName, funName) \
+                                                           \
+public:                                                    \
+    varType varName;                                       \
+                                                           \
+public:                                                    \
+    varType get##funName(void) const { return varName; }   \
+                                                           \
+public:                                                    \
+    void set##funName(varType var) {                       \
+        if (varName != var) {                              \
+            CC_SAFE_RETAIN(var);                           \
+            CC_SAFE_RELEASE(varName);                      \
+            varName = var;                                 \
+        }                                                  \
+    }
+
 /**
  */
 #define CC_SYNTHESIZE_READONLY_NV(varType, varName, funName) \
                                                              \
-protected:                                                   \
+public:                                                      \
     varType varName;                                         \
                                                              \
 public:                                                      \
@@ -473,10 +501,18 @@ public:                                                      \
 
 #define CC_SYNTHESIZE_READONLY_NV_NC(varType, varName, funName) \
                                                                 \
-protected:                                                      \
+public:                                                         \
     varType varName;                                            \
                                                                 \
 public:                                                         \
     varType get##funName(void) { return varName; }
+
+#define CC_SYNTHESIZE_READONLY_NV_PASS_BY_REF(varType, varName, funName) \
+                                                                         \
+public:                                                                  \
+    varType varName;                                                     \
+                                                                         \
+public:                                                                  \
+    const varType& get##funName(void) const { return varName; }
 
 #endif // __CC_PLATFORM_MACROS_H__

@@ -8,11 +8,51 @@
 #include <cstring>
 #include <type_traits>
 #include <typeinfo>
+#include <memory>
+#include <optional>
+#include <intrin.h>  // for _ReadWriteBarrier
+#include "_casts_shared.hpp"
 
 namespace geode {
     struct PlatformInfo {
         HMODULE m_hmod;
     };
+
+    struct PlatformDetails {
+        uint32_t majorVersion;
+        uint32_t minorVersion;
+        uint32_t buildNumber;
+        // from SYSTEM_INFO
+        uint32_t arch;
+        
+        std::optional<std::string> wineVersion;
+    };
+
+    namespace internal {
+        inline void const volatile* volatile globalForceEscape;
+
+        inline void useCharPointer(char const volatile* const ptr) {
+            globalForceEscape = reinterpret_cast<void const volatile*>(ptr);
+        }
+    }
+
+    template <class T>
+    GEODE_INLINE inline void doNotOptimize(T const& value) {
+        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
+        _ReadWriteBarrier();
+    }
+
+    template <class T>
+    GEODE_INLINE inline void doNotOptimize(T& value) {
+        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
+        _ReadWriteBarrier();
+    }
+
+    template <class T>
+    GEODE_INLINE inline void doNotOptimize(T&& value) {
+        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
+        _ReadWriteBarrier();
+    }
 }
 
 namespace geode::base {
@@ -22,7 +62,12 @@ namespace geode::base {
     }
 
     GEODE_NOINLINE inline uintptr_t getCocos() {
-        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA("libcocos2d.dll"));
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleW(L"libcocos2d.dll"));
+        return base;
+    }
+
+    GEODE_NOINLINE inline uintptr_t getExtensions() {
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleW(L"libExtensions.dll"));
         return base;
     }
 }
@@ -53,7 +98,7 @@ namespace geode::cast {
         int32_t m_attributes;
         ShrunkPointer<ClassDescriptorType> m_classDescriptor;
     };
-    
+
     struct BaseClassArrayType {
         ShrunkPointer<BaseClassDescriptorType> m_descriptorEntries[0x100];
     };
@@ -88,18 +133,15 @@ namespace geode::cast {
 
     template <class After, class Before>
     inline After typeinfo_cast(Before ptr) {
-        static_assert(
-            std::is_polymorphic_v<std::remove_pointer_t<Before>>, "Input is not a polymorphic type"
-        );
+        ::geode::geode_internal::typeinfoCastChecks<After, Before>();
 
         if (!ptr) {
             return After();
         }
 
-        auto basePtr = dynamic_cast<void*>(ptr);
-        auto vftable = *reinterpret_cast<VftableType**>(basePtr);
+        auto vftable = *reinterpret_cast<VftableType const* const*>(ptr);
 
-        auto metaPtr = static_cast<MetaPointerType*>(static_cast<CompleteVftableType*>(vftable));
+        auto metaPtr = static_cast<MetaPointerType const*>(static_cast<CompleteVftableType const*>(vftable));
 
         auto afterDesc =
             reinterpret_cast<TypeDescriptorType const*>(&typeid(std::remove_pointer_t<After>));
@@ -122,11 +164,37 @@ namespace geode::cast {
             auto optionOffset = entry->m_memberDisplacement[0];
 
             if (std::strcmp(afterIdent, optionIdent) == 0) {
-                auto afterPtr = reinterpret_cast<std::byte*>(basePtr) + optionOffset;
+                auto afterPtr = (uintptr_t)ptr + optionOffset - metaPtr->m_completeLocator->m_offset;
                 return reinterpret_cast<After>(afterPtr);
             }
         }
 
         return nullptr;
+    }
+
+    inline char const* getRuntimeTypeName(void const* ptr) {
+        if (!ptr) {
+            return "<null>";
+        }
+
+        auto vftable = *reinterpret_cast<VftableType const* const*>(ptr);
+
+        auto metaPtr = static_cast<MetaPointerType const*>(static_cast<CompleteVftableType const*>(vftable));
+
+    #ifdef GEODE_IS_X64
+        auto locatorOffset = metaPtr->m_completeLocator->m_locatorOffset;
+        auto base = reinterpret_cast<uintptr_t>(metaPtr->m_completeLocator) - locatorOffset;
+    #else
+        auto base = 0;
+    #endif
+
+        auto typeDesc = metaPtr->m_completeLocator->m_typeDescriptor.into(base);
+
+        return typeDesc->m_typeDescriptorName;
+    }
+
+    inline char const* getRuntimeTypeName(std::type_info const& info) {
+        auto typeDesc = reinterpret_cast<TypeDescriptorType const*>(&info);
+        return typeDesc->m_typeDescriptorName;
     }
 }

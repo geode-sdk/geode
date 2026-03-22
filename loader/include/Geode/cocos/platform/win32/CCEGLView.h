@@ -95,8 +95,8 @@ public:
     // virtual void resize(int width, int height);
     // @note RobTop Addition
      void resizeWindow(int width, int height);
-	
-    /* 
+
+    /*
      * Set zoom factor for frame. This method is for debugging big resolution (e.g.new ipad) app on desktop.
      */
     void setFrameZoomFactor(float fZoomFactor);
@@ -107,13 +107,13 @@ public:
     bool windowShouldClose();
     // @note RobTop Addition
     void showCursor(bool state);
-	    
+
     typedef void (*LPFN_ACCELEROMETER_KEYHOOK)( UINT message,WPARAM wParam, LPARAM lParam );
     void setAccelerometerKeyHook( LPFN_ACCELEROMETER_KEYHOOK lpfnAccelerometerKeyHook );
 
     virtual void setViewPortInPoints(float x , float y , float w , float h);
     virtual void setScissorInPoints(float x , float y , float w , float h);
-    
+
     // static function
     /**
     @brief    get the shared main open gl window
@@ -142,7 +142,7 @@ public:
     /**
      * @note RobTop addition
      */
-    void toggleFullScreen(bool fullscreen, bool borderless);
+    void toggleFullScreen(bool fullscreen, bool borderless, bool fix);
 
     /**
      * @note RobTop addition
@@ -182,9 +182,14 @@ public:
 	void updateDesignSize(int, int);
 	void updateFrameSize();
 
+    // @note RobTop Addition
+    void pumpRawInput();
+    // @note RobTop Addition
+    void performSafeClipboardPaste();
 
-protected:
-	static CCEGLView* s_pEglView;
+public:
+    static CCEGLView* s_pEglView;
+
     bool m_bCaptured;
     // Robtop Removal
     // HWND m_hWnd;
@@ -203,6 +208,8 @@ protected:
     int m_nRetinaFactor;
     // @note RobTop Addition
     bool m_bCursorHidden;
+    // @note may be before m_bCursorHidden
+    int m_unkSize4;
     // Robtop Removal
     // LPCWSTR m_menu;
     // Robtop Removal
@@ -224,6 +231,8 @@ public:
     bool m_bIsFullscreen;
     // @note RobTop Addition
     bool m_bIsBorderless;
+    // @note RobTop Addition
+    bool m_bIsFix;
     // @note RobTop Addition
     bool m_bShouldHideCursor;
     // @note RobTop Addition
@@ -256,6 +265,8 @@ protected:
     void onGLFWWindowPosCallback(GLFWwindow* window, int x, int y);
     // @note RobTop Addition
     void onGLFWWindowSizeFunCallback(GLFWwindow* window, int width, int height);
+    // @note RobTop Addition
+    void onGLFWWindowFocus(GLFWwindow* window, int focused);
 };
 
 NS_CC_END

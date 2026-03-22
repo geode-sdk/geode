@@ -1,10 +1,13 @@
 #include "ModListSource.hpp"
 #include <server/DownloadManager.hpp>
+#include <Geode/loader/ModSettingsManager.hpp>
+#include <loader/LoaderImpl.hpp>
+#include "../list/ModItem.hpp"
+#include "../list/SpecialModListItem.hpp"
 
 #define FTS_FUZZY_MATCH_IMPLEMENTATION
 #include <Geode/external/fts/fts_fuzzy_match.h>
 
-static constexpr size_t PER_PAGE = 10;
 static std::vector<ModListSource*> ALL_EXTANT_SOURCES {};
 
 static size_t ceildiv(size_t a, size_t b) {
@@ -12,55 +15,58 @@ static size_t ceildiv(size_t a, size_t b) {
     return a / b + (a % b != 0);
 }
 
-InvalidateCacheEvent::InvalidateCacheEvent(ModListSource* src) : source(src) {}
-
-ListenerResult InvalidateCacheFilter::handle(MiniFunction<Callback> fn, InvalidateCacheEvent* event) {
-    if (event->source == m_source) {
-        fn(event);
-    }
-    return ListenerResult::Propagate;
+std::string ModListSource::getNoModsFoundError() const {
+    return "No mods found :(";
 }
 
-InvalidateCacheFilter::InvalidateCacheFilter(ModListSource* src) : m_source(src) {}
-
-bool LocalModsQueryBase::isDefault() const {
-    return !query.has_value() && tags.empty();
-}
-
-typename ModListSource::PageLoadTask ModListSource::loadPage(size_t page, bool forceUpdate) {
-    if (!forceUpdate && m_cachedPages.contains(page)) {
-        return PageLoadTask::immediate(Ok(m_cachedPages.at(page)));
-    }
+ModListSource::ProviderTask ModListSource::loadPage(size_t page, bool forceUpdate) {
     m_cachedPages.erase(page);
-    return this->fetchPage(page, PER_PAGE, forceUpdate).map(
-        [this, page](Result<ProvidedMods, LoadPageError>* result) -> Result<Page, LoadPageError> {
-            if (result->isOk()) {
-                auto data = result->unwrap();
-                if (data.totalModCount == 0 || data.mods.empty()) {
-                    return Err(LoadPageError("No mods found :("));
-                }
-                auto pageData = Page();
-                for (auto mod : std::move(data.mods)) {
-                    pageData.push_back(ModItem::create(std::move(mod)));
-                }
-                m_cachedItemCount = data.totalModCount;
-                m_cachedPages.insert({ page, pageData });
-                return Ok(pageData);
-            }
-            else {
-                return Err(result->unwrapErr());
-            }
-        }
-    );
+    auto data = ARC_CO_UNWRAP(co_await this->fetchPage(page, forceUpdate));
+    
+    if (data.totalModCount == 0 || data.mods.empty()) {
+        co_return Err(LoadPageError(this->getNoModsFoundError()));
+    }
+
+    co_return Ok(std::move(data));
+}
+
+ModListSource::PageLoadResult ModListSource::processLoadedPage(size_t page, ProvidedMods mods) {
+    auto pageData = Page();
+    for (auto&& src : std::move(mods.mods)) {
+        std::visit(makeVisitor {
+            [&](ModSource&& mod) {
+                pageData.push_back(ModItem::create(std::move(mod)));
+            },
+            [&](SpecialModListItemSource&& item) {
+                pageData.push_back(SpecialModListItem::create(std::move(item)));
+            },
+        }, std::move(src));
+    }
+    m_cachedItemCount = mods.totalModCount;
+    m_cachedPages.insert({ page, pageData });
+    return Ok(std::move(pageData));
 }
 
 std::optional<size_t> ModListSource::getPageCount() const {
-    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), PER_PAGE)) : std::nullopt;
+    return m_cachedItemCount ? std::optional(ceildiv(m_cachedItemCount.value(), m_pageSize)) : std::nullopt;
 }
-
 std::optional<size_t> ModListSource::getItemCount() const {
     return m_cachedItemCount;
 }
+void ModListSource::setPageSize(size_t size) {
+    if (m_pageSize != size) {
+        m_pageSize = size;
+        this->clearCache();
+    }
+}
+
+std::vector<std::pair<size_t, std::string>> ModListSource::getSortingOptions() {
+    return {};
+}
+size_t ModListSource::getSort() const {
+    return 0;
+}
+void ModListSource::setSort(size_t sortingOptionIndex) {}
 
 void ModListSource::reset() {
     this->resetQuery();
@@ -69,10 +75,19 @@ void ModListSource::reset() {
 void ModListSource::clearCache() {
     m_cachedPages.clear();
     m_cachedItemCount = std::nullopt;
-    InvalidateCacheEvent(this).post();
+    InvalidateCacheEvent().send(this);
 }
-void ModListSource::search(std::string const& query) {
-    this->setSearchQuery(query);
+
+std::optional<ModListSource::Page> ModListSource::getCachedPage(size_t page) const {
+    auto it = m_cachedPages.find(page);
+    if (it != m_cachedPages.end()) {
+        return it->second;
+    }
+    return std::nullopt;
+}
+
+void ModListSource::search(std::string query) {
+    this->setSearchQuery(std::move(query));
     this->clearCache();
 }
 
@@ -85,19 +100,8 @@ void ModListSource::clearAllCaches() {
         src->clearCache();
     }
 }
-bool ModListSource::isRestartRequired() {
-    for (auto mod : Loader::get()->getAllMods()) {
-        if (mod->getRequestedAction() != ModRequestedAction::None) {
-            return true;
-        }
-    }
-    if (server::ModDownloadManager::get()->wantsRestart()) {
-        return true;
-    }
-    return false;
-}
 
-bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double weight, double& out) {
+bool weightedFuzzyMatch(ZStringView str, ZStringView kw, double weight, double& out) {
     int score;
     if (fts::fuzzy_match(kw.c_str(), str.c_str(), score)) {
         out = std::max(out, score * weight);
@@ -105,7 +109,7 @@ bool weightedFuzzyMatch(std::string const& str, std::string const& kw, double we
     }
     return false;
 }
-bool modFuzzyMatch(ModMetadata const& metadata, std::string const& kw, double& weighted) {
+bool modFuzzyMatch(ModMetadata const& metadata, ZStringView kw, double& weighted) {
     bool addToList = false;
     addToList |= weightedFuzzyMatch(metadata.getName(), kw, 1, weighted);
     addToList |= weightedFuzzyMatch(metadata.getID(), kw, 0.5, weighted);

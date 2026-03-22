@@ -5,24 +5,16 @@
 #include <Geode/platform/platform.hpp>
 #include <variant>
 
-#define GEODE_STATIC_PTR(type, name)          \
-    static type* s_##name;                    \
-    inline type* name() {                     \
-        if (!s_##name) s_##name = new type(); \
-        return s_##name;                      \
-    }
+#if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
+    #if !defined(__clang__)
+        #error Geode Loader only compiles with Clang.
+    #endif
+#endif
 
-#define GEODE_STATIC_VAR(type, name) \
-    inline type& name() {            \
-        static type s_##name;        \
-        return s_##name;             \
-    }
-
-#define GEODE_WRAPPER_CONCAT(x, y) x##y
-#define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
-
-#define GEODE_WRAPPER_STR(...) #__VA_ARGS__
-#define GEODE_STR(...) GEODE_WRAPPER_STR(__VA_ARGS__)
+#if !defined(GEODE_CONCAT)
+    #define GEODE_WRAPPER_CONCAT(x, y) x##y
+    #define GEODE_CONCAT(x, y) GEODE_WRAPPER_CONCAT(x, y)
+#endif
 
 #define GEODE_PAD(size) uint8_t GEODE_CONCAT(__pad, __LINE__)[size]
 #define GEODE_UNIMPLEMENTED_PAD private:
@@ -77,40 +69,19 @@ namespace geode {
     Class_(geode::CutoffConstructorType, void*)
 
 #define GEODE_CUTOFF_CONSTRUCTOR_BEGIN(Class_)                      \
-    GEODE_MACOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){})                \
-    GEODE_IOS(GEODE_FILL_CONSTRUCTOR(Class_, 0){})                  \
-    GEODE_WINDOWS(Class_(geode::CutoffConstructorType, size_t fill) \
-                  : Class_() {})                                    \
-    GEODE_ANDROID(GEODE_FILL_CONSTRUCTOR(Class_, 0){})
+    GEODE_FILL_CONSTRUCTOR(Class_, 0){}
 
 #define GEODE_CUTOFF_CONSTRUCTOR_COCOS(Class_, Base_)               \
-    GEODE_MACOS(Class_(geode::CutoffConstructorType, size_t fill)   \
-                : Base_(geode::CutoffConstructor, fill){})          \
-    GEODE_IOS(Class_(geode::CutoffConstructorType, size_t fill)     \
-              : Base_(geode::CutoffConstructor, fill){})            \
-    GEODE_WINDOWS(Class_(geode::CutoffConstructorType, size_t fill) \
-                  : Class_() {})                                    \
-    GEODE_ANDROID(Class_(geode::CutoffConstructorType, size_t fill)   \
-                : Base_(geode::CutoffConstructor, fill){})
+    Class_(geode::CutoffConstructorType, size_t fill)               \
+    : Base_(geode::CutoffConstructor, fill){}
 
 #define GEODE_CUTOFF_CONSTRUCTOR_GD(Class_, Base_)                  \
-    GEODE_WINDOWS(Class_(geode::CutoffConstructorType, size_t fill) \
-                  : Base_(geode::CutoffConstructor, fill){})        \
-    GEODE_MACOS(Class_(geode::CutoffConstructorType, size_t fill)   \
-                : Base_(geode::CutoffConstructor, fill){})          \
-    GEODE_IOS(Class_(geode::CutoffConstructorType, size_t fill)     \
-              : Base_(geode::CutoffConstructor, fill){})            \
-    GEODE_ANDROID(Class_(geode::CutoffConstructorType, size_t fill) \
-              : Base_(geode::CutoffConstructor, fill){})
+    Class_(geode::CutoffConstructorType, size_t fill)               \
+    : Base_(geode::CutoffConstructor, fill) {}
 
-#define GEODE_CUTOFF_CONSTRUCTOR_CUTOFF(Class_, Base_)                       \
-    GEODE_WINDOWS(GEODE_FILL_CONSTRUCTOR(Class_, sizeof(Base_)) : Base_(){}) \
-    GEODE_ANDROID(Class_(geode::CutoffConstructorType, size_t fill)          \
-                : Base_(geode::CutoffConstructor, fill){})                   \
-    GEODE_MACOS(Class_(geode::CutoffConstructorType, size_t fill)            \
-                : Base_(geode::CutoffConstructor, fill){})                   \
-    GEODE_IOS(Class_(geode::CutoffConstructorType, size_t fill)              \
-              : Base_(geode::CutoffConstructor, fill){})
+#define GEODE_CUTOFF_CONSTRUCTOR_CUTOFF(Class_, Base_)              \
+    Class_(geode::CutoffConstructorType, size_t fill)               \
+    : Base_(geode::CutoffConstructor, fill) {}
 
 #define GEODE_NUMBER_OF_ARGS(...) \
     GEODE_EXPAND(GEODE_NUMBER_OF_ARGS_(__VA_ARGS__, GEODE_NUMBER_SEQUENCE(), ))
@@ -188,17 +159,31 @@ namespace geode {
         40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, \
         18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 
-#define $execute                                                                                  \
-    template <class>                                                                              \
-    void GEODE_CONCAT(geodeExecFunction, __LINE__)();                                             \
-    namespace {                                                                                   \
-        struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};                                         \
-    }                                                                                             \
-    static inline auto GEODE_CONCAT(Exec, __LINE__) =                                             \
-        (GEODE_CONCAT(geodeExecFunction, __LINE__) < GEODE_CONCAT(ExecFuncUnique, __LINE__) > (), \
-         0);                                                                                      \
-    template <class>                                                                              \
-    void GEODE_CONCAT(geodeExecFunction, __LINE__)()
+
+#ifndef GEODE_UNITY_NS_ID
+#define GEODE_UNITY_NS_ID _test_no_unity
+#endif
+
+#define $execute_base(body1) \
+namespace { namespace GEODE_UNITY_NS_ID {                              \
+                                                                       \
+struct GEODE_CONCAT(ExecFuncUnique, __LINE__) {};                      \
+template<class>                                                        \
+void GEODE_CONCAT(geodeExecFunction1, __LINE__)();                      \
+void GEODE_CONCAT(geodeExecFunctionI, __LINE__)();                      \
+static inline auto GEODE_CONCAT(Exec, __LINE__) =                      \
+    (GEODE_CONCAT(geodeExecFunction1, __LINE__) < GEODE_CONCAT(ExecFuncUnique, __LINE__) > (), 0);        \
+                                                                       \
+}}                                                                     \
+                                                                       \
+template<class>                                                        \
+void GEODE_UNITY_NS_ID::GEODE_CONCAT(geodeExecFunction1, __LINE__)() body1 \
+                                                                       \
+void GEODE_UNITY_NS_ID::GEODE_CONCAT(geodeExecFunctionI, __LINE__)()
+
+#define $execute $execute_base({ \
+    GEODE_CONCAT(geodeExecFunctionI, __LINE__)(); \
+})
 
 #define GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER(message) \
     if (Loader::get()->isForwardCompatMode()) {           \

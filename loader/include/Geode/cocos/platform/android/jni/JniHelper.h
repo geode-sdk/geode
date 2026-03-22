@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include <jni.h>
 #include <string>
+#include <Geode/c++stl/string.hpp>
 #include "../../CCPlatformMacros.h"
 
 NS_CC_BEGIN
@@ -47,6 +48,9 @@ public:
     static bool getStaticMethodInfo(JniMethodInfo &methodinfo, const char *className, const char *methodName, const char *paramCode);
     static bool getMethodInfo(JniMethodInfo &methodinfo, const char *className, const char *methodName, const char *paramCode);
     static gd::string jstring2string(jstring str);
+
+    // @note RobTop Addition
+    static double getPlatformTimestamp();
 
 private:
     static JavaVM *m_psJavaVM;

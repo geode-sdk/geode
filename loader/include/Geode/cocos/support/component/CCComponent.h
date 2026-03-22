@@ -38,6 +38,7 @@ protected:
 
     CCComponent(void);
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCComponent, CCObject)
     /**
      *  @js NA
      *  @lua NA
@@ -59,14 +60,14 @@ public:
     virtual bool isEnabled() const;
     virtual void setEnabled(bool b);
     static CCComponent* create(void);
-    
+
     const char* getName() const;
     void setName(const char *pName);
-    
+
     void setOwner(CCNode *pOwner);
     CCNode* getOwner() const;
-    
-protected:
+
+public:
     CCNode *m_pOwner;
     gd::string m_strName;
     bool m_bEnabled;

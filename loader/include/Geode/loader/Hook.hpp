@@ -31,30 +31,30 @@ namespace geode {
          * After creating the hook object, we recommend you set its owner
          * by calling `Mod::claimHook`, see its docs for more info.
          * @param address The address to hook
-         * @param detour The detour to run when the hook is hit. The detour's 
+         * @param detour The detour to run when the hook is hit. The detour's
          * calling convention should be cdecl
-         * @param displayName A human-readable name describing the hook, 
+         * @param displayName A human-readable name describing the hook,
          * usually the fully qualified name of the function being hooked
          * @param handlerMetadata Metadata for the hook handler
          * @param hookMetadata Metadata for the hook itself
-         * @returns The created hook, or an error. Make sure to add the created 
+         * @returns The created hook, or an error. Make sure to add the created
          * hook to the mod that owns it using mod->claimHook(hook)!
          */
         static std::shared_ptr<Hook> create(
             void* address,
             void* detour,
-            std::string const& displayName,
-            tulip::hook::HandlerMetadata const& handlerMetadata,
-            tulip::hook::HookMetadata const& hookMetadata
+            std::string displayName,
+            tulip::hook::HandlerMetadata handlerMetadata,
+            tulip::hook::HookMetadata hookMetadata
         );
 
         template<class DetourType>
         static std::shared_ptr<Hook> create(
             void* address,
             DetourType detour,
-            std::string const& displayName,
+            std::string displayName,
             tulip::hook::TulipConvention convention,
-            tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
+            tulip::hook::HookMetadata hookMetadata = tulip::hook::HookMetadata()
         ) {
             auto handlerMetadata = tulip::hook::HandlerMetadata{
                 .m_convention = geode::hook::createConvention(convention),
@@ -63,9 +63,9 @@ namespace geode {
             return Hook::create(
                 address,
                 reinterpret_cast<void*>(detour),
-                displayName,
-                handlerMetadata,
-                hookMetadata
+                std::move(displayName),
+                std::move(handlerMetadata),
+                std::move(hookMetadata)
             );
         }
 
@@ -87,6 +87,9 @@ namespace geode {
         Result<> enable();
 
         Result<> disable();
+
+        Result<> toggle();
+        Result<> toggle(bool enable);
 
         /**
         * Get whether the hook should be auto enabled or not.
@@ -155,7 +158,7 @@ namespace geode {
 
     public:
 
-        static std::shared_ptr<Patch> create(void* address, const ByteVector& patch);
+        static std::shared_ptr<Patch> create(void* address, ByteSpan patch);
 
         Patch(Patch const&) = delete;
         Patch operator=(Patch const&) = delete;
@@ -175,6 +178,9 @@ namespace geode {
         Result<> enable();
 
         Result<> disable();
+
+        Result<> toggle();
+        Result<> toggle(bool enable);
 
         /**
         * Get whether the patch should be auto enabled or not.
@@ -198,7 +204,7 @@ namespace geode {
          * Updates the bytes of the patch, disabling and then re-enabling if needed.
          * @param bytes Bytes used to patch
          */
-        Result<> updateBytes(const ByteVector& bytes);
+        Result<> updateBytes(ByteSpan bytes);
 
         /**
          * Get the address of the patch.

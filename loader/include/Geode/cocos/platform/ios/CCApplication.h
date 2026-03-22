@@ -43,14 +43,14 @@ public:
      *  @lua NA
      */
     virtual ~CCApplication();
-        
+
     /**
      @brief    Run the message loop.
      @js NA
      @lua NA
     */
     int run();
-        
+
     /**
     @brief    Get the current application instance.
     @return Current application instance pointer.
@@ -59,10 +59,10 @@ public:
     static CCApplication* sharedApplication();
 
     static GEODE_DLL CCApplication* get();
-    
+
     /**
      @brief    Callback by CCDirector for limit FPS.
-     @interval       The time, expressed in seconds, between current frame and next. 
+     @interval       The time, expressed in seconds, between current frame and next.
      @lua NA
      */
     virtual void setAnimationInterval(double interval);
@@ -72,7 +72,7 @@ public:
     @return Current language config
     */
     virtual ccLanguageType getCurrentLanguage();
-    
+
     /**
      @brief Get target platform
      */

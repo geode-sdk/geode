@@ -1,18 +1,18 @@
 /****************************************************************************
  Copyright (c) 2010 cocos2d-x.org
- 
+
  http://www.cocos2d-x.org
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,11 +39,13 @@ class CC_DLL CCEGLView : public CCEGLViewProtocol
     GEODE_FRIEND_MODIFY
 public:
     static CCEGLView* sharedOpenGLView(void);
-    
+
     static GEODE_DLL CCEGLView* get();
 
     virtual ~CCEGLView(void);
-    
+
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEGLView, CCEGLViewProtocol)
+
     virtual bool isOpenGLReady(void);
     virtual bool setContentScaleFactor(float contentScaleFactor);
     virtual void end();
@@ -53,10 +55,10 @@ public:
      */
     virtual void setViewPortInPoints(float x , float y , float w , float h);
     virtual void setScissorInPoints(float x , float y , float w , float h);
-    
+
     virtual void setIMEKeyboardState(bool bOpen);
 	virtual void setMultiTouchMask(bool mask);
-    
+
 private:
     static CCEGLView* s_sharedView;
 
@@ -66,7 +68,7 @@ private:
     bool m_idk2;
     // @note RobTop Addition
     bool m_idk3;
-    
+
     CCEGLView(void);
 };
 

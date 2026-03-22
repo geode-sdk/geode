@@ -55,7 +55,7 @@ public:
 public:
     /** Creates and initializes with a duration and a percent */
     static CCProgressTo* create(float duration, float fPercent);
-protected:
+public:
     float m_fTo;
     float m_fFrom;
 };
@@ -83,7 +83,7 @@ public:
 
     /** Creates and initializes the action with a duration, a "from" percentage and a "to" percentage */
     static CCProgressFromTo* create(float duration, float fFromPercentage, float fToPercentage);
-protected:
+public:
     float m_fTo;
     float m_fFrom;
 };

@@ -8,6 +8,7 @@
  * Modified to be modern Geode-fitting C++
  */
 
+#pragma once
 #include <Geode/DefaultInclude.hpp>
 
 #ifdef __MINGW32__
@@ -41,7 +42,7 @@
 #define NFD_UTF8_BOM "\xEF\xBB\xBF"
 
 #include <stddef.h>
-#include <Geode/utils/Result.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/utils/file.hpp>
 
 using namespace geode::prelude;
@@ -56,5 +57,6 @@ enum class NFDMode {
 Result<> nfdPick(
     NFDMode mode,
     file::FilePickOptions const& options,
-    void* result
+    void* result,
+    HWND parent
 );

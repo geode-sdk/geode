@@ -68,6 +68,7 @@ class CC_DLL CCParticleBatchNode : public CCNode, public CCTextureProtocol
 {
     GEODE_FRIEND_MODIFY
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCParticleBatchNode, CCNode)
     /**
      * @js ctor
      */
@@ -126,8 +127,8 @@ private:
     unsigned int addChildHelper(CCParticleSystem* child, int z, int aTag);
     void updateBlendFunc(void);
     /** the texture atlas used for drawing the quads */
-    CC_SYNTHESIZE(CCTextureAtlas*, m_pTextureAtlas, TextureAtlas);
-private:
+    CC_SYNTHESIZE_NV(CCTextureAtlas*, m_pTextureAtlas, TextureAtlas);
+public:
     /** the blend function used for drawing the quads */
     ccBlendFunc m_tBlendFunc;
 };

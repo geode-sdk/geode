@@ -4,11 +4,13 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
+#include <Geode/loader/Event.hpp>
 #include "SwelvyBG.hpp"
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SetTextPopup.hpp>
 #include <Geode/binding/SetIDPopup.hpp>
@@ -18,17 +20,19 @@
 #include "GeodeStyle.hpp"
 #include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
+#include <Geode/ui/MDPopup.hpp>
+#include "settings/KeybindsPopup.hpp"
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
         return false;
-    
+
     this->ignoreAnchorPointForPosition(false);
     this->setAnchorPoint({ .5f, 1.f });
     this->setContentSize({ 300, 35 });
     this->setID("ModsStatusNode");
 
-    m_statusBG = CCScale9Sprite::create("black-square.png"_spr);
+    m_statusBG = NineSlice::create("black-square.png"_spr);
     m_statusBG->setID("status-bg");
     m_statusBG->setContentSize({ 570, 40 });
     m_statusBG->setScale(.5f);
@@ -41,7 +45,7 @@ bool ModsStatusNode::init() {
     m_statusPercentage = CCLabelBMFont::create("", "bigFont.fnt");
     m_statusPercentage->setID("status-percentage-label");
     m_statusPercentage->setScale(.8f);
-    m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-25, 0));
+    m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-35, 0));
 
     m_loadingCircle = createLoadingCircle(32);
     m_statusBG->addChildAtPosition(m_loadingCircle, Anchor::Left, ccp(25, 0));
@@ -58,7 +62,7 @@ bool ModsStatusNode::init() {
     m_btnMenu = CCMenu::create();
     m_btnMenu->setID("button-menu");
     m_btnMenu->setContentWidth(m_obContentSize.width);
-
+    m_btnMenu->setContentHeight(25.f);
     auto restartSpr = createGeodeButton("Restart Now");
     restartSpr->setScale(.65f);
     m_restartBtn = CCMenuItemSpriteExtra::create(
@@ -81,17 +85,30 @@ bool ModsStatusNode::init() {
     m_cancelBtn->setID("cancel-button");
     m_btnMenu->addChild(m_cancelBtn);
 
-    m_btnMenu->setLayout(RowLayout::create());
-    m_btnMenu->getLayout()->ignoreInvisibleChildren(true);
+    m_btnMenu->setLayout(
+        SimpleRowLayout::create()
+            ->setGap(5.f)
+    );
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
-    m_updateStateListener.bind([this](auto) { this->updateState(); });
-    m_updateStateListener.setFilter(UpdateModListStateFilter());
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+    m_downloadHandle = server::ModDownloadEvent().listen([this](std::string_view key) { this->updateState(); });
 
-    m_downloadListener.bind([this](auto) { this->updateState(); });
+    m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
+        if (!isCommit) {
+            return ListenerResult::Propagate;
+        }
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+
+    Mod::get()->setSavedValue<bool>("has-used-geode-before", true);
 
     this->updateState();
-    
+
     return true;
 }
 
@@ -140,7 +157,7 @@ void ModsStatusNode::updateState() {
     switch (state) {
         // If there are no downloads happening, just show the restart button if needed
         case DownloadState::None: {
-            m_restartBtn->setVisible(ModListSource::isRestartRequired());
+            m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
         // If some downloads were cancelled, show the restart button normally
@@ -149,10 +166,10 @@ void ModsStatusNode::updateState() {
             m_status->setColor(ccWHITE);
             m_status->setVisible(true);
 
-            m_restartBtn->setVisible(ModListSource::isRestartRequired());
+            m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
-        // If all downloads were finished, show the restart button normally 
+        // If all downloads were finished, show the restart button normally
         // but also a "all done" status
         case DownloadState::AllDone: {
             if (downloads.size() == 1) {
@@ -164,8 +181,8 @@ void ModsStatusNode::updateState() {
             m_status->setColor("mod-list-enabled"_cc3b);
             m_status->setVisible(true);
             m_statusBG->setVisible(true);
-            
-            m_restartBtn->setVisible(ModListSource::isRestartRequired());
+
+            m_restartBtn->setVisible(LoaderImpl::get()->isRestartRequired());
         } break;
 
         case DownloadState::SomeErrored: {
@@ -248,15 +265,15 @@ void ModsStatusNode::onViewErrors(CCObject*) {
             errors.push_back(fmt::format("<cr>{}</c>: {}", download.getID(), error->details));
         }
     }
-    createQuickPopup(
-        "Download Errors", ranges::join(errors, "\n"),
-        "OK", "Dismiss", 
-        [](auto, bool btn2) {
+    MDPopup::create(
+        "Download Errors", ranges::join(errors, "\n\n"),
+        "OK", "Dismiss",
+        [](bool btn2) {
             if (btn2) {
                 server::ModDownloadManager::get()->dismissAll();
             }
         }
-    );
+    )->show();
 }
 void ModsStatusNode::onConfirm(CCObject*) {
     askConfirmModInstalls();
@@ -264,11 +281,6 @@ void ModsStatusNode::onConfirm(CCObject*) {
 void ModsStatusNode::onCancel(CCObject*) {
     server::ModDownloadManager::get()->cancelAll();
 }
-
-void ModsLayer::onOpenModsFolder(CCObject*) {
-    file::openFolder(dirs::getModsDir());
-}
-
 void ModsStatusNode::onRestart(CCObject*) {
     // Update button state to let user know it's restarting but it might take a bit
     m_restartBtn->setEnabled(false);
@@ -280,7 +292,7 @@ void ModsStatusNode::onRestart(CCObject*) {
         // Delayed by 2 frames - one is needed to render the "Restarting text"
         Loader::get()->queueInMainThread([] {
             // the other never finishes rendering because the game actually restarts at this point
-            game::restart();
+            game::restart(true);
         });
     });
 }
@@ -301,9 +313,11 @@ bool ModsLayer::init() {
 
     this->setID("ModsLayer");
 
+    auto safeArea = geode::utils::getSafeAreaRect();
+
     auto winSize = CCDirector::get()->getWinSize();
     const bool isSafeMode = LoaderImpl::get()->isSafeMode();
-    
+
     const bool geodeTheme = isGeodeTheme();
     if (!isSafeMode) {
         if (geodeTheme) {
@@ -314,12 +328,14 @@ bool ModsLayer::init() {
             addSideArt(this);
         }
     }
-    
+
+    m_modListDisplay = Mod::get()->getSavedValue<ModListDisplay>("mod-list-display-type");
+
     auto backMenu = CCMenu::create();
     backMenu->setID("back-menu");
-    backMenu->setContentWidth(100.f);
+    backMenu->setContentSize({100.f, 40.f});
     backMenu->setAnchorPoint({ .0f, .5f });
-    
+
     auto backSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
     auto backBtn = CCMenuItemSpriteExtra::create(
         backSpr, this, menu_selector(ModsLayer::onBack)
@@ -328,15 +344,21 @@ bool ModsLayer::init() {
     backMenu->addChild(backBtn);
 
     backMenu->setLayout(
-        RowLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setGap(5.f)
     );
-    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
+    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(8, -23), false);
 
     auto actionsMenu = CCMenu::create();
     actionsMenu->setID("actions-menu");
-    actionsMenu->setContentHeight(200.f);
+    actionsMenu->setContentSize({38.f, 200.f});
     actionsMenu->setAnchorPoint({ .5f, .0f });
+
+    auto rightActionsMenu = CCMenu::create();
+    rightActionsMenu->setID("right-actions-menu");
+    rightActionsMenu->setContentSize({38.f, 200.f});
+    rightActionsMenu->setAnchorPoint({ .5f, .0f });
 
     auto reloadSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f,
@@ -348,38 +370,71 @@ bool ModsLayer::init() {
         reloadSpr, this, menu_selector(ModsLayer::onRefreshList)
     );
     reloadBtn->setID("reload-button");
-    actionsMenu->addChild(reloadBtn);
+    rightActionsMenu->addChild(reloadBtn);
 
     auto settingsSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f,
         CircleBaseSize::Medium
     );
     settingsSpr->setScale(.8f);
-    settingsSpr->setTopOffset(ccp(.5f, 0));
+    settingsSpr->setTopOffset(ccp(-0.1f, 0));
     auto settingsBtn = CCMenuItemSpriteExtra::create(
         settingsSpr, this, menu_selector(ModsLayer::onSettings)
     );
     settingsBtn->setID("settings-button");
     actionsMenu->addChild(settingsBtn);
 
-    auto folderSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png"), 1.f,
+    auto keybindsSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("keybinds.png"_spr), 1.f,
         CircleBaseSize::Medium
     );
-    folderSpr->setScale(0.8f);
-    auto folderBtn = CCMenuItemSpriteExtra::create(
-        folderSpr,
-        this,
-        menu_selector(ModsLayer::onOpenModsFolder)
+    keybindsSpr->setScale(.8f);
+    keybindsSpr->setTopOffset(ccp(0.2f, 1));
+    auto keybindsBtn = CCMenuItemSpriteExtra::create(
+        keybindsSpr, this, menu_selector(ModsLayer::onKeybinds)
     );
-    folderBtn->setID("mods-folder-button");
-    actionsMenu->addChild(folderBtn);
+    keybindsBtn->setID("settings-button");
+    actionsMenu->addChild(keybindsBtn);
+
+    if (Mod::get()->getSettingValue<bool>("restart-button")) {
+        auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload-gold.png"_spr);
+        auto restartGDCircleSpr = createGeodeCircleButton(
+            restartGDSpr, 1.f,
+            CircleBaseSize::Medium
+        );
+        restartGDCircleSpr->setScale(.8f);
+        restartGDCircleSpr->setTopOffset(ccp(1.5f, -1.f));
+        auto restartGDBtn = CCMenuItemSpriteExtra::create(
+            restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
+        );
+        restartGDBtn->setID("restart-gd-button");
+        actionsMenu->addChild(restartGDBtn);
+    }
 
     actionsMenu->setLayout(
-        ColumnLayout::create()
-            ->setAxisAlignment(AxisAlignment::Start)
+        SimpleColumnLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisDirection(AxisDirection::BottomToTop)
+            ->setGap(2.f)
     );
-    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(35, 12), false);
+
+    rightActionsMenu->setLayout(
+        SimpleColumnLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisDirection(AxisDirection::BottomToTop)
+            ->setGap(2.f)
+    );
+
+    // positioning based on size of mod list frame and maximum width of buttons
+    // i would apologize
+    auto actionsMenuX = std::min(35.0f, (winSize.width - 380.0f - 10.0f) / 4.0f);
+    auto safeOffsetRight = winSize.width - (safeArea.size.width + safeArea.origin.x);
+
+    // center buttons when the actionsMenu is moved
+    auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f);
+
+    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX + safeArea.origin.x, actionsMenuY), false);
+    this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX - safeOffsetRight, actionsMenuY), false);
 
     m_frame = CCNode::create();
     m_frame->setID("mod-list-frame");
@@ -420,19 +475,20 @@ bool ModsLayer::init() {
     auto mainTabs = CCMenu::create();
     mainTabs->setID("tabs-menu");
     mainTabs->setContentWidth(tabsTop->getContentWidth() - 45);
+    mainTabs->setContentHeight(32.f);
     mainTabs->setAnchorPoint({ .5f, .0f });
-    mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 8)));
+    mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + ccp(0, 6)));
     // Increment touch priority so the mods in the list don't override
     mainTabs->setTouchPriority(-150);
 
-    for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*, const char*>> {
-        { "download.png"_spr, "Installed", InstalledModListSource::get(InstalledModListType::All), "installed-button" },
-        { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button" },
-        { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button" },
-        { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button" },
+    for (auto item : std::initializer_list<std::tuple<const char*, const char*, ModListSource*, const char*, bool>> {
+        { "download.png"_spr, "Installed", InstalledModListSource::get(InstalledModListType::All), "installed-button", false },
+        { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button", false },
+        { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button", false },
+        { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button", false },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
-            GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 120),
+            GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100, std::get<4>(item)),
             this, menu_selector(ModsLayer::onTab)
         );
         btn->setUserData(std::get<2>(item));
@@ -441,33 +497,62 @@ bool ModsLayer::init() {
         m_tabs.push_back(btn);
     }
 
-    mainTabs->setLayout(RowLayout::create());
+    mainTabs->setLayout(
+        SimpleRowLayout::create()
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(5.f)
+    );
     this->addChild(mainTabs);
 
     // Actions
 
-    auto listActionsMenu = CCMenu::create();
-    listActionsMenu->setID("list-actions-menu");
-    listActionsMenu->setContentHeight(100);
-    listActionsMenu->setAnchorPoint({ 1, 0 });
-    listActionsMenu->setScale(.65f);
+    auto listDisplayMenu = CCMenu::create();
+    listDisplayMenu->setID("list-actions-menu");
+    listDisplayMenu->setContentSize({30, 100});
+    listDisplayMenu->setAnchorPoint({ 1, 0 });
+    listDisplayMenu->setScale(.65f);
+
+    auto smallSizeBtn = CCMenuItemSpriteExtra::create(
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png"),
+        this, menu_selector(ModsLayer::onDisplay)
+    );
+    smallSizeBtn->setTag(static_cast<int>(ModListDisplay::SmallList));
+    smallSizeBtn->setID("list-normal-size-button");
+    listDisplayMenu->addChild(smallSizeBtn);
+    m_displayBtns.push_back(smallSizeBtn);
 
     auto bigSizeBtn = CCMenuItemSpriteExtra::create(
-        GeodeSquareSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png", &m_bigView),
-        this, menu_selector(ModsLayer::onBigView)
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_extendedIcon_001.png"),
+        this, menu_selector(ModsLayer::onDisplay)
     );
+    bigSizeBtn->setTag(static_cast<int>(ModListDisplay::BigList));
     bigSizeBtn->setID("list-size-button");
-    listActionsMenu->addChild(bigSizeBtn);
+    listDisplayMenu->addChild(bigSizeBtn);
+    m_displayBtns.push_back(bigSizeBtn);
 
-    auto searchBtn = CCMenuItemSpriteExtra::create(
-        GeodeSquareSprite::createWithSpriteFrameName("search.png"_spr, &m_showSearch),
-        this, menu_selector(ModsLayer::onSearch)
+    auto gridBtn = CCMenuItemSpriteExtra::create(
+        GeodeSquareSprite::createWithSpriteFrameName("grid-view.png"_spr),
+        this, menu_selector(ModsLayer::onDisplay)
     );
-    searchBtn->setID("search-button");
-    listActionsMenu->addChild(searchBtn);
+    gridBtn->setTag(static_cast<int>(ModListDisplay::Grid));
+    gridBtn->setID("list-size-button");
+    listDisplayMenu->addChild(gridBtn);
+    m_displayBtns.push_back(gridBtn);
 
-    listActionsMenu->setLayout(ColumnLayout::create());
-    m_frame->addChildAtPosition(listActionsMenu, Anchor::Left, ccp(-5, 25));
+    // auto searchBtn = CCMenuItemSpriteExtra::create(
+    //     GeodeSquareSprite::createWithSpriteFrameName("search.png"_spr, &m_showSearch),
+    //     this, menu_selector(ModsLayer::onSearch)
+    // );
+    // searchBtn->setID("search-button");
+    // listDisplayMenu->addChild(searchBtn);
+
+    listDisplayMenu->setLayout(
+        SimpleColumnLayout::create()
+            ->setMainAxisDirection(AxisDirection::TopToBottom)
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(2.f)
+    );
+    m_frame->addChildAtPosition(listDisplayMenu, Anchor::Left, ccp(-5, 25));
 
     m_statusNode = ModsStatusNode::create();
     m_statusNode->setZOrder(4);
@@ -475,7 +560,7 @@ bool ModsLayer::init() {
 
     m_pageMenu = CCMenu::create();
     m_pageMenu->setID("page-menu");
-    m_pageMenu->setContentWidth(200.f);
+    m_pageMenu->setContentSize({200.f, 16.f});
     m_pageMenu->setAnchorPoint({ 1.f, 1.f });
     m_pageMenu->setScale(.65f);
 
@@ -492,9 +577,12 @@ bool ModsLayer::init() {
     m_pageMenu->addChild(m_goToPageBtn);
 
     m_pageMenu->setLayout(
-        RowLayout::create()
-            ->setAxisReverse(true)
-            ->setAxisAlignment(AxisAlignment::End)
+        SimpleRowLayout::create()
+            ->setMainAxisDirection(AxisDirection::RightToLeft)
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setCrossAxisAlignment(CrossAxisAlignment::End)
+            ->setCrossAxisScaling(AxisScaling::ScaleDown)
+            ->setGap(5.f)
     );
     this->addChildAtPosition(m_pageMenu, Anchor::TopRight, ccp(-5, -5), false);
 
@@ -507,19 +595,21 @@ bool ModsLayer::init() {
     this->updateState();
 
     // Listen for state changes
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateWholeState()));
-    m_updateStateListener.bind([this](UpdateModListStateEvent* event) {
-        if (auto whole = std::get_if<UpdateWholeState>(&event->target)) {
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
+        if (auto whole = std::get_if<UpdateWholeState>(&state)) {
             if (whole->searchByDeveloper) {
                 auto src = ServerModListSource::get(ServerModListType::Download);
                 src->getQueryMut()->developer = *whole->searchByDeveloper;
-                this->gotoTab(src);
-                
+                this->gotoTab(src, true);
+
                 m_showSearch = true;
                 m_lists.at(src)->activateSearch(m_showSearch);
             }
-        } 
-        this->updateState();
+        }
+        else if (std::holds_alternative<UpdatePageNumberState>(state)) {
+            this->updateState();
+        }
+        return ListenerResult::Propagate;
     });
 
     // add safe mode label
@@ -547,7 +637,7 @@ bool ModsLayer::init() {
     return true;
 }
 
-void ModsLayer::gotoTab(ModListSource* src) {
+void ModsLayer::gotoTab(ModListSource* src, bool searchingDev) {
     // Update selected tab
     for (auto tab : m_tabs) {
         auto selected = tab->getUserData() == static_cast<void*>(src);
@@ -562,7 +652,7 @@ void ModsLayer::gotoTab(ModListSource* src) {
 
     // Lazily create new list and add it to UI
     if (!m_lists.contains(src)) {
-        auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0));
+        auto list = ModList::create(src, m_frame->getContentSize() - ccp(30, 0), searchingDev);
         list->setPosition(m_frame->getContentSize() / 2);
         m_frame->addChild(list);
         m_lists.emplace(src, list);
@@ -576,12 +666,12 @@ void ModsLayer::gotoTab(ModListSource* src) {
     m_currentSource = src;
 
     // Update the state of the current list
-    m_lists.at(m_currentSource)->updateSize(m_bigView);
+    m_lists.at(m_currentSource)->updateDisplay(m_modListDisplay);
     m_lists.at(m_currentSource)->activateSearch(m_showSearch);
     m_lists.at(m_currentSource)->updateState();
 }
 
-void ModsLayer::keyDown(enumKeyCodes key) {
+void ModsLayer::keyDown(enumKeyCodes key, double p1) {
     auto list = m_lists.at(m_currentSource);
 
     switch(key) {
@@ -598,7 +688,7 @@ void ModsLayer::keyDown(enumKeyCodes key) {
             }
             break;
         default:
-            CCLayer::keyDown(key);
+            CCLayer::keyDown(key, p1);
     }
 }
 
@@ -634,6 +724,13 @@ void ModsLayer::updateState() {
     else {
         m_pageMenu->setVisible(false);
     }
+
+    // Update display button
+    for (auto btn : m_displayBtns) {
+        static_cast<GeodeSquareSprite*>(btn->getNormalImage())->setState(
+            static_cast<ModListDisplay>(btn->getTag()) == m_modListDisplay
+        );
+    }
 }
 
 void ModsLayer::onTab(CCObject* sender) {
@@ -646,7 +743,7 @@ void ModsLayer::onRefreshList(CCObject*) {
 }
 void ModsLayer::onBack(CCObject*) {
     // Tell every list that we are about to exit the layer.
-    // This prevents any page from being cached when the 
+    // This prevents any page from being cached when the
     // cache invalidation event fires.
     for (auto& list : m_lists) {
         list.second->setIsExiting(true);
@@ -663,12 +760,24 @@ void ModsLayer::onGoToPage(CCObject*) {
     popup->setID("go-to-page"_spr);
     popup->show();
 }
-void ModsLayer::onBigView(CCObject*) {
-    m_bigView = !m_bigView;
+void ModsLayer::onDisplay(CCObject* sender) {
+    m_modListDisplay = static_cast<ModListDisplay>(sender->getTag());
+    Mod::get()->setSavedValue("mod-list-display-type", m_modListDisplay);
+
     // Make sure to avoid a crash
     if (m_currentSource) {
-        m_lists.at(m_currentSource)->updateSize(m_bigView);
+        if (m_lists.at(m_currentSource)->getDisplay() == m_modListDisplay) {
+            // No need to do stuff
+            return;
+        }
+        m_lists.at(m_currentSource)->updateDisplay(m_modListDisplay);
+
+        // Hi, Flame here, I made all display types have the same page size
+        // So there's no need for this now
+        // If anything breaks, make sure to tell me I'm a dumbass
+        // m_lists.at(m_currentSource)->reloadPage();
     }
+    this->updateState();
 }
 void ModsLayer::onSearch(CCObject*) {
     m_showSearch = !m_showSearch;
@@ -678,7 +787,7 @@ void ModsLayer::onSearch(CCObject*) {
     }
 }
 void ModsLayer::onTheme(CCObject*) {
-    auto old = Mod::get()->template getSettingValue<bool>("enable-geode-theme");
+    auto old = Mod::get()->getSettingValue<bool>("enable-geode-theme");
     createQuickPopup(
         "Switch Theme",
         fmt::format(
@@ -699,7 +808,28 @@ void ModsLayer::onTheme(CCObject*) {
     );
 }
 void ModsLayer::onSettings(CCObject*) {
-    openSettingsPopup(Mod::get());
+    openSettingsPopup(Mod::get(), false);
+}
+void ModsLayer::onKeybinds(CCObject*) {
+    KeybindsPopup::create()->show();
+}
+void ModsLayer::onRestartGD(CCObject*) {
+    createQuickPopup(
+        "Restart Geometry Dash",
+        "Are you sure you want to restart Geometry Dash?",
+        "Cancel", "Restart",
+        [](auto, bool btn2) {
+            if (btn2) {
+                game::restart(true);
+            }
+        }
+    );
+}
+void ModsLayer::onOpenModsFolder(CCObject*) {
+    file::openFolder(dirs::getModsDir());
+}
+void ModsLayer::onAddModFromFile(CCObject*) {
+    ModsLayer::installModFromFile();
 }
 
 ModsLayer* ModsLayer::create() {
@@ -720,17 +850,56 @@ ModsLayer* ModsLayer::scene() {
     return layer;
 }
 
-server::ServerRequest<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    return server::checkAllUpdates().map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
-        if (result->isOk()) {
-            std::vector<std::string> updatesFound;
-            for (auto& update : result->unwrap()) {
-                if (update.hasUpdateForInstalledMod()) {
-                    updatesFound.push_back(update.id);
-                }
-            }
-            return Ok(updatesFound);
+server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForUpdates() {
+    auto all = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
+    InstalledModsUpdateCheck updatesFound;
+    for (auto& update : all.updates) {
+        if (auto mod = update.hasUpdateForInstalledMod()) {
+            updatesFound.modsWithUpdates.push_back(mod);
         }
-        return Err(result->unwrapErr());
+    }
+    for (auto& dep : all.deprecations) {
+        if (auto mod = dep.hasDeprecationForInstalledMod()) {
+            updatesFound.modsWithDeprecations.push_back(mod);
+        }
+    }
+    co_return Ok(std::move(updatesFound));
+}
+
+void ModsLayer::refreshList() {
+    onRefreshList(nullptr);
+}
+
+void ModsLayer::installModFromFile() {
+    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
+        return FLAlertLayer::create(
+            nullptr,
+            "Manually Installing Mods",
+            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
+            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
+            "<cr>Proceed at your own risk!</c>",
+            "OK", nullptr,
+            350
+        )->show();
+    }
+
+    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
+        .filters = { file::FilePickOptions::Filter {
+            .description = "Geode Mods",
+            .files = { "*.geode" },
+        }}
+    }), [](Result<std::optional<std::filesystem::path>> result) {
+        if (result.isOk() && result.unwrap().has_value()) {
+            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
+                InstalledModListSource::get(InstalledModListType::All)->clearCache();
+            });
+        }
+        else if (!result.isOk()) {
+            FLAlertLayer::create(
+                "Unable to Select File",
+                result.unwrapErr(),
+                "OK"
+            )->show();
+        }
     });
 }

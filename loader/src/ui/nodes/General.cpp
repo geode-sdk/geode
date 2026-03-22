@@ -77,9 +77,9 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
         });
         to->addChild(layerBottomSpr);
     }
-    // otherwise stretch using CCScale9Sprite
+    // otherwise stretch using NineSlice
     else {
-        auto layerTopSpr = CCScale9Sprite::createWithSpriteFrameName(
+        auto layerTopSpr = NineSlice::createWithSpriteFrameName(
             "GJ_commentTop_001.png",
             { 0, 0, 240, 20 }
         );
@@ -93,7 +93,7 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
         });
         to->addChild(layerTopSpr);
 
-        auto layerBottomSpr = CCScale9Sprite::createWithSpriteFrameName(
+        auto layerBottomSpr = NineSlice::createWithSpriteFrameName(
             "GJ_commentTop_001.png",
             { 0, 0, 240, 20 }
         );
@@ -131,10 +131,24 @@ void geode::addListBorders(CCNode* to, CCPoint const& center, CCSize const& size
     to->addChild(layerRightSpr);
 }
 
+class ListBorders::Impl final {
+public:
+    NineSlice* top = nullptr;
+    NineSlice* bottom = nullptr;
+    cocos2d::CCSprite* left = nullptr;
+    cocos2d::CCSprite* right = nullptr;
+    float topPadding = 7.5f;
+    float bottomPadding = 7.5f;
+};
+
+ListBorders::ListBorders() : m_impl(std::make_unique<Impl>()) { }
+
+ListBorders::~ListBorders() { }
+
 bool ListBorders::init() {
     if (!CCNode::init())
         return false;
-    
+
     this->setAnchorPoint({ .5f, .5f });
     this->setSpriteFrames("GJ_commentTop_001.png", "GJ_commentSide_001.png");
 
@@ -151,42 +165,42 @@ ListBorders* ListBorders::create() {
     return nullptr;
 }
 
-void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, float topPadding) {
+void ListBorders::setSpriteFrames(const char* topAndBottom, const char* side, float horizontalPadding) {
     this->setSprites(
-        CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
-        CCScale9Sprite::createWithSpriteFrameName(topAndBottom),
+        NineSlice::createWithSpriteFrameName(topAndBottom),
+        NineSlice::createWithSpriteFrameName(topAndBottom),
         CCSprite::createWithSpriteFrameName(side),
         CCSprite::createWithSpriteFrameName(side),
-        topPadding,
-        topPadding
+        horizontalPadding,
+        horizontalPadding
     );
-    m_bottom->setScaleY(-1);
-    m_right->setFlipX(true);
+    m_impl->bottom->setScaleY(-1);
+    m_impl->right->setFlipX(true);
 }
 void ListBorders::setSprites(
-    CCScale9Sprite* top, CCScale9Sprite* bottom,
+    NineSlice* top, NineSlice* bottom,
     CCSprite* left, CCSprite* right,
     float topPadding, float bottomPadding
 ) {
-    if (m_top) m_top->removeFromParent();
-    if (m_bottom) m_bottom->removeFromParent();
-    if (m_left) m_left->removeFromParent();
-    if (m_right) m_right->removeFromParent();
+    if (m_impl->top) m_impl->top->removeFromParent();
+    if (m_impl->bottom) m_impl->bottom->removeFromParent();
+    if (m_impl->left) m_impl->left->removeFromParent();
+    if (m_impl->right) m_impl->right->removeFromParent();
 
-    m_top = top;
-    this->addChildAtPosition(m_top, Anchor::Top, ccp(0, -m_top->getContentHeight() / 3));
+    m_impl->top = top;
+    this->addChildAtPosition(m_impl->top, Anchor::Top, ccp(0, -m_impl->top->getContentHeight() / 3));
 
-    m_bottom = bottom;
-    this->addChildAtPosition(m_bottom, Anchor::Bottom, ccp(0, m_bottom->getContentHeight() / 3));
+    m_impl->bottom = bottom;
+    this->addChildAtPosition(m_impl->bottom, Anchor::Bottom, ccp(0, m_impl->bottom->getContentHeight() / 3));
 
-    m_left = left;
-    this->addChildAtPosition(m_left, Anchor::Left, ccp(0, 0));
+    m_impl->left = left;
+    this->addChildAtPosition(m_impl->left, Anchor::Left, ccp(0, 0));
 
-    m_right = right;
-    this->addChildAtPosition(m_right, Anchor::Right, ccp(0, 0));
+    m_impl->right = right;
+    this->addChildAtPosition(m_impl->right, Anchor::Right, ccp(0, 0));
 
-    m_topPadding = topPadding;
-    m_bottomPadding = bottomPadding;
+    m_impl->topPadding = topPadding;
+    m_impl->bottomPadding = bottomPadding;
 
     this->setContentSize(m_obContentSize);
 }
@@ -194,9 +208,63 @@ void ListBorders::setContentSize(CCSize const& size) {
     CCNode::setContentSize(size);
     this->updateLayout();
 
-    m_top->setContentWidth(size.width + m_topPadding);
-    m_bottom->setContentWidth(size.width + m_bottomPadding);
-    auto height = m_top->getContentHeight() * 0.75 + m_bottom->getContentHeight() * 0.75;
-    m_left->setScaleY((size.height - height) / m_left->getContentHeight());
-    m_right->setScaleY((size.height - height) / m_right->getContentHeight());
+    m_impl->top->setContentWidth(size.width + m_impl->topPadding);
+    m_impl->bottom->setContentWidth(size.width + m_impl->bottomPadding);
+    auto height = m_impl->top->getContentHeight() * 0.75 + m_impl->bottom->getContentHeight() * 0.75;
+    m_impl->left->setScaleY((size.height - height) / m_impl->left->getContentHeight());
+    m_impl->right->setScaleY((size.height - height) / m_impl->right->getContentHeight());
+}
+
+NineSlice* ListBorders::getTop() {
+    return m_impl->top;
+}
+
+NineSlice* ListBorders::getBottom() {
+    return m_impl->bottom;
+}
+
+cocos2d::CCSprite* ListBorders::getLeft() {
+    return m_impl->left;
+}
+
+cocos2d::CCSprite* ListBorders::getRight() {
+    return m_impl->right;
+}
+
+float ListBorders::getTopPadding() {
+    return m_impl->topPadding;
+}
+
+float ListBorders::getBottomPadding() {
+    return m_impl->bottomPadding;
+}
+
+CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, BackButtonStyle style) {
+    return geode::addBackButton(to, [](cocos2d::CCMenuItem*) { CCDirector::get()->popSceneWithTransition(.5f, PopTransition::kPopTransitionFade); }, style);
+}
+
+CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, geode::Function<void(cocos2d::CCMenuItem*)> callback, BackButtonStyle style) {
+    const char* sprite;
+    switch (style) {
+        default: [[fallthrough]];
+
+        case BackButtonStyle::Green: sprite = "GJ_arrow_01_001.png"; break;
+        case BackButtonStyle::Blue: sprite = "GJ_arrow_02_001.png"; break;
+        case BackButtonStyle::Pink: sprite = "GJ_arrow_03_001.png"; break;
+    }
+
+    auto backBtn = CCMenuItemExt::createSpriteExtra(
+        CCSprite::createWithSpriteFrameName(sprite),
+        std::move(callback)
+    );
+    backBtn->setID("back-button");
+    backBtn->setZOrder(1);
+
+    auto menu = CCMenu::createWithItem(backBtn);
+    menu->setID("back-menu");
+    menu->setPosition({ 25.0f, CCDirector::get()->getWinSize().height - 25.0f });
+    menu->setZOrder(1);
+    to->addChild(menu);
+
+    return backBtn;
 }

@@ -1,132 +1,98 @@
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <matjson.hpp>
-#include <charconv>
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/GameManager.hpp>
 
+#ifdef GEODE_IS_WINDOWS
+#else
+# include <unordered_map>
+# include <typeindex>
+# include <cxxabi.h>
+#endif
+
 using namespace geode::prelude;
 
-bool matjson::Serialize<ccColor3B>::is_json(matjson::Value const& json) {
-    if (json.is_array()) {
-        return json.as_array().size() == 3;
+Result<cocos2d::ccColor3B, std::string> matjson::Serialize<ccColor3B>::fromJson(matjson::Value const& value) {
+    if (value.isArray()) {
+        auto arr = GEODE_UNWRAP(value.asArray());
+        if (arr.size() == 3) {
+            auto r = GEODE_UNWRAP(arr[0].asInt());
+            auto g = GEODE_UNWRAP(arr[1].asInt());
+            auto b = GEODE_UNWRAP(arr[2].asInt());
+            return Ok(cocos2d::ccc3(r, g, b));
+        }
+        return Err("Expected color array to have 3 items");
     }
-    if (json.is_object()) {
-        return json.contains("r") && json.contains("g") && json.contains("b");
+    if (value.isObject()) {
+        auto r = GEODE_UNWRAP(GEODE_UNWRAP(value.get("r")).asInt());
+        auto g = GEODE_UNWRAP(GEODE_UNWRAP(value.get("g")).asInt());
+        auto b = GEODE_UNWRAP(GEODE_UNWRAP(value.get("b")).asInt());
+        return Ok(cocos2d::ccc3(r, g, b));
     }
-    if (json.is_string()) {
-        return !cc3bFromHexString(json.as_string()).isErr();
+    if (value.isString()) {
+        auto hex = GEODE_UNWRAP(value.asString());
+        auto res = cc3bFromHexString(hex);
+        if (!res) {
+            return Err("Invalid hex color string: {}", res.unwrapErr());
+        }
+        return Ok(res.unwrap());
     }
-    return false;
+    return Err("Expected color to be array, object or hex string");
+}
+matjson::Value matjson::Serialize<ccColor3B>::toJson(cocos2d::ccColor3B const& value) {
+    return matjson::makeObject({
+        { "r", value.r },
+        { "g", value.g },
+        { "b", value.b }
+    });
 }
 
-matjson::Value matjson::Serialize<ccColor3B>::to_json(ccColor3B const& color) {
-    return matjson::Object {
-        { "r", color.r },
-        { "g", color.g },
-        { "b", color.b }
-    };
+Result<cocos2d::ccColor4B, std::string> matjson::Serialize<ccColor4B>::fromJson(matjson::Value const& value) {
+    if (value.isArray()) {
+        auto arr = GEODE_UNWRAP(value.asArray());
+        if (arr.size() == 4) {
+            auto r = GEODE_UNWRAP(arr[0].asInt());
+            auto g = GEODE_UNWRAP(arr[1].asInt());
+            auto b = GEODE_UNWRAP(arr[2].asInt());
+            auto a = GEODE_UNWRAP(arr[3].asInt());
+            return Ok(cocos2d::ccc4(r, g, b, a));
+        }
+        return Err("Expected color array to have 4 items");
+    }
+    if (value.isObject()) {
+        auto r = GEODE_UNWRAP(GEODE_UNWRAP(value.get("r")).asInt());
+        auto g = GEODE_UNWRAP(GEODE_UNWRAP(value.get("g")).asInt());
+        auto b = GEODE_UNWRAP(GEODE_UNWRAP(value.get("b")).asInt());
+        auto a = GEODE_UNWRAP(GEODE_UNWRAP(value.get("a")).asInt());
+        return Ok(cocos2d::ccc4(r, g, b, a));
+    }
+    if (value.isString()) {
+        auto hex = GEODE_UNWRAP(value.asString());
+        auto res = cc4bFromHexString(hex);
+        if (!res) {
+            return Err("Invalid hex color string: {}", res.unwrapErr());
+        }
+        return Ok(res.unwrap());
+    }
+    return Err("Expected color to be array, object or hex string");
 }
 
-ccColor3B matjson::Serialize<ccColor3B>::from_json(matjson::Value const& json) {
-    ccColor3B color;
-    // array
-    if (json.is_array()) {
-        if (json.as_array().size() == 3) {
-            color.r = json[0].as_int();
-            color.g = json[1].as_int();
-            color.b = json[2].as_int();
-        }
-        else {
-            throw matjson::JsonException("Expected color array to have 3 items");
-        }
-    }
-    // object
-    else if (json.is_object()) {
-        color.r = json["r"].as_int();
-        color.g = json["g"].as_int();
-        color.b = json["b"].as_int();
-    }
-    // hex string
-    else if (json.is_string()) {
-        auto c = cc3bFromHexString(json.as_string());
-        if (!c) {
-            throw matjson::JsonException("Invalid color hex string");
-        }
-        color = c.unwrap();
-    }
-    // bad
-    else {
-        throw matjson::JsonException("Expected color to be array, object or hex string");
-    }
-    return color;
+matjson::Value matjson::Serialize<ccColor4B>::toJson(cocos2d::ccColor4B const& value) {
+    return matjson::makeObject({
+        { "r", value.r },
+        { "g", value.g },
+        { "b", value.b },
+        { "a", value.a }
+    });
 }
 
-bool matjson::Serialize<ccColor4B>::is_json(matjson::Value const& json) {
-    if (json.is_array()) {
-        return json.as_array().size() == 4;
-    }
-    if (json.is_object()) {
-        return json.contains("r") && json.contains("g") && json.contains("b") && json.contains("a");
-    }
-    if (json.is_string()) {
-        return !cc4bFromHexString(json.as_string()).isErr();
-    }
-    return false;
-}
-
-matjson::Value matjson::Serialize<ccColor4B>::to_json(ccColor4B const& color) {
-    return matjson::Object {
-        { "r", color.r },
-        { "g", color.g },
-        { "b", color.b },
-        { "a", color.a }
-    };
-}
-
-ccColor4B matjson::Serialize<ccColor4B>::from_json(matjson::Value const& json) {
-    ccColor4B color;
-    // array
-    if (json.is_array()) {
-        if (json.as_array().size() == 4) {
-            color.r = json[0].as_int();
-            color.g = json[1].as_int();
-            color.b = json[2].as_int();
-            color.a = json[3].as_int();
-        }
-        else {
-            throw matjson::JsonException("Expected color array to have 4 items");
-        }
-    }
-    // object
-    else if (json.is_object()) {
-        color.r = json["r"].as_int();
-        color.g = json["g"].as_int();
-        color.b = json["b"].as_int();
-        color.a = json["a"].as_int();
-    }
-    // hex string
-    else if (json.is_string()) {
-        auto c = cc4bFromHexString(json.as_string());
-        if (!c) {
-            throw matjson::JsonException("Invalid color hex string: " + c.unwrapErr());
-        }
-        color = c.unwrap();
-    }
-    // bad
-    else {
-        throw matjson::JsonException("Expected color to be array, object or hex string");
-    }
-    return color;
-}
-
-Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue, bool permissive) {
-    if (permissive && rawHexValue.empty()) {
+Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string_view hexValue, bool permissive) {
+    if (permissive && hexValue.empty()) {
         return Ok(ccc3(255, 255, 255));
     }
-    auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
-        hexValue.erase(hexValue.begin());
+        hexValue.remove_prefix(1);
     }
     if (hexValue.size() > 6) {
         return Err("Hex value too large");
@@ -178,13 +144,12 @@ Result<ccColor3B> geode::cocos::cc3bFromHexString(std::string const& rawHexValue
     }
 }
 
-Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string const& rawHexValue, bool requireAlpha, bool permissive) {
-    if (permissive && rawHexValue.empty()) {
+Result<ccColor4B> geode::cocos::cc4bFromHexString(std::string_view hexValue, bool requireAlpha, bool permissive) {
+    if (permissive && hexValue.empty()) {
         return Ok(ccc4(255, 255, 255, 255));
     }
-    auto hexValue = rawHexValue;
     if (hexValue[0] == '#') {
-        hexValue.erase(hexValue.begin());
+        hexValue.remove_prefix(1);
     }
     if (hexValue.size() > 8) {
         return Err("Hex value too large");
@@ -314,23 +279,36 @@ WeakRefPool* WeakRefPool::get() {
 }
 
 void WeakRefPool::check(CCObject* obj) {
-    // if this object's only reference is the WeakRefPool aka only weak 
+    // if this object's only reference is the WeakRefPool aka only weak
     // references exist to it, then release it
-    if (obj && m_pool.contains(obj) && obj->retainCount() == 1) {
-        // set delegates to null because those aren't retained!
-        if (auto input = typeinfo_cast<CCTextInputNode*>(obj)) {
-            input->m_delegate = nullptr;
-        }
-        obj->release();
-        // log::info("nullify {}", m_pool.at(obj).get());
-        m_pool.at(obj)->m_obj = nullptr;
-        m_pool.erase(obj);
+    if (obj && obj->retainCount() == 1) {
+        this->forget(obj);
     }
 }
 
+void WeakRefPool::forget(CCObject* obj) {
+    if (!obj || !m_pool.contains(obj)) {
+        return;
+    }
+
+    // set delegates to null because those aren't retained!
+    if (auto input = typeinfo_cast<CCTextInputNode*>(obj)) {
+        input->m_delegate = nullptr;
+    }
+
+    obj->release();
+    // log::info("nullify {}", m_pool.at(obj).get());
+    m_pool.at(obj)->m_obj = nullptr;
+    m_pool.erase(obj);
+}
+
 std::shared_ptr<WeakRefController> WeakRefPool::manage(CCObject* obj) {
+    if (!obj) {
+        return std::shared_ptr<WeakRefController>();
+    }
+
     if (!m_pool.contains(obj)) {
-        CC_SAFE_RETAIN(obj);
+        obj->retain();
         auto controller = std::make_shared<WeakRefController>();
         controller->m_obj = obj;
         m_pool.insert({ obj, controller });
@@ -403,7 +381,40 @@ CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name) {
     return nullptr;
 }
 
-CCRect geode::cocos::calculateNodeCoverage(std::vector<CCNode*> const& nodes) {
+std::string_view geode::cocos::getObjectName(cocos2d::CCObject const* obj) {
+#ifdef GEODE_IS_WINDOWS
+    std::string_view tname = typeid(*obj).name();
+    if (tname.starts_with("class ")) {
+        tname.remove_prefix(6);
+    } else if (tname.starts_with("struct ")) {
+        tname.remove_prefix(7);
+    }
+
+    return tname;
+#else
+    static std::unordered_map<std::type_index, std::string> s_typeNames;
+    std::type_index key = typeid(*obj);
+
+    auto it = s_typeNames.find(key);
+    if (it != s_typeNames.end()) {
+        return it->second;
+    }
+
+    std::string ret;
+
+    int status = 0;
+    auto demangle = abi::__cxa_demangle(typeid(*obj).name(), 0, 0, &status);
+    if (status == 0) {
+        ret = demangle;
+    }
+    free(demangle);
+    auto [iter, _] = s_typeNames.insert({key, std::move(ret)});
+
+    return iter->second;
+#endif
+}
+
+CCRect geode::cocos::calculateNodeCoverage(std::span<CCNode*> nodes) {
     CCRect coverage;
     for (auto child : nodes) {
         auto pos = child->getPosition() - child->getScaledContentSize() * child->getAnchorPoint();
@@ -452,7 +463,71 @@ CCRect geode::cocos::calculateChildCoverage(CCNode* parent) {
 }
 
 void geode::cocos::limitNodeSize(CCNode* spr, CCSize const& size, float def, float min) {
-    spr->setScale(clamp(std::min(size.height / spr->getContentHeight(), size.width / spr->getContentWidth()), min, def));
+    spr->setScale(std::clamp(std::min(size.height / spr->getContentHeight(), size.width / spr->getContentWidth()), min, def));
+}
+
+void geode::cocos::limitNodeWidth(CCNode* spr, float width, float def, float min) {
+    spr->setScale(std::clamp(width / spr->getContentSize().width, min, def));
+}
+
+void geode::cocos::limitNodeHeight(CCNode* spr, float height, float def, float min) {
+    spr->setScale(std::clamp(height / spr->getContentSize().height, min, def));
+}
+
+CCSize geode::cocos::getLabelSize(std::u16string_view text, const char* font, int kerning) {
+    if (text.empty()) return { 0.0f, 0.0f };
+
+    auto fontConfig = FNTConfigLoadFile(font);
+    auto lines = 1;
+    auto charSet = fontConfig->getCharacterSet();
+    auto fontDefDict = fontConfig->m_pFontDefDictionary;
+    auto kerningDict = fontConfig->m_pKerningDictionary;
+    auto maxWidth = 0;
+    auto previous = -1u;
+    auto nextX = 0;
+
+    for (size_t i = 0; i < text.size(); i++) {
+        uint32_t c = text[i];
+        if (c == '\n') {
+            nextX = 0;
+            lines++;
+            continue;
+        }
+
+        if (!charSet->contains(c)) {
+            c = std::toupper(c);
+            if (!charSet->contains(c)) continue;
+        }
+
+        tCCFontDefHashElement* fontElement = nullptr;
+        HASH_FIND_INT(fontDefDict, &c, fontElement);
+        if (!fontElement) continue;
+
+        auto& fontDef = fontElement->fontDef;
+        nextX += fontDef.xAdvance + kerning;
+
+        if (kerningDict) {
+            auto key = (previous << 16) | c;
+            tCCKerningHashElement* kerningElement = nullptr;
+            HASH_FIND_INT(kerningDict, &key, kerningElement);
+            if (kerningElement) nextX += kerningElement->amount;
+        }
+
+        if (nextX > maxWidth) maxWidth = nextX;
+        previous = c;
+        if (i + 1 == text.size()) {
+            maxWidth += std::max(0, (int)fontDef.rect.size.width - fontDef.xAdvance);
+        }
+    }
+
+    return CCSize { (float)maxWidth, (float)(fontConfig->m_nCommonHeight * lines) } / CCDirector::get()->getContentScaleFactor();
+}
+
+CCSize geode::cocos::getLabelSize(std::string_view text, const char* font, int kerning) {
+    if (auto str = utils::string::utf8ToUtf16(text)) {
+        return getLabelSize(str.unwrap(), font, kerning);
+    }
+    return { 0.0f, 0.0f };
 }
 
 bool geode::cocos::nodeIsVisible(CCNode* node) {
@@ -491,14 +566,14 @@ CCScene* geode::cocos::switchToScene(CCLayer* layer) {
 static CreateLayerFunc LOADING_FINISHED_SCENE = nullptr;
 
 void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
-    LOADING_FINISHED_SCENE = returnTo;
+    LOADING_FINISHED_SCENE = std::move(returnTo);
     GameManager::get()->reloadAll(false, false, true);
 }
 
 void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force) {
     if (node == nullptr) return;
     if (node->getChildrenCount() == 0) return;
-    
+
     for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
         if (auto delegate = typeinfo_cast<CCTouchDelegate*>(child)) {
             if (auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
@@ -527,6 +602,11 @@ void GEODE_DLL geode::cocos::handleTouchPriority(cocos2d::CCNode* node, bool for
 
 struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("geode::cocos::reloadTextures disabled")
+
+    void onModify(auto& self) {
+        self.setHookPriority("LoadingLayer::loadAssets", 500);
+    }
+
     void loadAssets() {
         // loadFinished is inlined on Macchew OS :sob:
 

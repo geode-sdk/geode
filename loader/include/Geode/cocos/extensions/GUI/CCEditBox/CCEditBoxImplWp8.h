@@ -34,6 +34,9 @@ class CC_DLL CCEditBox;
 class CC_DLL CCEditBoxImplWp8 : public CCEditBoxImpl
 {
 public:
+	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEditBoxImplWp8, CCEditBoxImpl)
+	CCEditBoxImplWp8() {}
+
 	CCEditBoxImplWp8(CCEditBox* pEditText);
 	virtual ~CCEditBoxImplWp8();
 
@@ -64,7 +67,7 @@ public:
 private:
 	Platform::String^ stringToPlatformString(gd::string strSrc);
 	gd::string PlatformStringTostring(Platform::String^ strSrc);
-private:
+public:
 
 	CCLabelTTF* m_pLabel;
 	CCLabelTTF* m_pLabelPlaceHolder;

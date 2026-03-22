@@ -88,13 +88,13 @@ namespace geode::modifier {
     using RemoveClassType = typename RemoveClass<Func>::type;
 
     /**
-     * A helper struct that allows for checking if two function pointers 
+     * A helper struct that allows for checking if two function pointers
      * are the same or different.
      */
     struct Unique {
         using ValueType = void(*)(...);
         static constexpr auto nvalue = static_cast<void(*)(...)>(nullptr);
-        
+
         template <auto Value>
         struct Impl {
             static void unique(...) {};
@@ -110,9 +110,9 @@ namespace geode::modifier {
         template <auto Value>
         static constexpr auto value = Impl<Value>::value;
 
-        
+
         /**
-         * Checks if two function pointers are the same. If their types are 
+         * Checks if two function pointers are the same. If their types are
          * different, returns false.
          */
         template <auto p1, auto p2>
@@ -126,7 +126,7 @@ namespace geode::modifier {
         }
 
         /**
-         * Checks if two function pointers are different. If their types are 
+         * Checks if two function pointers are different. If their types are
          * different, returns false.
          */
         template <auto p1, auto p2>
@@ -141,7 +141,7 @@ namespace geode::modifier {
     };
 
     /**
-     * Helps resolving an overloaded function pointer to a specific function using 
+     * Helps resolving an overloaded function pointer to a specific function using
      * its parameter types as the hint.
      */
     template <class... Params>
@@ -158,6 +158,22 @@ namespace geode::modifier {
 
         template <class Return, class Class>
         static constexpr auto func(Return(Class::*ptr)(std::type_identity_t<Params>...) const) {
+            return ptr;
+        }
+
+        static constexpr auto func(...) {
+            return Unique::nvalue;
+        }
+    };
+
+    /**
+     * Helps resolving a duplicated function pointer to a specific function using
+     * its class as the hint.
+     */
+    template <class Class>
+    struct ResolveC {
+        template <class Return, class... Params>
+        static constexpr auto func(Return(Class::*ptr)(Params...)) {
             return ptr;
         }
 
@@ -190,7 +206,7 @@ namespace geode::modifier {
     };
 
     /**
-     * A specialization for giving the variadic types as a single type with the 
+     * A specialization for giving the variadic types as a single type with the
      * function type. The return type is ignored.
      */
     template <class... Params>

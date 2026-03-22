@@ -2,6 +2,7 @@
 
 #include <Geode/binding/CCContentLayer.hpp>
 #include <Geode/binding/CCScrollLayerExt.hpp>
+#include <memory>
 
 namespace geode {
     /**
@@ -12,19 +13,34 @@ namespace geode {
     class GEODE_DLL GenericContentLayer : public CCContentLayer {
     public:
         static GenericContentLayer* create(float width, float height);
-
         void setPosition(cocos2d::CCPoint const& pos) override;
+
+    protected:
+        GenericContentLayer();
+        ~GenericContentLayer() override;
+
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     };
 
     class GEODE_DLL ScrollLayer : public CCScrollLayerExt {
     protected:
-        bool m_scrollWheelEnabled;
-
         ScrollLayer(cocos2d::CCRect const& rect, bool scrollWheelEnabled, bool vertical);
 
         bool ccTouchBegan(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
+        void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
+        void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
+        void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
 
         void visit() override;
+
+    ~ScrollLayer() override;
+
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+        friend class Impl;
 
     public:
         static ScrollLayer* create(
@@ -37,5 +53,21 @@ namespace geode {
         void scrollWheel(float y, float) override;
         void enableScrollWheel(bool enable = true);
         void scrollToTop();
+
+        void setCancelTouchLimit(float limit);
+        float getCancelTouchLimit() const;
+
+        void setStealingTouches(bool steal);
+        bool isStealingTouches() const;
+
+        /**
+         * If you're using ScrollLayer to create a list, this helper function 
+         * can be used to create a `ColumnLayout` with reasonable defaults for 
+         * a list.
+         * @example ```cpp
+         * list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout());`
+         * ```
+         */
+        static Layout* createDefaultListLayout(float gap = 2.5f);
     };
 }

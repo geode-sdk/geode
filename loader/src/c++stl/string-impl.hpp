@@ -13,7 +13,7 @@ namespace geode::stl {
         void free();
 
         char* getStorage();
-        void setStorage(const std::string_view);
+        void setStorage(std::string_view);
 
         size_t getSize();
         void setSize(size_t);

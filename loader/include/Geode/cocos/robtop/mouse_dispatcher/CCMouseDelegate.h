@@ -7,14 +7,14 @@
 NS_CC_BEGIN
 
 // @note RobTop Addition
-class CC_DLL CCMouseDelegate 
+class CC_DLL CCMouseDelegate
 {
 public:
 	virtual void rightKeyDown() {}
 
 	virtual void rightKeyUp() {}
 
-	virtual void scrollWheel(float x, float y) {}
+	virtual void scrollWheel(float y, float x) {}
 
 	//pretty certain there's no fields, based on initializer
 };
@@ -25,7 +25,7 @@ class CC_DLL CCMouseHandler : public CCObject
 public:
 	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMouseHandler, CCObject)
 	inline CCMouseHandler() = default;
-	
+
 	virtual ~CCMouseHandler();
 
 	CCMouseHandler& operator=(const CCMouseHandler&);
@@ -38,7 +38,7 @@ public:
 
 	void setDelegate(CCMouseDelegate* pDelegate);
 
-protected:
+public:
 	CCMouseDelegate* m_pDelegate;
 };
 

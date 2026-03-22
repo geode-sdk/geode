@@ -141,7 +141,7 @@ public:
     //////////////////////////////////////////////////////////////////////////
 
     CC_SYNTHESIZE_NV(CCTextFieldDelegate *, m_pDelegate, Delegate);
-    CC_SYNTHESIZE_READONLY(int, m_nCharCount, CharCount);
+    CC_SYNTHESIZE_READONLY_NV(int, m_nCharCount, CharCount);
     virtual const ccColor3B& getColorSpaceHolder();
     virtual void setColorSpaceHolder(const ccColor3B& color);
 
@@ -149,7 +149,7 @@ public:
 public:
     virtual void setString(const char *text);
     virtual const char* getString(void);
-protected:
+public:
     gd::string * m_pInputText;
 
     // place holder text property
@@ -157,13 +157,13 @@ protected:
 public:
     virtual void setPlaceHolder(const char * text);
     virtual const char * getPlaceHolder(void);
-protected:
+public:
     gd::string * m_pPlaceHolder;
     ccColor3B m_ColorSpaceHolder;
 public:
     virtual void setSecureTextEntry(bool value);
     virtual bool isSecureTextEntry();
-protected:
+public:
     bool m_bSecureTextEntry;
 protected:
 
@@ -177,8 +177,10 @@ protected:
     virtual bool canDetachWithIME();
     virtual void insertText(const char * text, int len, cocos2d::enumKeyCodes);
     virtual void deleteBackward();
+    // @note RobTop Addition
+    virtual void deleteForward();
     virtual const char * getContentText();
-private:
+public:
     class LengthStack;
     LengthStack * m_pLens;
 public:

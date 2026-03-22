@@ -24,15 +24,15 @@ std::filesystem::path dirs::getGeodeLogDir() {
 }
 
 std::filesystem::path dirs::getTempDir() {
-    return getGeodeDir() / "temp";
+    return dirs::getGeodeDir() / "temp";
 }
 
 std::filesystem::path dirs::getModsDir() {
-    return getGeodeDir() / "mods";
+    return dirs::getGeodeDir() / "mods";
 }
 
 std::filesystem::path dirs::getModsSaveDir() {
-    return getGeodeSaveDir() / "mods";
+    return dirs::getGeodeSaveDir() / "mods";
 }
 
 std::filesystem::path dirs::getModConfigDir() {
@@ -46,3 +46,11 @@ std::filesystem::path dirs::getIndexDir() {
 std::filesystem::path dirs::getCrashlogsDir() {
     return crashlog::getCrashLogDirectory();
 }
+
+std::filesystem::path dirs::getModPersistentDir() {
+    return dirs::getSaveDir() / "geode-persistent";
+}
+
+// std::filesystem::path dirs::getModBinariesDir() {
+//     return dirs::getModRuntimeDir() / "binaries";
+// }

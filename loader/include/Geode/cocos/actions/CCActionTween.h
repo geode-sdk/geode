@@ -72,7 +72,7 @@ public:
     static CCActionTween* create(float aDuration, const char* key, float from, float to);
 
     static cocos2d::CCActionTween* create(float, int, float, float);
-    
+
     /** initializes the action with the property name (key), and the from and to parameters. */
     bool initWithDuration(float aDuration, const char* key, float from, float to);
 
@@ -84,6 +84,8 @@ public:
     void updateTargetValue(float);
 
     gd::string        m_strKey;
+    // @note RobTop Addition
+    int               m_nIntTag;
     float            m_fFrom, m_fTo;
     float            m_fDelta;
 };

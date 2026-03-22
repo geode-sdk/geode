@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Server.hpp"
+#include <asp/time/SystemTime.hpp>
 
 namespace server {
     struct DownloadStatusFetching {
@@ -16,6 +17,7 @@ namespace server {
         bool operator==(DownloadStatusDownloading const&) const = default;
     };
     struct DownloadStatusDone {
+        ServerModVersion version;
         bool operator==(DownloadStatusDone const&) const = default;
     };
     struct DownloadStatusError {
@@ -35,26 +37,13 @@ namespace server {
         DownloadStatusCancelled
     >;
 
-    struct ModDownloadEvent : public Event {
-        std::string id;
-        ModDownloadEvent(std::string const& id);
+    class ModDownloadEvent : public GlobalEvent<ModDownloadEvent, bool(std::string_view), bool(), std::string> {
+    public:
+        // filter params id
+        using GlobalEvent::GlobalEvent;
     };
 
-    class ModDownloadFilter : public EventFilter<ModDownloadEvent> {
-    public:
-        using Callback = void(ModDownloadEvent*);
-
-    protected:
-        std::string m_id;
-
-    public:
-        ListenerResult handle(MiniFunction<Callback> fn, ModDownloadEvent* event);
-
-        ModDownloadFilter();
-        ModDownloadFilter(std::string const& id);
-    };
-
-    using DependencyFor = std::pair<std::string, ModMetadata::Dependency::Importance>;
+    using DependencyFor = std::pair<std::string, bool>;
 
     class ModDownload final {
     private:
@@ -63,14 +52,14 @@ namespace server {
         std::shared_ptr<Impl> m_impl;
 
         ModDownload(
-            std::string const& id,
-            std::optional<VersionInfo> const& version,
-            std::optional<DependencyFor> const& dependencyFor,
-            std::optional<std::string> const& replacesMod
+            std::string id,
+            std::optional<VersionInfo> version,
+            std::optional<DependencyFor> dependencyFor,
+            std::optional<std::string> replacesMod
         );
 
         friend class ModDownloadManager;
-    
+
     public:
         void confirm();
         void cancel();
@@ -83,6 +72,11 @@ namespace server {
         std::string getID() const;
         DownloadStatus getStatus() const;
         std::optional<VersionInfo> getVersion() const;
+    };
+
+    struct RecentlyUpdatedMod final {
+        std::string modID;
+        asp::SystemTime updateTime;
     };
 
     class ModDownloadManager final {
@@ -100,10 +94,10 @@ namespace server {
         ~ModDownloadManager();
 
         std::optional<ModDownload> startDownload(
-            std::string const& id,
-            std::optional<VersionInfo> const& version,
-            std::optional<DependencyFor> const& dependencyFor = std::nullopt,
-            std::optional<std::string> const& replacesMod = std::nullopt
+            std::string id,
+            std::optional<VersionInfo> version,
+            std::optional<DependencyFor> dependencyFor = std::nullopt,
+            std::optional<std::string> replacesMod = std::nullopt
         );
         void startUpdateAll();
         void confirmAll();
@@ -111,10 +105,30 @@ namespace server {
         void dismissAll();
         bool checkAutoConfirm();
 
-        std::optional<ModDownload> getDownload(std::string const& id) const;
+        std::optional<ModDownload> getDownload(std::string_view id) const;
         std::vector<ModDownload> getDownloads() const;
         bool hasActiveDownloads() const;
 
         bool wantsRestart() const;
+
+        void markRecentlyUpdated(std::string_view id);
+        std::vector<RecentlyUpdatedMod> const& getRecentlyUpdatedMods();
+        std::optional<RecentlyUpdatedMod> getRecentlyUpdatedInfo(std::string_view id);
     };
 }
+
+template <>
+struct matjson::Serialize<server::RecentlyUpdatedMod> {
+    static Value toJson(server::RecentlyUpdatedMod const& value) {
+        return matjson::makeObject({
+            { "id", value.modID },
+            { "time", value.updateTime.timeSinceEpoch().seconds()},
+        });
+    }
+    static geode::Result<server::RecentlyUpdatedMod> fromJson(Value const& value) {
+        return geode::Ok(server::RecentlyUpdatedMod {
+            .modID = GEODE_UNWRAP(value["id"].asString()),
+            .updateTime = asp::SystemTime::fromUnix(GEODE_UNWRAP(value["time"].asUInt())),
+        });
+    }
+};

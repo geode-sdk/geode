@@ -47,7 +47,7 @@ bool CCNode::hasAncestor(CCNode* ancestor) {
     return false;
 }
 
-// these use setContentSize and getContentSize because they're virtuals and 
+// these use setContentSize and getContentSize because they're virtuals and
 // some node may override those for wacky behaviour
 
 void CCNode::setScaledContentSize(CCSize const& size) {
@@ -78,22 +78,4 @@ float CCNode::getScaledContentWidth() const {
 
 float CCNode::getScaledContentHeight() const {
     return this->getContentHeight() * m_fScaleY;
-}
-
-CCArray* Layout::getNodesToPosition(CCNode* on) const {
-    auto arr = CCArray::create();
-    for (auto child : CCArrayExt<CCNode*>(on->getChildren())) {
-        if (!m_ignoreInvisibleChildren || child->isVisible()) {
-            arr->addObject(child);
-        }
-    }
-    return arr;
-}
-
-void Layout::ignoreInvisibleChildren(bool ignore) {
-    m_ignoreInvisibleChildren = ignore;
-}
-
-bool Layout::isIgnoreInvisibleChildren() const {
-    return m_ignoreInvisibleChildren;
 }

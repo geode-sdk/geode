@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <fmt/format.h>
 
 namespace geode {
     class BaseSeedValue {
@@ -238,6 +239,61 @@ namespace geode {
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
-
 #undef GEODE_SEED_VALUE_COMMON_OPS
 } // namespace geode
+
+template <>
+struct fmt::formatter<geode::SeedValueSR> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueSR& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueRS> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueRS& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueVRS> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueVRS& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueVSR> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueVSR& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueRVS> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueRVS& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueRSV> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueRSV& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueSVR> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueSVR& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};

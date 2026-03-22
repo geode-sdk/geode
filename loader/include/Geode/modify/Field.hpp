@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../utils/MiniFunction.hpp"
 #include "Traits.hpp"
 
 #include <Geode/loader/Loader.hpp>
+#include <Geode/utils/function.hpp>
 #include <cocos2d.h>
 #include <vector>
 
@@ -20,7 +20,7 @@ namespace geode::modifier {
     class FieldContainer {
     private:
         std::vector<void*> m_containedFields;
-        std::vector<utils::MiniFunction<void(void*)>> m_destructorFunctions;
+        std::vector<geode::Function<void(void*)>> m_destructorFunctions;
 
     public:
         ~FieldContainer() {
@@ -40,9 +40,9 @@ namespace geode::modifier {
             return m_containedFields.at(index);
         }
 
-        void* setField(size_t index, size_t size, utils::MiniFunction<void(void*)> destructor) {
+        void* setField(size_t index, size_t size, geode::Function<void(void*)> destructor) {
             m_containedFields.at(index) = operator new(size);
-            m_destructorFunctions.at(index) = destructor;
+            m_destructorFunctions.at(index) = std::move(destructor);
             return m_containedFields.at(index);
         }
 
@@ -58,9 +58,15 @@ namespace geode::modifier {
         using Intermediate = Modify<Parent, Base>;
         // Padding used for guaranteeing any member of parents
         // will be in between sizeof(Intermediate) and sizeof(Parent)
-        std::aligned_storage_t<std::alignment_of_v<Base>, std::alignment_of_v<Base>> m_padding;
+        alignas(Base) std::array<std::byte, alignof(Base)> m_padding;
 
     public:
+        FieldIntermediate() = default;
+        FieldIntermediate(FieldIntermediate const&) = delete;
+        FieldIntermediate& operator=(FieldIntermediate const&) = delete;
+        FieldIntermediate(FieldIntermediate&&) = delete;
+        FieldIntermediate& operator=(FieldIntermediate&&) = delete;
+
         // the constructor that constructs the fields.
         // we construct the Parent first,
         static void fieldConstructor(void* offsetField) {
@@ -72,6 +78,11 @@ namespace geode::modifier {
         }
 
         auto self() {
+            static_assert(
+                std::is_base_of_v<cocos2d::CCNode, Base>,
+                "'m_fields' can only be used when modifying classes derived from 'cocos2d::CCNode'"
+            );
+
             // get the this pointer of the base
             // field intermediate is the first member of Modify
             // meaning we can get the base from ourself

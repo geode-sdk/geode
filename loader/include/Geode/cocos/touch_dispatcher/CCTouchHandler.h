@@ -90,7 +90,7 @@ public:
 	inline CCStandardTouchHandler() = default;
 
     ~CCStandardTouchHandler(void);
-    
+
     /** initializes a TouchHandler with a delegate and a priority */
     virtual bool initWithDelegate(CCTouchDelegate *pDelegate, int nPriority);
 
@@ -112,7 +112,7 @@ class CC_DLL  CCTargetedTouchHandler : public CCTouchHandler
 public:
 	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCTargetedTouchHandler, CCTouchHandler)
 	inline CCTargetedTouchHandler() = default;
-	
+
     ~CCTargetedTouchHandler(void);
 
     /** whether or not the touches are swallowed */
@@ -129,7 +129,7 @@ public:
     /** allocates a TargetedTouchHandler with a delegate, a priority and whether or not it swallows touches or not */
     static CCTargetedTouchHandler* handlerWithDelegate(CCTouchDelegate *pDelegate, int nPriority, bool bSwallow);
 
-protected:
+public:
     bool m_bSwallowsTouches;
     CCSet *m_pClaimedTouches;
 };

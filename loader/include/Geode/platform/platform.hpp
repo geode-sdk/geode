@@ -3,12 +3,29 @@
 #include "cplatform.h"
 #include <string>
 #include <functional>
+#include <memory>
 
 #if !defined(__PRETTY_FUNCTION__) && !defined(__GNUC__)
     #define GEODE_PRETTY_FUNCTION std::string(__FUNCSIG__)
 #else
     #define GEODE_PRETTY_FUNCTION std::string(__PRETTY_FUNCTION__)
 #endif
+
+#define GEODE_WRAPPER_STR(...) #__VA_ARGS__
+#define GEODE_STR(...) GEODE_WRAPPER_STR(__VA_ARGS__)
+
+#if defined (_MSC_VER) && !defined(__clang__)
+    #define GEODE_CXX_STANDARD _MSVC_LANG
+#else
+    #define GEODE_CXX_STANDARD __cplusplus
+#endif
+
+static_assert(
+    GEODE_CXX_STANDARD >= 202302L,
+    "\n\nError: Geode requires C++23 support to build! (" GEODE_STR(GEODE_CXX_STANDARD) " < 202302L)\n"
+    "Please modify your CMakeLists.txt and change CMAKE_CXX_STANDARD from 20 to 23.\n"
+    "If you're using an outdated compiler that doesn't support C++23, please update it.\n\n"
+);
 
 // Windows
 #ifdef GEODE_IS_WINDOWS
@@ -26,11 +43,12 @@
 
     #define GEODE_API extern "C" __declspec(dllexport)
     #define GEODE_EXPORT __declspec(dllexport)
+    #define GEODE_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 
     #if defined(GEODE_IS_WINDOWS64)
         #define GEODE_IS_X64
         #define GEODE_CDECL_CALL
-    #else 
+    #else
         #define GEODE_IS_X86
         #define GEODE_CDECL_CALL __cdecl
 	#endif
@@ -40,7 +58,7 @@
 #elif defined(GEODE_IS_MACOS)
 
     #define GEODE_HIDDEN __attribute__((visibility("hidden")))
-    #define GEODE_INLINE inline __attribute__((always_inline))
+    #define GEODE_INLINE __attribute__((always_inline))
     #define GEODE_VIRTUAL_CONSTEXPR constexpr
     #define GEODE_NOINLINE __attribute__((noinline))
 
@@ -52,6 +70,7 @@
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
+    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 
     #define GEODE_IS_X64
     #define GEODE_CDECL_CALL
@@ -61,7 +80,7 @@
 #elif defined(GEODE_IS_IOS)
 
     #define GEODE_HIDDEN __attribute__((visibility("hidden")))
-    #define GEODE_INLINE inline __attribute__((always_inline))
+    #define GEODE_INLINE __attribute__((always_inline))
     #define GEODE_VIRTUAL_CONSTEXPR constexpr
     #define GEODE_NOINLINE __attribute__((noinline))
 
@@ -73,6 +92,7 @@
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
+    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 
     #define GEODE_IS_X64
     #define GEODE_CDECL_CALL
@@ -82,7 +102,7 @@
 #elif defined(GEODE_IS_ANDROID)
 
     #define GEODE_HIDDEN __attribute__((visibility("hidden")))
-    #define GEODE_INLINE inline __attribute__((always_inline))
+    #define GEODE_INLINE __attribute__((always_inline))
     #define GEODE_VIRTUAL_CONSTEXPR constexpr
     #define GEODE_NOINLINE __attribute__((noinline))
 
@@ -94,10 +114,11 @@
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
+    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 
     #if defined(GEODE_IS_ANDROID64)
         #define GEODE_IS_X64
-    #else 
+    #else
         #define GEODE_IS_X86
     #endif
     #define GEODE_CDECL_CALL
@@ -114,14 +135,23 @@ namespace geode {
     class PlatformID {
     public:
         enum {
-            Unknown = -1,
-            Windows,
-            MacIntel,
-            MacArm,
-            iOS,
-            Android32,
-            Android64,
-            Linux,
+            Unknown    = 0b000000,
+            Windows    = 0b000001,
+            Android32  = 0b000010,
+            Android64  = 0b000100,
+            MacIntel   = 0b001000,
+            MacArm     = 0b010000,
+            iOS        = 0b100000,
+            Android    = Android32 | Android64,
+            Mac        = MacIntel | MacArm,
+            Apple      = Mac | iOS,
+            X64        = MacIntel | Windows,
+            X86        = Unknown,
+            ArmV7      = Android32,
+            ArmV8      = Android64 | MacArm | iOS,
+            Desktop    = Windows | Mac,
+            Mobile     = Android | iOS,
+            All        = Desktop | Mobile,
         };
 
         using Type = decltype(Unknown);
@@ -158,49 +188,21 @@ namespace geode {
         }
 
         /**
-         * Parse string into PlatformID. String should be all-lowercase, for 
+         * Parse string into PlatformID. String should be all-lowercase, for
          * example "windows" or "linux"
          */
-        static GEODE_DLL PlatformID from(const char* str);
-        static GEODE_DLL PlatformID from(std::string const& str);
+        static GEODE_DLL PlatformID from(std::string_view str);
 
         /**
          * Determines if a given platform string "covers" the given platform.
          * For example, "android" is covered by Platform::Android32 and Platform::Android64.
          * Input string must follow the format in PlatformID::toShortString.
          */
-        static GEODE_DLL bool coveredBy(const char* str, PlatformID t);
-        static GEODE_DLL bool coveredBy(std::string const& str, PlatformID t);
+        static GEODE_DLL bool coveredBy(std::string_view str, PlatformID t);
 
-        static constexpr char const* toString(Type lp) {
-            switch (lp) {
-                case Unknown: return "Unknown";
-                case Windows: return "Windows";
-                case MacIntel: return "MacIntel";
-                case MacArm: return "MacArm";
-                case iOS: return "iOS";
-                case Android32: return "Android32";
-                case Android64: return "Android64";
-                case Linux: return "Linux";
-                default: break;
-            }
-            return "Undefined";
-        }
+        static GEODE_DLL std::string_view toString(Type lp);
 
-        static constexpr char const* toShortString(Type lp, bool ignoreArch = false) {
-            switch (lp) {
-                case Unknown: return "unknown";
-                case Windows: return "win";
-                case MacIntel: return ignoreArch ? "mac" : "mac-intel";
-                case MacArm: return ignoreArch ? "mac" : "mac-arm";
-                case iOS: return "ios";
-                case Android32: return ignoreArch ? "android" : "android32";
-                case Android64: return ignoreArch ? "android" : "android64";
-                case Linux: return "linux";
-                default: break;
-            }
-            return "undefined";
-        }
+        static GEODE_DLL std::string_view toShortString(Type lp, bool ignoreArch = false);
 
         template <class T>
             requires requires(T t) {
@@ -242,3 +244,13 @@ namespace std {
 #elif defined(GEODE_IS_ANDROID64)
     #define GEODE_PLATFORM_TARGET PlatformID::Android64
 #endif
+
+// this is cross-platform so not duplicating it across the typeinfo_cast definitions
+namespace geode::cast {
+    template<class T, class U>
+    std::shared_ptr<T> typeinfo_pointer_cast(std::shared_ptr<U> const& r) noexcept {
+        // https://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast
+        auto p = typeinfo_cast<typename std::shared_ptr<T>::element_type*>(r.get());
+        return std::shared_ptr<T>(r, p);
+    }
+}

@@ -16,6 +16,7 @@ private:
 
     CCDevice();
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_BEGIN(CCDevice)
     /**
      *  Gets the DPI of device
      *  @return The DPI of device.

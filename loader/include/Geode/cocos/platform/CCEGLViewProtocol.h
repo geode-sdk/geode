@@ -55,22 +55,22 @@ public:
      */
     virtual ~CCEGLViewProtocol();
 
-    /** Force destroying EGL view, subclass must implement this method. 
+    /** Force destroying EGL view, subclass must implement this method.
      * @lua NA
      */
     virtual void    end() {}
 
-    /** Get whether opengl render system is ready, subclass must implement this method. 
+    /** Get whether opengl render system is ready, subclass must implement this method.
      * @lua NA
      */
     virtual bool    isOpenGLReady() { return false; }
 
-    /** Exchanges the front and back buffers, subclass must implement this method. 
+    /** Exchanges the front and back buffers, subclass must implement this method.
      * @lua NA
      */
     virtual void    swapBuffers() {}
 
-    /** Open or close IME keyboard , subclass must implement this method. 
+    /** Open or close IME keyboard , subclass must implement this method.
      * @lua NA
      */
     virtual void    setIMEKeyboardState(bool bOpen) {}
@@ -145,22 +145,22 @@ public:
      */
     const char* getViewName();
 
-    /** Touch events are handled by default; if you want to customize your handlers, please override these functions: 
+    /** Touch events are handled by default; if you want to customize your handlers, please override these functions:
      * @lua NA
      */
-    virtual void handleTouchesBegin(int num, int ids[], float xs[], float ys[]);
+    virtual void handleTouchesBegin(int num, int ids[], float xs[], float ys[], double timestamp);
     /**
      * @lua NA
      */
-    virtual void handleTouchesMove(int num, int ids[], float xs[], float ys[]);
+    virtual void handleTouchesMove(int num, int ids[], float xs[], float ys[], double timestamp);
     /**
      * @lua NA
      */
-    virtual void handleTouchesEnd(int num, int ids[], float xs[], float ys[]);
+    virtual void handleTouchesEnd(int num, int ids[], float xs[], float ys[], double timestamp);
     /**
      * @lua NA
      */
-    virtual void handleTouchesCancel(int num, int ids[], float xs[], float ys[]);
+    virtual void handleTouchesCancel(int num, int ids[], float xs[], float ys[], double timestamp);
 
     /**
      * Get the opengl view port rectangle.
@@ -180,8 +180,11 @@ public:
 	virtual void pollInputEvents();
 	void updateDesignResolutionSize();
 
+    // @note RobTop Addition
+    double getPlatformTimestamp();
+
 private:
-    void getSetOfTouchesEndOrCancel(CCSet& set, int num, int ids[], float xs[], float ys[]);
+    void getSetOfTouchesEndOrCancel(CCSet& set, int num, int ids[], float xs[], float ys[], double timestamp);
 
 public:
     EGLTouchDelegate* m_pDelegate;
@@ -198,6 +201,9 @@ public:
     float  m_fScaleX;
     float  m_fScaleY;
     ResolutionPolicy m_eResolutionPolicy;
+
+    // RobTop addition, seemingly unused and set to 1.0 in ctor
+    float  m_unkFloat;
 };
 
 // end of platform group
