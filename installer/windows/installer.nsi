@@ -7,7 +7,7 @@
     Name "Geode"
     OutFile "geode-installer-win.exe"
     Unicode true
-    InstallDir "Z:\Steam\steamapps\common\Geometry Dash\" ; set default path to the most common one
+    InstallDir "$PROGRAMFILES32\Steam\steamapps\common\Geometry Dash\" ; set default path to the most common one
     XPStyle on
     RequestExecutionLevel user
     ManifestSupportedOS Win7
