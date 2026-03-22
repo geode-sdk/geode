@@ -501,7 +501,13 @@ SectionGroupEnd
 Section "Visual Studio Runtime"
     SetOutPath $INSTDIR
     File VC_redist.x64.exe
+    DetailPrint "Installing Visual Studio Runtime..."
+    FindWindow $0 "#32770" "" $HWNDPARENT
+    GetDlgItem $1 $0 1006
+    SendMessage $1 ${WM_SETTEXT} 0 "STR:$(GEODE_TEXT_INSTALLING_VCREDIST)"
+    SetDetailsPrint none
     ExecWait "$INSTDIR\VC_redist.x64.exe /install /quiet /norestart"
+    SetDetailsPrint both
     Delete "$INSTDIR\VC_redist.x64.exe"
 SectionEnd
 

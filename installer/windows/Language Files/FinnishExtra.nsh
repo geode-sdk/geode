@@ -11,6 +11,7 @@ ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nValitussa kansiossa ei ole 
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nGeometry Dash -pelisi on vanhentunut, eikä ole yhteensopiva tämän Geode-version kanssa!"
 ${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Valitussa kansiossa on muita modeja asennettuna!$\r$\nGeode tulee poistamaan ne. (the dll trademark)"
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Installing VS Runtime. Check the taskbar for any new open windows..."
 
 ; uninstaller
 

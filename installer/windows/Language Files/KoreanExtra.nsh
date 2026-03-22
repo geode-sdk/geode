@@ -11,6 +11,7 @@ ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\n이 경로에는 Geometry D
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nYour version of Geometry Dash is too old for this version of Geode!"
 ${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "이 경로에는 다른 모드가 설치되어 있습니다!$\r$\nGeode에 의해 덮어쓰게 될 것입니다. (the dll trademark)"
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Installing VS Runtime. Check the taskbar for any new open windows..."
 
 ; uninstaller
 

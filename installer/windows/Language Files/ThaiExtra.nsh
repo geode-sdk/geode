@@ -18,6 +18,8 @@ ${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before insta
 
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "ตำแหน่งที่ตั้งไฟล์นี้มีม็อดอื่นได้ติดตั้งแล้ว!$\r$\nโดยจะถูกเขียนทับโดย Geode (the dll trademark)"
 
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Installing VS Runtime. Check the taskbar for any new open windows..."
+
 ; uninstaller
 
 ${LangFileString} GEODE_UNTEXT_GEODE_MISSING "ตำแหน่งที่ตั้งไฟล์นี้ไม่พบว่า Geode ได้มีการติดตั้งแล้ว!"

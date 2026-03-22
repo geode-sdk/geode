@@ -11,6 +11,7 @@ ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nEsse caminho não tem Geome
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nSua versão do Geometry Dash é muito antiga para essa versão do Geode!"
 ${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Esse caminho já tem outros mods instalados!$\r$\nEles serão substituídos pelo Geode. (the dll trademark)"
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Installing VS Runtime. Check the taskbar for any new open windows..."
 
 ; uninstaller
 

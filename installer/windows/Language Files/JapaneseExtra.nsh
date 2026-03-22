@@ -11,6 +11,7 @@ ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nこのパスにはGeometry 
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nGeometry DashのバージョンはこのGeodeのバージョンには古すぎます!"
 ${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "このパスには他のモッドがインストールされています！$\r$\nそれらはGeodeによって上書きされます。（the dll trademark）"
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Installing VS Runtime. Check the taskbar for any new open windows..."
 
 ; uninstaller
 

@@ -11,6 +11,7 @@ ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nV této cestě se nenacház
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nVaše verze Geometry Dash je moc stará pro tuto verzi Geode!"
 ${LangFileString} GEODE_TEXT_GD_RUNNING "Prosím zavřete Geometry Dash, než budete pokračovat v instalaci Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "V této cestě jsou již nainstalovány jiné mody!$\r$\nGeode bude nainstalován místo nich. (the dll trademark)"
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Probíhá instalace VS Runtime. Podívejte se na lištu, jestli tam není další program..."
 
 ; uninstaller
 
