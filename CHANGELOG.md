@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v5.4.1
+ * Revert `CCEGLView::get` change (9cdbf5c)
+ * Fix crash when entering Geode menu without resources (000c5a1, 5b4210e)
+
 ## v5.4.0
  * Crashlog rework/unification. Includes a removal of Breakpad on Android! (#1939)
  * Integrated fallback sprites into Geode (#1819)
