@@ -71,7 +71,8 @@ std::vector<Image> CrashContext::getImages() {
         do {
             images.push_back({
                 reinterpret_cast<uintptr_t>(me32.modBaseAddr),
-                utils::string::wideToUtf8(me32.szExePath)
+                utils::string::wideToUtf8(me32.szExePath),
+                static_cast<size_t>(me32.modBaseSize),
             });
         } while (Module32NextW(snap, &me32));
     }
