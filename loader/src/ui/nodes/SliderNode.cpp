@@ -196,6 +196,8 @@ void SliderNode::setPercent(float percent) {
     updateLinkedTextInput();
     updateLinkedLabel();
     updateSize();
+
+    if (m_impl->m_slideCallback) m_impl->m_slideCallback(this, getValue());
 }
 
 float SliderNode::getPercent() {
@@ -249,6 +251,7 @@ void SliderNode::linkTextInput(geode::TextInput* input, unsigned int precision) 
                 m_impl->m_thumb->setPositionX(getContentWidth() * m_impl->m_percent);
                 updateSize();
                 updateLinkedLabel();
+                if (m_impl->m_slideCallback) m_impl->m_slideCallback(this, getValue());
             }
         });
     }
@@ -357,8 +360,6 @@ void SliderNode::updateFromTouch(CCTouch* touch) {
     percent = (value - m_impl->m_min) / (m_impl->m_max - m_impl->m_min);
 
     setPercent(percent);
-
-    if (m_impl->m_slideCallback) m_impl->m_slideCallback(this, getValue());
 }
 
 bool SliderNode::ccTouchBegan(CCTouch* touch, CCEvent* event) {
