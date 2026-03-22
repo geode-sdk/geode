@@ -22,7 +22,7 @@ CCDirector* CCDirector::get() {
 }
 
 CCEGLView* CCEGLView::get() {
-    return CCEGLView::sharedOpenGLView();
+    return CCDirector::sharedDirector()->getOpenGLView();
 }
 
 CCFileUtils* CCFileUtils::get() {
