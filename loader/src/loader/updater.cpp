@@ -89,7 +89,7 @@ Result<> updater::extractLoaderResources(ByteSpan data) {
 
     // this might fail due to fuse on certain devices? might have to do with sd card usage too
     // society if we could just access /data/media/0/ directly...
-    //if(!asp::fs::rename(tempDir, resourcesDir)) {
+    if(!asp::fs::rename(tempDir, resourcesDir)) {
         GEODE_UNWRAP(asp::fs::copy(tempDir, resourcesDir).mapErr([](auto ec) {
             return "Unable to copy new resources directory: " + ec.message();
         }));
@@ -97,7 +97,7 @@ Result<> updater::extractLoaderResources(ByteSpan data) {
         GEODE_UNWRAP(asp::fs::removeAll(tempDir).mapErr([](auto ec) {
             return "Unable to remove final temporary directory: " + ec.message();
         }));
-    //}
+    }
 
     updater::updateSpecialFiles();
     return Ok();
