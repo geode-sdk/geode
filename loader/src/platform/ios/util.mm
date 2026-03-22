@@ -579,6 +579,14 @@ bool geode::utils::platform::isWine() {
     return false;
 }
 
+const char* getCurrentArch() {
+    if (@available(iOS 16.0, *)) {
+        return macho_arch_name_for_mach_header(nullptr);
+    } else {
+        return "arm64";
+    }
+}
+
 // https://stackoverflow.com/questions/11072804/how-do-i-determine-the-os-version-at-runtime-in-os-x-or-ios-without-using-gesta
 PlatformDetails geode::utils::platform::getDetails() {
     PlatformDetails details;
@@ -587,7 +595,7 @@ PlatformDetails geode::utils::platform::getDetails() {
     details.majorVersion = version.majorVersion;
     details.minorVersion = version.minorVersion;
     details.patchVersion = version.patchVersion;
-    details.arch = macho_arch_name_for_mach_header(nullptr);
+    details.arch = getCurrentArch();
     return details;
 }
 
