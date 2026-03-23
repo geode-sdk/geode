@@ -1,12 +1,13 @@
 #include "SettingNodeV3.hpp"
-#include <Geode/utils/ColorProvider.hpp>
-#include <Geode/utils/ranges.hpp>
+
+#include "KeybindEditPopup.hpp"
+
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/ui/Button.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Scrollbar.hpp>
-#include <Geode/ui/Button.hpp>
-#include <Geode/binding/TextArea.hpp>
-#include "KeybindEditPopup.hpp"
+#include <Geode/utils/ColorProvider.hpp>
+#include <Geode/utils/ranges.hpp>
 
 class SettingNodeV3::Impl final {
 public:
@@ -26,16 +27,15 @@ public:
 };
 
 bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
-    if (!CCNode::init())
-        return false;
+    if (!CCNode::init()) return false;
 
     // note: setting may be null due to UnresolvedCustomSettingNodeV3
 
     m_impl = std::make_shared<Impl>();
     m_impl->setting = setting;
 
-    m_impl->bg = CCLayerColor::create({ 0, 0, 0, 0 });
-    m_impl->bg->setContentSize({ width, 0 });
+    m_impl->bg = CCLayerColor::create({0, 0, 0, 0});
+    m_impl->bg->setContentSize({width, 0});
     m_impl->bg->ignoreAnchorPointForPosition(false);
     m_impl->bg->setAnchorPoint(ccp(.5f, .5f));
     this->addChildAtPosition(m_impl->bg, Anchor::Center);
@@ -43,8 +43,11 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl->nameMenu = CCMenu::create();
     m_impl->nameMenu->setContentWidth(width / 2 + 25);
 
-    m_impl->nameLabel = CCLabelBMFont::create(setting ? setting->getDisplayName().c_str() : "", "bigFont.fnt");
-    m_impl->nameLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .4f)->setScalePriority(1));
+    m_impl->nameLabel =
+        CCLabelBMFont::create(setting ? setting->getDisplayName().c_str() : "", "bigFont.fnt");
+    m_impl->nameLabel->setLayoutOptions(
+        AxisLayoutOptions::create()->setScaleLimits(.1f, .4f)->setScalePriority(1)
+    );
     m_impl->nameMenu->addChild(m_impl->nameLabel);
 
     m_impl->statusLabel = CCLabelBMFont::create("", "bigFont.fnt");
@@ -54,29 +57,27 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     if (setting && setting->getDescription()) {
         auto descSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
         descSpr->setScale(.5f);
-        m_impl->descButton = CCMenuItemSpriteExtra::create(
-            descSpr, this, menu_selector(SettingNodeV3::onDescription)
-        );
+        m_impl->descButton =
+            CCMenuItemSpriteExtra::create(descSpr, this, menu_selector(SettingNodeV3::onDescription));
         m_impl->nameMenu->addChild(m_impl->descButton);
     }
 
     auto resetSpr = CCSprite::createWithSpriteFrameName("reset-gold.png"_spr);
     resetSpr->setScale(.5f);
-    m_impl->resetButton = CCMenuItemSpriteExtra::create(
-        resetSpr, this, menu_selector(SettingNodeV3::onReset)
-    );
+    m_impl->resetButton =
+        CCMenuItemSpriteExtra::create(resetSpr, this, menu_selector(SettingNodeV3::onReset));
     m_impl->nameMenu->addChild(m_impl->resetButton);
 
     m_impl->nameMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
     this->addChildAtPosition(m_impl->nameMenu, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
     m_impl->buttonMenu = CCMenu::create();
-    m_impl->buttonMenu->setContentSize({ width / 2 - 55, 30 });
+    m_impl->buttonMenu->setContentSize({width / 2 - 55, 30});
     m_impl->buttonMenu->setLayout(AnchorLayout::create());
     this->addChildAtPosition(m_impl->buttonMenu, Anchor::Right, ccp(-10, 0), ccp(1, .5f));
 
-    this->setAnchorPoint({ .5f, .5f });
-    this->setContentSize({ width, 30 });
+    this->setAnchorPoint({.5f, .5f});
+    this->setContentSize({width, 30});
 
     return true;
 }
@@ -106,7 +107,9 @@ void SettingNodeV3::updateState(CCNode* invoker) {
         m_impl->bg->setOpacity(75);
     }
 
-    m_impl->nameMenu->setContentWidth(this->getContentWidth() - m_impl->buttonMenu->getContentWidth() - 25);
+    m_impl->nameMenu->setContentWidth(
+        this->getContentWidth() - m_impl->buttonMenu->getContentWidth() - 25
+    );
     m_impl->nameMenu->updateLayout();
 }
 
@@ -117,11 +120,13 @@ void SettingNodeV3::updateState2(CCNode* invoker) {
 void SettingNodeV3::onDescription(CCObject*) {
     if (!m_impl->setting) return;
     auto title = m_impl->setting->getDisplayName();
-    MDPopup::create(true,
+    MDPopup::create(
+        true,
         title.c_str(),
         m_impl->setting->getDescription().value_or("No description provided"),
         "OK"
-    )->show();
+    )
+        ->show();
 }
 
 void SettingNodeV3::onReset(CCObject*) {
@@ -131,7 +136,8 @@ void SettingNodeV3::onReset(CCObject*) {
             "Are you sure you want to <cr>reset</c> <cl>{}</c> to <cy>default</c>?",
             this->getSetting()->getDisplayName()
         ),
-        "Cancel", "Reset",
+        "Cancel",
+        "Reset",
         [this](auto, bool btn2) {
             if (btn2) {
                 this->resetToDefault();
@@ -150,7 +156,8 @@ void SettingNodeV3::markChanged(CCNode* invoker) {
     SettingNodeValueChangeEventV3(
         m_impl->setting ? m_impl->setting->getModID() : "",
         m_impl->setting ? m_impl->setting->getKey() : ""
-    ).send(this, false);
+    )
+        .send(this, false);
 }
 
 void SettingNodeV3::commit() {
@@ -167,7 +174,8 @@ void SettingNodeV3::resetToDefault() {
     m_impl->committed = true;
     this->onResetToDefault();
     this->updateState(nullptr);
-    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, false);
+    SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey())
+        .send(this, false);
 }
 
 void SettingNodeV3::overrideDescription(std::optional<ZStringView> description) {
@@ -213,8 +221,7 @@ std::shared_ptr<SettingV3> SettingNodeV3::getSetting() const {
 // TitleSettingNodeV3
 
 bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float width) {
-    if (!SettingNodeV3::init(setting, width))
-        return false;
+    if (!SettingNodeV3::init(setting, width)) return false;
 
     // note: setting may be null
 
@@ -235,8 +242,7 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
     uncollapseSprBG->setScale(.2f);
 
     m_collapseToggle = CCMenuItemToggler::create(
-        collapseSprBG, uncollapseSprBG,
-        this, menu_selector(TitleSettingNodeV3::onCollapse)
+        collapseSprBG, uncollapseSprBG, this, menu_selector(TitleSettingNodeV3::onCollapse)
     );
     m_collapseToggle->m_notClickable = true;
     this->getButtonMenu()->setContentWidth(20);
@@ -291,7 +297,9 @@ TitleSettingNodeV3* TitleSettingNodeV3::create(std::shared_ptr<TitleSettingV3> s
     return nullptr;
 }
 
-TitleSettingNodeV3* TitleSettingNodeV3::create(ZStringView title, std::optional<ZStringView> description, float width) {
+TitleSettingNodeV3* TitleSettingNodeV3::create(
+    ZStringView title, std::optional<ZStringView> description, float width
+) {
     auto ret = TitleSettingNodeV3::create(nullptr, width);
     ret->getNameLabel()->setString(title.c_str());
     ret->overrideDescription(description);
@@ -302,8 +310,7 @@ TitleSettingNodeV3* TitleSettingNodeV3::create(ZStringView title, std::optional<
 // InfoSettingNodeV3
 
 bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width) {
-    if (!SettingNodeV3::init(setting, width))
-        return false;
+    if (!SettingNodeV3::init(setting, width)) return false;
 
     this->setContentHeight(22);
     this->getNameLabel()->setVisible(false);
@@ -318,8 +325,12 @@ bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width
 
     auto infoLabel = TextArea::create(
         setting->getDescription().value_or(""),
-        "chatFont.fnt", .65f, bg->getContentWidth() - 45,
-        ccp(.4999f, .4999f), 12, false
+        "chatFont.fnt",
+        .65f,
+        bg->getContentWidth() - 45,
+        ccp(.4999f, .4999f),
+        12,
+        false
     );
 
     this->setContentHeight(30 + infoLabel->getContentHeight());
@@ -356,21 +367,18 @@ InfoSettingNodeV3* InfoSettingNodeV3::create(std::shared_ptr<InfoSettingV3> sett
 // ButtonSettingNodeV3
 
 bool ButtonSettingNodeV3::init(std::shared_ptr<ButtonSettingV3> setting, float width) {
-    if (!SettingNodeV3::init(setting, width))
-        return false;
+    if (!SettingNodeV3::init(setting, width)) return false;
 
     this->getNameLabel()->setVisible(false);
 
-    for (const auto& [k, v] : setting->getButtons()) {
+    for (auto const& [k, v] : setting->getButtons()) {
         auto spr = createGeodeButton(v);
         spr->setScale(.5f);
         spr->setCascadeColorEnabled(true);
         spr->setCascadeOpacityEnabled(true);
-        auto button = Button::createWithNode(
-            spr, [setting, k] (auto sender) {
-                ButtonSettingPressedEventV3(setting->getMod(), setting->getKey()).send(k);
-            }
-        );
+        auto button = Button::createWithNode(spr, [setting, k](auto sender) {
+            ButtonSettingPressedEventV3(setting->getMod(), setting->getKey()).send(k);
+        });
         button->setCascadeColorEnabled(true);
         button->setCascadeOpacityEnabled(true);
         button->setID(fmt::format("{}-button", k));
@@ -378,7 +386,7 @@ bool ButtonSettingNodeV3::init(std::shared_ptr<ButtonSettingV3> setting, float w
         this->getButtonMenu()->addChild(button);
     }
 
-    this->getButtonMenu()->setAnchorPoint({ 0.f, .5f });
+    this->getButtonMenu()->setAnchorPoint({0.f, .5f});
     this->getButtonMenu()->setContentWidth(setting->getDescription() ? width - 45 : width - 20);
 
     auto buttonLayout = RowLayout::create();
@@ -406,7 +414,7 @@ bool ButtonSettingNodeV3::init(std::shared_ptr<ButtonSettingV3> setting, float w
 }
 
 void ButtonSettingNodeV3::enableButtons(bool enabled) {
-    for (const auto& button : buttons) {
+    for (auto const& button : buttons) {
         button->setEnabled(enabled);
         button->setOpacity(enabled ? 255 : 175);
         button->setColor(enabled ? ccc3(255, 255, 255) : ccc3(166, 166, 166));
@@ -455,17 +463,16 @@ ButtonSettingNodeV3* ButtonSettingNodeV3::create(std::shared_ptr<ButtonSettingV3
 // BoolSettingNodeV3
 
 bool BoolSettingNodeV3::init(std::shared_ptr<BoolSettingV3> setting, float width) {
-    if (!SettingValueNodeV3::init(setting, width))
-        return false;
+    if (!SettingValueNodeV3::init(setting, width)) return false;
 
     this->getButtonMenu()->setContentWidth(20);
 
     m_toggle = CCMenuItemToggler::createWithStandardSprites(
         this, menu_selector(BoolSettingNodeV3::onToggle), .55f
     );
-    m_toggle->m_onButton->setContentSize({ 25, 25 });
+    m_toggle->m_onButton->setContentSize({25, 25});
     m_toggle->m_onButton->getNormalImage()->setPosition(ccp(25, 25) / 2);
-    m_toggle->m_offButton->setContentSize({ 25, 25 });
+    m_toggle->m_offButton->setContentSize({25, 25});
     m_toggle->m_offButton->getNormalImage()->setPosition(ccp(25, 25) / 2);
     m_toggle->m_notClickable = true;
     m_toggle->toggle(setting->getValue());
@@ -505,43 +512,28 @@ BoolSettingNodeV3* BoolSettingNodeV3::create(std::shared_ptr<BoolSettingV3> sett
 // StringSettingNodeV3
 
 bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float width) {
-    if (!SettingValueNodeV3::init(setting, width))
-        return false;
-
-    m_input = TextInput::create(setting->getEnumOptions() ? width / 2 - 50 : width / 2, "Text");
-    m_input->setCallback([this](auto const& str) {
-        this->setValue(str, m_input);
-    });
-    m_input->setScale(.7f);
-    m_input->setString(this->getSetting()->getValue());
-    if (auto filter = this->getSetting()->getAllowedCharacters()) {
-        m_input->setFilter(*filter);
-    }
-
-    this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Center);
+    if (!SettingValueNodeV3::init(setting, width)) return false;
 
     if (setting->getEnumOptions()) {
-        m_input->getBGSprite()->setVisible(false);
-        m_input->setEnabled(false);
-        m_input->getInputNode()->m_textLabel->setOpacity(255);
-        m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
-
-        m_arrowLeftSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-        m_arrowLeftSpr->setFlipX(true);
-        m_arrowLeftSpr->setScale(.4f);
-        auto arrowLeftBtn = CCMenuItemSpriteExtra::create(
-            m_arrowLeftSpr, this, menu_selector(StringSettingNodeV3::onArrow)
-        );
-        arrowLeftBtn->setTag(-1);
-        this->getButtonMenu()->addChildAtPosition(arrowLeftBtn, Anchor::Left, ccp(5, 0));
-
-        m_arrowRightSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-        m_arrowRightSpr->setScale(.4f);
-        auto arrowRightBtn = CCMenuItemSpriteExtra::create(
-            m_arrowRightSpr, this, menu_selector(StringSettingNodeV3::onArrow)
-        );
-        arrowRightBtn->setTag(1);
-        this->getButtonMenu()->addChildAtPosition(arrowRightBtn, Anchor::Right, ccp(-5, 0));
+        auto options = *setting->getEnumOptions();
+        m_dropdown = Dropdown::create(width / 2, options, [this](std::string const& value, size_t) {
+            this->setValue(value, m_dropdown);
+        });
+        m_dropdown->setSelected(this->getSetting()->getValue());
+        m_dropdown->setScale(.7f);
+        this->getButtonMenu()->addChildAtPosition(m_dropdown, Anchor::Center);
+    }
+    else {
+        m_input = TextInput::create(width / 2, "Text");
+        m_input->setCallback([this](auto const& str) {
+            this->setValue(str, m_input);
+        });
+        m_input->setScale(.7f);
+        m_input->setString(this->getSetting()->getValue());
+        if (auto filter = this->getSetting()->getAllowedCharacters()) {
+            m_input->setFilter(*filter);
+        }
+        this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Center);
     }
 
     this->updateState(nullptr);
@@ -552,32 +544,19 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
 void StringSettingNodeV3::updateState(CCNode* invoker) {
     SettingValueNodeV3::updateState(invoker);
 
-    if (invoker != m_input) {
-        m_input->setString(this->getValue());
-    }
-
     auto enable = this->getSetting()->shouldEnable();
-    if (!this->getSetting()->getEnumOptions()) {
+    if (m_dropdown) {
+        if (invoker != m_dropdown) {
+            m_dropdown->setSelected(this->getValue());
+        }
+        m_dropdown->setEnabled(enable);
+    }
+    else if (m_input) {
+        if (invoker != m_input) {
+            m_input->setString(this->getValue());
+        }
         m_input->setEnabled(enable);
     }
-    else {
-        m_arrowRightSpr->setOpacity(enable ? 255 : 155);
-        m_arrowRightSpr->setColor(enable ? ccWHITE : ccGRAY);
-        m_arrowLeftSpr->setOpacity(enable ? 255 : 155);
-        m_arrowLeftSpr->setColor(enable ? ccWHITE : ccGRAY);
-    }
-}
-
-void StringSettingNodeV3::onArrow(CCObject* sender) {
-    auto options = *this->getSetting()->getEnumOptions();
-    auto index = ranges::indexOf(options, this->getValue()).value_or(0);
-    if (sender->getTag() > 0) {
-        index = index < options.size() - 1 ? index + 1 : 0;
-    }
-    else {
-        index = index > 0 ? index - 1 : options.size() - 1;
-    }
-    this->setValue(options.at(index), static_cast<CCNode*>(sender));
 }
 
 StringSettingNodeV3* StringSettingNodeV3::create(std::shared_ptr<StringSettingV3> setting, float width) {
@@ -593,14 +572,13 @@ StringSettingNodeV3* StringSettingNodeV3::create(std::shared_ptr<StringSettingV3
 // FileSettingNodeV3
 
 bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width) {
-    if (!SettingValueNodeV3::init(setting, width))
-        return false;
+    if (!SettingValueNodeV3::init(setting, width)) return false;
 
-    auto labelBG = NineSlice::create("square02b_001.png", { 0, 0, 80, 80 });
+    auto labelBG = NineSlice::create("square02b_001.png", {0, 0, 80, 80});
     labelBG->setScale(.25f);
-    labelBG->setColor({ 0, 0, 0 });
+    labelBG->setColor({0, 0, 0});
     labelBG->setOpacity(90);
-    labelBG->setContentSize({ 420, 80 });
+    labelBG->setContentSize({420, 80});
     this->getButtonMenu()->addChildAtPosition(labelBG, Anchor::Center, ccp(-10, 0));
 
     m_fileIcon = CCSprite::create();
@@ -624,7 +602,7 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
 void FileSettingNodeV3::updateState(CCNode* invoker) {
     // This is because people tend to put `"default": "Please pick a good file"`
     // which is clever and good UX but also a hack so I also need to hack to support that
-    const auto isTextualDefaultValue = [this, setting = this->getSetting()]() {
+    auto const isTextualDefaultValue = [this, setting = this->getSetting()]() {
         if (this->hasNonDefaultValue()) return false;
         if (utils::string::pathToString(setting->getDefaultValue()).size() > 20) return false;
         std::error_code ec;
@@ -634,16 +612,22 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     }();
 
     SettingValueNodeV3::updateState(invoker);
-    m_fileIcon->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(
-        this->getSetting()->isFolder() ? "folderIcon_001.png" : "file.png"_spr
-    ));
+    m_fileIcon->setDisplayFrame(
+        CCSpriteFrameCache::get()->spriteFrameByName(
+            this->getSetting()->isFolder() ? "folderIcon_001.png" : "file.png"_spr
+        )
+    );
     limitNodeSize(m_fileIcon, ccp(10, 10), 1.f, .1f);
     if (this->getValue().empty() || isTextualDefaultValue) {
         if (isTextualDefaultValue) {
-            m_nameLabel->setString(utils::string::pathToString(this->getSetting()->getDefaultValue()).c_str());
+            m_nameLabel->setString(
+                utils::string::pathToString(this->getSetting()->getDefaultValue()).c_str()
+            );
         }
         else {
-            m_nameLabel->setString(this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected");
+            m_nameLabel->setString(
+                this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected"
+            );
         }
         m_nameLabel->setColor(ccGRAY);
         m_nameLabel->setOpacity(155);
@@ -666,14 +650,14 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
 
     m_pickListener.spawn(
         file::pick(
-            this->getSetting()->isFolder() ?
-            file::PickMode::OpenFolder :
-            this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile,
-            {
-                // Prefer opening the current path directly if possible
-                this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec)
-                    ? dirs::getGameDir() : this->getValue(),
-                this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
+            this->getSetting()->isFolder()          ? file::PickMode::OpenFolder :
+                this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile :
+                                                      file::PickMode::OpenFile,
+            {// Prefer opening the current path directly if possible
+             this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec) ?
+                 dirs::getGameDir() :
+                 this->getValue(),
+             this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
             }
         ),
         [this](Result<std::optional<std::filesystem::path>> path) {
@@ -682,10 +666,9 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
             }
             else if (path.isErr()) {
                 FLAlertLayer::create(
-                    "Failed",
-                    fmt::format("Failed to pick file: {}", path.unwrapErr()),
-                    "Ok"
-                )->show();
+                    "Failed", fmt::format("Failed to pick file: {}", path.unwrapErr()), "Ok"
+                )
+                    ->show();
             }
         }
     );
@@ -704,8 +687,7 @@ FileSettingNodeV3* FileSettingNodeV3::create(std::shared_ptr<FileSettingV3> sett
 // Color3BSettingNodeV3
 
 bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float width) {
-    if (!SettingValueNodeV3::init(setting, width))
-        return false;
+    if (!SettingValueNodeV3::init(setting, width)) return false;
 
     m_colorSprite = ColorChannelSprite::create();
     m_colorSprite->setScale(.65f);
@@ -731,9 +713,12 @@ void Color3BSettingNodeV3::updateState(CCNode* invoker) {
 
 void Color3BSettingNodeV3::onSelectColor(CCObject*) {
     auto popup = ColorPickPopup::create(this->getValue());
-    popup->setCallback([this](ccColor4B const& color) { this->setValue(to3B(color), nullptr); });
+    popup->setCallback([this](ccColor4B const& color) {
+        this->setValue(to3B(color), nullptr);
+    });
     popup->show();
 }
+
 Color3BSettingNodeV3* Color3BSettingNodeV3::create(std::shared_ptr<Color3BSettingV3> setting, float width) {
     auto ret = new Color3BSettingNodeV3();
     if (ret->init(setting, width)) {
@@ -747,8 +732,7 @@ Color3BSettingNodeV3* Color3BSettingNodeV3::create(std::shared_ptr<Color3BSettin
 // Color4BSettingNodeV3
 
 bool Color4BSettingNodeV3::init(std::shared_ptr<Color4BSettingV3> setting, float width) {
-    if (!SettingValueNodeV3::init(setting, width))
-        return false;
+    if (!SettingValueNodeV3::init(setting, width)) return false;
 
     m_colorSprite = ColorChannelSprite::create();
     m_colorSprite->setScale(.65f);
@@ -775,7 +759,9 @@ void Color4BSettingNodeV3::updateState(CCNode* invoker) {
 
 void Color4BSettingNodeV3::onSelectColor(CCObject*) {
     auto popup = ColorPickPopup::create(this->getValue());
-    popup->setCallback([this](ccColor4B const& color) { this->setValue(color, nullptr); });
+    popup->setCallback([this](ccColor4B const& color) {
+        this->setValue(color, nullptr);
+    });
     popup->show();
 }
 
@@ -802,14 +788,13 @@ KeybindSettingNodeV3* KeybindSettingNodeV3::create(std::shared_ptr<KeybindSettin
 }
 
 bool KeybindSettingNodeV3::init(std::shared_ptr<KeybindSettingV3> setting, float width) {
-    if (!SettingNodeV3::init(setting, width))
-        return false;
+    if (!SettingNodeV3::init(setting, width)) return false;
 
     m_currentValue = setting->getValue();
     this->getButtonMenu()->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End));
 
     if (auto category = setting->getCategory()) {
-        const char* catSpr;
+        char const* catSpr;
         switch (*category) {
             default:
             case KeybindCategory::Editor: {
@@ -825,12 +810,11 @@ bool KeybindSettingNodeV3::init(std::shared_ptr<KeybindSettingV3> setting, float
             } break;
         }
         auto categoryLabel = createTagLabelWithIcon(
-            CCSprite::createWithSpriteFrameName(catSpr), "",
+            CCSprite::createWithSpriteFrameName(catSpr),
+            "",
             std::make_pair(ccWHITE, "keybinds-list-category-label"_cc3b)
         );
-        categoryLabel->setLayoutOptions(
-            AxisLayoutOptions::create()->setScaleLimits(.1f, .35f)
-        );
+        categoryLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .35f));
         this->getNameMenu()->addChild(categoryLabel);
     }
 
@@ -853,14 +837,17 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
     for (auto& keybind : m_currentValue) {
         auto bspr = createKeybindButton(keybind);
         bspr->setScale(.5f);
-        auto button = CCMenuItemSpriteExtra::create(bspr, this, menu_selector(KeybindSettingNodeV3::onKeybind));
+        auto button =
+            CCMenuItemSpriteExtra::create(bspr, this, menu_selector(KeybindSettingNodeV3::onKeybind));
         button->setTag(index);
         buttonMenu->addChild(button);
         index += 1;
     }
     auto plusSprite = createGeodeButton("+", true);
     plusSprite->setScale(.5f);
-    auto plusButton = CCMenuItemSpriteExtra::create(plusSprite, this, menu_selector(KeybindSettingNodeV3::onKeybind));
+    auto plusButton = CCMenuItemSpriteExtra::create(
+        plusSprite, this, menu_selector(KeybindSettingNodeV3::onKeybind)
+    );
     buttonMenu->addChild(plusButton);
     buttonMenu->updateLayout();
 
@@ -872,7 +859,9 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
 
         auto moreSprite = createGeodeButton("...", true);
         moreSprite->setScale(.5f);
-        auto moreButton = CCMenuItemSpriteExtra::create(moreSprite, this, menu_selector(KeybindSettingNodeV3::onExtra));
+        auto moreButton = CCMenuItemSpriteExtra::create(
+            moreSprite, this, menu_selector(KeybindSettingNodeV3::onExtra)
+        );
         buttonMenu->addChild(moreButton);
 
         buttonMenu->updateLayout();
@@ -880,15 +869,11 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void KeybindSettingNodeV3::onExtra(CCObject* sender) {
-    KeybindListPopup::create(
-        getSetting(),
-        m_currentValue,
-        [this](std::vector<Keybind> newKeybinds) {
-            if (m_currentValue == newKeybinds) return;
-            m_currentValue = std::move(newKeybinds);
-            this->markChanged(nullptr);
-        }
-    )->show();
+    KeybindListPopup::create(getSetting(), m_currentValue, [this](std::vector<Keybind> newKeybinds) {
+        if (m_currentValue == newKeybinds) return;
+        m_currentValue = std::move(newKeybinds);
+        this->markChanged(nullptr);
+    })->show();
 }
 
 void KeybindSettingNodeV3::onKeybind(CCObject* sender) {
@@ -935,18 +920,16 @@ void KeybindSettingNodeV3::onResetToDefault() {
 // UnresolvedCustomSettingNodeV3
 
 bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float width) {
-    if (!SettingNodeV3::init(nullptr, width))
-        return false;
+    if (!SettingNodeV3::init(nullptr, width)) return false;
 
     m_mod = mod;
 
     this->setContentHeight(30);
 
     auto label = CCLabelBMFont::create(
-        (mod && mod->isLoaded() ?
-            fmt::format("Missing setting '{}'", key) :
-            fmt::format("Enable the Mod to Edit '{}'", key)
-        ).c_str(),
+        (mod && mod->isLoaded() ? fmt::format("Missing setting '{}'", key) :
+                                  fmt::format("Enable the Mod to Edit '{}'", key))
+            .c_str(),
         "bigFont.fnt"
     );
     label->setColor(mod && mod->isLoaded() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
@@ -958,7 +941,9 @@ bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float w
 
 void UnresolvedCustomSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
-    this->getBG()->setColor(m_mod && m_mod->isLoaded() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
+    this->getBG()->setColor(
+        m_mod && m_mod->isLoaded() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b
+    );
     this->getBG()->setOpacity(75);
 }
 
@@ -974,7 +959,9 @@ bool UnresolvedCustomSettingNodeV3::hasNonDefaultValue() const {
 
 void UnresolvedCustomSettingNodeV3::onResetToDefault() {}
 
-UnresolvedCustomSettingNodeV3* UnresolvedCustomSettingNodeV3::create(std::string_view key, Mod* mod, float width) {
+UnresolvedCustomSettingNodeV3* UnresolvedCustomSettingNodeV3::create(
+    std::string_view key, Mod* mod, float width
+) {
     auto ret = new UnresolvedCustomSettingNodeV3();
     if (ret->init(key, mod, width)) {
         ret->autorelease();
