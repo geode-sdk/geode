@@ -240,13 +240,28 @@ Result<> Mod::Impl::saveData() {
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
 
-    auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
-    if (!res) {
-        log::error("Unable to save settings: {}", res.unwrapErr());
+    // TODO: better check if its empty?
+    auto dump = json.dump();
+    if(!dump.starts_with("{}")) {
+        auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", dump);
+        if (!res) {
+            log::error("Unable to save settings: {}", res.unwrapErr());
+        }
     }
-    auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
-    if (!res2) {
-        log::error("Unable to save values: {}", res2.unwrapErr());
+    /*else {
+        std::error_code ec;
+        std::filesystem::remove(m_saveDirPath / "settings.json", ec);
+        if (ec) {
+            log::error("Unable to remove settings.json: {}", ec.message());
+        }
+    }*/
+
+    dump = m_saved.dump();
+    if (!dump.starts_with("{}")) {
+        auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
+        if (!res2) {
+            log::error("Unable to save values: {}", res2.unwrapErr());
+        }
     }
 
     return Ok();
