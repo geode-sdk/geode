@@ -252,6 +252,9 @@ Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
+    // skip disabled mods
+    if (!mod->isOrWillBeEnabled()) return;
+    
     if (!mod->isInternal()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
