@@ -35,9 +35,9 @@ namespace crashlog {
     std::filesystem::path GEODE_DLL getCrashLogDirectory();
 
     struct Image {
-        uintptr_t address;
+        uintptr_t address = 0;
         std::string name_;
-        size_t size;
+        size_t size = 0;
 
         std::string_view name() const;
         std::string_view shortName() const;

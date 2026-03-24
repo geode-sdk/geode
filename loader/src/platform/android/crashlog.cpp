@@ -57,42 +57,67 @@ static std::string nameForMap(MapInfo& map, std::shared_ptr<Memory>& memory) {
 
 std::vector<Image> CrashContext::getImages() {
     std::vector<Image> images;
+    images.reserve(256); // on my device it was around 200, with mods it can be much higher
 
     if (!g_maps) return images;
 
     auto mem = Memory::CreateProcessMemoryCached(getpid());
 
-    // get all images and their bases
-    for (size_t i = 0; i < g_maps->Total(); i++) {
-        auto map = g_maps->Get(i);
-        std::string name = nameForMap(*map, mem);
+    Image current{};
+    std::string currentName;
+    auto commit = [&] {
+        if (current.address != 0) {
+            images.push_back(std::move(current));
+            current = Image{};
+            currentName.clear();
+        }
+    };
 
-        // skip images with no names
-        if (name.empty()) continue;
+    for (auto& map : *g_maps) {
+        std::string_view n = map->name();
 
-        // check if it's already inserted, iterate from the end since usually theres multiple maps in a row for same image
-        auto it = std::find_if(images.rbegin(), images.rend(), [&name](const Image& img) {
-            return img.name() == name;
-        });
-
-        if (it != images.rend()) {
-            // update address/size
-            uintptr_t lastEnd = it->address + it->size;
-            uintptr_t newEnd = std::max<uintptr_t>(lastEnd, map->end());
-
-            it->address = std::min<uintptr_t>(it->address, map->start());
-            it->size = newEnd - it->address;
+        // ignore very uninteresting ones
+        if (
+            n.empty()
+            || n == "[page size compat]"
+            || n.starts_with("/dev/mali")
+            || n.starts_with("/mali")
+            || n.starts_with("[anon:")
+            || n.starts_with("/dev/__properties__")
+            || n.starts_with("/dev/ashmem")
+            || n.starts_with("/metadata")
+            || n.starts_with("/system/fonts")
+            || n.starts_with("/system/usr")
+            || n.starts_with("/dmabuf")
+            || n.starts_with("/data/user_de/0/com.geode.launcher/cache")
+        ) {
             continue;
         }
 
-        // insert new image
-        images.push_back({
-            static_cast<uintptr_t>(map->start()),
-            std::move(name),
-            static_cast<size_t>(map->end() - map->start()),
-        });
+        if (map->name() != currentName) {
+            // new image, commit the previous one
+            commit();
+            currentName = map->name();
+        }
+
+        // get the human name, base and size if applicable
+        // note that current.name is NOT what we have in currentName,
+        // currentName will be raw name in maps e.g. split_config.apk,
+        // while the current.name() will be the soname if available
+        if (current.name_.empty()) {
+            current.name_ = nameForMap(*map, mem);
+        }
+
+        if (current.address == 0) {
+            current.address = map->start();
+        }
+
+        current.size = std::max<size_t>(current.size, map->end() - current.address);
     }
 
+    commit();
+
+    // __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Images: %zu", images.size());
     // for (auto& img : images) {
     //     __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Image: %s at %p (size 0x%zx)", img.name().data(), (void*)img.address, img.size);
     // }
