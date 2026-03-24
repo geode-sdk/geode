@@ -532,6 +532,10 @@ public:
         if (m_curlHeaders) {
             curl_slist_free_all(m_curlHeaders);
         }
+
+        // ensure that progress callbacks are destroyed in the main thread,
+        // because they may capture objects with non thread-safe destructors
+        geode::queueInMainThread([_ = std::move(m_progressCallbacks)] {});
     }
 
     WebResponse makeError(GeodeWebError code, std::string_view msg) {
