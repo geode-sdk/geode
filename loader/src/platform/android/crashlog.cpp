@@ -282,6 +282,36 @@ std::string_view CrashContext::getGeodeBinaryName() {
     return "Geode.so";
 }
 
+/// Source: https://cs.android.com/android/platform/superproject/main/+/main:bionic/libc/bionic/android_set_abort_message.cpp
+struct abort_message_t {
+    uint64_t magic1;
+    uint64_t magic2;
+    size_t size;
+    char msg[0];
+};
+
+static std::string getAbortMessage() {
+    if (s_signal != SIGABRT) {
+        return "";
+    }
+
+    for (size_t i = 0; i < g_maps->Total(); i++) {
+        auto map = g_maps->Get(i);
+
+        if (map->name() != "[anon:abort message]") continue;
+
+        auto start = (abort_message_t const*)map->start();
+
+        if (start->magic1 != 0xb18e40886ac388f0ULL || start->magic2 != 0xc6dfba755a1de0b5ULL) {
+            continue;
+        }
+
+        return std::string(start->msg);
+    }
+
+    return "";
+}
+
 void CrashContext::writeInfo(Buffer& stream) {
     auto image = this->imageFromAddress(crashAddr);
 
@@ -296,6 +326,11 @@ void CrashContext::writeInfo(Buffer& stream) {
         stream.append("Signal Detail: ");
         writeSignalDetail(stream, g_context, s_signal, s_siginfo);
         stream.append('\n');
+    }
+
+    auto abortMsg = getAbortMessage();
+    if (!abortMsg.empty()) {
+        stream.append("Abort message: {}\n", abortMsg);
     }
 }
 
