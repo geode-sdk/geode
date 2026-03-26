@@ -953,7 +953,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     std::filesystem::remove_all(tempDir, ec);
     if (ec) {
         auto message = formatSystemError(ec.value());
-        return Err("Unable to delete temp dir: " + message GEODE_WINDOWS( + " Try restarting your PC if the problem persists."));
+        return Err("Unable to delete temp dir: " + message GEODE_WINDOWS( + " Try <cg>restarting your PC</c> to fix the issue."));
     }
 
     (void)utils::file::createDirectoryAll(tempDir);
