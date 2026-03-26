@@ -952,20 +952,7 @@ void ModItem::onViewError(CCObject*) {
     }
 }
 void ModItem::onEnable(CCObject*) {
-    if (auto mod = m_source.asMod()) {
-        // Toggle the mod state
-        auto res = mod->isOrWillBeEnabled() ? mod->disable() : mod->enable();
-        if (!res) {
-            FLAlertLayer::create(
-                "Error Toggling Mod",
-                res.unwrapErr(),
-                "OK"
-            )->show();
-        }
-    }
-
-    // Update state of the mod item
-    UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
+    m_source.requestEnable();
 }
 void ModItem::onPin(CCObject*) {
     if (auto mod = m_source.asMod()) {

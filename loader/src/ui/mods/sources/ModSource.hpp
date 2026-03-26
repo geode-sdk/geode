@@ -46,4 +46,5 @@ public:
     server::ServerFuture<std::vector<server::ServerTag>> fetchValidTags() const;
     server::ServerFuture<server::ServerModUpdateOneCheck> checkUpdates();
     void startInstall();
+    void requestEnable();
 };

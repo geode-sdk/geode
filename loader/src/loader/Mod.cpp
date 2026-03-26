@@ -106,6 +106,10 @@ void Mod::setMetadata(ModMetadata const& metadata) {
 std::vector<Mod*> Mod::getDependants() const {
     return m_impl->getDependants();
 }
+
+std::vector<Mod*> Mod::getEnabledDependants() const {
+    return m_impl->getEnabledDependants();
+}
 #endif
 
 Mod::CheckUpdatesTask Mod::checkUpdates() const {

@@ -17,6 +17,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/string.hpp>
+#include <algorithm>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -134,6 +135,13 @@ void Mod::Impl::setMetadata(ModMetadata const& metadata) {
 }
 std::vector<Mod*> Mod::Impl::getDependants() const {
     return m_dependants;
+}
+std::vector<Mod*> Mod::Impl::getEnabledDependants() const {
+    std::vector<Mod*> ret;
+    std::ranges::copy_if(m_dependants, std::back_inserter(ret), [](Mod* mod) {
+        return mod->isOrWillBeEnabled();
+    });
+    return ret;
 }
 #endif
 
