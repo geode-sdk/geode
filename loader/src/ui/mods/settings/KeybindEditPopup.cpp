@@ -124,7 +124,7 @@ void KeybindEditPopup::updateLabel() {
     m_mainLayer->addChildAtPosition(m_keybindNode, Anchor::Center, ccp(0, keybindOffset));
 }
 
-void KeybindEditPopup::onSet(CCObject*) {
+void KeybindEditPopup::doSet() {
     if (m_currentKeybind.key == KEY_None || m_currentKeybind.key == KEY_Unknown) {
         return;
     }
@@ -135,6 +135,35 @@ void KeybindEditPopup::onSet(CCObject*) {
 void KeybindEditPopup::onRemove(CCObject*) {
     m_callback(Keybind());
     this->onClose(nullptr);
+}
+
+void KeybindEditPopup::onSet(CCObject*) {
+    if(m_currentKeybind.key == KEY_Escape) {
+        createQuickPopup(
+            "Warning",
+            "Setting <cy>Escape</c> can make it\n"
+            "<cr>impossible</c> to pause the game!\n"
+            "Are you sure you want to do this?",
+            "Cancel", "Set",
+            [self = Ref(this)](auto, bool btn2) {
+                if (btn2) {
+                    self->doSet();
+                } else {
+                    self->onClose(nullptr);
+                }
+            }
+        );
+    } else {
+        this->doSet();
+    }
+}
+
+void KeybindEditPopup::keyBackClicked() {
+    // do nothing
+}
+
+void KeybindEditPopup::keyDown(enumKeyCodes, double) {
+    // do nothing
 }
 
 KeybindEditPopup* KeybindEditPopup::create(
