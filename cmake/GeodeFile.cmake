@@ -87,6 +87,7 @@ function(setup_geode_mod proname)
     string(JSON MOD_ID GET "${MOD_JSON}" "id")
     string(JSON MOD_VERSION GET "${MOD_JSON}" "version")
     string(JSON TARGET_GEODE_VERSION GET "${MOD_JSON}" "geode")
+    string(JSON TARGET_GD_VERSION GET "${MOD_JSON}" "gd" "${GEODE_TARGET_PLATFORM_SHORT}")
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
     string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
 
@@ -98,6 +99,14 @@ function(setup_geode_mod proname)
     else()
         message(FATAL_ERROR
             "Mod ${MOD_ID} is made for Geode version ${TARGET_GEODE_VERSION} but you have ${GEODE_VERSION_FULL} SDK installed. Please change the Geode version in your mod.json. "
+        )
+    endif()
+    
+    if ("${TARGET_GD_VERSION}" STREQUAL "${GEODE_GD_VERSION}" OR "${TARGET_GD_VERSION}" STREQUAL "*")
+        message(STATUS "Mod ${MOD_ID} is compiling for Geometry Dash version ${TARGET_GD_VERSION}")
+    else()
+        message(FATAL_ERROR
+            "Mod ${MOD_ID} is made for Geometry Dash version ${TARGET_GD_VERSION} but this version of Geode is for GD version ${GEODE_GD_VERSION}. Please change the Geometry Dash version in your mod.json. "
         )
     endif()
 
