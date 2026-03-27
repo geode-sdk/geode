@@ -24,8 +24,6 @@ using namespace geode::prelude;
 using namespace crashlog;
 using namespace unwindstack;
 
-// https://gist.github.com/jvranish/4441299
-
 static constexpr auto crashIndicatorFilename = "lastSessionDidCrash";
 
 static int s_signal = 0;
@@ -38,12 +36,8 @@ static crashlog::CrashContext g_context;
 static std::unique_ptr<Maps> g_maps;
 static int s_pipe[2];
 
-static constexpr auto CURRENT_ARCH =
-    GEODE_ANDROID32(ARCH_ARM)
-    GEODE_ANDROID64(ARCH_ARM64);
-
 static std::string nameForMap(MapInfo& map, std::shared_ptr<Memory>& memory) {
-    auto elf = map.GetElf(memory, CURRENT_ARCH);
+    auto elf = map.GetElf(memory, Regs::CurrentArch());
 
     std::string name = map.name();
     if (elf) {
@@ -59,7 +53,7 @@ std::vector<Image> CrashContext::getImages() {
     std::vector<Image> images;
     images.reserve(256); // on my device it was around 200, with mods it can be much higher
 
-    if (!g_maps) return images;
+    if (!g_maps || s_skipSymbols.load()) return images;
 
     auto mem = Memory::CreateProcessMemoryCached(getpid());
 
@@ -181,15 +175,15 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
 
     auto mem = Memory::CreateProcessMemoryCached(getpid());
 
-    auto jit = CreateJitDebug(CURRENT_ARCH, mem);
-    auto dex = CreateDexFiles(CURRENT_ARCH, mem);
+    auto jit = CreateJitDebug(Regs::CurrentArch(), mem);
+    auto dex = CreateDexFiles(Regs::CurrentArch(), mem);
 
     GeodeUnwinder unwinder(
         g_maps.get(),
-        Regs::CreateFromUcontext(CURRENT_ARCH, s_context),
+        Regs::CreateFromUcontext(Regs::CurrentArch(), s_context),
         mem
     );
-    unwinder.SetArch(CURRENT_ARCH);
+    unwinder.SetArch(Regs::CurrentArch());
     unwinder.SetResolveNames(!s_skipSymbols);
 
     unwinder.SetJitDebug(jit.get());
@@ -216,25 +210,31 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
             free(demangle);
         }
 
-        Image* image = nullptr;
-        if (frame.map_info) {
-            // try to find the image using map info, more reliable
-            std::string name = nameForMap(*frame.map_info, mem);
-            auto it = std::find_if(g_context.images.begin(), g_context.images.end(), [&name](const Image& img) {
-                return img.name() == name;
-            });
-            if (it != g_context.images.end()) {
-                image = &*it;
-            }
-            // if there is no map info, it is likely a hook handler and will be handled by the common handler
-        }
-
         StackFrame sframe {
             .address = (uintptr_t)frame.pc,
-            .image = image,
             .symbol = std::move(symbol),
             .offset = offset
         };
+
+        if (frame.map_info) {
+            // try to find the image using map info, more reliable
+            std::string name = nameForMap(*frame.map_info, mem);
+
+            if (!s_skipSymbols.load()) {
+                auto it = std::find_if(g_context.images.begin(), g_context.images.end(), [&name](const Image& img) {
+                    return img.name() == name;
+                });
+                if (it != g_context.images.end()) {
+                    sframe.image = &*it;
+                }
+            } else {
+                // if skip symbols is set to true, we have no images in g_context, so mark the image name as description
+                uintptr_t offset = sframe.address - frame.map_info->start();
+                sframe.description = fmt::format("{} + 0x{:x}", name, offset);
+            }
+
+            // if there is no map info, it is likely a hook handler and will be handled by the common handler
+        }
 
         frames.push_back(std::move(sframe));
     }
@@ -356,6 +356,14 @@ void CrashContext::writeInfo(Buffer& stream) {
     auto abortMsg = getAbortMessage();
     if (!abortMsg.empty()) {
         stream.append("Abort message: {}\n", abortMsg);
+    }
+
+    int reentrancy = s_reentrancy.load();
+    if (reentrancy > 1) {
+        stream.append("Note: The crash handler crashed while processing the real crash, so this log does not cover the real crash.\n"
+            "Please report this to the Geode Team. (reentrancy: {})\n",
+            reentrancy
+        );
     }
 }
 
