@@ -34,10 +34,11 @@ static ucontext_t* s_context = nullptr;
 static struct sigaction s_oldAbort;
 static crashlog::CrashContext g_context;
 static std::unique_ptr<Maps> g_maps;
+static std::shared_ptr<Memory> g_memory;
 static int s_pipe[2];
 
-static std::string nameForMap(MapInfo& map, std::shared_ptr<Memory>& memory) {
-    auto elf = map.GetElf(memory, Regs::CurrentArch());
+static std::string nameForMap(MapInfo& map) {
+    auto elf = map.GetElf(g_memory, Regs::CurrentArch());
 
     std::string name = map.name();
     if (elf) {
@@ -54,8 +55,6 @@ std::vector<Image> CrashContext::getImages() {
     images.reserve(256); // on my device it was around 200, with mods it can be much higher
 
     if (!g_maps || s_skipSymbols.load()) return images;
-
-    auto mem = Memory::CreateProcessMemoryCached(getpid());
 
     Image current{};
     std::string currentName;
@@ -99,7 +98,7 @@ std::vector<Image> CrashContext::getImages() {
         // currentName will be raw name in maps e.g. split_config.apk,
         // while the current.name() will be the soname if available
         if (current.name_.empty()) {
-            current.name_ = nameForMap(*map, mem);
+            current.name_ = nameForMap(*map);
         }
 
         if (current.address == 0) {
@@ -173,15 +172,13 @@ public:
 std::vector<StackFrame> CrashContext::getStacktrace() {
     std::vector<StackFrame> frames;
 
-    auto mem = Memory::CreateProcessMemoryCached(getpid());
-
-    auto jit = CreateJitDebug(Regs::CurrentArch(), mem);
-    auto dex = CreateDexFiles(Regs::CurrentArch(), mem);
+    auto jit = CreateJitDebug(Regs::CurrentArch(), g_memory);
+    auto dex = CreateDexFiles(Regs::CurrentArch(), g_memory);
 
     GeodeUnwinder unwinder(
         g_maps.get(),
         Regs::CreateFromUcontext(Regs::CurrentArch(), s_context),
-        mem
+        g_memory
     );
     unwinder.SetArch(Regs::CurrentArch());
     unwinder.SetResolveNames(!s_skipSymbols);
@@ -218,7 +215,7 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
 
         if (frame.map_info) {
             // try to find the image using map info, more reliable
-            std::string name = nameForMap(*frame.map_info, mem);
+            std::string name = nameForMap(*frame.map_info);
 
             if (!s_skipSymbols.load()) {
                 auto it = std::find_if(g_context.images.begin(), g_context.images.end(), [&name](const Image& img) {
@@ -404,7 +401,8 @@ static void handlerThread() {
         int signal = s_signal;
         __android_log_print(ANDROID_LOG_ERROR, "Geode", "Picked up signal %d at %p", signal, signalAddress);
 
-        // initialize maps early
+        // initialize maps & memory early
+        g_memory = Memory::CreateProcessMemoryCached(getpid());
         g_maps = std::make_unique<LocalMaps>();
         if (!g_maps->Parse()) {
             __android_log_print(ANDROID_LOG_ERROR, "Geode", "Failed to parse memory maps");
@@ -412,6 +410,7 @@ static void handlerThread() {
 
         g_context.initialize(signalAddress);
         g_maps.reset();
+        g_memory.reset();
 
         crashlog::writeCrashlog(g_context);
 
