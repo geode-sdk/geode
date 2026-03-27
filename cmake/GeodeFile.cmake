@@ -87,7 +87,7 @@ function(setup_geode_mod proname)
     string(JSON MOD_ID GET "${MOD_JSON}" "id")
     string(JSON MOD_VERSION GET "${MOD_JSON}" "version")
     string(JSON TARGET_GEODE_VERSION GET "${MOD_JSON}" "geode")
-    string(JSON TARGET_GD_VERSION GET "${MOD_JSON}" "gd" "${GEODE_TARGET_PLATFORM_SHORT}")
+    string(JSON TARGET_GD_VERSION GET "${MOD_JSON}" "gd" "${GEODE_TARGET_PLATFORM_JSON}")
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
     string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
 
