@@ -203,7 +203,8 @@ static enumKeyCodes buttonToKeyCode(GCExtendedGamepad* pad, GCControllerButtonIn
         keyCode, isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
         { nativeCode },
         timestamp,
-        modifiers
+        modifiers,
+        nullptr
     );
 
     if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
@@ -255,7 +256,8 @@ static enumKeyCodes buttonToKeyCode(GCExtendedGamepad* pad, GCControllerButtonIn
         keyCode, KeyboardInputData::Action::Release,
         { nativeCode },
         timestamp,
-        modifiers
+        modifiers,
+        nullptr
     );
 
     if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
@@ -355,7 +357,8 @@ inline void handleControllerButton(GCExtendedGamepad* gamepad, GCControllerButto
         [btn isPressed] ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
         {0}, // Controller buttons don't have native codes.
         (double) [gamepad lastEventTimestamp],
-        KeyboardModifier::None
+        KeyboardModifier::None,
+        nullptr
     );
     if (KeyboardInputEvent(key).send(data) != ListenerResult::Propagate) return;
     if (data.key != KEY_Unknown && (!imeDispatcher->hasDelegate() || data.key == KEY_Escape || data.key == KEY_Enter)) {
