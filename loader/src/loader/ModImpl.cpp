@@ -238,19 +238,13 @@ Result<> Mod::Impl::saveData() {
     // ModSettingsManager keeps track of the whole savedata
     matjson::Value json = m_settings->save();
 
-    bool isDefault = true;
-    for (const auto& [key, value] : m_saved) {
-        if (m_settings->get(key) && m_settings->get(key)->isDefaultValue()) {
-            isDefault = false;
-            break;
-        }
-    }
-
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
 
-    if(!isDefault) {
-        auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
+    // TODO: better check if its empty?
+    auto dump = json.dump();
+    if(!dump.starts_with("{}")) {
+        auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", dump);
         if (!res) {
             log::error("Unable to save settings: {}", res.unwrapErr());
         }
@@ -262,8 +256,7 @@ Result<> Mod::Impl::saveData() {
         }
     }
 
-    // TODO: better check if its empty?
-    auto dump = m_saved.dump();
+    dump = m_saved.dump();
     if (!dump.starts_with("{}")) {
         auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
         if (!res2) {
