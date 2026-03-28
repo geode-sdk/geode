@@ -338,12 +338,3 @@ bool ModSettingsManager::restartRequired() const {
 void ModSettingsManager::addDependant(Mod* mod) {
     m_impl->dependants.push_back(mod);
 }
-
-bool ModSettingsManager::isDefaultValues() const {
-    for (const auto& [key, setting] : this->m_impl->settings) {
-        if (setting.v3 && !setting.v3->isDefaultValue()) {
-            return false;
-        }
-    }
-    return true;
-}
