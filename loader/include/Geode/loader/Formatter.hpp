@@ -145,6 +145,9 @@ namespace geode::format {
     };
 
     class FormatBase {
+    public:
+        virtual ~FormatBase() = default;
+    private:
         virtual geode::Result<std::string> format(cocos2d::CCObject const* obj, std::string_view specifier) = 0;
         friend class FormatterImpl;
     };
@@ -162,7 +165,7 @@ namespace geode::format {
         geode::Result<std::string> format(cocos2d::CCObject const* obj, std::string_view specifier) override {
             if (!geode::cast::typeinfo_cast<T*>(obj)) return geode::Err("Incorrect Type");
             if (!m_formatter) return geode::Err("No formatter callback");
-            if (m_formatter) return geode::Ok(m_formatter(static_cast<T*>(const_cast<cocos2d::CCObject*>(obj)), specifier));
+            return geode::Ok(m_formatter(static_cast<T*>(const_cast<cocos2d::CCObject*>(obj)), specifier));
         }
 
         friend class FormatterImpl;

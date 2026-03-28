@@ -1,4 +1,6 @@
+#include <Geode/utils/StringBuffer.hpp>
 #include <Geode/loader/Formatter.hpp>
+#include <ranges>
 
 using namespace geode::prelude;
 
@@ -12,11 +14,11 @@ public:
     }
 
     void addFormat(std::string_view name, std::unique_ptr<FormatBase> format) {
-        m_formatCallbacks.insert(m_formatCallbacks.begin(), std::move(format));
+        m_formatCallbacks.push_back(std::move(format));
     }
 
     Result<std::string> handleFormat(CCObject const* obj, std::string_view specifier) {
-        for (const auto& callback : m_formatCallbacks) {
+        for (const auto& callback : std::views::reverse(m_formatCallbacks)) {
             auto res = callback->format(obj, specifier);
             if (res) return Ok(res.unwrap());
         }
@@ -66,20 +68,22 @@ std::string geode::format_as(CCNode* obj) {
 std::string geode::format_as(CCArray* arr) {
     if (!arr && !arr->count()) return "[empty]";
 
-    fmt::memory_buffer buffer;
-    buffer.push_back('[');
+    StringBuffer<> buffer;
+
+    buffer.append('[');
 
     bool first = true;
 
     for (auto obj : arr->asExt()) {
-        if (!first) buffer.append(std::string_view(", "));
+        if (!first) buffer.append(", ");
         
         first = false;
         buffer.append(format_as(obj));
     }
 
-    buffer.push_back(']');
-    return fmt::to_string(buffer);
+    buffer.append(']');
+
+    return buffer.str();
 }
 
 $execute {
@@ -112,12 +116,13 @@ $execute {
     });
 
     format::registerFormat<CCArray>([] (CCArray* self, std::string_view specifier) -> std::string {
-        if (!self && !self->count()) return "[empty]";
+        if (!self || !self->count()) return "[empty]";
 
         bool rawFormat = specifier == "raw";
 
-        fmt::memory_buffer buffer;
-        buffer.push_back('[');
+        StringBuffer<> buffer;
+
+        buffer.append('[');
 
         bool first = true;
 
@@ -126,21 +131,22 @@ $execute {
             if (!rawFormat) buffer.append(std::string_view("\n\t"));
             first = false;
 
-            buffer.append(fmt::format("{}", format::wrap(obj)));
+            buffer.append("{}", format::wrap(obj));
         }
 
-        if (!rawFormat) buffer.push_back('\n');
-        buffer.push_back(']');
-        return fmt::to_string(buffer);
+        if (!rawFormat) buffer.append('\n');
+
+        buffer.append(']');
+        return buffer.str();
     });
 
     format::registerFormat<CCSet>([] (CCSet* self, std::string_view specifier) -> std::string {
-        if (!self && !self->count()) return "[empty]";
+        if (!self || !self->count()) return "[empty]";
 
         bool rawFormat = specifier == "raw";
 
-        fmt::memory_buffer buffer;
-        buffer.push_back('[');
+        StringBuffer<> buffer;
+        buffer.append('[');
 
         bool first = true;
 
@@ -149,12 +155,13 @@ $execute {
             if (!rawFormat) buffer.append(std::string_view("\n\t"));
             first = false;
 
-            fmt::format_to(fmt::appender(buffer), "{}", format::wrap(static_cast<CCObject*>(*setIter)));
+            buffer.append("{}", format::wrap(static_cast<CCObject*>(*setIter)));
         }
 
-        if (!rawFormat) buffer.push_back('\n');
-        buffer.push_back(']');
-        return fmt::to_string(buffer);
+        if (!rawFormat) buffer.append('\n');
+        buffer.append(']');
+
+        return buffer.str();
     });
 
     format::registerFormat<CCDictionary>([] (CCDictionary* self, std::string_view specifier) -> std::string {
@@ -162,8 +169,8 @@ $execute {
         
         bool rawFormat = specifier == "raw";
 
-        fmt::memory_buffer buffer;
-        buffer.push_back('[');
+        StringBuffer<> buffer;
+        buffer.append('[');
 
         auto appendAll = [&]<typename Key>() {
             bool first = true;
@@ -174,10 +181,10 @@ $execute {
                 first = false;
                 
                 if (self->m_eDictType == CCDictionary::CCDictType::kCCDictStr) {
-                    fmt::format_to(fmt::appender(buffer), "{{ \"{}\": {} }}", key, format::wrap(obj));
+                    buffer.append("{{ \"{}\": {} }}", key, format::wrap(obj));
                 }
                 else {
-                    fmt::format_to(fmt::appender(buffer), "{{ {}: {} }}", key, format::wrap(obj));
+                    buffer.append("{{ {}: {} }}", key, format::wrap(obj));
                 }
             }
         };
@@ -189,9 +196,10 @@ $execute {
             appendAll.operator()<std::string_view>();
         }
 
-        if (!rawFormat) buffer.push_back('\n');
-        buffer.push_back(']');
-        return fmt::to_string(buffer);
+        if (!rawFormat) buffer.append('\n');
+        buffer.append(']');
+
+        return buffer.str();
     });
 
     format::registerFormat<CCTouch>([] (CCTouch* self) -> std::string {
