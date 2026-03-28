@@ -291,21 +291,23 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 
     if ([characters length] != 0) {
         unichar character = [characters characterAtIndex:0];
-        if (character == NSDeleteFunctionKey || character == 0x7f) {
+        if (character == 0x7f) {
             imeDispatcher->dispatchDeleteBackward();
+        }
+        else if (character == NSDeleteFunctionKey) {
+            imeDispatcher->dispatchDeleteForward();
         }
         else if (keyCode == KEY_V && (modifiers & KeyboardModifier::Super) != KeyboardModifier::None) {
             NSString* str = [[NSPasteboard generalPasteboard] stringForType:NSPasteboardTypeString];
-            if (![str isEqualToString:NSPasteboardTypeString]) {
-                for (size_t i = 0; i < [str length]; i++) {
-                    char ch = [str characterAtIndex:i];
-                    imeDispatcher->dispatchInsertText(&ch, 1, keyCode);
-                }
+            if (str != nil && ![str isEqualToString:NSPasteboardTypeString]) {
+                std::string_view input{[str UTF8String], [str lengthOfBytesUsingEncoding:NSUTF8StringEncoding]};
+                imeDispatcher->dispatchInsertText(input.data(), input.size(), keyCode);
             }
         }
         else {
-            char ch = character;
-            imeDispatcher->dispatchInsertText(&ch, 1, keyCode);
+            // we might send multiple bytes of data as utf8!
+            std::string_view input{[characters UTF8String], [characters lengthOfBytesUsingEncoding:NSUTF8StringEncoding]};
+            imeDispatcher->dispatchInsertText(input.data(), input.size(), keyCode);
         }
     }
 }

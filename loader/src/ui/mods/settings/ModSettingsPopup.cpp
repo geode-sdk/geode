@@ -25,7 +25,7 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
         ->setGap(5)
         ->setAutoGrowAxis(30)
         ->setGrowCrossAxis(true));
-    m_buttonMenu->addChildAtPosition(foldersMenu, Anchor::BottomRight, ccp(-5, 10));
+    m_buttonMenu->addChildAtPosition(foldersMenu, Anchor::BottomRight, ccp(-9, 10));
 
     auto createFolderButton = [&, this](auto subSprName, auto callback) {
         auto folderSpr = CCSprite::createWithSpriteFrameName("folderIcon_001.png");
@@ -46,7 +46,7 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
 
     createFolderButton("save.png"_spr, &ModSettingsPopup::onOpenSaveDirectory);
     createFolderButton("settings.png"_spr, &ModSettingsPopup::onOpenConfigDirectory);
-    auto persistentBtn = createFolderButton("persistent.png"_spr, &ModSettingsPopup::onOpenPersistentDirectory);
+    auto persistentBtn = createFolderButton("GJ_lockGray_001.png", &ModSettingsPopup::onOpenPersistentDirectory);
     if (!std::filesystem::exists(mod->getPersistentDir(false))) {
         persistentBtn->setEnabled(false);
         auto spr = static_cast<CCSprite*>(persistentBtn->getNormalImage());

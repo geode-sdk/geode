@@ -448,10 +448,10 @@ public:
             : request(std::move(req)), mod(mod), id(id), onComplete(std::move(cb)) {}
 
         void complete(WebResponse res) {
-            onComplete(res);
-
             WebResponseEvent(mod->getID()).send(res);
             IDBasedWebResponseEvent(id).send(res);
+
+            onComplete(res);
         }
 
         void onError(int code, std::string_view msg) {
@@ -532,6 +532,10 @@ public:
         if (m_curlHeaders) {
             curl_slist_free_all(m_curlHeaders);
         }
+
+        // ensure that progress callbacks are destroyed in the main thread,
+        // because they may capture objects with non thread-safe destructors
+        geode::queueInMainThread([_ = std::move(m_progressCallbacks)] {});
     }
 
     WebResponse makeError(GeodeWebError code, std::string_view msg) {
@@ -600,6 +604,15 @@ public:
         }
 
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(m_httpVersion));
+
+        // HTTP/3 provides very little benefit in general but it may help certain users with weird firewalls,
+        // don't use it by default but allow it to be enabled with a launch flag
+        auto useHttp3 = Loader::get()->getLaunchFlag("use-http3");
+        if (m_httpVersion == HttpVersion::DEFAULT && useHttp3) {
+            auto cachePath = pathToString(Mod::get()->getSaveDir() / "altsvc_cache.txt");
+            curl_easy_setopt(curl, CURLOPT_ALTSVC_CTRL, CURLALTSVC_H3);
+            curl_easy_setopt(curl, CURLOPT_ALTSVC, cachePath.c_str());
+        }
 
         // Set request method
         if (m_method != "GET") {
@@ -1791,7 +1804,7 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
             log::warn("Invalid custom DNS server(s): {}", custom);
         }
     }
-    
+
     auto override = Mod::get()->getSettingValue<std::string_view>("curl-dns3");
     if (override != "Auto") {
         log::debug("Using DNS server override: {}", override);

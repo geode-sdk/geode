@@ -24,8 +24,12 @@ protected:
         Keybind const& keybind,
         Function<void(Keybind const&)> callback
     );
-    void onSet(CCObject*);
+    void doSet();
     void onRemove(CCObject*);
+    void onSet(CCObject*);
+
+    void keyBackClicked();
+    void keyDown(enumKeyCodes, double);
 
     void updateLabel();
 

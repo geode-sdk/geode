@@ -253,9 +253,9 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->updateLayout();
             }
             if (mod->getLoadProblem()) {
-                auto viewErrorSpr = createGeodeCircleButton(
-                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 1.f,
-                    CircleBaseSize::Small
+                auto viewErrorSpr = CircleButtonSprite::create(
+                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 
+                    CircleBaseColor::Red, CircleBaseSize::Small
                 );
                 auto viewErrorBtn = CCMenuItemSpriteExtra::create(
                     viewErrorSpr, this, menu_selector(ModItem::onViewError)
@@ -947,25 +947,12 @@ void ModItem::onViewError(CCObject*) {
                 case LoadProblem::Type::Outdated: title = "Outdated"; break;
                 case LoadProblem::Type::HasIncompatibilities: title = "Incompatibilities"; break;
             }
-            FLAlertLayer::create(title.c_str(), problem->message, "OK")->show();
+            MDPopup::create(title, problem->message, "OK")->show();
         }
     }
 }
 void ModItem::onEnable(CCObject*) {
-    if (auto mod = m_source.asMod()) {
-        // Toggle the mod state
-        auto res = mod->isOrWillBeEnabled() ? mod->disable() : mod->enable();
-        if (!res) {
-            FLAlertLayer::create(
-                "Error Toggling Mod",
-                res.unwrapErr(),
-                "OK"
-            )->show();
-        }
-    }
-
-    // Update state of the mod item
-    UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
+    m_source.requestEnable();
 }
 void ModItem::onPin(CCObject*) {
     if (auto mod = m_source.asMod()) {

@@ -1,5 +1,41 @@
 # Geode Changelog
 
+## v5.4.1
+ * Revert `CCEGLView::get` change (9cdbf5c)
+ * Fix crash when entering Geode menu without resources (000c5a1, 5b4210e)
+
+## v5.4.0
+ * Crashlog rework/unification. Includes a removal of Breakpad on Android! (#1939)
+ * Integrated fallback sprites into Geode (#1819)
+ * Info/button setting types (#1903)
+ * Add `geode::SliderNode` (#1854)
+ * Add `CircleBaseColor::Red` (41f65f7)
+ * Enable signals, and then add `geode::Mod::settingReact` for those signals (17656a8)
+ * Add platform details under `geode::utils::platform` (#1941)
+ * Add `CCNode::getParentByType` (a86381d)
+ * Add `Button::getAnimationType` and `NineSlice::getScaleMultiplier` (#1938)
+ * Disable copying/move operators for fields (83e7a59)
+ * `CCEGLView::get` now uses the CCEGLView singleton (21f5567)
+ * Improvements to the missing dependencies popup (9fa3a79)
+ * Add restart in safe mode button to crash popup on Windows (#1940)
+ * Improve fallback behavior of Geode button when texture is missing (444fab8)
+ * Fix crash when exiting game on macOS (52e16a2)
+ * Fix additional enable/disable flips in setting errors (aae2fe3)
+ * Fix input timestamps on Android (fdb2f26)
+ * macOS text input improvements (9c2289e, 21461ec)
+ * Fix left/right arrow keys in text inputs on Windows (1b66527)
+ * Fix for thread_local crash on Android (08a89a4)
+ * Fix listener assignment leak (85fc0be)
+ * Call web intercept events before calling completion (ae55e2d)
+ * Improvements to loader resource downloading (04be0ba, c09ce5e)
+ * Improvements to mod error messaging on Windows (e74724e, 5646cb0, 2262a8e)
+ * Add Debian steam path to Linux install script (#1843)
+ * Rework and fix multiple sprites (#1896)
+ * Fix slider setting clamping when slider bypass is enabled (#1930)
+ * Several net_libs updates (91de7bf, 7b66058, 3bab07c)
+ * Update TulipHook
+   * This fixes a crash when hooking some functions on ARMv8 platforms (8e88b37)
+
 ## v5.3.0
  * Add `CCDrawNode` hook to fix an uninitialized member (cfe6542)
  * Add `geode::openKeybindsPopup` (#1880)

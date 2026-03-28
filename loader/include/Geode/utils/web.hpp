@@ -303,7 +303,7 @@ namespace geode::utils::web {
          * Sets the response's encoding. Valid values include: br, gzip, deflate, ...
          * You can set multiple encoding types by calling this method with a comma separated list
          * of the encodings of your choosing.
-         * Defaults to not sending an Accept-Encoding: header, and in turn, does not decompress received contents automatically.
+         * Defaults to sending the built-in supported encodings in the Accept-Encoding header.
          *
          * @example
          * auto req = web::WebRequest()
@@ -373,6 +373,8 @@ namespace geode::utils::web {
         /**
          * Sets the Certificate Authority (CA) bundle content.
          * Defaults to sending the Geode CA bundle, found here: https://github.com/geode-sdk/net_libs/blob/main/ca_bundle.h
+         *
+         * Setting the content to an empty string also defaults to the Geode CA bundle.
          *
          * @param content
          * @return WebRequest&

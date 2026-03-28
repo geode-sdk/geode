@@ -616,7 +616,7 @@ void Loader::Impl::findProblems() {
             if (dep.isBreaking()) {
                 // todo: which direction is this relationship in?
                 // todo: if mod A marks B as breaking, is B the one that shouldn't be loaded?
-                breakingIncompatibilities.push_back(dep.getMod()->getName());
+                breakingIncompatibilities.push_back(dep.getMod()->getID());
                 log::warn("{} breaks {} {}", id, dep.getID(), dep.getVersion());
             }
             else {
@@ -639,12 +639,12 @@ void Loader::Impl::findProblems() {
             else {
                 auto installedDependency = m_mods.at(dep.getID());
                 if (!installedDependency->isLoaded()) {
-                    disabledDependencies.push_back(installedDependency->getName());
+                    disabledDependencies.push_back(installedDependency->getID());
                 }
                 else if (dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
                     outdatedDependencies.push_back(fmt::format(
                         "{} ({} -> {})",
-                        installedDependency->getName(),
+                        installedDependency->getID(),
                         installedDependency->getVersion(),
                         dep.getVersion()
                     ));
@@ -666,55 +666,29 @@ void Loader::Impl::findProblems() {
             std::string message;
             bool lastWasIncompatible = false;
             for (auto const& [whatToDo, mods] : std::initializer_list<std::pair<std::string_view, std::vector<std::string> const&>> {
-                std::make_pair("incompatible", breakingIncompatibilities),
-                std::make_pair("installed", noninstalledDependencies),
-                std::make_pair("enabled", disabledDependencies),
-                std::make_pair("updated", outdatedDependencies),
+                std::make_pair("disable", breakingIncompatibilities),
+                std::make_pair("install", noninstalledDependencies),
+                std::make_pair("enable", disabledDependencies),
+                std::make_pair("update", outdatedDependencies),
             }) {
                 if (mods.empty()) continue;
                 if (message.empty()) {
-                    // Incompatibilities have a different message because
-                    // they're not missing dependencies
-                    if (whatToDo == "incompatible") {
-                        message = fmt::format(
-                            "{} is incompatible with the following mod{}: {}",
-                            mod->getName(), (mods.size() == 1 ? "" : "s"), ranges::join(mods, ", ")
-                        );
-                        lastWasIncompatible = true;
-                    }
-                    // Everything else is missing dependency-related
-                    else {
-                        message = fmt::format(
-                            "{} requires the following mod{} to be {}: {}",
-                            mod->getName(), (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
-                        );
-                    }
+                    message = fmt::format(
+                        "Please <cy>{}</c> the following mod{} to use <co>{}</c>: {}",
+                        whatToDo, (mods.size() == 1 ? "" : "s"), mod->getName(),
+                        //ranges::join(mods, ", "),
+                        ranges::join(mods, std::string(""), [](const std::string& m) {
+                            return fmt::format("\n\n<mod:{}>", m.substr(0, m.find(' ')));
+                        })
+                    );
                 }
                 else {
-                    message += "\n";
-
-                    // Enclose missing dependencies after incompatibilities in
-                    // parentheses since those aren't the main point of the
-                    // error message
-                    message += (breakingIncompatibilities.size() ? "(" : "");
-
-                    // If the first sentence was about an incompatibility, we
-                    // need to have the next sentence specify that we are now
-                    // listing dependencies
-                    if (lastWasIncompatible) {
-                        message += fmt::format(
-                            "And requires these mod{} to be {}: {}",
-                            (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
-                        );
-                    }
-                    else {
-                        message += fmt::format(
-                            "And these mod{} to be {}: {}",
-                            (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
-                        );
-                    }
-                    message += breakingIncompatibilities.size() ? ")" : "";
-                    lastWasIncompatible = false;
+                    message += fmt::format("\n\nand {} the following mod{}: {}",
+                        whatToDo, (mods.size() == 1 ? "" : "s"),
+                        ranges::join(mods, std::string(""), [](const std::string& m) {
+                            return fmt::format("\n\n<mod:{}>", m.substr(0, m.find(' ')));
+                        })
+                    );
                 }
             }
             this->addProblem({
@@ -979,7 +953,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     std::filesystem::remove_all(tempDir, ec);
     if (ec) {
         auto message = formatSystemError(ec.value());
-        return Err("Unable to delete temp dir: " + message);
+        return Err("Unable to delete temp dir: " + message GEODE_WINDOWS( + " Try <cg>restarting your PC</c> to fix the issue."));
     }
 
     (void)utils::file::createDirectoryAll(tempDir);

@@ -17,7 +17,8 @@
 #include <optional>
 #include <mutex>
 #include <string.h>
-
+#include <unistd.h>
+#include <sys/system_properties.h>
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
 
@@ -489,4 +490,53 @@ geode::Result<int> geode::utils::getLauncherVersion() {
 
 double geode::utils::getInputTimestamp() {
     return JniHelper::getPlatformTimestamp();
+}
+
+
+bool geode::utils::platform::isWine() {
+    return false;
+}
+
+// we had a 15 minute argument on lead dev chat about whether we should "hardcode" the current architecture or
+// get it somewhere. i give up i am tired as hell. i do not like hardcoding this like this but
+// god it is such a pain to not do it this way. if anyone wants to use this code in v6 arm or x86 or mips or 
+// whatever please tell alk so she can bicker dank about how hardcoding it was a bad idea and now they need
+// to change this function 6 years later down the line, thanks
+const char* currentArchName() {
+    #if defined(GEODE_IS_ANDROID32)
+        return "armeabi-v7a";
+    #elif defined(GEODE_IS_ANDROID64)
+        return "arm64-v8a";
+    #else
+        #error "Unsupported architecture!"
+    #endif
+}
+
+// https://stackoverflow.com/questions/19355783/getting-os-version-with-ndk-in-c
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    std::array<char, PROP_VALUE_MAX+1> buffer;
+
+    int releaseVersionLength = __system_property_get("ro.build.version.release", buffer.data());
+    details.releaseVersion = std::string(buffer.data(), releaseVersionLength);
+
+    int sdkVersionLength = __system_property_get("ro.build.version.sdk", buffer.data());
+    details.sdkVersion = geode::utils::numFromString<uint32_t>(std::string(buffer.data(), sdkVersionLength)).unwrapOrDefault();
+
+    details.arch = currentArchName();
+
+    int hostArchLength = __system_property_get("ro.product.cpu.abi", buffer.data());
+    details.hostArch = std::string(buffer.data(), hostArchLength);
+
+    details.pageSize = getpagesize();
+
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    auto hostStr = details.hostArch != details.arch ? fmt::format(", {} CPU", details.hostArch) : "";
+    return fmt::format("Android {} {} (SDK {}{})", 
+        details.releaseVersion, details.arch, details.sdkVersion, hostStr);
 }

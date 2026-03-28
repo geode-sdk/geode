@@ -12,10 +12,13 @@ using namespace geode::prelude;
 #include <Geode/utils/Task.hpp>
 #include <string.h>
 #include <arc/sync/oneshot.hpp>
+#include <mach-o/utils.h>
+#include <sys/sysctl.h>
 
 #define CommentType CommentTypeDummy
 #import <AppKit/AppKit.h>
 #import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 #undef CommentType
 
 
@@ -296,12 +299,14 @@ void geode::utils::game::exit(bool save) {
         void shutdown() {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-method-access"
-            GameEvent(GameEventType::Exiting).send();
+            // event will be called through shutdownGame
+            // GameEvent(GameEventType::Exiting).send();
             [[[NSClassFromString(@"AppControllerManager") sharedInstance] controller] shutdownGame];
 #pragma clang diagnostic pop
         }
 
         void shutdownNoSave() {
+            // this crashes due to being called from non starting thread :(
             GameEvent(GameEventType::Exiting).send();
             std::exit(0); // i don't know if this is the best
         }
@@ -528,4 +533,55 @@ bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
         delete[] data;
     }
     return success;
+}
+
+bool geode::utils::platform::isWine() {
+    return false;
+}
+
+bool isRosetta() {
+#if defined(GEODE_IS_ARM_MAC)
+    return false;
+#else
+    int translated = 0;
+    size_t size = 0;
+
+    sysctlbyname("sysctl.proc_translated", nullptr, &size, nullptr, 0);
+    if (sysctlbyname("sysctl.proc_translated", &translated, &size, nullptr, 0) == 0) {
+        if (translated == 1) {
+            return true;
+        }
+    }
+
+    return false;
+#endif
+}
+
+const char* currentArchName() {
+    #if defined(GEODE_IS_ARM_MAC)
+        return "arm64";
+    #elif defined(GEODE_IS_INTEL_MAC)
+        return "x86_64";
+    #else
+        #error "Unsupported architecture!"
+    #endif
+}
+
+// https://stackoverflow.com/questions/11072804/how-do-i-determine-the-os-version-at-runtime-in-os-x-or-ios-without-using-gesta
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    auto version = [[NSProcessInfo processInfo] operatingSystemVersion];
+    details.majorVersion = version.majorVersion;
+    details.minorVersion = version.minorVersion;
+    details.patchVersion = version.patchVersion;
+    details.arch = currentArchName();
+    details.rosetta = isRosetta();
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    auto rosettaText = details.rosetta ? " (Rosetta)" : "";
+    return fmt::format("MacOS {}{} {}.{}.{}", details.arch, rosettaText, details.majorVersion, details.minorVersion, details.patchVersion);
 }

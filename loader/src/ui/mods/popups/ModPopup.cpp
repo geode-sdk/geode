@@ -1126,17 +1126,7 @@ void ModPopup::onTab(CCObject* sender) {
 }
 
 void ModPopup::onEnable(CCObject*) {
-    if (auto mod = m_source.asMod()) {
-        // Toggle the mod state
-        auto res = mod->isOrWillBeEnabled() ? mod->disable() : mod->enable();
-        if (!res) {
-            FLAlertLayer::create("Error Toggling Mod", res.unwrapErr(), "OK")->show();
-        }
-    }
-    else {
-        FLAlertLayer::create("Error Toggling Mod", "This mod can not be toggled!", "OK")->show();
-    }
-    UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
+    m_source.requestEnable();
 }
 
 void ModPopup::onInstall(CCObject*) {

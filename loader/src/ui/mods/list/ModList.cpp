@@ -760,6 +760,9 @@ void ModList::onToggleErrors(CCObject*) {
         mut->type = mut->type == InstalledModListType::OnlyErrors ?
             InstalledModListType::All :
             InstalledModListType::OnlyErrors;
+        if(mut->type == InstalledModListType::OnlyErrors) {
+            Notification::create("Click the (!) button to see\nthe errors for each mod.", nullptr, NOTIFICATION_DEFAULT_TIME * 2)->show();
+        }
     }
 }
 void ModList::onUpdateAll(CCObject*) {

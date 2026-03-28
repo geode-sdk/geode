@@ -5,6 +5,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/ZStringView.hpp>
+#include <Geode/loader/Signal.hpp>
 
 namespace geode {
     class Mod::Impl {
@@ -52,6 +53,10 @@ namespace geode {
          * Setting values. This is behind unique_ptr for interior mutability
          */
         std::unique_ptr<ModSettingsManager> m_settings = nullptr;
+        /**
+         * Setting observer.
+         */
+        comm::Observer m_settingObserver;
         /**
          * Whether the mod resources are loaded or not
          */
@@ -104,6 +109,7 @@ namespace geode {
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
         std::vector<Mod*> getDependants() const;
+        std::vector<Mod*> getEnabledDependants() const;
 #endif
 
         Result<> saveData();
@@ -116,6 +122,7 @@ namespace geode {
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string_view key) const;
+        void settingReact(geode::Function<void()> fn);
 
         std::string getLaunchArgumentName(std::string_view name) const;
         std::vector<std::string> getLaunchArgumentNames() const;

@@ -25,7 +25,7 @@ arc::TaskHandle<void> spawn(Lambda&& lambda, Cb&& cb) {
     constexpr bool Void = std::is_void_v<Out>;
 
     struct SpawnPollable : arc::Pollable<SpawnPollable, void> {
-        explicit SpawnPollable(Func&& f, Cb&& c) : m_func(std::forward<Func>(f)), m_callback(std::forward<Cb>(c)) {}
+        explicit SpawnPollable(Lambda&& f, Cb&& c) : m_func(std::forward<Lambda>(f)), m_callback(std::forward<Cb>(c)) {}
 
         bool poll(arc::Context& cx) {
             if (!m_fut) {
@@ -77,7 +77,7 @@ arc::TaskHandle<void> spawn(Lambda&& lambda, Cb&& cb) {
     };
 
     return runtime().spawn(SpawnPollable {
-        std::forward<Func>(lambda),
+        std::forward<Lambda>(lambda),
         std::forward<Cb>(cb),
     });
 }

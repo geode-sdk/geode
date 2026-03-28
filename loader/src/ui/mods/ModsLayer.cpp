@@ -377,7 +377,7 @@ bool ModsLayer::init() {
         CircleBaseSize::Medium
     );
     settingsSpr->setScale(.8f);
-    settingsSpr->setTopOffset(ccp(.5f, 0));
+    settingsSpr->setTopOffset(ccp(-0.1f, 0));
     auto settingsBtn = CCMenuItemSpriteExtra::create(
         settingsSpr, this, menu_selector(ModsLayer::onSettings)
     );
@@ -389,7 +389,7 @@ bool ModsLayer::init() {
         CircleBaseSize::Medium
     );
     keybindsSpr->setScale(.8f);
-    keybindsSpr->setTopOffset(ccp(0, 1));
+    keybindsSpr->setTopOffset(ccp(0.2f, 1));
     auto keybindsBtn = CCMenuItemSpriteExtra::create(
         keybindsSpr, this, menu_selector(ModsLayer::onKeybinds)
     );
@@ -397,14 +397,13 @@ bool ModsLayer::init() {
     actionsMenu->addChild(keybindsBtn);
 
     if (Mod::get()->getSettingValue<bool>("restart-button")) {
-        auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload.png"_spr);
-        restartGDSpr->setColor({ 255, 215, 65 });
+        auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload-gold.png"_spr);
         auto restartGDCircleSpr = createGeodeCircleButton(
             restartGDSpr, 1.f,
             CircleBaseSize::Medium
         );
         restartGDCircleSpr->setScale(.8f);
-        restartGDCircleSpr->setTopOffset(ccp(.5f, 0));
+        restartGDCircleSpr->setTopOffset(ccp(1.5f, -1.f));
         auto restartGDBtn = CCMenuItemSpriteExtra::create(
             restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
         );

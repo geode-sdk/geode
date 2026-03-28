@@ -1,21 +1,21 @@
 if (GEODE_TARGET_PLATFORM STREQUAL "iOS")
 	set(net_libs_plat "ios")
-	set(net_libs_hash "SHA256=8b4a965cfb3bede3b377ce174e58da195b115e296b814457e3cf4f13ca11ed56")
+	set(net_libs_hash "SHA256=1065ef2adc191a82de3f1d69826c29f8b1526accb092bde37966a5467606962c")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
 	set(net_libs_plat "macos")
-	set(net_libs_hash "SHA256=d83d968e709ac373a985170cfb2fb7477678f79e6afa307b864ced14e96e0be5")
+	set(net_libs_hash "SHA256=c91a60646b8b0b4d879edf1230006d430de72b84d8feee8151cbd9136241898e")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Win64")
 	set(net_libs_plat "windows")
-	set(net_libs_hash "SHA256=9de01260210dc8141881de6cd313fadf8725c04c9a8ab6e3453dc828c6918dda")
+	set(net_libs_hash "SHA256=478170d63fe6850e032e1e2de51ad744fa595aac40da5df65afe9996313bccb7")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
 	set(net_libs_plat "android32")
-	set(net_libs_hash "SHA256=f2274df2db9a540be961646f5400df394cef6b86a75b127fd131ff97b0feb7cf")
+	set(net_libs_hash "SHA256=e113ffeab4bfcbc193977ae695b87e63cc8c1062dd20270321798e45ff2d350c")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 	set(net_libs_plat "android64")
-	set(net_libs_hash "SHA256=5c072b264c8a82b2bd6b64bd9b4f8c0ea6bf0a09650c70bdd076ff54b0ddf408")
+	set(net_libs_hash "SHA256=9ace6335c077d42e4bc4510feea35212d628dab54a4df49b6792d6ee8aa81909")
 endif()
 
-set(net_libs_version "8.19.0-7")
+set(net_libs_version "8.19.0-9")
 CPMAddPackage(
 	NAME net_libs_bin
 	VERSION "${net_libs_version}_${net_libs_plat}"
@@ -32,6 +32,9 @@ if (WIN32)
 		${net_libs_bin_SOURCE_DIR}/nghttp2.lib
 		${net_libs_bin_SOURCE_DIR}/libcrypto.lib
 		${net_libs_bin_SOURCE_DIR}/libssl.lib
+		${net_libs_bin_SOURCE_DIR}/ngtcp2.lib
+		${net_libs_bin_SOURCE_DIR}/ngtcp2_crypto_ossl.lib
+		${net_libs_bin_SOURCE_DIR}/nghttp3.lib
 		${net_libs_bin_SOURCE_DIR}/zs.lib
 		${net_libs_bin_SOURCE_DIR}/zstd_static.lib
 	)
@@ -42,6 +45,9 @@ else()
 		${net_libs_bin_SOURCE_DIR}/libnghttp2.a
 		${net_libs_bin_SOURCE_DIR}/libcrypto.a
 		${net_libs_bin_SOURCE_DIR}/libssl.a
+		${net_libs_bin_SOURCE_DIR}/libngtcp2.a
+		${net_libs_bin_SOURCE_DIR}/libngtcp2_crypto_ossl.a
+		${net_libs_bin_SOURCE_DIR}/libnghttp3.a
 		${net_libs_bin_SOURCE_DIR}/libz.a
 		${net_libs_bin_SOURCE_DIR}/libzstd.a
 	)

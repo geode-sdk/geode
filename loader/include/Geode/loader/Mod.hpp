@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <vector>
 #include <arc/future/Future.hpp>
+#include "Signal.hpp"
 
 namespace geode {
     template <class T>
@@ -80,6 +81,7 @@ namespace geode {
 
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
+        void settingReact(geode::Function<void()> fn);
     public:
         // no copying
         Mod(Mod const&) = delete;
@@ -135,6 +137,7 @@ namespace geode {
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
         std::vector<Mod*> getDependants() const;
+        std::vector<Mod*> getEnabledDependants() const;
 #endif
 
         using CheckUpdatesTask = arc::Future<Result<std::optional<VersionInfo>>>;
@@ -254,6 +257,18 @@ namespace geode {
                 return T(sett->getValue());
             }
             return T();
+        }
+
+        template <class T>
+        comm::Signal<T> makeSettingSignal(std::string_view key) {
+            comm::Signal<T> sig = getSettingValue<T>(key);
+            settingReact([=, this] { setSettingValue<T>(key, *sig); });
+
+            listenForSettingChanges(key, [=](T value) mutable {
+                *sig = value;
+            }, this);
+
+            return sig;
         }
 
         template <class T>
