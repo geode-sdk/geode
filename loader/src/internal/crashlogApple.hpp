@@ -1,5 +1,6 @@
 #include "crashlogUnix.hpp"
 #include <Geode/utils/ZStringView.hpp>
+#include <Geode/utils/string.hpp>
 
 #include <mach-o/dyld_images.h>
 #include <mach-o/dyld.h>
@@ -206,3 +207,18 @@ static std::vector<uintptr_t> const& getFunctionStarts() {
     return funcs;
 }
 
+/// Parses a string in format "0  Geode.dylib   0x12345678 symbol + offset" into just the symbol and offset
+static std::pair<std::string_view, uintptr_t> parseBacktraceSymbol(std::string_view line) {
+    size_t plusPos = line.rfind(" + ");
+    if (plusPos == std::string_view::npos) return {};
+
+    auto leftPart = line.substr(0, plusPos);
+    auto offsetPart = line.substr(plusPos + 3); // 3 to skip " + "
+    auto offset = geode::utils::numFromString<uintptr_t>(offsetPart).unwrapOr(0);
+
+    size_t lastSpacePos = leftPart.rfind(' ');
+    if (lastSpacePos == std::string_view::npos) return {};
+
+    auto symbol = leftPart.substr(lastSpacePos + 1);
+    return { symbol, offset };
+}

@@ -41,6 +41,7 @@ namespace crashlog {
 
         std::string_view name() const;
         std::string_view shortName() const;
+        bool isGameBinary() const;
     };
 
     struct StackFrame {

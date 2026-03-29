@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <Geode/utils/StringBuffer.hpp>
 #include <crashlog.hpp>
+#include <cxxabi.h>
 
 inline std::string_view getSignalCodeString(int signal, siginfo_t* siginfo) {
     switch(signal) {
@@ -68,6 +69,10 @@ inline void writeSignalDetail(crashlog::Buffer& stream, crashlog::CrashContext& 
                 case SEGV_ACCERR: {
                     stream.append("invalid permissions for mapped object");
                 } break;
+
+                default: {
+                    stream.append("unknown reason (code {})", siginfo->si_code);
+                } break;
             }
 
             stream.append(')');
@@ -90,6 +95,10 @@ inline void writeSignalDetail(crashlog::Buffer& stream, crashlog::CrashContext& 
                 case BUS_OBJERR: {
                     stream.append("object-specific hardware error");
                 } break;
+
+                default: {
+                    stream.append("unknown reason (code {})", siginfo->si_code);
+                } break;
             }
 
             stream.append(')');
@@ -101,4 +110,15 @@ inline void writeSignalDetail(crashlog::Buffer& stream, crashlog::CrashContext& 
         } break;
     }
 
+}
+
+inline std::string demangle(const char* name) {
+    std::string out;
+    int status;
+    auto demangle = abi::__cxa_demangle(name, 0, 0, &status);
+    if (status == 0) {
+        out = demangle;
+    }
+    free(demangle);
+    return out;
 }

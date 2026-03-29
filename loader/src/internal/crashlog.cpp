@@ -29,6 +29,10 @@ std::string_view crashlog::Image::shortName() const {
     return std::string_view{name_}.substr(slash + 1);
 }
 
+bool crashlog::Image::isGameBinary() const {
+    return this->address == base::get();
+}
+
 ptrdiff_t crashlog::StackFrame::imageOffset() const {
     if (image == nullptr) {
         return 0;

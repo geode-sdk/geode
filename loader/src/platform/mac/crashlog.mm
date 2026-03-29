@@ -7,8 +7,8 @@
 #include <filesystem>
 #include <execinfo.h>
 #include <dlfcn.h>
-#include <cxxabi.h>
 #include <algorithm>
+#include <asp/iter.hpp>
 
 #include <mach-o/dyld_images.h>
 #include <mach-o/dyld.h>
@@ -81,114 +81,83 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 	std::_Exit(EXIT_FAILURE);
 }
 
+
 std::vector<StackFrame> CrashContext::getStacktrace() {
-    // this function is evil
     std::vector<StackFrame> frames;
 
     auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
 
-    auto gameDir = geode::utils::string::pathToString(dirs::getGameDir());
-    std::stringstream lines(addr2Line());
-
-    for (int i = 1; i < s_backtraceSize; ++i) {
-        auto message = std::string(messages[i]);
-
-        auto stream = std::stringstream(message);
-        int index;
-        std::string binary;
-        uintptr_t address;
-        std::string function;
-        uintptr_t offset;
-        std::string line;
-
-        stream >> index;
-
-        if (!lines.eof()) {
-            std::getline(lines, line);
-        }
-        std::getline(stream, binary);
-        auto cutoff = binary.find("0x");
-        stream = std::stringstream(binary.substr(cutoff));
-        binary = geode::utils::string::trim(binary.substr(0, cutoff));
-        stream >> std::hex >> address >> std::dec;
+    for (int i = 1; i < s_backtraceSize; i++) {
+        void* address = s_backtrace[i];
+        std::string_view symbolStr{messages[i]};
 
         StackFrame frame{};
-        frame.address = address;
-        auto image = g_context.imageFromAddress(reinterpret_cast<void*>(address));
-        frame.image = image;
+        frame.address = reinterpret_cast<uintptr_t>(address);
+        frame.image = g_context.imageFromAddress(address);
 
-        if (!line.empty()) {
-            // log::debug("address: {}", address);
-            // log::debug("image: {}", image);
+        // if this is inside GD code, use function starts and look up the function in the known function list
+        if (frame.image && frame.image->isGameBinary()) {
+            uintptr_t imageOffset = frame.imageOffset();
+            // find closest function start
+            auto const& funcs = getFunctionStarts();
+            auto iter = std::upper_bound(funcs.begin(), funcs.end(), imageOffset);
+            if (iter != funcs.begin()) {
+                --iter;
+                auto funcOffset = *iter;
+                auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
+                frame.offset = imageOffset - funcOffset;
 
-            if (image) {
-                auto baseAddress = image->address;
+                if (funcName.empty()) {
+                    frame.symbol = fmt::format("sub_{:x}", funcOffset);
+                } else {
+                    frame.symbol = funcName;
+                }
+            }
+        } else {
+            // parse from backtrace_symbols, and use dladdr as fallback
+            auto [symbol, offset] = parseBacktraceSymbol(symbolStr);
 
-                uintptr_t offset = address - (uintptr_t)baseAddress;
-
-                if (base::get() == (uintptr_t)baseAddress) {
-                    // find closest function start
-                    auto const& funcs = getFunctionStarts();
-                    auto iter = std::upper_bound(funcs.begin(), funcs.end(), offset);
-                    if (iter != funcs.begin()) {
-                        --iter;
-                        auto funcOffset = *iter;
-                        auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
-                        frame.offset = offset - funcOffset;
-
-                        if (funcName.empty()) {
-                            frame.symbol = fmt::format("sub_{:x}", funcOffset);
-                        } else {
-                            frame.symbol = funcName;
-                        }
-                    }
+            Dl_info info{};
+            if (symbol.empty() && dladdr(address, &info)) {
+                if (info.dli_sname) {
+                    symbol = info.dli_sname;
+                    offset = reinterpret_cast<uintptr_t>(address) - reinterpret_cast<uintptr_t>(info.dli_saddr);
                 }
             }
 
-            if (frame.symbol.empty()) {
-                // try to extract the symbol name
-                auto endSymName = line.find(" (in ");
-                if (endSymName != std::string::npos && !line.starts_with("0x")) {
-                    frame.symbol = line.substr(0, endSymName);
-                }
-
-                // now if that succeeded, try to extract the file/line information
-                auto lastParen = line.rfind(')');
-                auto lineInfoSplit = line.rfind(':', lastParen);
-                auto startParen = line.rfind('(', lineInfoSplit);
-
-                if (startParen != std::string::npos && lastParen != std::string::npos && lineInfoSplit != std::string::npos) {
-                    auto inner = std::string_view{line}.substr(startParen + 1, lastParen - startParen - 1);
-                    auto colon = inner.rfind(':');
-                    auto file = inner.substr(0, colon);
-                    auto lineNum = inner.substr(colon + 1);
-
-                    frame.file = file;
-                    frame.line = utils::numFromString<uint32_t>(lineNum).unwrapOr(0);
-                }
-            }
-        }
-        else {
-            std::getline(stream, function);
-            cutoff = function.find("+");
-            stream = std::stringstream(function.substr(cutoff));
-            stream >> offset;
-            function = geode::utils::string::trim(function.substr(0, cutoff));
-
-            {
-                int status;
-                auto demangle = abi::__cxa_demangle(function.c_str(), 0, 0, &status);
-                if (status == 0) {
-                    function = demangle;
-                }
-                free(demangle);
-            }
-
-            frame.symbol = function;
+            auto demangled = demangle(std::string{symbol}.c_str());
+            frame.symbol = demangled.empty() ? symbol : demangled;
             frame.offset = offset;
         }
 
         frames.push_back(std::move(frame));
+    }
+
+    // parse extra information (debug data)
+
+    auto debugOutput = addr2Line();
+
+    for (auto [i, line] : asp::iter::split(debugOutput, '\n').enumerate()) {
+        // grab the right parens
+        auto lastParen = line.rfind(')');
+        auto startParen = line.rfind('(', lastParen);
+        if (startParen == std::string::npos || lastParen == std::string::npos) {
+            continue;
+        }
+
+        auto inner = std::string_view{line}.substr(startParen + 1, lastParen - startParen - 1);
+        auto colon = inner.rfind(':');
+        if (colon == std::string::npos) {
+            continue;
+        }
+
+        auto file = inner.substr(0, colon);
+        auto lineStr = inner.substr(colon + 1);
+        auto lineNum = geode::utils::numFromString<uint32_t>(lineStr).unwrapOr(0);
+
+        auto& frame = frames[i];
+        frame.file = file;
+        frame.line = lineNum;
     }
 
     free(messages);
