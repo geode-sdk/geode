@@ -139,7 +139,7 @@ static std::string executeCommand(ZStringView cmd) {
 
 static std::string addr2Line() {
     StringBuffer<> stream;
-    stream.append("atos -p {} ", getpid());
+    stream.append("atos --fullPath -p {} ", getpid());
     for (int i = 1; i < s_backtraceSize; ++i) {
         stream.append("{} ", s_backtrace[i]);
     }
