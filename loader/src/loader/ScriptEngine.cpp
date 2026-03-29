@@ -21,7 +21,7 @@ namespace geode {
         }
 
         int executeMenuItemEvent(CCMenuItem* menuItem) {
-            MenuItemActivatedEvent(menuItem).send();
+            MenuItemActivatedEvent(menuItem).send(menuItem);
             return -1;
         }
 
