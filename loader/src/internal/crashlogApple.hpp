@@ -4,6 +4,15 @@
 
 #include <mach-o/dyld_images.h>
 #include <mach-o/dyld.h>
+#include <array>
+#include <execinfo.h>
+#include <dlfcn.h>
+#include <cxxabi.h>
+#include <asp/iter.hpp>
+
+#define CommentType CommentTypeDummy
+#import <Foundation/Foundation.h>
+#undef CommentType
 
 using namespace geode::prelude;
 using namespace crashlog;
@@ -251,4 +260,66 @@ static std::pair<std::string_view, uintptr_t> parseBacktraceSymbol(std::string_v
 
     auto symbol = leftPart.substr(lastSpacePos + 1);
     return { symbol, offset };
+}
+
+std::vector<StackFrame> CrashContext::getStacktrace() {
+    std::vector<StackFrame> frames;
+
+    auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
+
+    for (int i = 0; i < s_backtraceSize; i++) {
+        void* address = s_backtrace[i];
+        std::string_view symbolStr{messages[i]};
+
+        StackFrame frame{};
+        frame.address = reinterpret_cast<uintptr_t>(address);
+        frame.image = g_context.imageFromAddress(address);
+
+        // if this is inside GD code, use function starts and look up the function in the known function list
+        if (frame.image && frame.image->isGameBinary()) {
+            uintptr_t imageOffset = frame.imageOffset();
+            // find closest function start
+            auto const& funcs = getFunctionStarts();
+            auto iter = std::upper_bound(funcs.begin(), funcs.end(), imageOffset);
+            if (iter != funcs.begin()) {
+                --iter;
+                auto funcOffset = *iter;
+                auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
+                frame.offset = imageOffset - funcOffset;
+
+                if (funcName.empty()) {
+                    frame.symbol = fmt::format("sub_{:x}", funcOffset);
+                } else {
+                    frame.symbol = funcName;
+                }
+            }
+        } else {
+            // parse from backtrace_symbols, and use dladdr as fallback
+            auto [symbol, offset] = parseBacktraceSymbol(symbolStr);
+
+            Dl_info info{};
+            if (symbol.empty() && dladdr(address, &info)) {
+                if (info.dli_sname) {
+                    symbol = info.dli_sname;
+                    offset = reinterpret_cast<uintptr_t>(address) - reinterpret_cast<uintptr_t>(info.dli_saddr);
+                }
+            }
+
+            auto demangled = demangle(std::string{symbol}.c_str());
+            frame.symbol = demangled.empty() ? symbol : demangled;
+            frame.offset = offset;
+        }
+
+        frames.push_back(std::move(frame));
+    }
+
+    free(messages);
+
+    // parse extra information (debug data)
+    for (auto& [i, dframe] : asp::iter::consume(addr2Line()).enumerate()) {
+        frames[i].file = std::move(dframe.file);
+        frames[i].line = dframe.line;
+    }
+
+    return frames;
 }
