@@ -66,6 +66,12 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 		s_backtrace[s_backtraceSize] = nullptr;
 	}
 
+    // erase first frame since it's always the signal handler and we don't care about it
+    for (size_t i = 1; i < s_backtraceSize; i++) {
+        s_backtrace[i - 1] = s_backtrace[i];
+    }
+    if (s_backtraceSize > 0) s_backtraceSize--;
+
     {
         std::unique_lock<std::mutex> lock(s_mutex);
         s_signal = signal;
@@ -87,7 +93,7 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
 
     auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
 
-    for (int i = 1; i < s_backtraceSize; i++) {
+    for (int i = 0; i < s_backtraceSize; i++) {
         void* address = s_backtrace[i];
         std::string_view symbolStr{messages[i]};
 
@@ -133,34 +139,13 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
         frames.push_back(std::move(frame));
     }
 
-    // parse extra information (debug data)
-
-    auto debugOutput = addr2Line();
-
-    for (auto [i, line] : asp::iter::split(debugOutput, '\n').enumerate()) {
-        // grab the right parens
-        auto lastParen = line.rfind(')');
-        auto startParen = line.rfind('(', lastParen);
-        if (startParen == std::string::npos || lastParen == std::string::npos) {
-            continue;
-        }
-
-        auto inner = std::string_view{line}.substr(startParen + 1, lastParen - startParen - 1);
-        auto colon = inner.rfind(':');
-        if (colon == std::string::npos) {
-            continue;
-        }
-
-        auto file = inner.substr(0, colon);
-        auto lineStr = inner.substr(colon + 1);
-        auto lineNum = geode::utils::numFromString<uint32_t>(lineStr).unwrapOr(0);
-
-        auto& frame = frames[i];
-        frame.file = file;
-        frame.line = lineNum;
-    }
-
     free(messages);
+
+    // parse extra information (debug data)
+    for (auto& [i, dframe] : asp::iter::consume(addr2Line()).enumerate()) {
+        frames[i].file = std::move(dframe.file);
+        frames[i].line = dframe.line;
+    }
 
     return frames;
 }

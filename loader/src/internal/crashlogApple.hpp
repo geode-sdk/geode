@@ -137,14 +137,44 @@ static std::string executeCommand(ZStringView cmd) {
     return stream.str();
 }
 
-static std::string addr2Line() {
+struct FrameDebugInfo {
+    std::string file;
+    uint32_t line;
+};
+
+static std::vector<FrameDebugInfo> addr2Line() {
     StringBuffer<> stream;
     stream.append("atos --fullPath -p {} ", getpid());
-    for (int i = 1; i < s_backtraceSize; ++i) {
+    for (int i = 0; i < s_backtraceSize; ++i) {
         stream.append("{} ", s_backtrace[i]);
     }
-    // std::cout << "command: " << stream.str() << std::endl;
-    return executeCommand(stream.str());
+
+    auto output = executeCommand(stream.str());
+
+    return asp::iter::split(output, '\n')
+        .map([](std::string_view line) -> FrameDebugInfo {
+            // grab the right parens
+            auto lastParen = line.rfind(')');
+            auto startParen = line.rfind('(', lastParen);
+            if (startParen == std::string::npos || lastParen == std::string::npos) {
+                return {};
+            }
+
+            auto inner = std::string_view{line}.substr(startParen + 1, lastParen - startParen - 1);
+            auto colon = inner.rfind(':');
+            if (colon == std::string::npos) {
+                return {};
+            }
+
+            auto file = inner.substr(0, colon);
+            auto lineStr = inner.substr(colon + 1);
+            auto lineNum = geode::utils::numFromString<uint32_t>(lineStr);
+
+            if (!lineNum) return {};
+
+            return { std::string(file), lineNum.unwrap() };
+        })
+        .collect();
 }
 
 static uint64_t decodeULEB128(const uint8_t*& p) {
