@@ -8,7 +8,7 @@ namespace geode {
 
         ccScriptType getScriptType() {
             // Javascript engine is called without needing to change m_nLuaID
-            return cocos2d::ccScriptType::kScriptTypeJavascript; 
+            return cocos2d::ccScriptType::kScriptTypeJavascript;
         }
 
         void removeScriptObjectByCCObject(CCObject* object) {
@@ -17,12 +17,12 @@ namespace geode {
         
         int executeNodeEvent(CCNode* node, int action) {
             NodeEvent(node, static_cast<NodeEventType>(action)).send();
-            return -1; 
+            return -1;
         }
 
         int executeMenuItemEvent(CCMenuItem* menuItem) {
-            MenuItemEvent(menuItem).send();
-            return -1; 
+            MenuItemActivatedEvent(menuItem).send();
+            return -1;
         }
 
         void removeScriptHandler(int handler) {}

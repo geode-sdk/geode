@@ -28,7 +28,7 @@ namespace geode {
     };
 
     /// Fired when a CCMenuItem is Activated (after the callback).
-    class MenuItemEvent : public GlobalEvent<NodeEvent, bool(), cocos2d::CCMenuItem*> {
+    class MenuItemActivatedEvent : public GlobalEvent<NodeEvent, bool(), cocos2d::CCMenuItem*> {
         public:
         using GlobalEvent::GlobalEvent;
     };
