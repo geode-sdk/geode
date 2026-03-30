@@ -132,4 +132,40 @@ namespace geode::cast {
     inline char const* getRuntimeTypeName(std::type_info const& info) {
         return reinterpret_cast<ClassTypeinfoType const*>(&info)->m_typeinfoName;
     }
+
+    inline int getComparableDepthFor(ClassTypeinfoType const* typeinfo) {
+        int maxDepth = 0;
+        auto typeinfoVtableName = static_cast<CompleteVtableType*>(typeinfo->m_typeinfoVtable)->m_typeinfo->m_typeinfoName;
+        if (std::strcmp(typeinfoVtableName, "N10__cxxabiv120__si_class_type_infoE") == 0) {
+            auto siTypeinfo = static_cast<SingleClassTypeinfoType const*>(typeinfo);
+            return getComparableDepthFor(siTypeinfo->m_baseClassTypeinfo) + 1;
+        }
+        else if (std::strcmp(typeinfoVtableName, "N10__cxxabiv121__vmi_class_type_infoE") == 0) {
+            auto vmiTypeinfo = static_cast<MultipleClassTypeinfoType const*>(typeinfo);
+            for (int i = 0; i < vmiTypeinfo->m_numBaseClass; ++i) {
+                auto& entry = vmiTypeinfo->m_baseClasses[i];
+                auto entryDepth = getComparableDepthFor(entry.m_baseClassTypeinfo);
+
+                maxDepth = std::max(maxDepth + 1, entryDepth);
+            }
+        }
+
+        return maxDepth;
+    }
+
+    /// Returns a value that can be used to compare the inheritance depth of two objects. 
+    /// Objects with a higher return value are derived from more classes. Returns -1 for null pointers.
+    inline int getComparableDepth(void const* ptr) {
+        if (!ptr) {
+            return -1;
+        }
+
+        auto vftable = *reinterpret_cast<VtableType const* const*>(ptr);
+
+        auto dataPointer = static_cast<VtableTypeinfoType const*>(static_cast<CompleteVtableType const*>(vftable));
+
+        auto typeinfo = dataPointer->m_typeinfo;
+
+        return getComparableDepthFor(typeinfo);
+    }
 }

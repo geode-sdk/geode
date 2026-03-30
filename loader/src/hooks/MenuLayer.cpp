@@ -75,6 +75,8 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             bottomMenu->addChild(btn);
             bottomMenu->setContentSize({ winSize.width / 2, bottomMenu->getScaledContentSize().height });
 
+            log::debug("geode button, {}", btn);
+
             bottomMenu->updateLayout();
 
             this->fixSocialMenu();

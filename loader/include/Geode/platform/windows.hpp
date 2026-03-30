@@ -197,4 +197,25 @@ namespace geode::cast {
         auto typeDesc = reinterpret_cast<TypeDescriptorType const*>(&info);
         return typeDesc->m_typeDescriptorName;
     }
+
+    /// Returns a value that can be used to compare the inheritance depth of two objects. 
+    /// Objects with a higher return value are derived from more classes. Returns -1 for null pointers.
+    inline int getComparableDepth(void const* ptr) {
+        if (!ptr) {
+            return -1;
+        }
+
+        auto vftable = *reinterpret_cast<VftableType const* const*>(ptr);
+
+        auto metaPtr = static_cast<MetaPointerType const*>(static_cast<CompleteVftableType const*>(vftable));
+
+    #ifdef GEODE_IS_X64
+        auto locatorOffset = metaPtr->m_completeLocator->m_locatorOffset;
+        auto base = reinterpret_cast<uintptr_t>(metaPtr->m_completeLocator) - locatorOffset;
+    #else
+        auto base = 0;
+    #endif
+
+        return metaPtr->m_completeLocator->m_classDescriptor.into(base)->m_numBaseClasses;
+    }
 }

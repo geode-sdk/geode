@@ -5,37 +5,6 @@
 
 using namespace geode::prelude;
 
-class geode::format::FormatterImpl {
-private:
-    std::vector<std::unique_ptr<FormatBase>> m_formatCallbacks;
-public:
-    static FormatterImpl* get() {
-        static auto s_instance = new FormatterImpl();
-        return s_instance;
-    }
-
-    void addFormat(std::unique_ptr<FormatBase> format) {
-        m_formatCallbacks.push_back(std::move(format));
-    }
-
-    Result<std::string> handleFormat(CCObject const* obj, std::string_view specifier) {
-        for (const auto& callback : std::views::reverse(m_formatCallbacks)) {
-            auto res = callback->format(obj, specifier);
-            if (res) return Ok(res.unwrap());
-        }
-
-        return Err("Format not found");
-    }
-};
-
-void geode::format::registerFormatImpl(std::unique_ptr<FormatBase> format) {
-    FormatterImpl::get()->addFormat(std::move(format));
-}
-
-geode::Result<std::string> geode::format::handleFormatImpl(cocos2d::CCObject const* obj, std::string_view specifier) {
-    return FormatterImpl::get()->handleFormat(obj, specifier);
-}
-
 std::string geode::format_as(Mod* mod) {
     if (mod) {
         return fmt::format("{{ Mod, {} }}", mod->getName());
@@ -87,37 +56,46 @@ std::string geode::format_as(CCArray* arr) {
     return buffer.str();
 }
 
-$execute {
-    format::registerFormat<CCNode>([] (CCNode* self) -> std::string {
-        return fmt::format(
+$on_mod(Loaded) {
+    format::LogFormatEvent<CCNode>().listen(CCNode::create(), [] (std::string& output, CCNode* obj) {
+        output = fmt::format(
             "{}, ({})",
-            fmt::ptr(self),
-            self->boundingBox()
+            fmt::ptr(obj),
+            obj->boundingBox()
         );
-    });
+        return ListenerResult::Stop;
+    }).leak();
 
-    format::registerFormat<CCFloat>([] (CCFloat* self) -> std::string {
-        return numToString(self->getValue());
-    });
+    format::LogFormatEvent<CCFloat>().listen(CCFloat::create(0.f), [] (std::string& output, CCFloat* obj) {
+        output = numToString(obj->getValue());
+        return ListenerResult::Stop;
+    }).leak();
 
-    format::registerFormat<CCDouble>([] (CCDouble* self) -> std::string {
-        return numToString(self->getValue());
-    });
+    format::LogFormatEvent<CCDouble>().listen(CCDouble::create(0.0), [] (std::string& output, CCDouble* obj) {
+        output = numToString(obj->getValue());
+        return ListenerResult::Stop;
+    }).leak();
 
-    format::registerFormat<CCInteger>([] (CCInteger* self) -> std::string {
-        return numToString(self->getValue());
-    });
+    format::LogFormatEvent<CCInteger>().listen(CCInteger::create(0), [] (std::string& output, CCInteger* obj) {
+        output = numToString(obj->getValue());
+        return ListenerResult::Stop;
+    }).leak();
 
-    format::registerFormat<CCBool>([] (CCBool* self) -> std::string {
-        return self->getValue() ? "true" : "false";
-    });
+    format::LogFormatEvent<CCBool>().listen(CCBool::create(false), [] (std::string& output, CCBool* obj) {
+        output = obj->getValue() ? "true" : "false";
+        return ListenerResult::Stop;
+    }).leak();
 
-    format::registerFormat<CCString>([] (CCString* self) -> std::string {
-        return fmt::format("\"{}\"", self->getCString());
-    });
+    format::LogFormatEvent<CCString>().listen(CCString::create(""), [] (std::string& output, CCString* obj) {
+        output = fmt::format("\"{}\"", obj->getCString());
+        return ListenerResult::Stop;
+    }).leak();
 
-    format::registerFormat<CCArray>([] (CCArray* self, std::string_view specifier) -> std::string {
-        if (!self || !self->count()) return "[empty]";
+    format::LogFormatEvent<CCArray>().listen(CCArray::create(), [] (std::string& output, CCArray* obj, std::string_view specifier) {
+        if (!obj || !obj->count()) {
+            output = "[empty]";
+            return ListenerResult::Stop;
+        }
 
         bool rawFormat = specifier == "raw";
 
@@ -127,7 +105,7 @@ $execute {
 
         bool first = true;
 
-        for (auto obj : self->asExt()) {
+        for (auto obj : obj->asExt()) {
             if (!first) buffer.append(std::string_view(", "));
             if (!rawFormat) buffer.append(std::string_view("\n\t"));
             first = false;
@@ -138,20 +116,25 @@ $execute {
         if (!rawFormat) buffer.append('\n');
 
         buffer.append(']');
-        return buffer.str();
-    });
+        output = buffer.str();
+        return ListenerResult::Stop;
+    }).leak();
 
-    format::registerFormat<CCSet>([] (CCSet* self, std::string_view specifier) -> std::string {
-        if (!self || !self->count()) return "[empty]";
+    format::LogFormatEvent<CCSet>().listen(CCSet::create(), [] (std::string& output, CCSet* obj, std::string_view specifier) {
+        if (!obj || !obj->count()) {
+            output = "[empty]";
+            return ListenerResult::Stop;
+        }
 
         bool rawFormat = specifier == "raw";
 
         StringBuffer<> buffer;
+
         buffer.append('[');
 
         bool first = true;
 
-        for (CCSetIterator setIter = self->begin(); setIter != self->end(); ++setIter) {
+        for (CCSetIterator setIter = obj->begin(); setIter != obj->end(); ++setIter) {
             if (!first) buffer.append(std::string_view(", "));
             if (!rawFormat) buffer.append(std::string_view("\n\t"));
             first = false;
@@ -160,37 +143,42 @@ $execute {
         }
 
         if (!rawFormat) buffer.append('\n');
+
         buffer.append(']');
+        output = buffer.str();
+        return ListenerResult::Stop;
+    }).leak();
 
-        return buffer.str();
-    });
-
-    format::registerFormat<CCDictionary>([] (CCDictionary* self, std::string_view specifier) -> std::string {
-        if (!self || !self->count()) return "[empty]";
+    format::LogFormatEvent<CCDictionary>().listen(CCDictionary::create(), [] (std::string& output, CCDictionary* obj, std::string_view specifier) {
+        if (!obj || !obj->count()) {
+            output = "[empty]";
+            return ListenerResult::Stop;
+        }
 
         bool rawFormat = specifier == "raw";
 
         StringBuffer<> buffer;
+
         buffer.append('[');
 
         auto appendAll = [&]<typename Key>() {
             bool first = true;
 
-            for (const auto& [key, obj] : self->asExt<Key, CCObject>()) {
+            for (const auto& [key, child] : obj->asExt<Key, CCObject>()) {
                 if (!first) buffer.append(std::string_view(", "));
                 if (!rawFormat) buffer.append(std::string_view("\n\t"));
                 first = false;
 
-                if (self->m_eDictType == CCDictionary::CCDictType::kCCDictStr) {
-                    buffer.append("{{ \"{}\": {} }}", key, format::wrap(obj));
+                if (obj->m_eDictType == CCDictionary::CCDictType::kCCDictStr) {
+                    buffer.append("{{ \"{}\": {} }}", key, format::wrap(child));
                 }
                 else {
-                    buffer.append("{{ {}: {} }}", key, format::wrap(obj));
+                    buffer.append("{{ {}: {} }}", key, format::wrap(child));
                 }
             }
         };
 
-        if (self->m_eDictType == CCDictionary::CCDictType::kCCDictInt) {
+        if (obj->m_eDictType == CCDictionary::CCDictType::kCCDictInt) {
             appendAll.operator()<int>();
         }
         else {
@@ -198,33 +186,50 @@ $execute {
         }
 
         if (!rawFormat) buffer.append('\n');
+
         buffer.append(']');
+        output = buffer.str();
+        return ListenerResult::Stop;
+    }).leak();
 
-        return buffer.str();
-    });
+    auto touch = new CCTouch();
+    format::LogFormatEvent<CCTouch>().listen(touch, [] (std::string& output, CCTouch* obj, std::string_view specifier) {
+        if (specifier == "full") {
+            output = fmt::format(
+                "{}, ({}) ... ({}) -> ({})",
+                fmt::ptr(obj),
+                obj->getStartLocation(),
+                obj->getPreviousLocation(),
+                obj->getLocation()
+            );
+        }
+        else {
+            output = fmt::format(
+                "{}, ({})",
+                fmt::ptr(obj),
+                obj->getLocation()
+            );
+        }
+        return ListenerResult::Stop;
+    }).leak();
+    delete touch;
 
-    format::registerFormat<CCTouch>([] (CCTouch* self) -> std::string {
-        return fmt::format(
-            "{}, ({})",
-            fmt::ptr(self),
-            self->getLocation()
-        );
-    });
-
-    format::registerFormat<CCFiniteTimeAction>([] (CCFiniteTimeAction* self) -> std::string {
-        return fmt::format(
+    format::LogFormatEvent<CCFiniteTimeAction>().listen(CCFiniteTimeAction::create(), [] (std::string& output, CCFiniteTimeAction* obj) {
+        output = fmt::format(
             "{}, d: {}",
-            fmt::ptr(self),
-            self->getDuration()
+            fmt::ptr(obj),
+            obj->getDuration()
         );
-    });
+        return ListenerResult::Stop;
+    }).leak();
 
-    format::registerFormat<CCActionInterval>([] (CCActionInterval* self) -> std::string {
-        return fmt::format(
+    format::LogFormatEvent<CCActionInterval>().listen(CCActionInterval::create(0.0), [] (std::string& output, CCActionInterval* obj) {
+        output = fmt::format(
             "{}, d: {}, e: {}",
-            fmt::ptr(self),
-            self->getDuration(),
-            self->getElapsed()
+            fmt::ptr(obj),
+            obj->getDuration(),
+            obj->getElapsed()
         );
-    });
+        return ListenerResult::Stop;
+    }).leak();
 }
