@@ -1,5 +1,6 @@
 #include <Geode/utils/StringBuffer.hpp>
 #include <Geode/loader/Formatter.hpp>
+#include <Geode/loader/Mod.hpp>
 #include <ranges>
 
 using namespace geode::prelude;
@@ -76,7 +77,7 @@ std::string geode::format_as(CCArray* arr) {
 
     for (auto obj : arr->asExt()) {
         if (!first) buffer.append(", ");
-        
+
         first = false;
         buffer.append(format_as(obj));
     }
@@ -166,7 +167,7 @@ $execute {
 
     format::registerFormat<CCDictionary>([] (CCDictionary* self, std::string_view specifier) -> std::string {
         if (!self || !self->count()) return "[empty]";
-        
+
         bool rawFormat = specifier == "raw";
 
         StringBuffer<> buffer;
@@ -179,7 +180,7 @@ $execute {
                 if (!first) buffer.append(std::string_view(", "));
                 if (!rawFormat) buffer.append(std::string_view("\n\t"));
                 first = false;
-                
+
                 if (self->m_eDictType == CCDictionary::CCDictType::kCCDictStr) {
                     buffer.append("{{ \"{}\": {} }}", key, format::wrap(obj));
                 }
@@ -191,7 +192,7 @@ $execute {
 
         if (self->m_eDictType == CCDictionary::CCDictType::kCCDictInt) {
             appendAll.operator()<int>();
-        } 
+        }
         else {
             appendAll.operator()<std::string_view>();
         }

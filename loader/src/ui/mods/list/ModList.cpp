@@ -5,6 +5,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/ui/Notification.hpp>
 #include "../popups/ModtoberPopup.hpp"
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
@@ -299,7 +300,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             aboutSpr, this, menu_selector(ModList::onModtoberInfo)
         );
         menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-35, 0));
-        
+
         m_topContainer->addChild(menu);
     }
 
@@ -519,7 +520,7 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
     m_updateAllBtn->setID("update-all-button");
     m_updateAllMenu->addChild(m_updateAllBtn);
 
-    // Disable Update All button if there are only deprecations since those 
+    // Disable Update All button if there are only deprecations since those
     // should be updated one-by-one as a conscious user decision
     m_updateAllBtn->setVisible(check.modsWithUpdates.size());
 
