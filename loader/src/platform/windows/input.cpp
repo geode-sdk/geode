@@ -501,11 +501,6 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
             default: break;
         }
 
-        log::info("Key event: {} (vkey: {}, scan: {}, isE0: {}, isRepeat: {}, isDown: {}, mods: {})",
-            (size_t) keyCode, evt.keyboard.vkey, evt.keyboard.scanCode, evt.keyboard.isE0,
-            evt.keyboard.isRepeat, isDown, mods.value
-        );
-
         KeyboardInputData data(
             keyCode,
             isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
