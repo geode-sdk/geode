@@ -401,6 +401,28 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
             isDown
         );
 
+        if(actualVKey == VK_LCONTROL && isRepeat) {
+            // workaround for synaptics touchpad driver bug:
+            // CTRL key is not a letter, so it shouldn't send repeat naturally
+            // but synaptics touchpad driver doesn't set isDown properly while zooming
+            // so the game thinks it's constantly held after zoom ends
+            isDown = false;
+            isRepeat = false;
+            KeyStateTracker::get().updateState(
+                actualVKey,
+                kb.MakeCode,
+                isE0,
+                isDown
+            );
+
+            isRepeat = KeyStateTracker::get().updateState(
+                actualVKey,
+                kb.MakeCode,
+                isE0,
+                isDown
+            );
+        }
+
         RawInputQueue::get().push(RawInputEvent::makeKeyboard(
             isDown,
             actualVKey,
