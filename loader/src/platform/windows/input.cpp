@@ -401,6 +401,28 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
             isDown
         );
 
+        if(actualVKey == VK_LCONTROL && isRepeat) {
+            // workaround for synaptics touchpad driver bug:
+            // CTRL key is not a letter, so it shouldn't send repeat naturally
+            // but synaptics touchpad driver doesn't set isDown properly wheile zooming
+            // so the game things it's constantly held after zoom ends
+            isDown = false;
+            isRepeat = false;
+            KeyStateTracker::get().updateState(
+                actualVKey,
+                kb.MakeCode,
+                isE0,
+                isDown
+            );
+
+            isRepeat = KeyStateTracker::get().updateState(
+                actualVKey,
+                kb.MakeCode,
+                isE0,
+                isDown
+            );
+        }
+
         RawInputQueue::get().push(RawInputEvent::makeKeyboard(
             isDown,
             actualVKey,
@@ -469,13 +491,6 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                 break;
             case VK_LCONTROL: case VK_RCONTROL: case VK_CONTROL:
                 mods |= KeyboardModifier::Control;
-
-                // workaround for synaptics touchpad driver bug:
-                // CTRL key is not a letter, so it shouldn't send repeat naturally
-                // but synaptics touchpad driver sets this instead of isDown for zoom
-                if(evt.keyboard.isRepeat) {
-                    // somehow force ctrl up here
-                }
                 break;
             case VK_LMENU: case VK_RMENU: case VK_MENU:
                 mods |= KeyboardModifier::Alt;
