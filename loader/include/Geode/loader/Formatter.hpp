@@ -145,13 +145,16 @@ namespace geode::format {
     };
 
     // marker is not typed because we want all LogFormatEvents to share the same event queue
-    struct LogFormatEventMarker {};
+    struct LogFormatEventMarker {
+        // guaranteed to be smaller than anything that comparable calculation may give
+        static int getNextReversePriority();
+
+        static constexpr auto COMPARABLE_DEPTH_MULTIPLIER = -10000; // between stub and replace, so anything bigger than 8000
+    };
 
     template <class Type>
     struct LogFormatEvent : public ThreadSafeEvent<LogFormatEventMarker, bool(std::string& output, cocos2d::CCObject* obj, std::string_view specifier)> {
-        using ThreadSafeEvent::ThreadSafeEvent;
-
-        static constexpr auto COMPARABLE_DEPTH_MULTIPLIER = -100000; // anything above 4000 would work fine
+        using ThreadSafeEvent::ThreadSafeEvent;        
 
         template<class Callable>
         ListenerHandle listen(cocos2d::CCObject* priorityFinder, Callable listener, int priority = 0) const noexcept {
@@ -173,7 +176,28 @@ namespace geode::format {
                     }
                 }
                 return ListenerResult::Propagate;
-            }, COMPARABLE_DEPTH_MULTIPLIER * comparableDepth + priority);
+            }, LogFormatEventMarker::COMPARABLE_DEPTH_MULTIPLIER * comparableDepth + priority);
+        }
+
+        template<class Callable>
+        ListenerHandle listen(Callable listener) const noexcept {
+            return ThreadSafeEvent::listen([listener = std::move(listener)](std::string& output, cocos2d::CCObject* obj, std::string_view specifier) {
+                if (auto casted = geode::cast::typeinfo_cast<Type*>(obj)) {
+                    if constexpr (std::is_invocable_r_v<bool, Callable, std::string&, Type*, std::string_view>) {
+                        return std::invoke(listener, output, casted, specifier);
+                    }
+                    else if constexpr (std::is_invocable_r_v<bool, Callable, std::string&, Type*>) {
+                        return std::invoke(listener, output, casted);
+                    }
+                    else {
+                        static_assert(
+                            false, 
+                            "LogFormatEvent listener must be invocable with (std::string&, Type*, std::string_view) or (std::string&, Type*)"
+                        );
+                    }
+                }
+                return ListenerResult::Propagate;
+            }, LogFormatEventMarker::getNextReversePriority());
         }
     };
     

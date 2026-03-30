@@ -56,6 +56,12 @@ std::string geode::format_as(CCArray* arr) {
     return buffer.str();
 }
 
+int geode::format::LogFormatEventMarker::getNextReversePriority() {
+    static constexpr auto START_PRIORITY = COMPARABLE_DEPTH_MULTIPLIER * 1000; // assumes the max depth of any class will be 1000
+    static std::atomic_int priority{ START_PRIORITY };
+    return priority--;
+}
+
 $on_mod(Loaded) {
     format::LogFormatEvent<CCNode>().listen(CCNode::create(), [] (std::string& output, CCNode* obj) {
         output = fmt::format(
