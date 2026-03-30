@@ -509,7 +509,7 @@ namespace geode {
          * @param other The new object to swap to
          */
         void swap(T* other) {
-            if (m_controller) {
+            if (m_controller && other) {
                 m_controller->swap(other);
             } else if (other) {
                 m_controller = WeakRefPool::get()->manage(other);
@@ -524,11 +524,13 @@ namespace geode {
         }
 
         WeakRef<T>& operator=(WeakRef<T> const& other) {
-            this->swap(static_cast<T*>(other.m_controller ? other.m_controller->get() : nullptr));
+            if (this != &other) {
+                this->swap(static_cast<T*>(other.m_controller ? other.m_controller->get() : nullptr));
+            }
             return *this;
         }
 
-        WeakRef<T>& operator=(WeakRef<T>&& other) {
+        WeakRef<T>& operator=(WeakRef<T>&& other) noexcept {
             m_controller = std::move(other.m_controller);
             return *this;
         }
