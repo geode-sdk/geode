@@ -567,7 +567,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         for (auto const& b : btns) {
             bool isDown = (evt.mouse.flags & b.down) != 0;
             bool isUp = (evt.mouse.flags & b.up) != 0;
-            if (isDown || isUp) {
+            if ((isDown && m_fMouseX >= 0.f && m_fMouseY >= 0.f) || isUp) {
                 MouseInputData data(
                     b.btn,
                     isDown ? Press : Release,
