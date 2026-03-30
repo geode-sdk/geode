@@ -469,6 +469,13 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                 break;
             case VK_LCONTROL: case VK_RCONTROL: case VK_CONTROL:
                 mods |= KeyboardModifier::Control;
+
+                // workaround for synaptics touchpad driver bug:
+                // CTRL key is not a letter, so it shouldn't send repeat naturally
+                // but synaptics touchpad driver sets this instead of isDown for zoom
+                if(evt.keyboard.isRepeat) {
+                    // somehow force ctrl up here
+                }
                 break;
             case VK_LMENU: case VK_RMENU: case VK_MENU:
                 mods |= KeyboardModifier::Alt;
@@ -478,6 +485,11 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                 break;
             default: break;
         }
+
+        log::info("Key event: {} (vkey: {}, scan: {}, isE0: {}, isRepeat: {}, isDown: {}, mods: {})",
+            (size_t) keyCode, evt.keyboard.vkey, evt.keyboard.scanCode, evt.keyboard.isE0,
+            evt.keyboard.isRepeat, isDown, mods.value
+        );
 
         KeyboardInputData data(
             keyCode,
