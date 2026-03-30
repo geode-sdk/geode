@@ -1,4 +1,3 @@
-#include <Geode/utils/ObjectDestroyedEvent.hpp>
 #include <Geode/ui/NodeEvent.hpp>
 
 using namespace geode::prelude;
