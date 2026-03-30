@@ -604,7 +604,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
     }
 
     void pumpRawInput() {
-        bool isForeground = GetForegroundWindow() == g_mainWindowHWND;
+        bool isForeground = GetForegroundWindow() == g_mainWindowHWND && m_fMouseX >= 0.f && m_fMouseY >= 0.f;
         if (!isForeground) {
             RawInputQueue::get().clear();
         }
@@ -613,6 +613,8 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         POINT p;
         float newX = m_fMouseX;
         float newY = m_fMouseY;
+
+        log::trace("x {}, y {}", newX, newY);
 
         if (!m_bCursorLocked && GetCursorPos(&p) && ScreenToClient(g_mainWindowHWND, &p)) {
             newX = static_cast<float>(p.x);
