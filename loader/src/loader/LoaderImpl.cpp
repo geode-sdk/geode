@@ -391,6 +391,18 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
             bool down = data.action != KeyboardInputData::Action::Release;
             bool repeat = data.action == KeyboardInputData::Action::Repeat;
 
+            if(!down) {
+                for (auto& [setting, activeKeybind] : m_activeKeybinds) {
+                    if (activeKeybind.key == data.key) {
+                        KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
+                    }
+                }
+
+                std::erase_if(m_activeKeybinds, [&](auto& pair) {
+                    return pair.second.key == data.key;
+                });
+            }
+
             auto it = m_keybindSettings.find(keybind);
             if (it == m_keybindSettings.end()) {
                 return ListenerResult::Propagate;
