@@ -171,20 +171,18 @@ namespace geode::format {
         friend class FormatterImpl;
     };
 
-    GEODE_DLL void registerFormatImpl(std::string_view name, std::unique_ptr<FormatBase> format);
+    GEODE_DLL void registerFormatImpl(std::unique_ptr<FormatBase> format);
     GEODE_DLL geode::Result<std::string> handleFormatImpl(cocos2d::CCObject const* obj, std::string_view specifier);
 
     template<class T, typename F>
     inline void registerFormat(F&& callback) {
-        constexpr auto name = arc::getTypename<T>();
-
         using Callback = typename FormatType<T>::FormatCallback;
 
         if constexpr (std::is_invocable_r_v<std::string, F, T*, std::string_view>) {
-            registerFormatImpl(std::string_view{name.first, name.second}, std::make_unique<FormatType<T>>(std::forward<F>(callback)));
+            registerFormatImpl(std::make_unique<FormatType<T>>(std::forward<F>(callback)));
         }
         else if constexpr (std::is_invocable_r_v<std::string, F, T*>) {
-            registerFormatImpl(std::string_view{name.first, name.second}, std::make_unique<FormatType<T>>(Callback(
+            registerFormatImpl(std::make_unique<FormatType<T>>(Callback(
                 [f = std::forward<F>(callback)](T* obj, std::string_view) {
                     return f(obj);
                 }

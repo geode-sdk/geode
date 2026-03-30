@@ -14,7 +14,7 @@ public:
         return s_instance;
     }
 
-    void addFormat(std::string_view name, std::unique_ptr<FormatBase> format) {
+    void addFormat(std::unique_ptr<FormatBase> format) {
         m_formatCallbacks.push_back(std::move(format));
     }
 
@@ -28,8 +28,8 @@ public:
     }
 };
 
-void geode::format::registerFormatImpl(std::string_view name, std::unique_ptr<FormatBase> format) {
-    FormatterImpl::get()->addFormat(name, std::move(format));
+void geode::format::registerFormatImpl(std::unique_ptr<FormatBase> format) {
+    FormatterImpl::get()->addFormat(std::move(format));
 }
 
 geode::Result<std::string> geode::format::handleFormatImpl(cocos2d::CCObject const* obj, std::string_view specifier) {
