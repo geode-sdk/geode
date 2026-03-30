@@ -407,14 +407,6 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
             // but synaptics touchpad driver doesn't set isDown properly while zooming
             // so the game thinks it's constantly held after zoom ends
             isDown = false;
-            isRepeat = false;
-            KeyStateTracker::get().updateState(
-                actualVKey,
-                kb.MakeCode,
-                isE0,
-                isDown
-            );
-
             isRepeat = KeyStateTracker::get().updateState(
                 actualVKey,
                 kb.MakeCode,
