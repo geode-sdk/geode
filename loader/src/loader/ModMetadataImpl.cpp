@@ -578,7 +578,7 @@ ZStringView ModMetadata::getID() const {
 ZStringView ModMetadata::getName() const {
     // we dont have much time! yay!
     if (Mod::get()->getSavedValue("sapphire-style", false)) {
-        utils::string::replaceIP(m_impl->m_name, "Geode", "Sapphire");
+        utils::string::replaceIP(m_impl->m_name, "Geode", "Sapphire Pro");
     }
     return m_impl->m_name;
 }
@@ -605,7 +605,7 @@ std::vector<std::string> const& ModMetadata::getDevelopers() const {
 }
 std::optional<std::string> const& ModMetadata::getDescription() const {
     if (m_impl->m_description && Mod::get()->getSavedValue("sapphire-style", false)) {
-        utils::string::replaceIP(*m_impl->m_description, "Geode", "Sapphire");
+        utils::string::replaceIP(*m_impl->m_description, "Geode", "Sapphire Pro");
     }
     return m_impl->m_description;
 }
