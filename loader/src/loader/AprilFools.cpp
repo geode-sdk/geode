@@ -86,6 +86,7 @@ namespace sapphire {
             } else {
                 Mod::get()->getSaveContainer().erase("sapphire-style");
                 Mod::get()->getSaveContainer().erase("show-april-popup-2026");
+                Mod::get()->getSaveContainer().erase("begin-april-popup-2026");
 
                 FLAlertLayer::create(
                     "Happy April Fools!",
@@ -106,6 +107,7 @@ $on_game(Loaded) {
     if (Mod::get()->getSavedValue("show-april-popup-2026", false)) {
         Mod::get()->getSaveContainer().erase("sapphire-style");
         Mod::get()->getSaveContainer().erase("show-april-popup-2026");
+        Mod::get()->getSaveContainer().erase("begin-april-popup-2026");
         FLAlertLayer::create(
             "Happy April Fools!",
             "Don't worry, Geode SDK will forever remain free for everyone :D",
@@ -115,13 +117,16 @@ $on_game(Loaded) {
 
     if (!Mod::get()->getSavedValue("sapphire-style", false)) return;
 
-    FLAlertLayer::create(
-        "Sapphire Pro",
-        "Geode SDK has been recently acquired by Sapphire Enterprise Inc. "
-        "and now requires a premium subscription to keep using your favorite mods! "
-        "You may keep using the free version of Sapphire SDK which provides a limited time trial.",
-        "OK"
-    )->show();
+    if (Mod::get()->getSavedValue("begin-april-popup-2026", false)) {
+        FLAlertLayer::create(
+            "Sapphire Pro",
+            "Geode SDK has been recently acquired by Sapphire Enterprise Inc. "
+            "and now requires a premium subscription to keep using your favorite mods! "
+            "You may keep using the free version of Sapphire SDK which provides a limited time trial.",
+            "OK"
+        )->show();
+        Mod::get()->setSavedValue("begin-april-popup-2026", true);
+    }
 
     auto timer = sapphire::CountdownTimer::create();
     if (!timer) return;
@@ -132,4 +137,16 @@ $on_game(Loaded) {
     timer->setPosition(CCSize{winsize.width - 10.f, 30.f});
 
     OverlayManager::get()->addChild(timer);
+
+    ButtonSettingPressedEventV3(Mod::get(), "april-button-2026").listen([] (auto buttonKey) {
+        auto link = "https://geode-sdk.org/activate";
+        geode::createQuickPopup("Hold Up!",
+            fmt::format("Links are spooky! Are you sure you want to go to <cy>{}</c>?", link),
+            "Cancel", "Yes", 360.f, [link](auto, bool btn2) {
+                if (btn2) {
+                    web::openLinkInBrowser(link);
+                }
+            }, true, false
+        );
+    }).leak();
 }
