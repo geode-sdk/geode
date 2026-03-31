@@ -53,12 +53,22 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         // add geode button
         if (!m_fields->m_menuDisabled) {
-            m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
-                "geode-logo-outline-gold.png"_spr,
-                .95f,
-                CircleBaseColor::Green,
-                CircleBaseSize::MediumAlt
-            );
+            if (Mod::get()->getSavedValue("sapphire-style", false)) {
+                m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
+                    "sapphire-logo-outline-gold.png"_spr,
+                    .95f,
+                    CircleBaseColor::Green,
+                    CircleBaseSize::MediumAlt
+                );
+            }
+            else if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
+                m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
+                    "geode-logo-outline-gold.png"_spr,
+                    .95f,
+                    CircleBaseColor::Green,
+                    CircleBaseSize::MediumAlt
+                );
+            }
             auto geodeBtnSelector = &CustomMenuLayer::onGeode;
             if (!m_fields->m_geodeButton || m_fields->m_geodeButton->isUsingFallback()) {
                 geodeBtnSelector = &CustomMenuLayer::onMissingTextures;

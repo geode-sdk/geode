@@ -67,7 +67,9 @@ namespace sapphire {
 
 
 $on_game(Loaded) {
+    // Mod::get()->setSavedValue("sapphire-style", true);
     if (!isAprilFools()) return;
+    if (!Mod::get()->getSavedValue("sapphire-style", false)) return;
 
     FLAlertLayer::create(
         "Sapphire Pro",
