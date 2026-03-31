@@ -610,9 +610,6 @@ std::optional<std::string> const& ModMetadata::getDescription() const {
     return m_impl->m_description;
 }
 std::optional<std::string> const& ModMetadata::getDetails() const {
-    if (m_impl->m_details && Mod::get()->getSavedValue("sapphire-style", false)) {
-        utils::string::replaceIP(*m_impl->m_details, "Geode", "Sapphire");
-    }
     return m_impl->m_details;
 }
 std::optional<std::string> const& ModMetadata::getChangelog() const {
