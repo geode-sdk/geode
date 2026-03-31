@@ -170,7 +170,7 @@ int geodeEntry(void* platformData) {
         console::openIfClosed();
     }
 
-    if (true || checkAprilFools()) {
+    if (checkAprilFools()) {
         Mod::get()->setSavedValue("sapphire-style", true);
     }
     else if (Mod::get()->getSavedValue("sapphire-style", false)) {
