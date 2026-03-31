@@ -1830,3 +1830,45 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
         log::debug("DNS server {}: score {:.3f}", candidates[i].name, results[i]);
     }
 }
+
+void utils::web::openLinkInBrowser(ZStringView url) {
+    // evil path check for windows
+    if (url.view().contains("#:")) {
+        return;
+    }
+
+    // libcurl doesn't handle mailto, but mailto links are a simpler case
+    if (url.view().starts_with("mailto:")) {
+        openLink(url);
+        return;
+    }
+
+    auto h = curl_url();
+    if (curl_url_set(h, CURLUPART_URL, url.c_str(), CURLU_PATH_AS_IS | CURLU_URLENCODE)) {
+        return;
+    }
+
+    char* scheme;
+    if (curl_url_get(h, CURLUPART_SCHEME, &scheme, 0)) {
+        return;
+    }
+
+    auto schemeChk = std::string_view(scheme);
+    if (schemeChk != "https" && schemeChk != "http" && schemeChk != "mailto") {
+        curl_free(scheme);
+        return;
+    }
+    curl_free(scheme);
+
+    char* encoded_url;
+    if (curl_url_get(h, CURLUPART_URL, &encoded_url, CURLU_PUNYCODE)) {
+        return;
+    }
+
+    std::string encoded_copy{encoded_url};
+
+    curl_free(encoded_url);
+    curl_url_cleanup(h);
+
+    openLink(encoded_copy);
+}

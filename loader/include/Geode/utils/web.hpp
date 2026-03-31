@@ -16,6 +16,17 @@
 #include <span>
 
 namespace geode::utils::web {
+    /**
+     * Opens an arbitrary link, which does not have to be a web URL.
+     *
+     * Warning: do not use this on untrusted user input! This can lead to remote code execution.
+     */
+    GEODE_DLL void openLink(ZStringView url);
+
+    /**
+     * Opens a URL.
+     * The provided link will only be opened if its scheme is http, https or mailto.
+     */
     GEODE_DLL void openLinkInBrowser(ZStringView url);
 
     // https://curl.se/libcurl/c/CURLOPT_HTTPAUTH.html

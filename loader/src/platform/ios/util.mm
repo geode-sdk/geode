@@ -35,7 +35,7 @@ std::string utils::clipboard::read() {
     return std::string([[UIPasteboard generalPasteboard].string UTF8String]);
 }
 
-void utils::web::openLinkInBrowser(ZStringView url) {
+void utils::web::openLink(ZStringView url) {
     [[UIApplication sharedApplication]
         openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]] options:{} completionHandler:nil];
 }

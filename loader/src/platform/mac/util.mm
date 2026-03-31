@@ -55,7 +55,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return true;
 }
 
-void utils::web::openLinkInBrowser(ZStringView url) {
+void utils::web::openLink(ZStringView url) {
     [[NSWorkspace sharedWorkspace]
         openURL:[NSURL URLWithString:intoNS(url)]];
 }

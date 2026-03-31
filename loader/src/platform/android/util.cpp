@@ -127,7 +127,7 @@ std::filesystem::path dirs::getResourcesDir() {
     return "assets";
 }
 
-void utils::web::openLinkInBrowser(ZStringView url) {
+void utils::web::openLink(ZStringView url) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openWebview", "(Ljava/lang/String;)V")) {
         jstring urlArg = t.env->NewStringUTF(url.c_str());
