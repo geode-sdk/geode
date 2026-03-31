@@ -564,7 +564,7 @@ namespace geode {
         /// Keybinds that work in the editor
         Editor = 2,
 
-        // If your keybind doesn't fit into these categories, it will just be 
+        // If your keybind doesn't fit into these categories, it will just be
         // listed under the mod
     };
 
@@ -599,6 +599,7 @@ namespace geode {
         std::optional<KeybindCategory> getCategory() const;
         std::optional<std::string> getMigrateFrom() const;
         int getPriority() const;
+        bool getAllowInTextInputs() const;
     };
 
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {
@@ -650,7 +651,7 @@ namespace geode {
         virtual bool hasUncommittedChanges() const = 0;
         virtual bool hasNonDefaultValue() const = 0;
 
-        // This is extremely silly and will be removed in v6 in favour of just 
+        // This is extremely silly and will be removed in v6 in favour of just
         // making `updateState` itself be public
         // todo in v6: make updateState public and remove this
         void updateState2(cocos2d::CCNode* invoker);
@@ -668,7 +669,7 @@ namespace geode {
 
         // Useful if you're programmatically creating setting nodes
         void overrideDescription(std::optional<ZStringView> description);
-        
+
         void setContentSize(cocos2d::CCSize const& size) override;
 
         std::shared_ptr<SettingV3> getSetting() const;

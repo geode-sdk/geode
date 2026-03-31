@@ -408,8 +408,13 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
                 return ListenerResult::Propagate;
             }
 
+            bool imeActive = CCIMEDispatcher::sharedDispatcher()->hasDelegate();
+
             if (down) {
                 for (auto& setting : it->second) {
+                    if (imeActive && !setting->getAllowInTextInputs()) {
+                        continue;
+                    }
                     if (!repeat) m_activeKeybinds[setting.get()] = keybind;
                     if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
                         return ListenerResult::Stop;
