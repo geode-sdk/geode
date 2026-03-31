@@ -191,7 +191,7 @@ arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
     co_return Ok(std::move(paths));
 }
 
-void utils::web::openLink(ZStringView url) {
+void utils::web::openLinkUnsafe(ZStringView url) {
     ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 

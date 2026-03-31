@@ -1839,7 +1839,7 @@ void utils::web::openLinkInBrowser(ZStringView url) {
 
     // libcurl doesn't handle mailto, but mailto links are a simpler case
     if (url.view().starts_with("mailto:")) {
-        openLink(url);
+        openLinkUnsafe(url);
         return;
     }
 
@@ -1870,5 +1870,5 @@ void utils::web::openLinkInBrowser(ZStringView url) {
     curl_free(encoded_url);
     curl_url_cleanup(h);
 
-    openLink(encoded_copy);
+    openLinkUnsafe(encoded_copy);
 }

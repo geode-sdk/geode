@@ -17,11 +17,11 @@
 
 namespace geode::utils::web {
     /**
-     * Opens an arbitrary link, which does not have to be a web URL.
+     * Opens an arbitrary link through the system. This accepts any kind of URL, including non-web protocols.
      *
      * Warning: do not use this on untrusted user input! This can lead to remote code execution.
      */
-    GEODE_DLL void openLink(ZStringView url);
+    GEODE_DLL void openLinkUnsafe(ZStringView url);
 
     /**
      * Opens a URL.
