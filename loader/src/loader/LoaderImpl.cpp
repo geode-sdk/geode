@@ -1319,7 +1319,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                 "<cy>Do you want to delete the original file?</c>",
                 meta.getName()
             ),
-            "OK", "Delete File",
+            "Keep", "Delete",
             [path](auto, bool btn2) {
                 if (btn2) {
                     std::error_code ec;
