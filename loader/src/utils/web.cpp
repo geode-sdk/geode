@@ -1838,7 +1838,7 @@ void utils::web::openLinkInBrowser(ZStringView url) {
     }
 
     // libcurl doesn't handle mailto, but mailto links are a simpler case
-    if (url.view().starts_with("mailto:")) {
+    if (utils::string::toLower(url).starts_with("mailto:")) {
         openLinkUnsafe(url);
         return;
     }
@@ -1854,7 +1854,7 @@ void utils::web::openLinkInBrowser(ZStringView url) {
     }
 
     auto schemeChk = std::string_view(scheme);
-    if (schemeChk != "https" && schemeChk != "http" && schemeChk != "mailto") {
+    if (schemeChk != "https" && schemeChk != "http") {
         curl_free(scheme);
         return;
     }
