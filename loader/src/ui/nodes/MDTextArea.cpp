@@ -500,10 +500,8 @@ struct MDParser {
                         s_breakListLine = false;
                     }
                     auto cursor = renderer->getCursorPos();
-                    auto markerStart = renderer->getCurrentIndent();
-                    if (cursor.x != markerStart) {
-                        renderer->moveCursor({ markerStart, cursor.y });
-                    }
+                    auto indent = renderer->getCurrentIndent();
+                    renderer->moveCursor({ indent, cursor.y });
                     renderer->pushOpacity(renderer->getCurrentOpacity() / 2);
                     auto lidetail = static_cast<MD_BLOCK_LI_DETAIL*>(detail);
                     if (s_isOrderedList) {
@@ -514,7 +512,7 @@ struct MDParser {
                         renderer->renderString("• ");
                     }
                     renderer->popOpacity();
-                    auto markerWidth = renderer->getCursorPos().x - markerStart;
+                    auto markerWidth = renderer->getCursorPos().x - indent;
                     renderer->pushIndent(markerWidth);
                     s_breakListLine = true;
                 }
