@@ -1,5 +1,11 @@
 # Sapphire Changelog
 
+## v5.5.3
+ * Use legacy messages for detecting isDown (5d0e824)
+ * Dont show unloaded mods in keybinds popup (f72a7cc)
+ * Fix MDTextArea culling (#1975)
+ * Enforce UTF-8 when calculating hashes (4cec228)
+
 ## v5.5.2
  * Fix transition breaking the Sapphire Popup
 
