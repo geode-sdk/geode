@@ -43,6 +43,8 @@ class $modify(CCFileUtilsExistFix, CCFileUtils) {
     bool init() {
         if (!CCFileUtils::init()) return false;
 
+        if (Loader::get()->isPatchless()) return true; // TODO: remove when VMT works
+
         auto hook = VMTHookManager::get().addHook<
             geode::modifier::ResolveC<CCFileUtilsExistFix>::func(&CCFileUtilsExistFix::isFileExist)
         >(this, "cocos2d::CCFileUtils::isFileExist");
