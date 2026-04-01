@@ -5,6 +5,9 @@ static KeybindsPopupTab POPUP_TAB = KeybindsPopupTab::All;
 
 static std::vector<Mod*> getModsSorted() {
     auto mods = Loader::get()->getAllMods();
+    std::erase_if(mods, [](Mod* mod) {
+        return !mod->isLoaded();
+    });
 
     // Sort alphabetically
     std::ranges::sort(mods, [](Mod* a, Mod* b) {
