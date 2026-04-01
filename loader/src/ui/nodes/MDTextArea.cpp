@@ -88,7 +88,7 @@ public:
 
         // so that's why based MDContentLayer expects itself
         // to have a CCMenu :-)
-        if (m_content && getParent()) {
+        if (m_content) {
             for (auto child : CCArrayExt<CCNode*>(m_content->getChildren())) {
                 auto y = this->getPositionY() + child->getPositionY();
                 child->setVisible(
@@ -167,13 +167,12 @@ bool MDTextArea::init(std::string str, CCSize const& size) {
     auto content = MDContentLayer::create(m_impl->m_content, m_impl->m_size.width, m_impl->m_size.height);
     m_impl->m_scrollLayer->m_contentLayer = content;
     m_impl->m_scrollLayer->addChild(content);
-
-    m_impl->m_scrollLayer->m_contentLayer->addChild(m_impl->m_content);
+    content->addChild(m_impl->m_content);
 
     m_impl->m_scrollLayer->setTouchEnabled(true);
 
     this->addChild(m_impl->m_scrollLayer);
-
+    
     this->updateLabel();
 
     return true;
