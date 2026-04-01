@@ -117,7 +117,7 @@ $on_game(Loaded) {
 
     if (!Mod::get()->getSavedValue("sapphire-style", false)) return;
 
-    if (Mod::get()->getSavedValue("begin-april-popup-2026", false)) {
+    if (!Mod::get()->getSavedValue("begin-april-popup-2026", false)) {
         FLAlertLayer::create(
             "Sapphire Pro",
             "Geode SDK has been recently acquired by Sapphire Enterprise Inc. "

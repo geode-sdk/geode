@@ -72,8 +72,7 @@
             "type": "button",
             "buttons": {
                 "activate": "Activate Sapphire Pro"
-            },
-            "enable-if": "saved:sapphire-style"
+            }
         },
         "geode-settings-info": {
             "type": "info",
