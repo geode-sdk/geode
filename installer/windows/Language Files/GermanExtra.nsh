@@ -10,7 +10,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Dieses Setup führt Sie durch di
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nGeometry Dash ist in diesem Ordner nicht installiert!"
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nIhre Geometry Dash-Version ist zu alt für diese Version von Geode!"
 ${LangFileString} GEODE_TEXT_GD_RUNNING "Bitte schließen Sie Geometry Dash, bevor Sie Geode installieren."
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "In diesem Ordner sind andere Mods installiert!$\r$\nDiese werden von Geode überschrieben."
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "In diesem Ordner sind andere Mods installiert!$\r$\nDiese werden von Geode überschrieben. (the dll trademark)"
 ${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Die VS Runtime wird installiert. Bitte achten Sie auf neue Fenster in der Taskleiste..."
 
 ; uninstaller
