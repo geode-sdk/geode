@@ -68,9 +68,15 @@
         }
     },
     "settings": {
+        "april-button-2026": {
+            "type": "button",
+            "buttons": {
+                "activate": "Activate Sapphire Pro"
+            }
+        },
         "geode-settings-info": {
             "type": "info",
-            "description": "These are settings for the <co>Geode Mod Loader</c>, NOT for mods. To edit settings for <cj>mods</c>, press <cy>View</c> on the mod and then the settings button in the <cg>bottom left</c> of the popup."
+            "description": "These are settings for the <co>Mod Loader</c>, NOT for mods. To edit settings for <cj>mods</c>, press <cy>View</c> on the mod and then the settings button in the <cg>bottom left</c> of the popup."
         },
         "action-buttons": {
             "type": "button",

@@ -320,7 +320,14 @@ bool ModsLayer::init() {
 
     const bool geodeTheme = isGeodeTheme();
     if (!isSafeMode) {
-        if (geodeTheme) {
+        if (Mod::get()->getSavedValue<bool>("sapphire-style", false)) {
+            auto bg = CCSprite::create("sapphire-bg.png"_spr);
+            bg->setScaleX((winSize.width) / bg->getContentSize().width);
+            bg->setScaleY((winSize.height) / bg->getContentSize().height);
+            bg->setPosition({winSize.width / 2, winSize.height / 2});
+            this->addChild(bg);
+        }
+        else if (geodeTheme) {
             this->addChild(SwelvyBG::create());
         }
         else {
@@ -447,24 +454,28 @@ bool ModsLayer::init() {
     frameBG->ignoreAnchorPointForPosition(false);
     m_frame->addChildAtPosition(frameBG, Anchor::Center);
 
-    auto tabsTop = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-top.png"_spr : "mods-list-top-gd.png"_spr);
+    std::string suffix = geodeTheme ? "" : "-gd";
+    if (Mod::get()->getSavedValue<bool>("sapphire-style", false)) {
+        suffix = "-sapphire";
+    }
+    auto tabsTop = CCSprite::createWithSpriteFrameName(fmt::format("mods-list-top{}.png"_spr, suffix).c_str());
     tabsTop->setID("frame-top-sprite");
     tabsTop->setAnchorPoint({ .5f, .0f });
     tabsTop->setZOrder(1);
     m_frame->addChildAtPosition(tabsTop, Anchor::Top, ccp(0, -2));
 
-    auto tabsLeft = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-side.png"_spr : "mods-list-side-gd.png"_spr);
+    auto tabsLeft = CCSprite::createWithSpriteFrameName(fmt::format("mods-list-side{}.png"_spr, suffix).c_str());
     tabsLeft->setID("frame-left-sprite");
     tabsLeft->setScaleY(m_frame->getContentHeight() / tabsLeft->getContentHeight());
     m_frame->addChildAtPosition(tabsLeft, Anchor::Left, ccp(6.5f, 1));
 
-    auto tabsRight = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-side.png"_spr : "mods-list-side-gd.png"_spr);
+    auto tabsRight = CCSprite::createWithSpriteFrameName(fmt::format("mods-list-side{}.png"_spr, suffix).c_str());
     tabsRight->setID("frame-right-sprite");
     tabsRight->setFlipX(true);
     tabsRight->setScaleY(m_frame->getContentHeight() / tabsRight->getContentHeight());
     m_frame->addChildAtPosition(tabsRight, Anchor::Right, ccp(-6.5f, 1));
 
-    auto tabsBottom = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-bottom.png"_spr : "mods-list-bottom-gd.png"_spr);
+    auto tabsBottom = CCSprite::createWithSpriteFrameName(fmt::format("mods-list-bottom{}.png"_spr, suffix).c_str());
     tabsBottom->setID("frame-bottom-sprite");
     tabsBottom->setAnchorPoint({ .5f, 1.f });
     tabsBottom->setZOrder(1);

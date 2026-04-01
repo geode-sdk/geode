@@ -1,6 +1,7 @@
-# Geode Changelog
+# Sapphire Changelog
 
 ## v5.5.0
+ * Geode SDK was acquired by Sapphire Enterprise Inc. and has become Sapphire SDK
  * Add `allow-in-text-inputs` option for keybinds (d57cd23)
  * Add `LogFormatEvent` to allow for registering custom object formatters (d1589cb)
  * Add more default formatters and implement raw specifier (#1890)
