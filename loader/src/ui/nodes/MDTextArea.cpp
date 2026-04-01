@@ -163,12 +163,16 @@ bool MDTextArea::init(std::string str, CCSize const& size) {
 
     m_impl->m_content = CCMenu::create();
     m_impl->m_content->setZOrder(2);
-    m_impl->m_scrollLayer->m_contentLayer->addChild(m_impl->m_content);
+
+    auto content = MDContentLayer::create(m_impl->m_content, m_impl->m_size.width, m_impl->m_size.height);
+    m_impl->m_scrollLayer->m_contentLayer = content;
+    m_impl->m_scrollLayer->addChild(content);
+    content->addChild(m_impl->m_content);
 
     m_impl->m_scrollLayer->setTouchEnabled(true);
 
     this->addChild(m_impl->m_scrollLayer);
-
+    
     this->updateLabel();
 
     return true;
