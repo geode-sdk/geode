@@ -172,7 +172,7 @@ bool MDTextArea::init(std::string str, CCSize const& size) {
     m_impl->m_scrollLayer->setTouchEnabled(true);
 
     this->addChild(m_impl->m_scrollLayer);
-    
+
     this->updateLabel();
 
     return true;
@@ -499,6 +499,11 @@ struct MDParser {
                         renderer->breakLine();
                         s_breakListLine = false;
                     }
+                    auto cursor = renderer->getCursorPos();
+                    auto markerStart = renderer->getCurrentIndent();
+                    if (cursor.x != markerStart) {
+                        renderer->moveCursor({ markerStart, cursor.y });
+                    }
                     renderer->pushOpacity(renderer->getCurrentOpacity() / 2);
                     auto lidetail = static_cast<MD_BLOCK_LI_DETAIL*>(detail);
                     if (s_isOrderedList) {
@@ -509,6 +514,8 @@ struct MDParser {
                         renderer->renderString("• ");
                     }
                     renderer->popOpacity();
+                    auto markerWidth = renderer->getCursorPos().x - markerStart;
+                    renderer->pushIndent(markerWidth);
                     s_breakListLine = true;
                 }
                 break;
@@ -618,6 +625,7 @@ struct MDParser {
 
             case MD_BLOCKTYPE::MD_BLOCK_LI:
                 {
+                    renderer->popIndent();
                 }
                 break;
 
