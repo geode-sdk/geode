@@ -582,7 +582,7 @@ void ModItem::updateState() {
 
     auto titleSpace = m_display == ModListDisplay::Grid ?
         CCSize(m_obContentSize.width - 10, 35) :
-        CCSize(m_obContentSize.width - 150, m_obContentSize.height - 5);
+        CCSize(m_obContentSize.width - 145, m_obContentSize.height - 5);
 
     // Divide by scale of info container since that actually determines the size
     // (Since the scale of m_titleContainer and m_developers is managed by its layout)
