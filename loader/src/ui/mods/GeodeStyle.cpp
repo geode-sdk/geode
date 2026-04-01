@@ -57,15 +57,6 @@ $on_mod(Loaded) {
         ColorProvider::get()->override("swelvy-bg-4"_spr, { 100, 174, 189, 255 });
         ColorProvider::get()->override("swelvy-bg-5"_spr, { 118, 90, 148, 255 });
     }
-    else if (Mod::get()->getSavedValue("sapphire-style", false)) {
-        ColorProvider::get()->override("swelvy-bg-0"_spr, { 7, 0, 102, 255 });
-        ColorProvider::get()->override("swelvy-bg-1"_spr, { 2, 15, 157, 255 });
-        ColorProvider::get()->override("swelvy-bg-2"_spr, { 45, 94, 199, 255 });
-        ColorProvider::get()->override("swelvy-bg-3"_spr, { 34, 72, 170, 255 });
-        ColorProvider::get()->override("swelvy-bg-4"_spr, { 66, 104, 184, 255 });
-        ColorProvider::get()->override("swelvy-bg-5"_spr, { 102, 148, 200, 255 });
-        ColorProvider::get()->define("mod-list-bg"_spr, { 17, 20, 37, 255 });
-    }
 
     auto updateColors = +[](bool enabled) {
         if (enabled) {

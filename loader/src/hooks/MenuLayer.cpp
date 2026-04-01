@@ -61,7 +61,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                     CircleBaseSize::MediumAlt
                 );
             }
-            else if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
+            else {
                 m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
                     "geode-logo-outline-gold.png"_spr,
                     .95f,

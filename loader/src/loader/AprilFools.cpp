@@ -22,7 +22,7 @@ namespace sapphire {
 
         bool init() {
             this->setLayout(SimpleColumnLayout::create()->setCrossAxisAlignment(CrossAxisAlignment::Start)->setGap(5.f));
-            this->setContentSize(CCSize{250, 50});
+            this->setContentSize(CCSize{220, 50});
 
             auto activate = CCLabelBMFont::create("Activate Sapphire Pro", "chatFont.fnt", kCCLabelAutomaticWidth, kCCTextAlignmentRight);
             activate->setScale(1.2f);
@@ -129,7 +129,7 @@ $on_game(Loaded) {
 
     timer->setAnchorPoint({1.f, 0.f});
     timer->setScale(0.75f);
-    timer->setPosition(CCSize{winsize.width - 10.f, 10.f});
+    timer->setPosition(CCSize{winsize.width - 10.f, 30.f});
 
     OverlayManager::get()->addChild(timer);
 }
