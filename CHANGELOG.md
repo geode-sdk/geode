@@ -1,5 +1,8 @@
 # Sapphire Changelog
 
+## v5.5.1
+ * Fix JIT-less iOS bug
+
 ## v5.5.0
  * Geode SDK was acquired by Sapphire Enterprise Inc. and has become Sapphire SDK
  * Add `allow-in-text-inputs` option for keybinds (d57cd23)
