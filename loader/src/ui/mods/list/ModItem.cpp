@@ -40,7 +40,13 @@ bool ModItem::init(ModSource&& source) {
     m_titleContainer->setID("title-container");
     m_titleContainer->setAnchorPoint({ .0f, .5f });
 
-    m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
+    StringBuffer title;
+    title.append("{:.40}", m_source.getMetadata().getName());
+    if (m_source.getMetadata().getName().size() > 40) {
+        title.append("...");
+    }
+
+    m_titleLabel = CCLabelBMFont::create(title.c_str(), "bigFont.fnt");
     m_titleLabel->setID("title-label");
     m_titleContainer->addChild(m_titleLabel);
 
@@ -576,7 +582,7 @@ void ModItem::updateState() {
 
     auto titleSpace = m_display == ModListDisplay::Grid ?
         CCSize(m_obContentSize.width - 10, 35) :
-        CCSize(m_obContentSize.width / 1.75 - m_obContentSize.height, m_obContentSize.height - 5);
+        CCSize(m_obContentSize.width - 150, m_obContentSize.height - 5);
 
     // Divide by scale of info container since that actually determines the size
     // (Since the scale of m_titleContainer and m_developers is managed by its layout)
