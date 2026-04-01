@@ -20,6 +20,8 @@ std::string calculateSHA256Text(std::filesystem::path const& path) {
     std::string text;
     std::string line;
     while (std::getline(file, line)) {
+        // TODO: cmake also ignores "all binary data". idk what that means so i'm not bothering but it may become an issue
+        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
         text += line;
     }
     picosha2::hash256(text.begin(), text.end(), hash.begin(), hash.end());
