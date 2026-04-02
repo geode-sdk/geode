@@ -1,5 +1,8 @@
 # Sapphire Changelog
 
+## v5.5.2
+ * Fix transition breaking the Sapphire Popup
+
 ## v5.5.1
  * Fix JIT-less iOS bug
 
