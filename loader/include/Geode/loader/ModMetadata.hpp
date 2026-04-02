@@ -157,6 +157,11 @@ namespace geode {
          * character set.
          */
         [[nodiscard]] ZStringView getName() const;
+        /*
+         * Hash of the mod.
+         * Gets SHA256 Hash from the mods .geode file
+        */
+        [[nodiscard]] std::string getHash() const;
         /**
          * The developers of this mod
          */

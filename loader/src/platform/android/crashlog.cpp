@@ -338,7 +338,7 @@ void CrashContext::writeInfo(Buffer& stream) {
     auto image = this->imageFromAddress(crashAddr);
 
     stream.append("Faulty Lib: {}\n", image ? image->name() : "<Unknown>");
-    stream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
+    stream.append("Faulty Mod: {} ({})\n", faultyMod ? faultyMod->getID() : "<Unknown>", faultyMod ? faultyMod->getHash() : "N/A");
     stream.append("Instruction Address: ");
     this->formatAddress(crashAddr, infoStream);
 

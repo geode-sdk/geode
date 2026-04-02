@@ -490,7 +490,7 @@ void CrashContext::writeInfo(Buffer& stream) {
     auto makeFaultyModString = [](Mod* mod) -> std::string {
         if (!mod) return "Faulty Mod: <Unknown>";
 
-        return fmt::format("Faulty Mod: {} {} ({})", mod->getName(), mod->getVersion().toVString(), mod->getID());
+        return fmt::format("Faulty Mod: {} {} ({}, {})", mod->getName(), mod->getVersion().toVString(), mod->getID(), mod->getHash());
     };
 
     if (code == EXCEPTION_NUMBER) {
