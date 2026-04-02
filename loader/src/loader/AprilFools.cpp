@@ -1,6 +1,5 @@
 #include <Geode/Geode.hpp>
 #include "ui/mods/ModsLayer.hpp"
-#include <Geode/ui/SceneEvent.hpp>
 
 using namespace geode::prelude;
 
@@ -8,21 +7,18 @@ namespace sapphire {
     class CountdownTimer : public CCNode {
     public:
         CCLabelBMFont* m_timer;
-        CCNode* m_scene = nullptr;
-        ListenerHandle m_listener;
 
         static CountdownTimer* create() {
             auto ret = new CountdownTimer();
             if (ret->init()) {
                 ret->autorelease();
-                ret->schedule(schedule_selector(CountdownTimer::updateTimer), 1.f);
+                ret->schedule(schedule_selector(CountdownTimer::updateTimer), 0.f);
                 ret->updateTimer(0.f);
                 return ret;
             }
             delete ret;
             return nullptr;
         }
-
 
         bool init() {
             this->setLayout(SimpleColumnLayout::create()->setCrossAxisAlignment(CrossAxisAlignment::Start)->setGap(5.f));
@@ -48,30 +44,16 @@ namespace sapphire {
 
             this->updateLayout();
 
-            m_listener = SceneEvent().listen([this](auto scene) {
-                if (scene->template getChildByType<ModsLayer*>(0) || scene->template getChildByType<MenuLayer*>(0)) {
-                    this->enableTimer(scene);
-                }
-                else {
-                    this->disableTimer();
-                }
-            });
-
             return true;
         }
 
-        void enableTimer(CCNode* scene) {
-            m_scene = scene;
-            this->setVisible(true);
-        }
-
-        void disableTimer() {
-            m_scene = nullptr;
-            this->setVisible(false);
-        }
-
         void updateTimer(float dt) {
-            if (!m_scene) return;
+            if (MenuLayer::get() || CCScene::get()->getChildByType<ModsLayer*>(0)) {
+                this->setVisible(true);
+            }
+            else {
+                this->setVisible(false);
+            }
             if (!this->isVisible()) return;
 
             static auto aprilSecond = []() {
@@ -106,13 +88,11 @@ namespace sapphire {
                 Mod::get()->getSaveContainer().erase("show-april-popup-2026");
                 Mod::get()->getSaveContainer().erase("begin-april-popup-2026");
 
-                auto alert = FLAlertLayer::create(
+                FLAlertLayer::create(
                     "Happy April Fools!",
                     "Don't worry, Geode SDK will forever remain free for everyone :D",
                     "OK"
-                );
-                alert->m_scene = m_scene;
-                alert->show();
+                )->show();
 
                 this->removeFromParentAndCleanup(true);
             }
