@@ -271,13 +271,13 @@ bool LazySprite::Impl::postInit(bool initResult) {
         limitNodeSize(m_self, m_targetSize, std::min<float>(m_targetSize.width, m_targetSize.height), 0.f);
     }
 
-    if (m_callback) {
-        m_callback(Ok());
-    }
-
     if (m_loadingCircle) {
         m_loadingCircle->removeFromParent();
         m_loadingCircle = nullptr;
+    }
+
+    if (m_callback) {
+        m_callback(Ok());
     }
 
     return true;
@@ -287,13 +287,13 @@ void LazySprite::Impl::onError(std::string err) {
     m_hasLoaded = false;
     m_isLoading = false;
 
-    if (m_callback) {
-        m_callback(Err(std::move(err)));
-    }
-
     if (m_loadingCircle) {
         m_loadingCircle->removeFromParent();
         m_loadingCircle = nullptr;
+    }
+
+    if (m_callback) {
+        m_callback(Err(std::move(err)));
     }
 }
 
