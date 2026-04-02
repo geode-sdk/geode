@@ -109,6 +109,10 @@ ZStringView Mod::Impl::getName() const {
     return m_metadata.getName();
 }
 
+std::string Mod::Impl::getHash() const {
+    return m_metadata.getHash();
+}
+
 bool Mod::Impl::isEphemeral() const {
     return ModMetadataImpl::getImpl(m_metadata).m_completelyUnparseable;
 }

@@ -21,6 +21,10 @@ ZStringView Mod::getName() const {
     return m_impl->getName();
 }
 
+std::string Mod::getHash() const {
+    return m_impl->getHash();
+}
+
 std::vector<std::string> Mod::getDevelopers() const {
     return m_impl->getDevelopers();
 }

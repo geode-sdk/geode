@@ -174,14 +174,14 @@ void crashlog::printMods(Buffer& stream) {
     });
     using namespace std::string_view_literals;
     for (auto& mod : mods) {
-        stream.append("{} | [{}] {}\n",
+        stream.append("{} | [{}] {} ({})\n",
             mod->isCurrentlyLoading() ? "o"sv :
             mod->isLoaded() ? "x"sv :
             mod->targetsOutdatedVersion() ? "*"sv : // thank you very much for this bug report
             mod->failedToLoad() ? "!"sv : // thank you for this bug report
             mod->shouldLoad() ? "~"sv :
             " "sv,
-            mod->getVersion().toVString(), mod->getID()
+            mod->getVersion().toVString(), mod->getID(), (mod->getID() == "geode.loader") ? about::getLoaderCommitHash() : mod->getHash()
         );
     }
 }

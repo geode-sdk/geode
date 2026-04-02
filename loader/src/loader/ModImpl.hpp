@@ -86,6 +86,7 @@ namespace geode {
 
         ZStringView getID() const;
         ZStringView getName() const;
+        std::string getHash() const;
         std::vector<std::string> const& getDevelopers() const;
         std::optional<std::string> const& getDescription() const;
         std::optional<std::string> const& getDetails() const;

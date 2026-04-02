@@ -9,6 +9,7 @@
 #include <matjson.hpp>
 #include <utility>
 #include <clocale>
+#include <hash/hash.hpp>
 
 #include "ModMetadataImpl.hpp"
 #include "LoaderImpl.hpp"
@@ -581,6 +582,14 @@ ZStringView ModMetadata::getName() const {
         utils::string::replaceIP(m_impl->m_name, "Geode", "Sapphire Pro");
     }
     return m_impl->m_name;
+}
+
+std::string ModMetadata::getHash() const {
+    // naomi was here : )
+    std::string fileStr = file::readString(m_impl->m_path).unwrapOr("");
+    std::string hash = calculateHash(std::span<const unsigned char>(reinterpret_cast<const unsigned char*>(fileStr.data()), fileStr.size()));
+
+    return hash.substr(0, 8);
 }
 
 std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> const& developers) {
