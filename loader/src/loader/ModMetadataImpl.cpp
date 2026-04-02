@@ -576,19 +576,10 @@ ZStringView ModMetadata::getID() const {
 }
 
 ZStringView ModMetadata::getName() const {
-    // we dont have much time! yay!
-    if (Mod::get()->getSavedValue("sapphire-style", false)) {
-        utils::string::replaceIP(m_impl->m_name, "Geode", "Sapphire Pro");
-    }
     return m_impl->m_name;
 }
 
 std::string ModMetadata::formatDeveloperDisplayString(std::vector<std::string> const& developers) {
-    if (!developers.empty()) {
-        if (Mod::get()->getSavedValue("sapphire-style", false) && developers.front().find("Geode") != std::string::npos) {
-            return "Sapphire Enterprise Inc.";
-        }
-    }
     switch (developers.size()) {
         case 0: return "Unknown"; break;
         case 1: return developers.front(); break;
@@ -604,9 +595,6 @@ std::vector<std::string> const& ModMetadata::getDevelopers() const {
     return m_impl->m_developers;
 }
 std::optional<std::string> const& ModMetadata::getDescription() const {
-    if (m_impl->m_description && Mod::get()->getSavedValue("sapphire-style", false)) {
-        utils::string::replaceIP(*m_impl->m_description, "Geode", "Sapphire Pro");
-    }
     return m_impl->m_description;
 }
 std::optional<std::string> const& ModMetadata::getDetails() const {
