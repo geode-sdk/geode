@@ -24,7 +24,7 @@ using namespace geode::prelude;
 using namespace crashlog;
 using namespace unwindstack;
 
-static constexpr auto crashIndicatorFilename = "lastSessionDidCrash";
+static constexpr auto crashIndicatorFilename = "last-crashed";
 
 static int s_signal = 0;
 static std::atomic<int> s_reentrancy{0};
@@ -458,6 +458,9 @@ bool crashlog::setupPlatformHandler() {
     for (size_t i = 0; i < 3; i++) {
         std::thread(&handlerThread).detach();
     }
+
+    std::filesystem::remove(crashlog::getCrashLogDirectory() / "lastSessionDidCrash");
+    std::filesystem::remove(crashlog::getCrashLogDirectory() / "last-pid");
 
     auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
     if (std::filesystem::exists(crashIndicatorPath)) {
