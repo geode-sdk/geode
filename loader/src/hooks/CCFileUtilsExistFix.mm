@@ -38,8 +38,13 @@ static bool isFileExistImpl(geode::ZStringView path) {
 }
 
 #ifdef GEODE_IS_MACOS
+#import mac <Geode/cocos/platform/mac/CCFileUtilsMac.h>
 #include <Geode/modify/CCFileUtilsMac.hpp>
 class $modify(CCFileUtilsExistFix, CCFileUtilsMac) {
+    static void onModify(auto& self) {
+        (void)self.setHookPriority("CCFileUtilsMac::isFileExist", Priority::Replace);
+    }
+
     bool isFileExist(const gd::string& path) {
         return isFileExistImpl(path);
     }
@@ -47,8 +52,13 @@ class $modify(CCFileUtilsExistFix, CCFileUtilsMac) {
 #endif
 
 #ifdef GEODE_IS_IOS
+#import ios <Geode/cocos/platform/ios/CCFileUtilsIOS.h>
 #include <Geode/modify/CCFileUtilsIOS.hpp>
 class $modify(CCFileUtilsExistFix, CCFileUtilsIOS) {
+    static void onModify(auto& self) {
+        (void)self.setHookPriority("CCFileUtilsIOS::isFileExist", Priority::Replace);
+    }
+
     bool isFileExist(const gd::string& path) {
         return isFileExistImpl(path);
     }
