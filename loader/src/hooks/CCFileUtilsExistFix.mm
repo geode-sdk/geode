@@ -1,6 +1,4 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/CCFileUtils.hpp>
-#include <Geode/utils/VMTHookManager.hpp>
 
 #define CommentType CommentTypeDummy
 #import <Foundation/Foundation.h>
@@ -40,6 +38,7 @@ static bool isFileExistImpl(geode::ZStringView path) {
 }
 
 #ifdef GEODE_IS_MACOS
+#include <Geode/modify/CCFileUtilsMac.hpp>
 class $modify(CCFileUtilsExistFix, CCFileUtilsMac) {
     bool isFileExist(const gd::string& path) {
         return isFileExistImpl(path);
@@ -48,6 +47,7 @@ class $modify(CCFileUtilsExistFix, CCFileUtilsMac) {
 #endif
 
 #ifdef GEODE_IS_IOS
+#include <Geode/modify/CCFileUtilsIOS.hpp>
 class $modify(CCFileUtilsExistFix, CCFileUtilsIOS) {
     bool isFileExist(const gd::string& path) {
         return isFileExistImpl(path);
