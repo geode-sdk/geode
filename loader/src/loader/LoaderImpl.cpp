@@ -426,13 +426,13 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
             // now we run the code that already existed before the 
             // modifier fallthrough functionality was added but we
             // loop it through all modifier combinations we just found
+            bool imeActive = CCIMEDispatcher::sharedDispatcher()->hasDelegate();
+
             for(const auto& keybind : keybindsToCheck) {
                 auto it = m_keybindSettings.find(keybind);
                 if (it == m_keybindSettings.end()) {
                     continue;
                 }
-
-                bool imeActive = CCIMEDispatcher::sharedDispatcher()->hasDelegate();
 
                 if (down) {
                     for (auto& setting : it->second) {
