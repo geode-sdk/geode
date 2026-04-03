@@ -39,29 +39,19 @@ static bool isFileExistImpl(geode::ZStringView path) {
     return fullpath != nil;
 }
 
-class $modify(CCFileUtilsExistFix, CCFileUtils) {
-    bool init() {
-        if (!CCFileUtils::init()) return false;
-
-        if (Loader::get()->isPatchless()) return true; // TODO: remove when VMT works
-
-        auto hook = VMTHookManager::get().addHook<
-            geode::modifier::ResolveC<CCFileUtilsExistFix>::func(&CCFileUtilsExistFix::isFileExist)
-        >(this, "cocos2d::CCFileUtils::isFileExist");
-
-        if (!hook) {
-            log::error("Failed to hook CCFileUtils::isFileExist: {}", hook.unwrapErr());
-            return false;
-        }
-
-        if (auto h = hook.unwrap()) {
-            h.value()->setPriority(Priority::Replace);
-        }
-
-        return true;
-    }
-
+#ifdef GEODE_IS_MACOS
+class $modify(CCFileUtilsExistFix, CCFileUtilsMac) {
     bool isFileExist(const gd::string& path) {
         return isFileExistImpl(path);
     }
 };
+#endif
+
+#ifdef GEODE_IS_IOS
+class $modify(CCFileUtilsExistFix, CCFileUtilsIOS) {
+    bool isFileExist(const gd::string& path) {
+        return isFileExistImpl(path);
+    }
+};
+#endif
+
