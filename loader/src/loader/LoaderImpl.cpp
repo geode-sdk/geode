@@ -406,8 +406,7 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
                 });
             }
 
-            // build up all keybinds to look for, starting with the most specific
-            // (most modifiers) to least specific (least modifiers)
+            // build up all keybinds to look for, starting with the most specific to least specific
             // this is for modifier fallthrough functionality
             std::vector<Keybind> keybindsToCheck;
             int baseMask = keybind.modifiers.value; 
