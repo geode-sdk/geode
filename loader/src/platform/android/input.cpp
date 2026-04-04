@@ -3,6 +3,7 @@
 #include <Geode/Prelude.hpp>
 #include <cocos2d.h>
 #include <android/keycodes.h>
+#include <android/input.h>
 #include <jni.h>
 #include <unordered_map>
 
@@ -338,7 +339,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         return;
     }
 
-    auto isController = eventSource == 0x00000401 || eventSource == 0x01000010;
+    auto isController = (eventSource & AINPUT_SOURCE_GAMEPAD) == AINPUT_SOURCE_GAMEPAD
+        || (eventSource & AINPUT_SOURCE_JOYSTICK) == AINPUT_SOURCE_JOYSTICK;
     double timeInSeconds = static_cast<double>(timestamp) / 1'000'000'000.0;
 
     if (isDown) {
