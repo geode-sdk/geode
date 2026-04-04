@@ -204,7 +204,7 @@ namespace geode::comm {
         using VectorType = std::vector<Container<Callable>>;
         // we should have just used a atomic shared ptr!
         asp::PtrSwap<VectorType> m_receivers;
-        std::mutex m_mutex;
+        mutable std::mutex m_mutex;
     public:
         using CallableType = Callable;
         using EventCenterType = EventCenterGlobal;
