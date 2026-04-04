@@ -205,6 +205,10 @@ namespace geode::comm {
         // we should have just used a atomic shared ptr!
         asp::PtrSwap<VectorType> m_receivers;
         mutable std::mutex m_mutex;
+        std::vector<typename std::vector<Container<Callable>>::iterator> m_toRemove;
+        std::vector<Container<Callable>> m_toAdd;
+        size_t m_nextID = 1;
+        size_t m_sending = 0;
     public:
         using CallableType = Callable;
         using EventCenterType = EventCenterGlobal;
@@ -220,44 +224,49 @@ namespace geode::comm {
         }
 
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
-            ReceiverHandle handle = {};
             auto lock = std::unique_lock<std::mutex>(m_mutex);
-            auto ptr = m_receivers.load();
-
-            handle = asp::iter::from(*ptr)
-                .map([](auto r) { return r.get().m_handle; })
-                .max()
-                .value_or(0) + 1;
-
-            for (auto it = ptr->begin(); it != ptr->end(); ++it) {
+            ReceiverHandle handle = static_cast<ReceiverHandle>(m_nextID++);
+            auto receivers = m_receivers.load();
+            if (m_sending > 0) {
+                // geode::console::log(fmt::format("Added handler with id {} to toAdd", handle), Severity::Debug);
+                m_toAdd.push_back({std::move(receiver), priority, handle});
+                return handle;
+            }
+            for (auto it = receivers->begin(); it != receivers->end(); ++it) {
                 if (priority < it->m_priority) {
-                    ptr->insert(it, {std::move(receiver), priority, handle});
+                    // geode::console::log(fmt::format("Added handler with id {} to receivers", handle), Severity::Debug);
+                    receivers->insert(it, {std::move(receiver), priority, handle});
                     return handle;
                 }
             }
-
-            ptr->push_back({std::move(receiver), priority, handle});
+            receivers->push_back({std::move(receiver), priority, handle});
             return handle;
         }
 
         size_t removeReceiver(ReceiverHandle handle) noexcept {
             auto lock = std::unique_lock<std::mutex>(m_mutex);
-            auto ptr = m_receivers.load();
-
-            size_t size = ptr->size();
+            auto receivers = m_receivers.load();
+            auto size = receivers->size();
             for (int i = 0; i < size; ++i) {
-                if ((*ptr)[i].m_handle == handle) {
-                    ptr->erase(ptr->begin() + i);
-                    size--;
-                    return size;
+                if ((*receivers)[i].m_handle == handle) {
+                    if (m_sending > 0) {
+                        // geode::console::log(fmt::format("Added handler with id {} to toRemove", handle), Severity::Debug);
+                        m_toRemove.push_back(receivers->begin() + i);
+                    } else {
+                        // geode::console::log(fmt::format("Removed handler with id {} from receivers", handle), Severity::Debug);
+                        receivers->erase(receivers->begin() + i);
+                    }
+                    // size - 1, return for symmetry
+                    return size - 1;
                 }
             }
+            // size
             return size;
         }
 
         size_t getReceiverCount() const noexcept {
             auto lock = std::unique_lock<std::mutex>(m_mutex);
-            return m_receivers.load()->size();
+            return m_receivers.load()->size() + m_toAdd.size() - m_toRemove.size();
         }
 
         template <class ...Args>
@@ -265,15 +274,42 @@ namespace geode::comm {
         bool send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
             auto lock = std::unique_lock<std::mutex>(m_mutex);
 
-            auto currentReceivers = m_receivers.load();
-            for (auto& callable : *currentReceivers) {
+            m_sending++;
+            bool ret = false;
+            auto receivers = m_receivers.load();
+            for (auto& callable : *receivers) {
+                if (std::find_if(m_toRemove.begin(), m_toRemove.end(), [&callable](auto& it) {
+                    return it->m_handle == callable.m_handle;
+                }) != m_toRemove.end()) {
+                    // geode::console::log(fmt::format("Skipping handler with id {} because it is in toRemove", callable.m_handle), Severity::Debug);
+                    continue;
+                }
                 lock.unlock();
                 if (callable.call(value...)) {
-                    return true;
+                    ret = true;
+                    lock.lock();
+                    break;
                 }
                 lock.lock();
             }
-            return false;
+            m_sending--;
+
+            if (m_sending == 0) {
+                auto receivers = m_receivers.load();
+                std::sort(m_toRemove.rbegin(), m_toRemove.rend());
+                for (auto& it : m_toRemove) {
+                    receivers->erase(it);
+                }
+                m_toRemove.clear();
+
+                receivers->insert(receivers->end(), std::make_move_iterator(m_toAdd.begin()), std::make_move_iterator(m_toAdd.end()));
+                m_toAdd.clear();
+                std::sort(receivers->begin(), receivers->end(), [](auto& a, auto& b) {
+                    return a.m_priority < b.m_priority;
+                });
+            }
+
+            return ret;
         }
     };
 
