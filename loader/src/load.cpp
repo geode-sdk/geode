@@ -52,11 +52,12 @@ $on_mod(Loaded) {
 void tryLogForwardCompat() {
     if (!LoaderImpl::get()->isForwardCompatMode()) return;
     // TODO: change text later
-    log::warn("+-----------------------------------------------------------------------------------------------+");
-    log::warn("| Geode is running in a newer version of GD than Geode targets.                                 |");
-    log::warn("| UI is going to be disabled, platform console is forced on and crashes can be more common.     |");
-    log::warn("| However, if your game crashes, it is probably caused by an outdated mod and not Geode itself. |");
-    log::warn("+-----------------------------------------------------------------------------------------------+");
+    log::warn("+-----------------------------------------------------------------------------------+");
+    log::warn("| Geode is running in a newer version of GD than Geode targets.                     |");
+    log::warn("| Disabling UI and enabling platform console.                                       |");
+    log::warn("| Expect crashes to be more common.                                                 |");
+    log::warn("| If your game crashes, it is probably caused by an outdated mod, not Geode itself. |");
+    log::warn("+-----------------------------------------------------------------------------------+");
 }
 
 void tryShowForwardCompat() {
