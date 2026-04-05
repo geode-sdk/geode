@@ -108,6 +108,7 @@ $on_mod(Loaded) {
 
         if (Mod::get()->getSettingValue<bool>("enable-geode-theme")) {
             Mod::get()->setSettingValue<std::string_view>("used-theme", "Geode");
+            Mod::get()->setSettingValue<bool>("enable-geode-theme", false);
         }
     });
 
