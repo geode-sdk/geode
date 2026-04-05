@@ -52,11 +52,12 @@ $on_mod(Loaded) {
 void tryLogForwardCompat() {
     if (!LoaderImpl::get()->isForwardCompatMode()) return;
     // TODO: change text later
-    log::warn("+-----------------------------------------------------------------------------------------------+");
-    log::warn("| Geode is running in a newer version of GD than Geode targets.                                 |");
-    log::warn("| UI is going to be disabled, platform console is forced on and crashes can be more common.     |");
-    log::warn("| However, if your game crashes, it is probably caused by an outdated mod and not Geode itself. |");
-    log::warn("+-----------------------------------------------------------------------------------------------+");
+    log::warn("+-----------------------------------------------------------------------------------+");
+    log::warn("| Geode is running in a newer version of GD than Geode targets.                     |");
+    log::warn("| Disabling UI and enabling platform console.                                       |");
+    log::warn("| Expect crashes to be more common.                                                 |");
+    log::warn("| If your game crashes, it is probably caused by an outdated mod, not Geode itself. |");
+    log::warn("+-----------------------------------------------------------------------------------+");
 }
 
 void tryShowForwardCompat() {
@@ -104,14 +105,6 @@ bool safeModeCheck() {
     return false;
 }
 #endif
-
-static bool checkAprilFools() {
-    auto now = std::chrono::system_clock::now();
-    auto timeNow = std::chrono::system_clock::to_time_t(now);
-    auto tm_local = asp::localtime(timeNow);
-
-    return tm_local.tm_mon == 3 && tm_local.tm_mday == 1 && tm_local.tm_year == 126;
-}
 
 int geodeEntry(void* platformData) {
     thread::setName("Main");
@@ -168,14 +161,6 @@ int geodeEntry(void* platformData) {
 
     if (Mod::get()->getSettingValue<bool>("show-platform-console")) {
         console::openIfClosed();
-    }
-
-    if (checkAprilFools()) {
-        Mod::get()->setSavedValue("sapphire-style", true);
-    }
-    else if (Mod::get()->getSavedValue("sapphire-style", false)) {
-        Mod::get()->getSaveContainer().erase("sapphire-style");
-        Mod::get()->setSavedValue("show-april-popup-2026", true);
     }
 
     // Setup logger here so that internal mod is setup and we can read log level

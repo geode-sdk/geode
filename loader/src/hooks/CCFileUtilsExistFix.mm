@@ -1,6 +1,4 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/CCFileUtils.hpp>
-#include <Geode/utils/VMTHookManager.hpp>
 
 #define CommentType CommentTypeDummy
 #import <Foundation/Foundation.h>
@@ -39,29 +37,31 @@ static bool isFileExistImpl(geode::ZStringView path) {
     return fullpath != nil;
 }
 
-class $modify(CCFileUtilsExistFix, CCFileUtils) {
-    bool init() {
-        if (!CCFileUtils::init()) return false;
-
-        if (Loader::get()->isPatchless()) return true; // TODO: remove when VMT works
-
-        auto hook = VMTHookManager::get().addHook<
-            geode::modifier::ResolveC<CCFileUtilsExistFix>::func(&CCFileUtilsExistFix::isFileExist)
-        >(this, "cocos2d::CCFileUtils::isFileExist");
-
-        if (!hook) {
-            log::error("Failed to hook CCFileUtils::isFileExist: {}", hook.unwrapErr());
-            return false;
-        }
-
-        if (auto h = hook.unwrap()) {
-            h.value()->setPriority(Priority::Replace);
-        }
-
-        return true;
+#ifdef GEODE_IS_MACOS
+#include <Geode/cocos/platform/mac/CCFileUtilsMac.h>
+#include <Geode/modify/CCFileUtilsMac.hpp>
+class $modify(CCFileUtilsExistFix, CCFileUtilsMac) {
+    static void onModify(auto& self) {
+        (void)self.setHookPriority("CCFileUtilsMac::isFileExist", Priority::Replace);
     }
 
     bool isFileExist(const gd::string& path) {
         return isFileExistImpl(path);
     }
 };
+#endif
+
+#ifdef GEODE_IS_IOS
+#include <Geode/cocos/platform/ios/CCFileUtilsIOS.h>
+#include <Geode/modify/CCFileUtilsIOS.hpp>
+class $modify(CCFileUtilsExistFix, CCFileUtilsIOS) {
+    static void onModify(auto& self) {
+        (void)self.setHookPriority("CCFileUtilsIOS::isFileExist", Priority::Replace);
+    }
+
+    bool isFileExist(const gd::string& path) {
+        return isFileExistImpl(path);
+    }
+};
+#endif
+

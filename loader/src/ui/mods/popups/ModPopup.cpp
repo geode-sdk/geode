@@ -215,9 +215,6 @@ bool ModPopup::init(ModSource&& src) {
     leftColumn->addChild(m_titleContainer);
 
     auto idStr = "(ID: " + m_source.getMetadata().getID() + ")";
-    if (Mod::get()->getSavedValue("sapphire-style", false)) {
-        utils::string::replaceIP(idStr, "geode", "sapphire");
-    }
     auto idLabel = CCLabelBMFont::create(idStr.c_str(), "bigFont.fnt");
     idLabel->limitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
     idLabel->setColor({ 150, 150, 150 });

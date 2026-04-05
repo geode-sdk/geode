@@ -55,8 +55,6 @@ public:
     virtual bool isFileExist(const gd::string& strFilePath);
     virtual bool isAbsolutePath(const gd::string& strPath);
 
-    virtual bool init();
-
     /**
      *  Gets full path for filename, resolution directory and search path.
      *
