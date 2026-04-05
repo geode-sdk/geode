@@ -69,3 +69,9 @@ ccColor4B ColorProvider::color(std::string_view id) const {
 ccColor3B ColorProvider::color3b(std::string_view id) const {
     return to3B(this->color(id));
 }
+
+bool NodeProvidingEvent::send(cocos2d::CCNode*& nodeOut) {
+    std::string theme;
+    ThemeIDProvidingEvent().send(theme);
+    return this->GlobalEvent::send(nodeOut, theme);
+}

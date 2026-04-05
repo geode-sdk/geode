@@ -320,20 +320,29 @@ bool ModsLayer::init() {
 
     const bool geodeTheme = isGeodeTheme();
     if (!isSafeMode) {
-        if (Mod::get()->getSavedValue<bool>("sapphire-style", false)) {
-            auto bg = CCSprite::create("sapphire-bg.png"_spr);
-            bg->setScaleX((winSize.width) / bg->getContentSize().width);
-            bg->setScaleY((winSize.height) / bg->getContentSize().height);
-            bg->setPosition({winSize.width / 2, winSize.height / 2});
-            this->addChild(bg);
-        }
-        else if (geodeTheme) {
-            this->addChild(SwelvyBG::create());
-        }
-        else {
-            this->addChild(createLayerBG());
-            addSideArt(this);
-        }
+        auto listener = NodeProvidingEvent("geode-background"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+            if (nodeOut) return; // someone overrode it already
+            auto winSize = CCDirector::get()->getWinSize();
+            CCNode* geodeBackground;
+            if (theme == "sapphire") {
+                geodeBackground = CCSprite::create("sapphire-bg.png"_spr);
+                geodeBackground->setScaleX((winSize.width) / geodeBackground->getContentSize().width);
+                geodeBackground->setScaleY((winSize.height) / geodeBackground->getContentSize().height);
+                geodeBackground->setPosition({winSize.width / 2, winSize.height / 2});
+            }
+            else if (theme == "geometry-dash") {
+                geodeBackground = createLayerBG();
+                addSideArt(this);
+            }
+            else {
+                geodeBackground = SwelvyBG::create();
+            }
+            nodeOut = geodeBackground;
+        }, Priority::Last);
+
+        cocos2d::CCNode* geodeBackground = nullptr;
+        NodeProvidingEvent("geode-background"_spr).send(geodeBackground);
+        this->addChild(geodeBackground);
     }
 
     m_modListDisplay = Mod::get()->getSavedValue<ModListDisplay>("mod-list-display-type");
@@ -454,30 +463,62 @@ bool ModsLayer::init() {
     frameBG->ignoreAnchorPointForPosition(false);
     m_frame->addChildAtPosition(frameBG, Anchor::Center);
 
-    std::string suffix = geodeTheme ? "" : "-gd";
-    if (Mod::get()->getSavedValue<bool>("sapphire-style", false)) {
-        suffix = "-sapphire";
-    }
-    auto tabsTop = CCSprite::createWithSpriteFrameName(fmt::format("mods-list-top{}.png"_spr, suffix).c_str());
+    auto topListener = NodeProvidingEvent("geode-mods-list-top"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+        if (nodeOut) return; // someone overrode it already
+        
+        if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-sapphire.png"_spr);
+        else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-gd.png"_spr);
+        else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top.png"_spr);
+        nodeOut->setAnchorPoint({ .5f, .0f });
+    }, Priority::Last);
+
+    CCNode* tabsTop = nullptr;
+    NodeProvidingEvent("geode-mods-list-top"_spr).send(tabsTop);
     tabsTop->setID("frame-top-sprite");
-    tabsTop->setAnchorPoint({ .5f, .0f });
     tabsTop->setZOrder(1);
     m_frame->addChildAtPosition(tabsTop, Anchor::Top, ccp(0, -2));
 
-    auto tabsLeft = CCSprite::createWithSpriteFrameName(fmt::format("mods-list-side{}.png"_spr, suffix).c_str());
+    auto leftListener = NodeProvidingEvent("geode-mods-list-left"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+        if (nodeOut) return; // someone overrode it already
+
+        if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-sapphire.png"_spr);
+        else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-gd.png"_spr);
+        else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side.png"_spr);
+        nodeOut->setScaleY(m_frame->getContentHeight() / nodeOut->getContentHeight());
+    }, Priority::Last);
+
+    CCNode* tabsLeft = nullptr;
+    NodeProvidingEvent("geode-mods-list-left"_spr).send(tabsLeft);
     tabsLeft->setID("frame-left-sprite");
-    tabsLeft->setScaleY(m_frame->getContentHeight() / tabsLeft->getContentHeight());
     m_frame->addChildAtPosition(tabsLeft, Anchor::Left, ccp(6.5f, 1));
 
-    auto tabsRight = CCSprite::createWithSpriteFrameName(fmt::format("mods-list-side{}.png"_spr, suffix).c_str());
+    auto rightListener = NodeProvidingEvent("geode-mods-list-right"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+        if (nodeOut) return; // someone overrode it already
+
+        if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-sapphire.png"_spr);
+        else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-gd.png"_spr);
+        else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side.png"_spr);
+        nodeOut->setScaleY(m_frame->getContentHeight() / nodeOut->getContentHeight());
+        static_cast<CCSprite*>(nodeOut)->setFlipX(true);
+    }, Priority::Last);
+
+    CCNode* tabsRight = nullptr;
+    NodeProvidingEvent("geode-mods-list-right"_spr).send(tabsRight);
     tabsRight->setID("frame-right-sprite");
-    tabsRight->setFlipX(true);
-    tabsRight->setScaleY(m_frame->getContentHeight() / tabsRight->getContentHeight());
     m_frame->addChildAtPosition(tabsRight, Anchor::Right, ccp(-6.5f, 1));
 
-    auto tabsBottom = CCSprite::createWithSpriteFrameName(fmt::format("mods-list-bottom{}.png"_spr, suffix).c_str());
+    auto bottomListener = NodeProvidingEvent("geode-mods-list-bottom"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+        if (nodeOut) return; // someone overrode it already
+
+        if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-bottom-sapphire.png"_spr);
+        else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-bottom-gd.png"_spr);
+        else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-bottom.png"_spr);
+        nodeOut->setAnchorPoint({ .5f, 1.f });
+    }, Priority::Last);
+
+    CCNode* tabsBottom = nullptr;
+    NodeProvidingEvent("geode-mods-list-bottom"_spr).send(tabsBottom);
     tabsBottom->setID("frame-bottom-sprite");
-    tabsBottom->setAnchorPoint({ .5f, 1.f });
     tabsBottom->setZOrder(1);
     m_frame->addChildAtPosition(tabsBottom, Anchor::Bottom, ccp(0, 3));
 

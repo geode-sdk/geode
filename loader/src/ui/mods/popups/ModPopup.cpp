@@ -137,18 +137,9 @@ bool ModPopup::init(ModSource&& src) {
             counter++;
             if (counter % 6 == 3) {
                 Mod::get()->setSavedValue("alternate-geode-style", true);
-                ColorProvider::get()->override("swelvy-bg-0"_spr, { 216, 132, 132, 255 });
-                ColorProvider::get()->override("swelvy-bg-1"_spr, { 210, 189, 119, 255 });
-                ColorProvider::get()->override("swelvy-bg-2"_spr, { 195, 212, 136, 255 });
-                ColorProvider::get()->override("swelvy-bg-3"_spr, { 95, 184, 134, 255 });
-                ColorProvider::get()->override("swelvy-bg-4"_spr, { 100, 174, 189, 255 });
-                ColorProvider::get()->override("swelvy-bg-5"_spr, { 118, 90, 148, 255 });
             }
             else if (counter % 6 == 0) {
                 Mod::get()->getSaveContainer().erase("alternate-geode-style");
-                for (int i = 0; i < 6; i++) {
-                    ColorProvider::get()->reset(fmt::format("swelvy-bg-{}"_spr, i));
-                }
             }
         });
         m_titleContainer->addChildAtPosition(
