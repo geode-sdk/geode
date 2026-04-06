@@ -108,7 +108,7 @@
             "type": "bool",
             "default": true,
             "name": "Hide Name in Crashlogs",
-            "description": "Replaces your username with \"{USERNAME}\" in crashlogs so you can share crashlogs without leaking your name.",
+            "description": "Replaces your username with \"<user>\" in crashlogs so you can share crashlogs without leaking your name.",
             "platforms": [
                 "win",
                 "mac"

@@ -274,7 +274,7 @@ std::string crashlog::writeCrashlog(
     #if defined(GEODE_IS_WINDOWS) || defined(GEODE_IS_MACOS)
     if (Mod::get()->getSettingValue<bool>("hide-user-in-crashlogs")) {
         const char* user = std::getenv("USER");
-        std::string newUser = "{USERNAME}";
+        std::string newUser = "<user>";
         
         // so we only replace file paths
         newInfo = utils::string::replace(newInfo, fmt::format("\\{}\\", user), fmt::format("\\{}\\", newUser));
