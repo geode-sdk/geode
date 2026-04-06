@@ -110,6 +110,16 @@
             "name": "Expand Installed Mods List",
             "description": "Make the installed mods list a single infinite scrollable list instead of having pages"
         },
+        "hide-user-in-crashlogs": {
+            "type": "bool",
+            "default": true,
+            "name": "Hide Name in Crashlogs",
+            "description": "Replaces your username with \"{USERNAME}\" in crashlogs so you can share crashlogs without leaking your name.",
+            "platforms": [
+                "win",
+                "mac"
+            ]
+        },
         "developer-title": {
             "type": "title",
             "name": "Developer Settings"
