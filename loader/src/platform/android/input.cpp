@@ -513,3 +513,16 @@ extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceRemoved(JNIEnv*, jobject, jint deviceId, jint eventSource) {
     geode::AndroidInputDeviceEvent().send(deviceId, geode::AndroidInputDeviceStatus::Removed);
 }
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_resizeSurface(
+    JNIEnv* env, jobject, jint width, jint height
+) {
+    auto fWidth = static_cast<float>(width);
+    auto fHeight = static_cast<float>(height);
+
+    cocos2d::CCEGLView::sharedOpenGLView()->setFrameSize(fWidth, fHeight);
+    cocos2d::CCDirector::sharedDirector()->updateScreenScale({fWidth, fHeight});
+    cocos2d::CCDirector::sharedDirector()->setViewport();
+    cocos2d::CCDirector::sharedDirector()->setProjection(cocos2d::kCCDirectorProjection2D);
+}
