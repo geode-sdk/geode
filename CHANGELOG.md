@@ -1,10 +1,18 @@
-# Sapphire Changelog
+# Geode Changelog
+
+## v5.5.3
+ * Use legacy messages for detecting isDown (5d0e824)
+ * Dont show unloaded mods in keybinds popup (f72a7cc)
+ * Fix MDTextArea culling (#1975)
+ * Enforce UTF-8 when calculating hashes (4cec228)
+
+## v5.5.2
+ * Fix transition breaking the Sapphire Popup
 
 ## v5.5.1
  * Fix JIT-less iOS bug
 
 ## v5.5.0
- * Geode SDK was acquired by Sapphire Enterprise Inc. and has become Sapphire SDK
  * Add `allow-in-text-inputs` option for keybinds (d57cd23)
  * Add `LogFormatEvent` to allow for registering custom object formatters (d1589cb)
  * Add more default formatters and implement raw specifier (#1890)

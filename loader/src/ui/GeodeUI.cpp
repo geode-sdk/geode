@@ -267,9 +267,6 @@ protected:
                     if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
                         m_sprite->initWithSpriteFrameName("geode-logo-alternate.png"_spr);
                     }
-                    else if (Mod::get()->getSavedValue("sapphire-style", false)) {
-                        m_sprite->initWithSpriteFrameName("sapphire-logo.png"_spr);
-                    }
                     else {
                         m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
                     }
