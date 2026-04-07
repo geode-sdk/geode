@@ -77,10 +77,12 @@ void Notification::showNextNotification() {
     this->removeFromParent();
 
     // remove self from front of queue and show next popup if it exists
-    s_queue.pop_front();
+    if (!s_queue.empty()) {
+        s_queue.pop_front();
+    }
 
-    if (s_queue.size() != 0) {
-        s_queue.at(0)->show();
+    if (!s_queue.empty()) {
+        s_queue.front()->show();
     }
 }
 
@@ -200,9 +202,11 @@ void Notification::show() {
         s_queue.push_back(this);
     }
 
+    if (s_queue.empty()) return;
+
     // if we're not the current notification, return
-    if (s_queue.at(0) != this) {
-        if (auto current = s_queue.at(0).data()) {
+    if (s_queue.front() != this) {
+        if (auto current = s_queue.front().data()) {
             current->maybeSkipForQueuedNotification();
         }
         return;
