@@ -120,9 +120,7 @@ public:
      */
     inline void setRequestData(const char* buffer, unsigned int len)
     {
-        auto vec = std::vector<char>(_requestData);
-        vec.assign(buffer, buffer + len);
-        _requestData = gd::vector<char>(vec);
+        _requestData.assign(buffer, buffer + len);
     };
     /** Get the request data pointer back */
     inline char* getRequestData()
@@ -132,7 +130,7 @@ public:
     /** Get the size of request data back */
     inline int getRequestDataSize()
     {
-        return std::vector<char>(_requestData).size();
+        return _requestData.size();
     }
 
     /** Option field. You can set a string tag to identify your request, this tag can be found in HttpResponse->getHttpRequest->getTag()

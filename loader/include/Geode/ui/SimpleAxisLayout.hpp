@@ -183,6 +183,12 @@ public:
      * The default is set to 2.0f
      */
     SimpleAxisLayout* setMaxRelativeScale(std::optional<float> scale);
+    /**
+     * If true, the layout will not take into account invisible children when creating gaps or
+     * calculating content sizes
+     */
+    SimpleAxisLayout* ignoreInvisibleChildren(bool ignore = true);
+    bool isIgnoreInvisibleChildren() const;
 
     Axis getAxis() const;
     AxisScaling getMainAxisScaling() const;
@@ -196,7 +202,7 @@ public:
     std::optional<float> getMaxRelativeScale() const;
 };
 
-class GEODE_DLL SimpleRowLayout : public SimpleAxisLayout {
+class GEODE_DLL SimpleRowLayout final : public SimpleAxisLayout {
 protected:
     SimpleRowLayout();
 
@@ -206,7 +212,7 @@ public:
     virtual ~SimpleRowLayout();
 };
 
-class GEODE_DLL SimpleColumnLayout : public SimpleAxisLayout {
+class GEODE_DLL SimpleColumnLayout final : public SimpleAxisLayout {
 protected:
     SimpleColumnLayout();
 
@@ -216,7 +222,7 @@ public:
     virtual ~SimpleColumnLayout();
 };
 
-class GEODE_DLL AxisGap : public cocos2d::CCNode {
+class GEODE_DLL AxisGap final : public cocos2d::CCNode {
 protected:
     class Impl;
 

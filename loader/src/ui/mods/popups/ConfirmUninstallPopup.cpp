@@ -2,13 +2,16 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/TextArea.hpp>
 
-bool ConfirmUninstallPopup::setup(Mod* mod) {
+bool ConfirmUninstallPopup::init(Mod* mod) {
+    if (!Popup::init(300.f, 150.f, "square01_001.png"))
+        return false;
+
     m_mod = mod;
 
-    this->setTitle("Uninstall " + mod->getName());
+    this->setTitle(fmt::format("Uninstall {}", mod->getName()));
 
     auto text = TextArea::create(
-        fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()),
+        fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{:.100}</c>?", mod->getName()),
         "chatFont.fnt",
         1.f, m_size.width - 35,
         ccp(.5f, .5f), 20.f, false
@@ -50,26 +53,26 @@ void ConfirmUninstallPopup::onUninstall(CCObject*) {
     if (res) {
         FLAlertLayer::create(
             "Mod Uninstalled",
-            m_mod->getName() + " has been uninstalled!",
+            fmt::format("{:.400} has been uninstalled!", m_mod->getName()),
             "OK"
         )->show();
     }
     else {
         FLAlertLayer::create(
             "Error Uninstalling",
-            "Error uninstalling " + m_mod->getName() + ": " + res.unwrapErr(),
+            fmt::format("Error uninstalling {:.400}: {}", m_mod->getName(), res.unwrapErr()),
             "OK"
         )->show();
     }
 
-    UpdateModListStateEvent(UpdateModState(m_mod->getID())).post();
+    UpdateModListStateEvent().send(UpdateModState(m_mod->getID()));
 
     this->onClose(nullptr);
 }
 
 ConfirmUninstallPopup* ConfirmUninstallPopup::create(Mod* mod) {
     auto ret = new ConfirmUninstallPopup();
-    if (ret->initAnchored(300, 150, mod, "square01_001.png", { 0, 0, 94, 94 })) {
+    if (ret->init(mod)) {
         ret->autorelease();
         return ret;
     }

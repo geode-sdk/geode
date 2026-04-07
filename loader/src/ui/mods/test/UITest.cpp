@@ -12,17 +12,19 @@ using namespace geode::prelude;
 
 using StrTask = Task<std::string>;
 
-class GUITestPopup : public Popup<> {
+class GUITestPopup : public Popup {
 protected:
     CCLabelBMFont* m_rawTaskState;
     CCMenuItemSpriteExtra* m_cancelTaskBtn;
     CCMenuItemSpriteExtra* m_cancelServerTaskBtn;
     EventListener<web::WebTask> m_rawListener;
     EventListener<StrTask> m_strListener;
-    EventListener<server::ServerRequest<server::ServerModsList>> m_serListener;
-    EventListener<server::ServerRequest<server::ServerModsList>> m_serListener2;
+    EventListener<server::ServerFuture<server::ServerModsList>> m_serListener;
+    EventListener<server::ServerFuture<server::ServerModsList>> m_serListener2;
 
-    bool setup() override {
+    bool init() override {
+        if (!Popup::init(320.f, 280.f)) return false;
+        
         m_noElasticity = true;
         this->setTitle("GUI Test Popup");
 
@@ -108,7 +110,7 @@ protected:
             log::info("str task done: {}", *value);
         }
     }
-    void onServerTask(server::ServerRequest<server::ServerModsList>::Event* event) {
+    void onServerTask(server::ServerFuture<server::ServerModsList>::Event* event) {
         m_cancelServerTaskBtn->setVisible(event->getProgress());
 
         if (auto value = event->getValue()) {
@@ -164,7 +166,7 @@ protected:
 public:
     static GUITestPopup* create() {
         auto ret = new GUITestPopup();
-        if (ret->initAnchored(320, 280)) {
+        if (ret->init()) {
             ret->autorelease();
             return ret;
         }

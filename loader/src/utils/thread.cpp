@@ -8,14 +8,15 @@ using namespace geode::prelude;
 
 static thread_local std::string s_threadName;
 
-std::string geode::utils::thread::getName() {
+ZStringView geode::utils::thread::getName() {
     // only use the thread-local variable here, no need for platform get methods
-    if (s_threadName.empty())
-        return getDefaultName();
+    if (s_threadName.empty()) {
+        s_threadName = getDefaultName();
+    }
     return s_threadName;
 }
 
-void geode::utils::thread::setName(std::string const& name) {
-    s_threadName = name;
-    platformSetName(name);
+void geode::utils::thread::setName(std::string name) {
+    s_threadName = std::move(name);
+    platformSetName(s_threadName);
 }

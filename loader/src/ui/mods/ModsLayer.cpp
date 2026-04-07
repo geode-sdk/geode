@@ -21,6 +21,7 @@
 #include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
 #include <Geode/ui/MDPopup.hpp>
+#include "settings/KeybindsPopup.hpp"
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -31,7 +32,7 @@ bool ModsStatusNode::init() {
     this->setContentSize({ 300, 35 });
     this->setID("ModsStatusNode");
 
-    m_statusBG = CCScale9Sprite::create("black-square.png"_spr);
+    m_statusBG = NineSlice::create("black-square.png"_spr);
     m_statusBG->setID("status-bg");
     m_statusBG->setContentSize({ 570, 40 });
     m_statusBG->setScale(.5f);
@@ -44,7 +45,7 @@ bool ModsStatusNode::init() {
     m_statusPercentage = CCLabelBMFont::create("", "bigFont.fnt");
     m_statusPercentage->setID("status-percentage-label");
     m_statusPercentage->setScale(.8f);
-    m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-25, 0));
+    m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-35, 0));
 
     m_loadingCircle = createLoadingCircle(32);
     m_statusBG->addChildAtPosition(m_loadingCircle, Anchor::Left, ccp(25, 0));
@@ -88,16 +89,16 @@ bool ModsStatusNode::init() {
         SimpleRowLayout::create()
             ->setGap(5.f)
     );
-    m_btnMenu->getLayout()->ignoreInvisibleChildren(true);
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
-    m_updateStateListener.bind([this](auto) { this->updateState(); });
-    m_updateStateListener.setFilter(UpdateModListStateFilter());
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
+        this->updateState();
+        return ListenerResult::Propagate;
+    });
+    m_downloadHandle = server::ModDownloadEvent().listen([this](std::string_view key) { this->updateState(); });
 
-    m_downloadListener.bind([this](auto) { this->updateState(); });
-
-    m_settingNodeListener.bind([this](SettingNodeValueChangeEvent* ev) {
-        if (!ev->isCommit()) {
+    m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
+        if (!isCommit) {
             return ListenerResult::Propagate;
         }
         this->updateState();
@@ -280,44 +281,6 @@ void ModsStatusNode::onConfirm(CCObject*) {
 void ModsStatusNode::onCancel(CCObject*) {
     server::ModDownloadManager::get()->cancelAll();
 }
-
-void ModsLayer::onOpenModsFolder(CCObject*) {
-    file::openFolder(dirs::getModsDir());
-}
-
-void ModsLayer::onAddModFromFile(CCObject*) {
-    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
-        return FLAlertLayer::create(
-            nullptr,
-            "Manually Installing Mods",
-            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
-            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
-            "<cr>Proceed at your own risk!</c>",
-            "OK", nullptr,
-            350
-        )->show();
-    }
-    file::pick(file::PickMode::OpenFile, file::FilePickOptions {
-        .filters = { file::FilePickOptions::Filter {
-            .description = "Geode Mods",
-            .files = { "*.geode" },
-        }}
-    }).listen([](Result<std::filesystem::path>* path) {
-        if (*path) {
-            LoaderImpl::get()->installModManuallyFromFile(path->unwrap(), []() {
-                InstalledModListSource::get(InstalledModListType::All)->clearCache();
-            });
-        }
-        else {
-            FLAlertLayer::create(
-                "Unable to Select File",
-                path->unwrapErr(),
-                "OK"
-            )->show();
-        }
-    });
-}
-
 void ModsStatusNode::onRestart(CCObject*) {
     // Update button state to let user know it's restarting but it might take a bit
     m_restartBtn->setEnabled(false);
@@ -385,7 +348,7 @@ bool ModsLayer::init() {
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setGap(5.f)
     );
-    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(12, -25), false);
+    this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(8, -23), false);
 
     auto actionsMenu = CCMenu::create();
     actionsMenu->setID("actions-menu");
@@ -414,39 +377,39 @@ bool ModsLayer::init() {
         CircleBaseSize::Medium
     );
     settingsSpr->setScale(.8f);
-    settingsSpr->setTopOffset(ccp(.5f, 0));
+    settingsSpr->setTopOffset(ccp(-0.1f, 0));
     auto settingsBtn = CCMenuItemSpriteExtra::create(
         settingsSpr, this, menu_selector(ModsLayer::onSettings)
     );
     settingsBtn->setID("settings-button");
     actionsMenu->addChild(settingsBtn);
 
-    auto folderSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png"), 1.f,
+    auto keybindsSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("keybinds.png"_spr), 1.f,
         CircleBaseSize::Medium
     );
-    folderSpr->setScale(0.8f);
-    auto folderBtn = CCMenuItemSpriteExtra::create(
-        folderSpr,
-        this,
-        menu_selector(ModsLayer::onOpenModsFolder)
+    keybindsSpr->setScale(.8f);
+    keybindsSpr->setTopOffset(ccp(0.2f, 1));
+    auto keybindsBtn = CCMenuItemSpriteExtra::create(
+        keybindsSpr, this, menu_selector(ModsLayer::onKeybinds)
     );
-    folderBtn->setID("mods-folder-button");
-    actionsMenu->addChild(folderBtn);
+    keybindsBtn->setID("settings-button");
+    actionsMenu->addChild(keybindsBtn);
 
-    auto addSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("file-add.png"_spr), 1.f,
-        CircleBaseSize::Medium
-    );
-    addSpr->setScale(.8f);
-    addSpr->setTopRelativeScale(.8f);
-    auto addBtn = CCMenuItemSpriteExtra::create(
-        addSpr,
-        this,
-        menu_selector(ModsLayer::onAddModFromFile)
-    );
-    addBtn->setID("mods-add-button");
-    actionsMenu->addChild(addBtn);
+    if (Mod::get()->getSettingValue<bool>("restart-button")) {
+        auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload-gold.png"_spr);
+        auto restartGDCircleSpr = createGeodeCircleButton(
+            restartGDSpr, 1.f,
+            CircleBaseSize::Medium
+        );
+        restartGDCircleSpr->setScale(.8f);
+        restartGDCircleSpr->setTopOffset(ccp(1.5f, -1.f));
+        auto restartGDBtn = CCMenuItemSpriteExtra::create(
+            restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
+        );
+        restartGDBtn->setID("restart-gd-button");
+        actionsMenu->addChild(restartGDBtn);
+    }
 
     actionsMenu->setLayout(
         SimpleColumnLayout::create()
@@ -523,7 +486,6 @@ bool ModsLayer::init() {
         { "GJ_starsIcon_001.png", "Featured", ServerModListSource::get(ServerModListType::Featured), "featured-button", false },
         { "globe.png"_spr, "Download", ServerModListSource::get(ServerModListType::Download), "download-button", false },
         { "GJ_timeIcon_001.png", "Recent", ServerModListSource::get(ServerModListType::Recent), "recent-button", false },
-        { "exMark_001.png", "Modtober", ServerModListSource::get(ServerModListType::Modtober), "modtober-button", false },
     }) {
         auto btn = CCMenuItemSpriteExtra::create(
             GeodeTabSprite::create(std::get<0>(item), std::get<1>(item), 100, std::get<4>(item)),
@@ -633,9 +595,8 @@ bool ModsLayer::init() {
     this->updateState();
 
     // Listen for state changes
-    m_updateStateListener.setFilter(UpdateModListStateFilter(UpdateWholeState()));
-    m_updateStateListener.bind([this](UpdateModListStateEvent* event) {
-        if (auto whole = std::get_if<UpdateWholeState>(&event->target)) {
+    m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
+        if (auto whole = std::get_if<UpdateWholeState>(&state)) {
             if (whole->searchByDeveloper) {
                 auto src = ServerModListSource::get(ServerModListType::Download);
                 src->getQueryMut()->developer = *whole->searchByDeveloper;
@@ -645,7 +606,10 @@ bool ModsLayer::init() {
                 m_lists.at(src)->activateSearch(m_showSearch);
             }
         }
-        this->updateState();
+        else if (std::holds_alternative<UpdatePageNumberState>(state)) {
+            this->updateState();
+        }
+        return ListenerResult::Propagate;
     });
 
     // add safe mode label
@@ -707,7 +671,7 @@ void ModsLayer::gotoTab(ModListSource* src, bool searchingDev) {
     m_lists.at(m_currentSource)->updateState();
 }
 
-void ModsLayer::keyDown(enumKeyCodes key) {
+void ModsLayer::keyDown(enumKeyCodes key, double p1) {
     auto list = m_lists.at(m_currentSource);
 
     switch(key) {
@@ -724,7 +688,7 @@ void ModsLayer::keyDown(enumKeyCodes key) {
             }
             break;
         default:
-            CCLayer::keyDown(key);
+            CCLayer::keyDown(key, p1);
     }
 }
 
@@ -846,6 +810,27 @@ void ModsLayer::onTheme(CCObject*) {
 void ModsLayer::onSettings(CCObject*) {
     openSettingsPopup(Mod::get(), false);
 }
+void ModsLayer::onKeybinds(CCObject*) {
+    KeybindsPopup::create()->show();
+}
+void ModsLayer::onRestartGD(CCObject*) {
+    createQuickPopup(
+        "Restart Geometry Dash",
+        "Are you sure you want to restart Geometry Dash?",
+        "Cancel", "Restart",
+        [](auto, bool btn2) {
+            if (btn2) {
+                game::restart(true);
+            }
+        }
+    );
+}
+void ModsLayer::onOpenModsFolder(CCObject*) {
+    file::openFolder(dirs::getModsDir());
+}
+void ModsLayer::onAddModFromFile(CCObject*) {
+    ModsLayer::installModFromFile();
+}
 
 ModsLayer* ModsLayer::create() {
     auto ret = new ModsLayer();
@@ -865,17 +850,56 @@ ModsLayer* ModsLayer::scene() {
     return layer;
 }
 
-server::ServerRequest<std::vector<std::string>> ModsLayer::checkInstalledModsForUpdates() {
-    return server::checkAllUpdates().map([](auto* result) -> Result<std::vector<std::string>, server::ServerError> {
-        if (result->isOk()) {
-            std::vector<std::string> updatesFound;
-            for (auto& update : result->unwrap()) {
-                if (update.hasUpdateForInstalledMod()) {
-                    updatesFound.push_back(update.id);
-                }
-            }
-            return Ok(updatesFound);
+server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForUpdates() {
+    auto all = ARC_CO_UNWRAP(co_await server::checkAllUpdates());
+    InstalledModsUpdateCheck updatesFound;
+    for (auto& update : all.updates) {
+        if (auto mod = update.hasUpdateForInstalledMod()) {
+            updatesFound.modsWithUpdates.push_back(mod);
         }
-        return Err(result->unwrapErr());
+    }
+    for (auto& dep : all.deprecations) {
+        if (auto mod = dep.hasDeprecationForInstalledMod()) {
+            updatesFound.modsWithDeprecations.push_back(mod);
+        }
+    }
+    co_return Ok(std::move(updatesFound));
+}
+
+void ModsLayer::refreshList() {
+    onRefreshList(nullptr);
+}
+
+void ModsLayer::installModFromFile() {
+    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
+        return FLAlertLayer::create(
+            nullptr,
+            "Manually Installing Mods",
+            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
+            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
+            "<cr>Proceed at your own risk!</c>",
+            "OK", nullptr,
+            350
+        )->show();
+    }
+
+    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
+        .filters = { file::FilePickOptions::Filter {
+            .description = "Geode Mods",
+            .files = { "*.geode" },
+        }}
+    }), [](Result<std::optional<std::filesystem::path>> result) {
+        if (result.isOk() && result.unwrap().has_value()) {
+            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
+                InstalledModListSource::get(InstalledModListType::All)->clearCache();
+            });
+        }
+        else if (!result.isOk()) {
+            FLAlertLayer::create(
+                "Unable to Select File",
+                result.unwrapErr(),
+                "OK"
+            )->show();
+        }
     });
 }

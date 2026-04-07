@@ -1,3 +1,5 @@
+#ifndef GEODE_NO_PUGIXML_HEADER
+
 #ifndef __DS_DICTIONARY_H__
 #define __DS_DICTIONARY_H__
 
@@ -93,3 +95,5 @@ public:
 };
 
 #endif
+
+#endif // GEODE_NO_PUGIXML_HEADER

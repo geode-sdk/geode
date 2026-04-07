@@ -127,7 +127,8 @@ typedef enum
     KEY_LeftShift = 0xA0,
     KEY_RightShift = 0xA1,
     KEY_LeftControl = 0xA2,
-    KEY_RightContol = 0xA3,
+    KEY_RightContol = 0xA3, // typo from original cocos
+    KEY_RightControl = 0xA3,
     KEY_LeftMenu = 0xA4,
     KEY_RightMenu = 0xA5,
     KEY_BrowserBack = 0xA6,
@@ -225,9 +226,9 @@ typedef enum
 class CC_DLL CCKeyboardDelegate
 {
 public:
-    virtual void keyDown(enumKeyCodes key) {}
+    virtual void keyDown(enumKeyCodes key, double) {}
 
-    virtual void keyUp(enumKeyCodes key) {}
+    virtual void keyUp(enumKeyCodes key, double) {}
 
     //pretty certain there's no fields, based on initializer
 };

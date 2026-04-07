@@ -39,28 +39,7 @@ THE SOFTWARE.
 // @note RobTop Addition
 class DS_Dictionary;
 
-namespace geode {
-    /**
-     * This class is used to fix the problem of destructor recursion.
-     */
-    class GEODE_DLL DestructorLock {
-    public:
-        static bool isLocked(void* self);
-        static void addLock(void* self);
-        static void removeLock(void* self);
-    };
-}
-
 NS_CC_BEGIN
-
-class [[deprecated("Please update to newest bindings, this will be removed in v5")]] CCDestructor {
-public:
-	static std::unordered_map<void*, bool>& destructorLock();
-public:
-	static bool& globalLock();
-	static bool& lock(void* self);
-	~CCDestructor();
-};
 
 /**
  * @addtogroup base_nodes
@@ -191,5 +170,20 @@ typedef int (CCObject::*SEL_Compare)(CCObject*);
 /// @}
 
 NS_CC_END
+
+namespace geode {
+    /**
+     * This class is used to fix the problem of destructor recursion.
+     */
+    class GEODE_DLL DestructorLock {
+    public:
+        static bool isLocked(cocos2d::CCNode* self);
+        static bool isLocked(void* self);
+        static void addLock(cocos2d::CCNode* self);
+        static void addLock(void* self);
+        static void removeLock(cocos2d::CCNode* self);
+        static void removeLock(void* self);
+    };
+}
 
 #endif // __CCOBJECT_H__

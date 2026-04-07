@@ -18,11 +18,6 @@ namespace geode {
  * of layout you can inherit from the Layout class.
  */
 class GEODE_DLL Layout : public cocos2d::CCObject {
-protected:
-    cocos2d::CCArray* getNodesToPosition(cocos2d::CCNode* forNode) const;
-
-    bool m_ignoreInvisibleChildren = false;
-
 public:
     /**
      * Automatically apply the layout's positioning on a set of nodes
@@ -37,9 +32,6 @@ public:
      * Get how much space this layout would like to take up for a given target
      */
     virtual cocos2d::CCSize getSizeHint(cocos2d::CCNode* on) const = 0;
-
-    void ignoreInvisibleChildren(bool ignore);
-    bool isIgnoreInvisibleChildren() const;
 
     virtual ~Layout() = default;
 };
@@ -92,7 +84,7 @@ constexpr int AXISLAYOUT_DEFAULT_PRIORITY = 0;
  * );
  * someNodeWithALayout->addChild(node);
  */
-class GEODE_DLL AxisLayoutOptions : public LayoutOptions {
+class GEODE_DLL AxisLayoutOptions final : public LayoutOptions {
 protected:
     class Impl;
 
@@ -307,12 +299,18 @@ public:
      * Set the default minimum/maximum scales for nodes in the layout
      */
     AxisLayout* setDefaultScaleLimits(float min, float max);
+    /**
+     * If true, the layout will not take into account invisible children when creating gaps or
+     * calculating content sizes
+     */
+    AxisLayout* ignoreInvisibleChildren(bool ignore = true);
+    bool isIgnoreInvisibleChildren() const;
 };
 
 /**
  * Simple layout for arranging nodes in a row (horizontal line)
  */
-class GEODE_DLL RowLayout : public AxisLayout {
+class GEODE_DLL RowLayout final : public AxisLayout {
 protected:
     RowLayout();
 
@@ -328,7 +326,7 @@ public:
 /**
  * Simple layout for arranging nodes in a column (vertical line)
  */
-class GEODE_DLL ColumnLayout : public AxisLayout {
+class GEODE_DLL ColumnLayout final : public AxisLayout {
 protected:
     ColumnLayout();
 
@@ -359,7 +357,7 @@ enum class Anchor {
 /**
  * Options for customizing a node's position in an AnchorLayout
  */
-class GEODE_DLL AnchorLayoutOptions : public LayoutOptions {
+class GEODE_DLL AnchorLayoutOptions final : public LayoutOptions {
 protected:
     Anchor m_anchor = Anchor::Center;
     cocos2d::CCPoint m_offset = cocos2d::CCPointZero;
@@ -403,7 +401,7 @@ public:
  * Basically main use case is for FLAlertLayers (setting the size of the
  * background and `m_buttonMenu` based on `m_mainLayer`)
  */
-class GEODE_DLL CopySizeLayout : public AnchorLayout {
+class GEODE_DLL CopySizeLayout final : public AnchorLayout {
 protected:
     cocos2d::CCArray* m_targets;
 

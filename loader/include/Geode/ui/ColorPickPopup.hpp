@@ -4,22 +4,18 @@
 #include "TextInput.hpp"
 #include "../loader/Event.hpp"
 #include <Geode/binding/TextInputDelegate.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
     class ColorPickPopup;
 
-    class GEODE_DLL ColorPickPopupDelegate {
-    public:
-        virtual void updateColor(cocos2d::ccColor4B const& color) {}
-    };
-
     class GEODE_DLL ColorPickPopup :
-        public Popup<cocos2d::ccColor4B const&, bool>,
+        public Popup,
         public cocos2d::extension::ColorPickerDelegate,
         public TextInputDelegate {
-    protected:
         class Impl;
         std::unique_ptr<Impl> m_impl;
+    protected:
 
         static constexpr auto TAG_OPACITY_INPUT = 0;
         static constexpr auto TAG_R_INPUT = 1;
@@ -29,7 +25,7 @@ namespace geode {
 
         ColorPickPopup();
         ~ColorPickPopup();
-        bool setup(cocos2d::ccColor4B const& color, bool isRGBA) override;
+        bool init(cocos2d::ccColor4B const& color, bool isRGBA);
 
         void onOpacitySlider(cocos2d::CCObject* sender);
         void onReset(cocos2d::CCObject* sender);
@@ -48,6 +44,6 @@ namespace geode {
         static ColorPickPopup* create(cocos2d::ccColor4B const& color);
 
         void setColorTarget(cocos2d::CCSprite* spr);
-        void setDelegate(ColorPickPopupDelegate* delegate);
+        void setCallback(geode::Function<void(cocos2d::ccColor4B const&)> callback);
     };
 }

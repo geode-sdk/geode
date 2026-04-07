@@ -8,9 +8,9 @@
 #include "../utils/file.hpp"
 // this unfortunately has to be included because of C++ templates
 #include "../utils/JsonValidation.hpp"
+#include "../utils/Keyboard.hpp"
 #include "../utils/function.hpp"
-
-class ModSettingsPopup;
+#include "../utils/StringMap.hpp"
 
 namespace geode {
     class ModSettingsManager;
@@ -36,7 +36,7 @@ namespace geode {
          * using Geode's JSON checking utilities, you can use the other
          * overload of `init`
          */
-        void init(std::string const& key, std::string const& modID, JsonExpectedValue& json);
+        void init(std::string key, std::string modID, JsonExpectedValue& json);
         /**
          * Only call this function if you aren't going to call
          * `parseBaseProperties`, which will call it for you!
@@ -50,7 +50,7 @@ namespace geode {
          * (`checkJson` / `JsonExpectedValue`), you should be using the other
          * overload that takes a `JsonExpectedValue&`!
          */
-        void init(std::string const& key, std::string const& modID);
+        void init(std::string key, std::string modID);
 
         /**
          * Parses the `"name"` and `"description"` keys from the setting's
@@ -100,7 +100,7 @@ namespace geode {
          * `"requires-restart"` (because you're doing a cosmetic setting), then
          * you can call `init` instead and then the specific `parseX` functions
          */
-        void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json);
+        void parseBaseProperties(std::string key, std::string modID, JsonExpectedValue& json);
         /**
          * Parse all of the base properties such as `"name"` and `"description"`
          * for this setting
@@ -113,7 +113,7 @@ namespace geode {
          * `"requires-restart"` (because you're doing a cosmetic setting), then
          * you can call `init` instead and then the specific `parseX` functions
          */
-        Result<> parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& json);
+        Result<> parseBaseProperties(std::string key, std::string modID, matjson::Value const& json);
 
         /**
          * Mark that the value of this setting has changed. This should be
@@ -166,7 +166,7 @@ namespace geode {
         /**
          * Get the platforms this setting is available on
          */
-        std::vector<PlatformID> getPlatforms() const;
+        PlatformID getPlatforms() const;
 
         virtual bool load(matjson::Value const& json) = 0;
         virtual bool save(matjson::Value& json) const = 0;
@@ -179,9 +179,15 @@ namespace geode {
         virtual void reset() = 0;
     };
 
-    using SettingGeneratorV3 = std::function<Result<std::shared_ptr<SettingV3>>(
-        std::string const& key,
-        std::string const& modID,
+    using SettingGeneratorV3 = geode::Function<Result<std::shared_ptr<SettingV3>>(
+        std::string key,
+        std::string modID,
+        matjson::Value const& json
+    )>;
+
+    using SettingGeneratorV3Ref = geode::FunctionRef<Result<std::shared_ptr<SettingV3>>(
+        std::string key,
+        std::string modID,
         matjson::Value const& json
     )>;
 
@@ -235,7 +241,7 @@ namespace geode {
          * aren't using Geode's JSON checking utilities, use the other overload
          * of this function
          */
-        void parseBaseProperties(std::string const& key, std::string const& modID, JsonExpectedValue& json) {
+        void parseBaseProperties(std::string key, std::string modID, JsonExpectedValue& json) {
             SettingV3::parseBaseProperties(key, modID, json);
             this->parseDefaultValue(json);
         }
@@ -247,7 +253,7 @@ namespace geode {
          * utilities (`checkJson` / `JsonExpectedValue`), you should use the
          * other overload directly!
          */
-        Result<> parseBaseProperties(std::string const& key, std::string const& modID, matjson::Value const& json) {
+        Result<> parseBaseProperties(std::string key, std::string modID, matjson::Value const& json) {
             auto root = checkJson(json, "SettingBaseValueV3");
             this->parseBaseProperties(key, modID, root);
             return root.ok();
@@ -259,6 +265,10 @@ namespace geode {
          */
         void setDefaultValue(V value) {
             m_impl->defaultValue = value;
+        }
+
+        T const& getValueRef() const {
+            return m_impl->value;
         }
 
     public:
@@ -331,11 +341,56 @@ namespace geode {
 
     public:
         TitleSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<TitleSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<TitleSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         bool load(matjson::Value const& json) override;
         bool save(matjson::Value& json) const override;
         SettingNodeV3* createNode(float width) override;
+
+        bool isDefaultValue() const override;
+        void reset() override;
+    };
+
+    class GEODE_DLL InfoSettingV3 final : public SettingV3 {
+    private:
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
+    public:
+        InfoSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<InfoSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        bool load(matjson::Value const& json) override;
+        bool save(matjson::Value& json) const override;
+        SettingNodeV3* createNode(float width) override;
+
+        std::optional<cocos2d::ccColor3B> getColor() const;
+
+        bool isDefaultValue() const override;
+        void reset() override;
+    };
+
+    class GEODE_DLL ButtonSettingV3 final : public SettingV3 {
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
+    public:
+        ButtonSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<ButtonSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        bool load(matjson::Value const& json) override;
+        bool save(matjson::Value& json) const override;
+        SettingNodeV3* createNode(float width) override;
+
+        utils::StringMap<std::string> getButtons();
 
         bool isDefaultValue() const override;
         void reset() override;
@@ -352,7 +407,7 @@ namespace geode {
 
     public:
         BoolSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<BoolSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<BoolSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(bool value) const override;
 
@@ -370,7 +425,7 @@ namespace geode {
 
     public:
         IntSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<IntSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<IntSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(int64_t value) const override;
 
@@ -399,7 +454,7 @@ namespace geode {
 
     public:
         FloatSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<FloatSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<FloatSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(double value) const override;
 
@@ -428,7 +483,10 @@ namespace geode {
 
     public:
         StringSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<StringSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<StringSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        // return ZStringView instead of std::string to allow avoiding copies
+        ZStringView getValue() const;
 
         Result<> isValid(std::string_view value) const override;
 
@@ -450,7 +508,7 @@ namespace geode {
 
     public:
         FileSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<FileSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<FileSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(std::filesystem::path const& value) const override;
 
@@ -473,7 +531,7 @@ namespace geode {
 
     public:
         Color3BSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<Color3BSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<Color3BSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(cocos2d::ccColor3B value) const override;
 
@@ -491,11 +549,57 @@ namespace geode {
 
     public:
         Color4BSettingV3(PrivateMarker);
-        static Result<std::shared_ptr<Color4BSettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json);
+        static Result<std::shared_ptr<Color4BSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
         Result<> isValid(cocos2d::ccColor4B value) const override;
 
         SettingNodeV3* createNode(float width) override;
+    };
+
+    enum class KeybindCategory : uint8_t {
+        /// Keybinds that work everywhere, like opening a mod menu
+        Universal = 0,
+        /// Keybinds that work when playing levels
+        Gameplay = 1,
+        /// Keybinds that work in the editor
+        Editor = 2,
+
+        // If your keybind doesn't fit into these categories, it will just be
+        // listed under the mod
+    };
+
+    class GEODE_DLL KeybindSettingV3 final : public SettingV3 {
+    private:
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
+    protected:
+        void parseDefaultValue(JsonExpectedValue& json);
+        void parseBaseProperties(std::string key, std::string modID, JsonExpectedValue& json);
+        void setDefaultValue(std::vector<Keybind> value);
+
+    public:
+        KeybindSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<KeybindSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        bool load(matjson::Value const& json) override;
+        bool save(matjson::Value& json) const override;
+        SettingNodeV3* createNode(float width) override;
+
+        std::vector<Keybind> const& getDefaultValue() const;
+        std::vector<Keybind> const& getValue() const;
+        void setValue(std::vector<Keybind> value);
+        bool isDefaultValue() const override;
+        void reset() override;
+
+        std::optional<KeybindCategory> getCategory() const;
+        std::optional<std::string> getMigrateFrom() const;
+        int getPriority() const;
+        bool getAllowInTextInputs() const;
     };
 
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {
@@ -503,11 +607,10 @@ namespace geode {
         class Impl;
         std::shared_ptr<Impl> m_impl;
 
-        friend class ::ModSettingsPopup;
-
     protected:
         bool init(std::shared_ptr<SettingV3> setting, float width);
 
+        // todo in v6: make updateState public
         /**
          * Update the state of this setting node, bringing all inputs
          * up-to-date with the current value. Derivatives of `SettingNodeV3`
@@ -548,15 +651,24 @@ namespace geode {
         virtual bool hasUncommittedChanges() const = 0;
         virtual bool hasNonDefaultValue() const = 0;
 
+        // This is extremely silly and will be removed in v6 in favour of just
+        // making `updateState` itself be public
+        // todo in v6: make updateState public and remove this
+        void updateState2(cocos2d::CCNode* invoker);
+
         // Can be overridden by the setting itself
         // Can / should be used to do alternating BG
         void setDefaultBGColor(cocos2d::ccColor4B color);
 
         cocos2d::CCLabelBMFont* getNameLabel() const;
+        CCMenuItemSpriteExtra* getDescriptionButton() const;
         cocos2d::CCLabelBMFont* getStatusLabel() const;
         cocos2d::CCMenu* getNameMenu() const;
         cocos2d::CCMenu* getButtonMenu() const;
         cocos2d::CCLayerColor* getBG() const;
+
+        // Useful if you're programmatically creating setting nodes
+        void overrideDescription(std::optional<ZStringView> description);
 
         void setContentSize(cocos2d::CCSize const& size) override;
 
@@ -589,7 +701,7 @@ namespace geode {
             return true;
         }
 
-        void updateState(cocos2d::CCNode* invoker) {
+        void updateState(cocos2d::CCNode* invoker) override {
             SettingNodeV3::updateState(invoker);
             auto validate = this->getSetting()->isValid(m_impl->currentValue);
             if (!validate) {
@@ -638,61 +750,44 @@ namespace geode {
         }
     };
 
-    class GEODE_DLL SettingChangedEventV3 final : public Event {
-    private:
-        class Impl;
-        std::shared_ptr<Impl> m_impl;
-
+    class SettingChangedEventV3 final : public GlobalEvent<SettingChangedEventV3, bool(std::string_view, std::string_view, std::shared_ptr<SettingV3>), bool(std::shared_ptr<SettingV3>), std::string, std::string> {
     public:
-        SettingChangedEventV3(std::shared_ptr<SettingV3> setting);
-
-        std::shared_ptr<SettingV3> getSetting() const;
-        bool filter(std::string_view modID, std::optional<std::string_view> settingKey) const;
-    };
-    class GEODE_DLL SettingChangedFilterV3 final : public EventFilter<SettingChangedEventV3> {
-    private:
-        class Impl;
-        std::shared_ptr<Impl> m_impl;
-
-    public:
-        using Callback = void(std::shared_ptr<SettingV3>);
-
-        ListenerResult handle(std::function<Callback> fn, SettingChangedEventV3* event);
-        /**
-         * Listen to changes on a setting, or all settings
-         * @param modID Mod whose settings to listen to
-         * @param settingKey Setting to listen to, or all settings if nullopt
-         */
-        SettingChangedFilterV3(
-            std::string const& modID,
-            std::optional<std::string> const& settingKey
-        );
-        SettingChangedFilterV3(Mod* mod, std::optional<std::string> const& settingKey);
-        SettingChangedFilterV3(SettingChangedFilterV3 const&);
+        // listener params setting
+        // filter params modID, settingKey
+        using GlobalEvent::GlobalEvent;
+        GEODE_DLL SettingChangedEventV3(Mod* mod, std::string settingKey);
     };
 
-    class GEODE_DLL SettingNodeSizeChangeEventV3 : public Event {
-    private:
-        class Impl;
-        std::shared_ptr<Impl> m_impl;
-
+    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, bool(std::string_view, std::string_view, Keybind const&, bool, bool, double), bool(Keybind const&, bool, bool, double), std::string, std::string> {
     public:
-        SettingNodeSizeChangeEventV3(SettingNodeV3* node);
-        virtual ~SettingNodeSizeChangeEventV3();
-
-        SettingNodeV3* getNode() const;
+        // listener params keybind, down, repeat, timestamp
+        // filter params modID, settingKey
+        using GlobalEvent::GlobalEvent;
+        GEODE_DLL KeybindSettingPressedEventV3(Mod* mod, std::string settingKey);
     };
-    class GEODE_DLL SettingNodeValueChangeEventV3 : public Event {
-    private:
-        class Impl;
-        std::shared_ptr<Impl> m_impl;
 
+    class ButtonSettingPressedEventV3 final : public GlobalEvent<ButtonSettingPressedEventV3, bool(std::string_view, std::string_view, std::string_view), bool(std::string_view), std::string, std::string> {
     public:
-        SettingNodeValueChangeEventV3(SettingNodeV3* node, bool commit);
-        virtual ~SettingNodeValueChangeEventV3();
+        // filter params modID, settingKey
+        // filter params buttonKey
+        using GlobalEvent::GlobalEvent;
+        GEODE_DLL ButtonSettingPressedEventV3(Mod* mod, std::string settingKey);
+    };
 
-        SettingNodeV3* getNode() const;
-        bool isCommit() const;
+    class SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*), bool(SettingNodeV3*), std::string, std::string> {
+    public:
+        // listener params node
+        // filter params modID, settingKey
+        using GlobalEvent::GlobalEvent;
+        GEODE_DLL SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey);
+    };
+
+    class SettingNodeValueChangeEventV3 final : public GlobalEvent<SettingNodeValueChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*, bool), bool(SettingNodeV3*, bool), std::string, std::string> {
+    public:
+        // listener params node, isCommit
+        // filter params modID, settingKey
+        using GlobalEvent::GlobalEvent;
+        GEODE_DLL SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey);
     };
 
     template <class T>
@@ -720,6 +815,10 @@ namespace geode {
         using SettingType = StringSettingV3;
     };
     template <>
+    struct SettingTypeForValueType<std::string_view> {
+        using SettingType = StringSettingV3;
+    };
+    template <>
     struct SettingTypeForValueType<std::filesystem::path> {
         using SettingType = FileSettingV3;
     };
@@ -732,24 +831,64 @@ namespace geode {
         using SettingType = Color4BSettingV3;
     };
 
-    template <class T>
-    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
+    template <>
+    struct SettingTypeForValueType<std::vector<Keybind>> {
+        using SettingType = KeybindSettingV3;
+    };
+
+    template <>
+    struct SettingTypeForValueType<std::span<Keybind const>> {
+        using SettingType = KeybindSettingV3;
+    };
+
+    template <class T, class Callback>
+    ListenerHandle* listenForSettingChanges(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
         using Ty = typename SettingTypeForValueType<T>::SettingType;
-        return new EventListener(
-            [callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
+        using Ret = utils::function::Return<decltype(callback)>;
+        if constexpr (std::is_same_v<Ret, void>) {
+            return SettingChangedEventV3(mod, std::move(settingKey)).listen([callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
                 if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
-                    callback(ty->getValue());
+                    return callback(ty->getValue());
                 }
-            },
-            SettingChangedFilterV3(mod, std::string(settingKey))
-        );
+            }).leak();
+        }
+        else {
+            return SettingChangedEventV3(mod, std::move(settingKey)).listen([callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
+                if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
+                    return callback(ty->getValue());
+                }
+                return Ret{};
+            }).leak();
+        }
     }
-    EventListener<SettingChangedFilterV3>* listenForSettingChangesV3(std::string_view settingKey, auto&& callback, Mod* mod = getMod()) {
-        using T = std::remove_cvref_t<utils::function::Arg<0, decltype(callback)>>;
-        return listenForSettingChangesV3<T>(settingKey, std::move(callback), mod);
+
+    ZStringView getModID(Mod* mod);
+
+    template <class Callback>
+    requires std::is_invocable_v<Callback, std::string_view, std::shared_ptr<SettingV3>>
+    ListenerHandle* listenForAllSettingChanges(Callback&& callback, Mod* mod = getMod()) {
+        return SettingChangedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, std::shared_ptr<SettingV3> setting) {
+            if (mod && getModID(mod) != modID) {
+                return;
+            }
+            return callback(key, setting);
+        }).leak();
     }
-    GEODE_DLL EventListener<SettingChangedFilterV3>* listenForAllSettingChangesV3(
-        std::function<void(std::shared_ptr<SettingV3>)> const& callback,
-        Mod* mod = getMod()
-    );
+
+    template <class Callback>
+    requires std::is_invocable_v<Callback, Keybind const&, bool, bool, double>
+    ListenerHandle* listenForKeybindSettingPresses(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
+        return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::move(callback)).leak();
+    }
+
+    template <class Callback>
+    requires std::is_invocable_v<Callback, std::string_view, Keybind const&, bool, bool, double>
+    ListenerHandle* listenForAllKeybindSettingPresses(Callback&& callback, Mod* mod = getMod()) {
+        return KeybindSettingPressedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, Keybind const& keybind, bool down, bool repeat, double timestamp) {
+            if (mod && getModID(mod) != modID) {
+                return;
+            }
+            return callback(key, keybind, down, repeat, timestamp);
+        }).leak();
+    }
 }

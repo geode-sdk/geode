@@ -1,9 +1,9 @@
 #pragma once
 
-#include <string>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode::utils::thread {
     // the platform-specific methods are needed for the thread names to show up
     // in places like task managers and debuggers
-    void platformSetName(std::string const& name);
+    void platformSetName(ZStringView name);
 }

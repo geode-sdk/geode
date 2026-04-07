@@ -23,7 +23,7 @@ public:
 
 	void forceRemoveDelegate(CCMouseDelegate* pDelegate);
 
-	bool dispatchScrollMSG(float x, float y);
+	bool dispatchScrollMSG(float y, float x);
 
 public:
 	CCArray* m_pMouseHandlers;

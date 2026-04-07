@@ -155,6 +155,11 @@ namespace geode::utils::random {
         shuffle(begin(cont), end(cont));
     }
 
+    /// Returns a boolean with a specified probability of being true, in the range [0.0, 1.0]
+    inline bool chance(double probability) {
+        return generate<double>() < probability;
+    }
+
     GEODE_DLL std::string generateString(size_t length, std::string_view alphabet);
     GEODE_DLL std::string generateHexString(size_t length);
     GEODE_DLL std::string generateAlphanumericString(size_t length);

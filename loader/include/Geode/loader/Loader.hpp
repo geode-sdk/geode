@@ -14,52 +14,29 @@
 #include <string_view>
 
 namespace geode {
-    using ScheduledFunction = std::function<void()>;
-
-    struct InvalidGeodeFile {
-        std::filesystem::path path;
-        std::string reason;
-    };
+    using ScheduledFunction = geode::Function<void()>;
 
     struct LoadProblem {
         enum class Type : uint8_t {
-            Unknown,
-            Suggestion,
-            Recommendation,
-            Conflict,
-            OutdatedConflict,
-            InvalidFile,
-            Duplicate,
-            SetupFailed,
-            LoadFailed,
-            EnableFailed,
-            MissingDependency,
-            PresentIncompatibility,
-            UnzipFailed,
-            UnsupportedVersion,
-            UnsupportedGeodeVersion,
-            NeedsNewerGeodeVersion,
-            DisabledDependency,
-            OutdatedDependency,
-            OutdatedIncompatibility,
+            /// Some other fatal error (like binary loading failing)
+            Unknown = 0,
+            /// This mod has an invalid .geode package
+            InvalidGeodeFile = 1,
+            /// This mod is missing dependencies
+            MissingDependencies = 2,
+            /// This mod is outdated (targets an old GD or Geode version)
+            Outdated = 3,
+            /// This mod is explicitly incompatible with another mod
+            HasIncompatibilities = 4,
         };
         Type type;
         std::variant<std::filesystem::path, ModMetadata, Mod*> cause;
+        /// Human-readable message (that should also suggest a fix; aka be UI-ready)
         std::string message;
 
-        bool isSuggestion() const {
-            return
-                type == LoadProblem::Type::Recommendation ||
-                type == LoadProblem::Type::Suggestion;
-        }
-        bool isOutdated() const {
-            return
-                type == LoadProblem::Type::UnsupportedVersion ||
-                type == LoadProblem::Type::NeedsNewerGeodeVersion ||
-                type == LoadProblem::Type::UnsupportedGeodeVersion;
-        }
-        bool isProblem() const {
-            return !isSuggestion() && !isOutdated();
+        // Outdated mods are not shown in main menu
+        bool isProblemTheUserShouldCareAbout() const {
+            return type != Type::Outdated;
         }
     };
 
@@ -100,15 +77,12 @@ namespace geode {
         bool isModVersionSupported(VersionInfo const& version);
 
         LoadingState getLoadingState();
-        bool isModInstalled(std::string const& id) const;
-        Mod* getInstalledMod(std::string const& id) const;
-        bool isModLoaded(std::string const& id) const;
-        Mod* getLoadedMod(std::string const& id) const;
+        bool isModInstalled(std::string_view id) const;
+        Mod* getInstalledMod(std::string_view id) const;
+        bool isModLoaded(std::string_view id) const;
+        Mod* getLoadedMod(std::string_view id) const;
         std::vector<Mod*> getAllMods();
-        std::vector<LoadProblem> getAllProblems() const;
         std::vector<LoadProblem> getLoadProblems() const;
-        std::vector<LoadProblem> getOutdated() const;
-        std::vector<LoadProblem> getRecommendations() const;
 
         /**
          * Returns the available launch argument names.
@@ -180,7 +154,7 @@ namespace geode {
      * @param func the function to queue
     */
     inline void queueInMainThread(ScheduledFunction&& func) {
-        Loader::get()->queueInMainThread(std::forward<ScheduledFunction>(func));
+        Loader::get()->queueInMainThread(std::move(func));
     }
 
     /**

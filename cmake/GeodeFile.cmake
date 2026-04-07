@@ -87,6 +87,7 @@ function(setup_geode_mod proname)
     string(JSON MOD_ID GET "${MOD_JSON}" "id")
     string(JSON MOD_VERSION GET "${MOD_JSON}" "version")
     string(JSON TARGET_GEODE_VERSION GET "${MOD_JSON}" "geode")
+    string(JSON TARGET_GD_VERSION GET "${MOD_JSON}" "gd" "${GEODE_TARGET_PLATFORM_JSON}")
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
     string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
 
@@ -98,6 +99,14 @@ function(setup_geode_mod proname)
     else()
         message(FATAL_ERROR
             "Mod ${MOD_ID} is made for Geode version ${TARGET_GEODE_VERSION} but you have ${GEODE_VERSION_FULL} SDK installed. Please change the Geode version in your mod.json. "
+        )
+    endif()
+    
+    if ("${TARGET_GD_VERSION}" STREQUAL "${GEODE_GD_VERSION}" OR "${TARGET_GD_VERSION}" STREQUAL "*")
+        message(STATUS "Mod ${MOD_ID} is compiling for Geometry Dash version ${TARGET_GD_VERSION}")
+    else()
+        message(FATAL_ERROR
+            "Mod ${MOD_ID} is made for Geometry Dash version ${TARGET_GD_VERSION} but this version of Geode is for GD version ${GEODE_GD_VERSION}. Please change the Geometry Dash version in your mod.json. "
         )
     endif()
 
@@ -264,7 +273,11 @@ function(setup_geode_mod proname)
         endforeach()
 
         # Link libs
-        target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        if (GEODE_SET_TARGET_AS_SYSTEM)
+            target_include_directories(${proname} SYSTEM PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        else()
+            target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
+        endif()
         target_link_libraries(${proname} ${SETUP_GEODE_MOD_LINK_TYPE} ${libs_to_link})
         
     endif()
@@ -275,17 +288,6 @@ function(setup_geode_mod proname)
         set_target_properties(${proname} PROPERTIES SUFFIX ${GEODE_MOD_BINARY_SUFFIX})
     endif()
     set_target_properties(${proname} PROPERTIES OUTPUT_NAME ${MOD_ID})
-endfunction()
-
-function(create_geode_file proname)
-    # todo: deprecate at some point ig
-    # message(DEPRECATION
-    #     "create_geode_file has been replaced with setup_geode_mod - "
-    #     "please replace the function call"
-    # )
-
-    # forward all args
-    setup_geode_mod(${proname} ${ARGN})
 endfunction()
 
 function(package_geode_resources proname src dest)
@@ -393,7 +395,7 @@ function(package_geode_resources_now proname src dest header_dest)
         if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_TEXT_HASH EQUAL -1)
             
             # create list of lines form the contens of a file
-            file(STRINGS ${file} LINES)
+            file(STRINGS ${file} LINES ENCODING UTF-8)
             list(JOIN LINES "" JOINED)
             # compute hash of the lines
             string(LENGTH "${JOINED}" FILE_SIZE)

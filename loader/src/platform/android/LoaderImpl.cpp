@@ -1,12 +1,35 @@
 #include <Geode/loader/IPC.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
+#include <filesystem>
+#include <jni.h>
 
 using namespace geode::prelude;
 
+std::filesystem::path getInternalDir() {
+    std::string path = "/data/user/0/com.geode.launcher/files/";
+
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getInternalDirectory", "()Ljava/lang/String;")) {
+        jstring str = reinterpret_cast<jstring>(t.env->CallStaticObjectMethod(t.classID, t.methodID));
+        t.env->DeleteLocalRef(t.classID);
+        path = JniHelper::jstring2string(str);
+        t.env->DeleteLocalRef(str);
+    } else {
+        auto vm = JniHelper::getJavaVM();
+
+        JNIEnv* env;
+        if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK) {
+            env->ExceptionClear();
+        }
+    }
+
+    return std::filesystem::path(path);
+}
+
 std::string Loader::Impl::getGameVersion() {
     if (m_gdVersion.empty()) {
-        std::ifstream version_file("/data/data/com.geode.launcher/files/game_version.txt");
+        std::ifstream version_file(getInternalDir() / "game_version.txt");
         if (!version_file) {
             // probably on an older launcher
             return m_gdVersion;
@@ -22,6 +45,7 @@ std::string Loader::Impl::getGameVersion() {
             case 38: m_gdVersion = "2.205"; break;
             case 39: m_gdVersion = "2.206"; break;
             case 40: m_gdVersion = "2.2074"; break;
+            case 41: m_gdVersion = "2.2081"; break;
             default: m_gdVersion = std::to_string(version_code);
         }
     }

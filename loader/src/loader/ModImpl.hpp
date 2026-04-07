@@ -3,8 +3,9 @@
 #include <matjson.hpp>
 #include "ModPatch.hpp"
 #include <Geode/loader/Loader.hpp>
-#include <string_view>
 #include <Geode/loader/ModSettingsManager.hpp>
+#include <Geode/utils/ZStringView.hpp>
+#include <Geode/loader/Signal.hpp>
 
 namespace geode {
     class Mod::Impl {
@@ -27,9 +28,9 @@ namespace geode {
          */
         std::vector<std::shared_ptr<Patch>> m_patches;
         /**
-         * Whether the mod is enabled or not
+         * Whether the mod is loaded or not
          */
-        bool m_enabled = false;
+        bool m_loaded = false;
         /**
          * Mod temp directory name
          */
@@ -53,6 +54,10 @@ namespace geode {
          */
         std::unique_ptr<ModSettingsManager> m_settings = nullptr;
         /**
+         * Setting observer.
+         */
+        comm::Observer m_settingObserver;
+        /**
          * Whether the mod resources are loaded or not
          */
         bool m_resourcesLoaded = false;
@@ -63,15 +68,11 @@ namespace geode {
         /**
          * The minimum log level for this mod
          */
-        Severity m_logLevel = Severity::Debug;
-
+        Severity m_logLevel = Severity::Trace;
         std::unordered_map<std::string, char const*> m_expandedSprites;
-
         bool m_isCurrentlyLoading = false;
-
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
-
-        std::vector<LoadProblem> m_problems;
+        std::optional<LoadProblem> m_problem;
 
         Impl(Mod* self, ModMetadata const& metadata);
         ~Impl();
@@ -83,16 +84,16 @@ namespace geode {
         Result<> loadPlatformBinary();
         Result<> createTempDir();
 
-        std::string getID() const;
-        std::string getName() const;
-        std::vector<std::string> getDevelopers() const;
-        std::optional<std::string> getDescription() const;
-        std::optional<std::string> getDetails() const;
+        ZStringView getID() const;
+        ZStringView getName() const;
+        std::vector<std::string> const& getDevelopers() const;
+        std::optional<std::string> const& getDescription() const;
+        std::optional<std::string> const& getDetails() const;
         std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
-        bool isEnabled() const;
+        bool isLoaded() const;
         bool isInternal() const;
-        bool needsEarlyLoad() const;
+        bool needsEarlyLoad(std::vector<Mod*>& checked) const;
         ModMetadata const& getMetadata() const;
         std::filesystem::path getTempDir() const;
         std::filesystem::path getBinaryPath() const;
@@ -108,6 +109,7 @@ namespace geode {
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
         std::vector<Mod*> getDependants() const;
+        std::vector<Mod*> getEnabledDependants() const;
 #endif
 
         Result<> saveData();
@@ -120,6 +122,7 @@ namespace geode {
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string_view key) const;
+        void settingReact(geode::Function<void()> fn);
 
         std::string getLaunchArgumentName(std::string_view name) const;
         std::vector<std::string> getLaunchArgumentNames() const;
@@ -150,7 +153,7 @@ namespace geode {
 
         Result<> loadBinary();
 
-        std::string_view expandSpriteName(std::string_view name);
+        std::string expandSpriteName(std::string_view name);
         ModJson getRuntimeInfo() const;
 
         bool isLoggingEnabled() const;
@@ -158,13 +161,13 @@ namespace geode {
         Severity getLogLevel() const;
         void setLogLevel(Severity level);
 
-        std::vector<LoadProblem> getProblems() const;
-
-        bool hasLoadProblems() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
 
         int getLoadPriority() const;
+
+        bool isPinned() const;
+        void setPinned(bool pinned);
     };
 
     class ModImpl : public Mod::Impl {

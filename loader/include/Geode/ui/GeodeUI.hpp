@@ -2,6 +2,7 @@
 
 #include "../loader/Mod.hpp"
 #include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/loader/SettingV3.hpp>
 #include <Geode/ui/Popup.hpp>
 
 class ModPopup;
@@ -15,30 +16,10 @@ namespace geode {
      * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
-    class GEODE_DLL ModPopupUIEvent final : public Event {
-    private:
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
-
-        friend class ::ModPopup;
-
-        ModPopupUIEvent(std::unique_ptr<Impl>&& impl);
-
+    class ModPopupUIEvent final : public Event<ModPopupUIEvent, bool(FLAlertLayer*, std::string_view, std::optional<Mod*>)> {
     public:
-        virtual ~ModPopupUIEvent();
-
-        /**
-         * Get the popup itself
-         */
-        FLAlertLayer* getPopup() const;
-        /**
-         * Get the ID of the mod this popup is for
-         */
-        std::string getModID() const;
-        /**
-         * If this popup is of an installed mod, get it
-         */
-        std::optional<Mod*> getMod() const;
+        // listener params popup, modID, mod
+        using Event::Event;
     };
 
     /**
@@ -46,30 +27,10 @@ namespace geode {
      * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
-    class GEODE_DLL ModItemUIEvent final : public Event {
-    private:
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
-
-        friend class ::ModItem;
-
-        ModItemUIEvent(std::unique_ptr<Impl>&& impl);
-
+    class ModItemUIEvent final : public Event<ModItemUIEvent, bool(cocos2d::CCNode*, std::string_view, std::optional<Mod*>)> {
     public:
-        virtual ~ModItemUIEvent();
-
-        /**
-         * Get the item itself
-         */
-        cocos2d::CCNode* getItem() const;
-        /**
-         * Get the ID of the mod this logo is for
-         */
-        std::string getModID() const;
-        /**
-         * If this logo is of an installed mod, get it
-         */
-        std::optional<Mod*> getMod() const;
+        // listener params item, modID, mod
+        using Event::Event;
     };
 
     /**
@@ -77,30 +38,10 @@ namespace geode {
      * the Geode UI. See the [tutorial on Geode UI modification](https://docs.geode-sdk.org/tutorials/modify-geode)
      * for **very important notes on these events**!
      */
-    class GEODE_DLL ModLogoUIEvent final : public Event {
-    private:
-        class Impl;
-        std::unique_ptr<Impl> m_impl;
-
-        friend class ::ModLogoSprite;
-
-        ModLogoUIEvent(std::unique_ptr<Impl>&& impl);
-
+    class ModLogoUIEvent final : public Event<ModItemUIEvent, bool(cocos2d::CCNode*, std::string_view, std::optional<Mod*>)> {
     public:
-        virtual ~ModLogoUIEvent();
-
-        /**
-         * Get the sprite itself
-         */
-        cocos2d::CCNode* getSprite() const;
-        /**
-         * Get the ID of the mod this logo is for
-         */
-        std::string getModID() const;
-        /**
-         * If this logo is of an installed mod, get it
-         */
-        std::optional<Mod*> getMod() const;
+        // listener params sprite, modID, mod
+        using Event::Event;
     };
 
     /**
@@ -115,11 +56,12 @@ namespace geode {
      * Open the info popup for a mod based on an ID. If the mod is installed,
      * its installed popup is opened. Otherwise will check if the servers
      * have this mod, or if not, show an error popup
-     * @returns A Task that completes to `true` if the mod was found and a
-     * popup was opened, and `false` otherwise. If you wish to modify the
-     * created popup, listen for the Geode UI events listed in `GeodeUI.hpp`
+     * @returns `std::nullopt` if the mod is installed, otherwise a Task
+     * that completes to `true` if the mod was found and a popup was opened,
+     * and `false` otherwise. If you wish to modify the created popup,
+     * listen for the Geode UI events listed in `GeodeUI.hpp`
      */
-    GEODE_DLL Task<bool> openInfoPopup(std::string const& modID);
+    GEODE_DLL std::optional<arc::TaskHandle<bool>> openInfoPopup(std::string modID);
     /**
      * Open the info popup for a mod on the changelog page
      */
@@ -146,7 +88,15 @@ namespace geode {
      * @returns A pointer to the created Popup, or null if the mod has no
      * settings
      */
-    GEODE_DLL Popup<Mod*>* openSettingsPopup(Mod* mod, bool disableGeodeTheme);
+    GEODE_DLL Popup* openSettingsPopup(Mod* mod, bool disableGeodeTheme);
+
+    /**
+     * Open the keybinds popup and navigate to a specific tab (if `std::nullopt` is passed then same tab user was on previously)
+     * @param mod If not null, keybinds of other mods will be collapsed
+     * @returns A pointer to the created Popup
+     */
+    GEODE_DLL Popup* openKeybindsPopup(std::optional<KeybindCategory> category, Mod* mod);
+
     /**
      * Create a default logo sprite
      */
@@ -164,5 +114,5 @@ namespace geode {
      * logo is initially a loading circle, with the actual sprite downloaded
      * asynchronously
      */
-    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string const& id);
+    GEODE_DLL cocos2d::CCNode* createServerModLogo(std::string id);
 }

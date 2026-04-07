@@ -5,6 +5,7 @@
 #include "../dependency/main.hpp"
 #include "Geode/utils/general.hpp"
 #include <Geode/utils/VMTHookManager.hpp>
+#include <Geode/loader/Event.hpp>
 
 using namespace geode::prelude;
 
@@ -13,31 +14,75 @@ auto test = []() {
     return 0;
 };
 
+
 // Exported functions
 $on_mod(Loaded) {
     log::info("Loaded");
+
+    auto h1 = geode::Dispatch<std::string>("geode.test/test-garage-open").listen([](std::string const& str) {
+        log::info("Received dispatched event: {}", str);
+    });
+
+    geode::Dispatch<std::string>("geode.test/test-garage-open").send("Hello from dispatch!");
+
+    auto handle = Dispatch<int&>("test").listen([](int& val) {
+        geode::log::info("Received dispatched int: {}", val);
+        val += 10;
+        return val > 0;
+    });
+    
+    auto handle2 = Dispatch<int>("test2").listen([](int val) {
+        geode::log::info("Received dispatched int2: {}", val);
+    });
+
+    auto handle3 = Dispatch<float>("test").listen([](float val) {
+        geode::log::info("Received dispatched float: {}", val);
+    });
+
+    auto handle4 = Dispatch<int&>("test").listen([](int& val) {
+        geode::log::info("Received dispatched int4: {}", val);
+        val += 10;
+    }, -5);
+
+    auto handle5 = Dispatch<int&>("test").listen([](int& val) {
+        geode::log::info("Received dispatched int5: {}", val);
+        val += 10;
+    }, 5);
+
+    int value = 5;
+    geode::log::info("Value before dispatch: {}", value);
+    Dispatch<int&>("test").send(value);
+    geode::log::info("Value after dispatch: {}", value);
+    Dispatch<int>("test2").send(7);
+    Dispatch<float>("test").send(9);
+    value = -35;
+    geode::log::info("Value before dispatch: {}", value);
+    Dispatch<int&>("test").send(value);
+    geode::log::info("Value after dispatch: {}", value);
 }
 
-static std::string s_recievedEvent;
+static std::string s_receivedEvent;
 
 // Events
-$execute {
-    new EventListener<TestEventFilter>(+[](TestEvent* event) {
-        log::info("Received event: {}", event->getData());
-        s_recievedEvent = event->getData();
-    });
+$on_mod(Loaded) {
+    TestEvent().listen(+[](std::string_view data) {
+        log::info("Received event: {}", data);
+        s_receivedEvent = data;
+    }).leak();
 }
 
 // Coroutines
 #include <Geode/utils/coro.hpp>
 auto advanceFrame() {
     auto [task, finish, progress, cancelled] = Task<void>::spawn();
-    queueInMainThread(std::bind(finish, true));
+    queueInMainThread([finish = std::move(finish)] mutable {
+        finish(true);
+    });
 
     return task;
 }
 
-$execute {
+$on_mod(Loaded) {
     $async() {
         auto start = std::chrono::steady_clock::now();
         log::info("Waiting for 10 frames...");
@@ -156,9 +201,9 @@ struct GJGarageLayerTest : Modify<GJGarageLayerTest, GJGarageLayer> {
         addChild(label2);
 
         // Dispatch system pt. 1
-        MyDispatchEvent("geode.test/test-garage-open", this).post();
+        MyDispatchEvent("geode.test/test-garage-open").send(this);
 
-        if (s_recievedEvent.size() > 0) {
+        if (s_receivedEvent.size() > 0) {
             auto label = CCLabelBMFont::create("Event works!", "bigFont.fnt");
             label->setPosition(100, 70);
             label->setScale(.4f);

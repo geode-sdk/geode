@@ -18,12 +18,6 @@ else()
 	set(PROJECT_VERSION_SUFFIX "" CACHE INTERNAL "" )
 endif()
 
-# I think CMake is trying to link zlib from the host system?
-# This prevents it from doing that.
-if (WIN32 AND CMAKE_CROSSCOMPILING)
-	set(MZ_FORCE_FETCH_LIBS ON)
-endif()
-
 # https://stackoverflow.com/a/63924044/9124836
 # https://stackoverflow.com/a/72396471
 execute_process(
@@ -101,7 +95,11 @@ else()
 		src/hooks/*.mm
 	)
 endif()
-set_source_files_properties(${OBJC_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+
+set_source_files_properties(${OBJC_SOURCES} PROPERTIES
+	SKIP_PRECOMPILE_HEADERS ON
+	SKIP_UNITY_BUILD_INCLUSION ON
+)
 
 if (WIN32)
 	# This allows you to compile in debug mode
@@ -149,13 +147,13 @@ if (WIN32)
 endif()
 
 
-if (ANDROID AND GEODE_USE_BREAKPAD)
-	CPMAddPackage("gh:qimiko/breakpad#169df6a")
+if (ANDROID)
+	CPMAddPackage("gh:geode-sdk/libunwindstack#876b46d")
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 file(MAKE_DIRECTORY "${GEODE_BIN_PATH}/nightly")
 
@@ -182,18 +180,6 @@ if (GEODE_NO_UNDEFINED_VIRTUALS)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_NO_UNDEFINED_VIRTUALS)
 endif()
 
-# CA Bundle
-CPMAddPackage(
-	GITHUB_REPOSITORY geode-sdk/net_libs
-	GIT_TAG 6abd76c
-# CPM is bugged and will not allow an empty string.
-# https://github.com/cpm-cmake/CPM.cmake/issues/467
-# https://github.com/cpm-cmake/CPM.cmake/issues/461
-	GIT_SUBMODULES "nghttp3"
-	GIT_SUBMODULES_RECURSE OFF
-)
-target_link_libraries(${PROJECT_NAME} ca-bundle)
-
 # Package resources for UI
 package_geode_resources_now(
 	${PROJECT_NAME}
@@ -211,10 +197,7 @@ if (ANDROID)
 	# needed to define some opengl functions
 	target_link_libraries(${PROJECT_NAME} EGL)
 
-	if (GEODE_USE_BREAKPAD)
-		target_compile_definitions(${PROJECT_NAME} PRIVATE -DGEODE_USE_BREAKPAD)
-		target_link_libraries(${PROJECT_NAME} Breakpad)
-	endif()
+	target_link_libraries(${PROJECT_NAME} unwindstack)
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -256,12 +239,12 @@ if (NOT GEODE_BUILDING_DOCS)
 	set(MZ_OPENSSL OFF CACHE INTERNAL "")
 	set(MZ_LIBBSD OFF CACHE INTERNAL "")
 	set(MZ_FETCH_LIBS ON CACHE INTERNAL "" FORCE)
-	set(MZ_FORCE_FETCH_LIBS ${WIN32} CACHE INTERNAL "")
 	set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
-	CPMAddPackage("gh:geode-sdk/minizip-ng#43d9254")
-	if (WIN32)
-		set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
-	endif()
+	set(MZ_FORCE_FETCH_LIBS OFF CACHE INTERNAL "" FORCE)
+	# sets ZLIB_LIBRARY and ZLIB_INCLUDE_DIR
+	include(DownloadNetLibs.cmake)
+	
+	CPMAddPackage("gh:geode-sdk/minizip-ng#e9dda96")
 
 	# Silence warnings from dependencies
 	include(CheckCXXCompilerFlag)
@@ -281,23 +264,34 @@ if (NOT GEODE_BUILDING_DOCS)
 		endif()
 	endif()
 
-	# Cool date library
-	CPMAddPackage("gh:HowardHinnant/date#1ead671")
-
 	set(SIMDUTF_TESTS OFF)
 	set(SIMDUTF_TOOLS OFF)
-	CPMAddPackage("gh:simdutf/simdutf#v6.5.0")
+	CPMAddPackage("gh:simdutf/simdutf@8.0.0")
+	CPMAddPackage("gh:fastfloat/fast_float@8.2.3")
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
-	target_link_libraries(${PROJECT_NAME} md4c minizip date simdutf)
+	target_link_libraries(${PROJECT_NAME} md4c minizip simdutf fast_float)
 endif()
 
 target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
 
-# Required by curl for macos
-if (APPLE)
-	target_link_libraries(${PROJECT_NAME} z)
+# always use unity builds for some dependencies
+if (TARGET md4c)
+	set_target_properties(md4c PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
+if (TARGET minizip)
+	set_target_properties(minizip PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
+set_target_properties(mat-json-impl PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+
+# unity build for geode
+if (GEODE_UNITY_BUILD)
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		UNITY_BUILD ON
+		UNITY_BUILD_BATCH_SIZE 32
+		UNITY_BUILD_UNIQUE_ID "GEODE_UNITY_NS_ID"
+	)
 endif()
 
 if (MSVC)
@@ -314,7 +308,7 @@ if (WIN32)
 	if (MSVC)
 		target_link_options(${PROJECT_NAME} PRIVATE /DELAYLOAD:libcocos2d.dll /DELAYLOAD:libExtensions.dll)
 	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-		target_link_options(${PROJECT_NAME} PRIVATE "-Wl,/delayload:libcocos2d.dll" "-Wl,/delayload:libExtensions.dll")
+		target_link_options(${PROJECT_NAME} PRIVATE "-Wl,/delayload:libcocos2d.dll" "-Wl,/delayload:libExtensions.dll" "-Wl,/errorlimit:0")
 	else()
 		message(FATAL_ERROR "Unable to set DELAYLOAD! This is essential for Geode forward compatibility to work.")
 	endif()
@@ -337,7 +331,7 @@ if (APPLE)
 	else()
 		set_target_properties(geode-loader PROPERTIES 
 			SYSTEM_NAME MacOS
-			OSX_DEPLOYMENT_TARGET 10.15
+			OSX_DEPLOYMENT_TARGET 11.0
 			APPLE_SILICON_PROCESSOR x86_64
 		)
 
@@ -348,7 +342,7 @@ if (APPLE)
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 
-	target_link_libraries(${PROJECT_NAME} dbghelp winmm)
+	target_link_libraries(${PROJECT_NAME} dbghelp winmm xinput)
 
 	target_compile_definitions(${PROJECT_NAME} PUBLIC ISOLATION_AWARE_ENABLED=1)
 

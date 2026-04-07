@@ -239,34 +239,61 @@ namespace geode {
 
         GEODE_SEED_VALUE_COMMON_OPS();
     };
-
-    inline std::string format_as(SeedValueSR value) {
-        return fmt::to_string(value.value());
-    }
-
-    inline std::string format_as(SeedValueRS value) {
-        return fmt::to_string(value.value());
-    }
-
-    inline std::string format_as(SeedValueVRS value) {
-        return fmt::to_string(value.value());
-    }
-
-    inline std::string format_as(SeedValueVSR value) {
-        return fmt::to_string(value.value());
-    }
-
-    inline std::string format_as(SeedValueRVS value) {
-        return fmt::to_string(value.value());
-    }
-
-    inline std::string format_as(SeedValueRSV value) {
-        return fmt::to_string(value.value());
-    }
-
-    inline std::string format_as(SeedValueSVR value) {
-        return fmt::to_string(value.value());
-    }
-
 #undef GEODE_SEED_VALUE_COMMON_OPS
 } // namespace geode
+
+template <>
+struct fmt::formatter<geode::SeedValueSR> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueSR& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueRS> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueRS& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueVRS> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueVRS& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueVSR> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueVSR& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueRVS> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueRVS& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueRSV> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueRSV& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<geode::SeedValueSVR> : formatter<int> {
+    template <typename FormatContext>
+    auto format(geode::SeedValueSVR& value, FormatContext& ctx) const noexcept {
+        return formatter<int>::format(value.value(), ctx);
+    }
+};

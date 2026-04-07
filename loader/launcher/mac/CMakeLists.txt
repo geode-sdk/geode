@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 
 add_library(GeodeBootstrapper SHARED Bootstrapper.cpp)
-target_compile_features(GeodeBootstrapper PUBLIC cxx_std_17)
+target_compile_features(GeodeBootstrapper PUBLIC cxx_std_23)
 set_target_properties(GeodeBootstrapper PROPERTIES
 	PREFIX "" 
 	OUTPUT_NAME "GeodeBootstrapper"
@@ -13,7 +13,7 @@ set_target_properties(GeodeBootstrapper PROPERTIES
 target_link_libraries(GeodeBootstrapper PRIVATE)
 
 add_library(FakeGeode SHARED FakeGeode.cpp)
-target_compile_features(FakeGeode PUBLIC cxx_std_17)
+target_compile_features(FakeGeode PUBLIC cxx_std_23)
 set_target_properties(FakeGeode PROPERTIES
 	PREFIX "" 
 	OUTPUT_NAME "Geode"

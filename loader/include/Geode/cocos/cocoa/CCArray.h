@@ -32,33 +32,16 @@ THE SOFTWARE.
  * @{
  */
 
-/** @def CCARRAY_FOREACH
-A convenience macro to iterate over a CCArray using. It is faster than the "fast enumeration" interface.
-@since v0.99.4
-*/
-
-/*
-In cocos2d-iphone 1.0.0, This macro have been update to like this:
-
-#define CCARRAY_FOREACH(__array__, __object__)                                                \
-if (__array__ && __array__->data->num > 0)                                                    \
-for(id *__arr__ = __array__->data->arr, *end = __array__->data->arr + __array__->data->num-1;    \
-__arr__ <= end && ((__object__ = *__arr__) != nil || true);                                        \
-__arr__++)
-
-I found that it's not work in C++. So it keep what it's look like in version 1.0.0-rc3. ---By Bin
-*/
-#define CCARRAY_FOREACH(__array__, __object__)                                                                         \
-    if ((__array__) && (__array__)->data->num > 0)                                                                     \
-    for(CCObject** __arr__ = (__array__)->data->arr, **__end__ = (__array__)->data->arr + (__array__)->data->num-1;    \
-    __arr__ <= __end__ && (((__object__) = *__arr__) != NULL/* || true*/);                                             \
-    __arr__++)
-
-#define CCARRAY_FOREACH_REVERSE(__array__, __object__)                                                                  \
-    if ((__array__) && (__array__)->data->num > 0)                                                                      \
-    for(CCObject** __arr__ = (__array__)->data->arr + (__array__)->data->num-1, **__end__ = (__array__)->data->arr;     \
-    __arr__ >= __end__ && (((__object__) = *__arr__) != NULL/* || true*/);                                              \
-    __arr__--)
+#define CCARRAY_FOREACH(...) \
+    static_assert(false, \
+        "Please use `for (auto obj : CCArrayExt(arr))` or `for (auto obj : CCArrayExt<NodeType*>(arr))`" \
+        " instead, this macro has been removed in Geode v5\n" \
+        "When iterating over the children of a node, `for (CCNode* node : node->getChildrenExt())` or"\
+        " `for (CCNode* node : node->getChildrenExt<NodeType*>())` can also be used\n" \
+    );
+    
+#define CCARRAY_FOREACH_REVERSE(...) \
+    static_assert(false, "Please use CCArrayExt with a range-based loop instead, this macro has been removed in Geode v5");
 
 #if defined(COCOS2D_DEBUG) && (COCOS2D_DEBUG > 0)
 #define CCARRAY_VERIFY_TYPE(__array__, __type__)                                                                 \
@@ -71,40 +54,6 @@ I found that it's not work in C++. So it keep what it's look like in version 1.0
 #else
 #define CCARRAY_VERIFY_TYPE(__array__, __type__) void(0)
 #endif
-
-#define arrayMakeObjectsPerformSelector(pArray, func, elementType)    \
-do {                                                                  \
-    if(pArray && pArray->count() > 0)                                 \
-    {                                                                 \
-        CCObject* child;                                              \
-        CCARRAY_FOREACH(pArray, child)                                \
-        {                                                             \
-            elementType pNode = (elementType) child;                  \
-            if(pNode)                                                 \
-            {                                                         \
-                pNode->func();                                        \
-            }                                                         \
-        }                                                             \
-    }                                                                 \
-}                                                                     \
-while(false)
-
-#define arrayMakeObjectsPerformSelectorWithObject(pArray, func, pObject, elementType)   \
-do {                                                                  \
-    if(pArray && pArray->count() > 0)                                 \
-    {                                                                 \
-        CCObject* child = NULL;                                       \
-        CCARRAY_FOREACH(pArray, child)                                \
-        {                                                             \
-            elementType pNode = (elementType) child;                  \
-            if(pNode)                                                 \
-            {                                                         \
-                pNode->func(pObject);                                 \
-            }                                                         \
-        }                                                             \
-    }                                                                 \
-}                                                                     \
-while(false)
 
 namespace geode {
     template <typename T, typename>

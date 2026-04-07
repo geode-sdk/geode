@@ -184,7 +184,7 @@ public:
     virtual void keyMenuClicked(void);
 
     // @note RobTop Addition
-    void keyDown(enumKeyCodes);
+    void keyDown(enumKeyCodes, double);
 
     // 2.2 additions
     virtual void setPreviousPriority(int);

@@ -3,7 +3,9 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SliderThumb.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/function.hpp>
 #include <charconv>
 #include <clocale>
 #include <Geode/loader/Mod.hpp>
@@ -21,7 +23,7 @@ public:
     TextInput* m_bInput;
     TextInput* m_hexInput;
     TextInput* m_opacityInput = nullptr;
-    ColorPickPopupDelegate* m_delegate = nullptr;
+    geode::Function<void(cocos2d::ccColor4B const&)> m_callback;
     cocos2d::CCSprite* m_newColorSpr;
     CCMenuItemSpriteExtra* m_resetBtn;
 };
@@ -33,7 +35,10 @@ ColorPickPopup::ColorPickPopup() {
 ColorPickPopup::~ColorPickPopup() {}
 
 
-bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
+bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
+    if (!Popup::init(400.f, isRGBA ? 290.f : 240.f))
+        return false;
+
     m_noElasticity = true;
     m_impl->m_color = color;
     m_impl->m_originalColor = color;
@@ -42,7 +47,7 @@ bool ColorPickPopup::setup(ccColor4B const& color, bool isRGBA) {
 
     this->setTitle("Select Color");
 
-    auto bg = cocos2d::extension::CCScale9Sprite::create(
+    auto bg = NineSlice::create(
         "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
     );
     bg->setID("popup-bg");
@@ -370,8 +375,8 @@ void ColorPickPopup::onReset(CCObject*) {
 }
 
 void ColorPickPopup::onClose(CCObject* sender) {
-    if (m_impl->m_delegate) {
-        m_impl->m_delegate->updateColor(m_impl->m_color);
+    if (m_impl->m_callback) {
+        m_impl->m_callback(m_impl->m_color);
     }
     Popup::onClose(sender);
 }
@@ -424,8 +429,8 @@ void ColorPickPopup::colorValueChanged(ccColor3B color) {
     this->updateState(m_impl->m_picker);
 }
 
-void ColorPickPopup::setDelegate(ColorPickPopupDelegate* delegate) {
-    m_impl->m_delegate = delegate;
+void ColorPickPopup::setCallback(geode::Function<void(cocos2d::ccColor4B const&)> callback) {
+    m_impl->m_callback = std::move(callback);
 }
 
 void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
@@ -434,7 +439,7 @@ void ColorPickPopup::setColorTarget(cocos2d::CCSprite* spr) {
 
 ColorPickPopup* ColorPickPopup::create(ccColor4B const& color, bool isRGBA) {
     auto ret = new ColorPickPopup();
-    if (ret->initAnchored(400.f, (isRGBA ? 290.f : 240.f), color, isRGBA)) {
+    if (ret->init(color, isRGBA)) {
         ret->autorelease();
         return ret;
     }

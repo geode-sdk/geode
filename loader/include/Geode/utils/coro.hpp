@@ -4,6 +4,7 @@
 #include <Geode/DefaultInclude.hpp>
 #include "Task.hpp"
 #include <concepts>
+#include <arc/future/Future.hpp>
 
 namespace geode::utils::coro {
     /**
@@ -151,9 +152,8 @@ namespace geode::utils::coro {
         }
     }
 
-    GEODE_DLL Task<void> nextFrame();
-    GEODE_DLL Task<void> skipFrames(int frames);
-    GEODE_DLL Task<void> sleep(double seconds);
+    GEODE_DLL arc::Future<void> nextFrame();
+    GEODE_DLL arc::Future<void> skipFrames(int frames);
 
     template <typename T, typename E>
     struct BaseResultPromise {

@@ -8,27 +8,27 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/JsonValidation.hpp>
+#include <Geode/utils/async.hpp>
 #include <loader/LogImpl.hpp>
 
-#include <array>
+#include "internal/about.hpp"
 
 using namespace geode::prelude;
 
 #include "load.hpp"
 
 $on_mod(Loaded) {
-    ipc::listen("ipc-test", [](ipc::IPCEvent* event) -> matjson::Value {
+    ipc::listen("ipc-test", [](matjson::Value data) -> matjson::Value {
         return "Hello from Geode!";
     });
 
-    ipc::listen("loader-info", [](ipc::IPCEvent* event) -> matjson::Value {
-        return Mod::get()->getMetadataRef();
+    ipc::listen("loader-info", [](matjson::Value data) -> matjson::Value {
+        return Mod::get()->getMetadata();
     });
 
-    ipc::listen("list-mods", [](ipc::IPCEvent* event) -> matjson::Value {
+    ipc::listen("list-mods", [](matjson::Value args) -> matjson::Value {
         std::vector<matjson::Value> res;
 
-        auto args = *event->messageData;
         auto root = checkJson(args, "[ipc/list-mods]");
 
         auto includeRunTimeInfo = root.has("include-runtime-info").get<bool>();
@@ -37,12 +37,12 @@ $on_mod(Loaded) {
         if (!dontIncludeLoader) {
             res.push_back(
                 includeRunTimeInfo ? Mod::get()->getRuntimeInfo() :
-                                     Mod::get()->getMetadataRef().toJSON()
+                                     Mod::get()->getMetadata().toJSON()
             );
         }
 
         for (auto& mod : Loader::get()->getAllMods()) {
-            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getMetadataRef().toJSON());
+            res.push_back(includeRunTimeInfo ? mod->getRuntimeInfo() : mod->getMetadata().toJSON());
         }
 
         return res;
@@ -52,11 +52,12 @@ $on_mod(Loaded) {
 void tryLogForwardCompat() {
     if (!LoaderImpl::get()->isForwardCompatMode()) return;
     // TODO: change text later
-    log::warn("+-----------------------------------------------------------------------------------------------+");
-    log::warn("| Geode is running in a newer version of GD than Geode targets.                                 |");
-    log::warn("| UI is going to be disabled, platform console is forced on and crashes can be more common.     |");
-    log::warn("| However, if your game crashes, it is probably caused by an outdated mod and not Geode itself. |");
-    log::warn("+-----------------------------------------------------------------------------------------------+");
+    log::warn("+-----------------------------------------------------------------------------------+");
+    log::warn("| Geode is running in a newer version of GD than Geode targets.                     |");
+    log::warn("| Disabling UI and enabling platform console.                                       |");
+    log::warn("| Expect crashes to be more common.                                                 |");
+    log::warn("| If your game crashes, it is probably caused by an outdated mod, not Geode itself. |");
+    log::warn("+-----------------------------------------------------------------------------------+");
 }
 
 void tryShowForwardCompat() {
@@ -131,6 +132,11 @@ int geodeEntry(void* platformData) {
             PlatformID::toString(GEODE_PLATFORM_TARGET));
     }
 
+    auto loaderHash = about::getLoaderCommitHash();
+    auto bindingsHash = about::getBindingsCommitHash();
+
+    log::info("Loader commit: {}, Bindings commit: {}", loaderHash, bindingsHash);
+
     tryLogForwardCompat();
 
     auto begin = std::chrono::high_resolution_clock::now();
@@ -161,6 +167,11 @@ int geodeEntry(void* platformData) {
     // Logging before this point does store the log, and everything gets logged in this setup call
     log::Logger::get()->setup();
 
+    // download bindings
+#ifndef GEODE_IS_ANDROID
+    crashlog::updateFunctionBindings();
+#endif
+
     // set up loader, load mods, etc.
     log::info("Setting up loader");
     {
@@ -186,12 +197,11 @@ int geodeEntry(void* platformData) {
 
     // 0 means no deletion
     if (logMaxAge > 0) {
-        // put it in a thread so that it doesn't slow down launch times
-        std::thread([logMaxAge] {
+        // put it in a task so that it doesn't slow down launch times
+        async::runtime().spawnBlocking<void>([logMaxAge] {
             log::Logger::get()->deleteOldLogs(std::chrono::days{logMaxAge});
-        }).detach();
+        });
     }
-
 
     log::debug("Setting up IPC");
     {

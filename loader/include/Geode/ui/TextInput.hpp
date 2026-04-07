@@ -3,6 +3,9 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
+#include <Geode/utils/function.hpp>
+#include <Geode/utils/ZStringView.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <cocos2d.h>
 
 namespace geode {
@@ -42,13 +45,13 @@ namespace geode {
      * A single-line text input node
      */
     class GEODE_DLL TextInput : public cocos2d::CCNode, public TextInputDelegate {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
-        cocos2d::extension::CCScale9Sprite* m_bgSprite = nullptr;
-        CCTextInputNode* m_input = nullptr;
-        std::function<void(std::string const&)> m_onInput = nullptr;
-        cocos2d::CCLabelBMFont* m_label = nullptr;
+        TextInput();
+        ~TextInput() override;
 
-        bool init(float width, std::string const& placeholder, std::string const& font);
+        bool init(float width, ZStringView placeholder, ZStringView font);
 
         void textChanged(CCTextInputNode* input) override;
 
@@ -63,23 +66,23 @@ namespace geode {
          * @param placeholder Placeholder text for the input
          * @param font The font to use
          */
-        static TextInput* create(float width, std::string const& placeholder, std::string const& font = "bigFont.fnt");
+        static TextInput* create(float width, ZStringView placeholder, ZStringView font = "bigFont.fnt");
 
         /**
          * Set the placeholder label for this input
          */
-        void setPlaceholder(std::string const& placeholder);
+        void setPlaceholder(gd::string placeholder);
         /**
          * Set a label on this input that shows up on the top. Set an empty
          * string to remove the label
          */
-        void setLabel(std::string const& label);
+        void setLabel(ZStringView label);
         /**
          * Set the filter (allowed characters) for this input
          * @param allowedChars String of allowed characters; each character in
          * the string represents one allowed character
          */
-        void setFilter(std::string const& allowedChars);
+        void setFilter(gd::string allowedChars);
         /**
          * Set a commonly used filter (number, text, etc.)
          */
@@ -114,7 +117,11 @@ namespace geode {
          * @param onInput Function to call when the user changes the value of
          * the text input
          */
-        void setCallback(std::function<void(std::string const&)> onInput);
+        void setCallback(geode::Function<void(std::string const&)> onInput);
+        /**
+         * Enables/disables the callback.
+         */
+        void setCallbackEnabled(bool enabled);
         /**
          * Enable/disable the input
          */
@@ -136,11 +143,15 @@ namespace geode {
          * @param triggerCallback Whether this should trigger the callback
          * function / delegate's textChanged event or not
          */
-        void setString(std::string const& str, bool triggerCallback = false);
+        void setString(gd::string str, bool triggerCallback = false);
         /**
          * Get the current value of the input
          */
-        std::string getString() const;
+        gd::string getString() const;
+        /**
+         * Gets if the callback is enabled or not.
+         */
+        bool isCallbackEnabled() const;
 
         /**
          * Focus this input (activate the cursor)
@@ -152,8 +163,7 @@ namespace geode {
         void defocus();
 
         CCTextInputNode* getInputNode() const;
-        cocos2d::extension::CCScale9Sprite* getBGSprite() const;
-
-        ~TextInput() override;
+        NineSlice* getBGSprite() const;
     };
 }
+

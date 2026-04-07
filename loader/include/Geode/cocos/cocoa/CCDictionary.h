@@ -30,6 +30,13 @@ THE SOFTWARE.
 #include "CCArray.h"
 #include "CCString.h"
 
+namespace geode {
+    template <typename K, typename V, typename>
+    struct CCDictionaryExtCheck {
+        using type = void;
+    };
+}
+
 NS_CC_BEGIN
 
 class CCDictionary;
@@ -141,10 +148,8 @@ public:
  *  @note It's faster than getting all keys and traversing keys to get objects by objectForKey.
  *        It's also safe to remove elements while traversing.
  */
-#define CCDICT_FOREACH(__dict__, __el__) \
-    CCDictElement* pTmp##__dict__##__el__ = NULL; \
-    if (__dict__) \
-    HASH_ITER(hh, (__dict__)->m_pElements, __el__, pTmp##__dict__##__el__)
+#define CCDICT_FOREACH(d, e) \
+    static_assert(false, "Please use `for (auto [k, v] : CCDictionaryExt<K, V>(dict))` instead, this macro has been removed in Geode v5");
 
 
 
@@ -405,6 +410,19 @@ public:
 
 	char const* charForKey(gd::string const&);
 	gd::string getFirstKey();
+
+    /**
+     * Turns this dictionary into a `CCDictionaryExt<K, V>`, making it way more convenient to use.
+     * You must include `<Geode/utils/cocos.hpp>` to use this, otherwise, it won't compile.
+     * @note Geode Addition
+     */
+    template <typename K = std::string_view, typename V = CCObject, typename PleaseDontChangeMe = void>
+    inline auto asExt() {
+        using CCDictionaryExt = geode::CCDictionaryExtCheck<K, V, PleaseDontChangeMe>::type;
+        static_assert(!std::is_void_v<CCDictionaryExt>, "Please include <Geode/utils/cocos.hpp> to use asExt()");
+
+        return CCDictionaryExt(this);
+    }
 
 private:
     /**

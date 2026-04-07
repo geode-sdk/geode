@@ -1,8 +1,14 @@
 #include <Geode/ui/Border.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
+
+class Border::Impl final {
+public:
+    Padding padding;
+};
 
 Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCSize& size, const CCPoint& padding) {
     Border* instance = new Border(padding);
@@ -16,7 +22,11 @@ Border* Border::create(CCNode* node, const ccColor4B& backgroundColor, const CCS
     return nullptr;
 }
 
-Border::Border(const CCPoint& padding) : m_padding({ padding.x, padding.y, padding.x, padding.y }) { }
+Border::Border(const CCPoint& padding) : m_impl(std::make_unique<Impl>()) {
+    m_impl->padding = { padding.x, padding.y, padding.x, padding.y };
+}
+
+ Border::~Border() { }
 
 bool Border::init(const ccColor4B& backgroundColor, const CCSize& size) {
     return this->init(nullptr, backgroundColor, size);
@@ -27,7 +37,7 @@ bool Border::init(CCNode* node, const ccColor4B& backgroundColor, const CCSize& 
         return false;
     }
 
-    CCScale9Sprite* border = CCScale9Sprite::create("inverseborder.png"_spr);
+    NineSlice* border = NineSlice::create("inverseborder.png"_spr);
     CCLayer* content = CCLayer::create();
 
     border->setID("border_sprite"_spr);
@@ -67,11 +77,11 @@ void Border::setPaddingX(float x) {
 }
 
 Border::Padding Border::getPadding() {
-    return m_padding;
+    return m_impl->padding;
 }
 
 float Border::getPaddingX() {
-    return (m_padding.left + m_padding.right) / 2;
+    return (m_impl->padding.left + m_impl->padding.right) / 2;
 }
 
 void Border::setPaddingY(float y) {
@@ -80,47 +90,47 @@ void Border::setPaddingY(float y) {
 }
 
 float Border::getPaddingY() {
-    return (m_padding.top + m_padding.bottom) / 2;
+    return (m_impl->padding.top + m_impl->padding.bottom) / 2;
 }
 
 void Border::setPaddingTop(float top) {
-    m_padding.top = top;
+    m_impl->padding.top = top;
 
     this->updatePadding();
 }
 
 float Border::getPaddingTop() {
-    return m_padding.top;
+    return m_impl->padding.top;
 }
 
 void Border::setPaddingRight(float right) {
-    m_padding.right = right;
+    m_impl->padding.right = right;
 
     this->updatePadding();
 }
 
 float Border::getPaddingRight() {
-    return m_padding.right;
+    return m_impl->padding.right;
 }
 
 void Border::setPaddingBottom(float bottom) {
-    m_padding.bottom = bottom;
+    m_impl->padding.bottom = bottom;
 
     this->updatePadding();
 }
 
 float Border::getPaddingBottom() {
-    return m_padding.bottom;
+    return m_impl->padding.bottom;
 }
 
 void Border::setPaddingLeft(float left) {
-    m_padding.left = left;
+    m_impl->padding.left = left;
 
     this->updatePadding();
 }
 
 float Border::getPaddingLeft() {
-    return m_padding.left;
+    return m_impl->padding.left;
 }
 
 void Border::setBackgroundColor(const ccColor4B& color) {
@@ -136,7 +146,7 @@ void Border::setNode(CCNode* node) {
     CCNode* content = this->getChildByID("border_content"_spr);
 
     // Can't assume an ID as the node is a user input and may have its ID changed
-    if (CCNode* oldNode = cocos::getChild<CCNode>(content, 0)) {
+    if (CCNode* oldNode = content->getChildByIndex<CCNode>(0)) {
         // Not going to mess with releasing the node, I'll leave that to the user
         oldNode->removeFromParent();
     }
@@ -147,7 +157,7 @@ void Border::setNode(CCNode* node) {
 }
 
 CCNode* Border::getNode() {
-    if (CCNode* node = cocos::getChild<CCNode>(this->getChildByID("border_content"_spr), 0)) {
+    if (CCNode* node = this->getChildByID("border_content"_spr)->getChildByIndex<CCNode>(0)) {
         return node;
     } else {
         return nullptr;
@@ -166,7 +176,7 @@ void Border::updatePadding() {
         CCSize size = this->getContentSize();
 
         node->setAnchorPoint({ 0, 0 });
-        node->setPosition({ m_padding.left, m_padding.bottom });
+        node->setPosition({ m_impl->padding.left, m_impl->padding.bottom });
         node->setContentSize(size - ccp(this->getPaddingX(), this->getPaddingY()) * 2);
     }
 }

@@ -4,28 +4,38 @@
 
 using namespace geode::prelude;
 
+class IconButtonSprite::Impl final {
+public:
+    NineSlice* bg = nullptr;
+    cocos2d::CCLabelBMFont* label = nullptr;
+    cocos2d::CCNode* icon = nullptr;
+};
+
+IconButtonSprite::IconButtonSprite() : m_impl(std::make_unique<Impl>()) { }
+
+IconButtonSprite::~IconButtonSprite() { }
+
 bool IconButtonSprite::init(
     char const* bg, bool bgIsFrame, cocos2d::CCNode* icon, char const* text, char const* font
 ) {
     if (!CCSprite::init()) return false;
 
     if (bgIsFrame) {
-        m_bg = CCScale9Sprite::createWithSpriteFrameName(bg);
+        m_impl->bg = NineSlice::createWithSpriteFrameName(bg);
     }
     else {
-        m_bg = CCScale9Sprite::create(bg);
+        m_impl->bg = NineSlice::create(bg);
     }
-    this->addChild(m_bg);
+    this->addChild(m_impl->bg);
 
-    m_label = CCLabelBMFont::create(text, font);
-    m_label->setAnchorPoint({ .0f, .5f });
-    m_label->setZOrder(1);
-    this->addChild(m_label);
+    m_impl->label = CCLabelBMFont::create(text, font);
+    m_impl->label->setZOrder(1);
+    this->addChildAtPosition(m_impl->label, Anchor::Center);
 
     if (icon) {
-        m_icon = icon;
+        m_impl->icon = icon;
         icon->setZOrder(1);
-        this->addChild(icon);
+        this->addChildAtPosition(icon, Anchor::Center);
     }
 
     this->updateLayout();
@@ -34,45 +44,41 @@ bool IconButtonSprite::init(
 }
 
 void IconButtonSprite::updateLayout() {
-    static constexpr float const PAD = 7.5f;
+    bool hasText = m_impl->label->getString() && strlen(m_impl->label->getString());
 
-    bool hasText = m_label->getString() && strlen(m_label->getString());
+    constexpr float PADDING = 7.5f;
 
-    auto size = CCSize { 20.f, 20.f };
+    CCSize size = ccp(PADDING * 2, 35);
     if (hasText) {
-        m_label->limitLabelWidth(100.f, .6f, .1f);
-        size.width += m_label->getScaledContentSize().width;
-        if (m_icon) {
-            size.width += PAD;
+        m_impl->label->limitLabelWidth(100, .6f, .1f);
+        size.width += m_impl->label->getScaledContentWidth();
+        if (m_impl->icon) {
+            size.width += PADDING;
         }
     }
-    if (m_icon) {
-        limitNodeSize(m_icon, { 20, 20 }, 1.f, .1f);
-    }
-    size.height += 15.f;
-
-    if (m_icon) {
-        size.width += m_icon->getScaledContentSize().width;
+    if (m_impl->icon) {
+        limitNodeSize(m_impl->icon, ccp(20, 20), 1.f, .1f);
+        size.width += m_impl->icon->getScaledContentWidth();
     }
 
     this->setContentSize(size);
-    m_bg->setContentSize(size / m_bg->getScale());
-    m_bg->setPosition(m_obContentSize / 2);
+    m_impl->bg->setContentSize(size / m_impl->bg->getScale());
+    m_impl->bg->setPosition(m_obContentSize / 2);
 
-    if (m_icon) {
+    if (m_impl->icon) {
         if (hasText) {
-            m_label->setPosition(
-                size.height / 2 + m_icon->getScaledContentSize().width / 2 + PAD,
-                size.height / 2 + 1.f
+            m_impl->label->updateAnchoredPosition(
+                Anchor::Left,
+                ccp(m_impl->icon->getScaledContentWidth() + PADDING * 2, 1), ccp(0, .5f)
             );
-            m_icon->setPosition(size.height / 2, size.height / 2);
+            m_impl->icon->updateAnchoredPosition(Anchor::Left, ccp(PADDING, 0), ccp(0, .5f));
         }
         else {
-            m_icon->setPosition(size.width / 2, size.height / 2);
+            m_impl->icon->updateAnchoredPosition(Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
         }
     }
     else {
-        m_label->setPosition(size.height / 2, size.height / 2);
+        m_impl->label->updateAnchoredPosition(Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
     }
 }
 
@@ -101,56 +107,68 @@ IconButtonSprite* IconButtonSprite::createWithSpriteFrameName(
 }
 
 void IconButtonSprite::setBG(char const* bg, bool isFrame) {
-    if (m_bg) {
-        m_bg->removeFromParent();
+    if (m_impl->bg) {
+        m_impl->bg->removeFromParent();
     }
     if (isFrame) {
-        m_bg = CCScale9Sprite::createWithSpriteFrameName(bg);
+        m_impl->bg = NineSlice::createWithSpriteFrameName(bg);
     }
     else {
-        m_bg = CCScale9Sprite::create(bg);
+        m_impl->bg = NineSlice::create(bg);
     }
-    this->addChild(m_bg);
+    this->addChild(m_impl->bg);
     this->updateLayout();
 }
 
 void IconButtonSprite::setIcon(cocos2d::CCNode* icon) {
-    if (m_icon) {
-        m_icon->removeFromParent();
+    if (m_impl->icon) {
+        m_impl->icon->removeFromParent();
     }
-    m_icon = icon;
-    m_icon->setZOrder(1);
+    m_impl->icon = icon;
+    m_impl->icon->setZOrder(1);
     this->addChild(icon);
     this->updateLayout();
 }
 
 cocos2d::CCNode* IconButtonSprite::getIcon() const {
-    return m_icon;
+    return m_impl->icon;
 }
 
 void IconButtonSprite::setString(char const* label) {
-    m_label->setString(label);
+    m_impl->label->setString(label);
     this->updateLayout();
 }
 
 char const* IconButtonSprite::getString() {
-    return m_label->getString();
+    return m_impl->label->getString();
 }
 
 void IconButtonSprite::setColor(cocos2d::ccColor3B const& color) {
     CCSprite::setColor(color);
-    m_bg->setColor(color);
-    m_label->setColor(color);
-    if (auto icon = typeinfo_cast<CCRGBAProtocol*>(m_icon)) {
+    m_impl->bg->setColor(color);
+    m_impl->label->setColor(color);
+    if (auto icon = typeinfo_cast<CCRGBAProtocol*>(m_impl->icon)) {
         icon->setColor(color);
     }
 }
 
 void IconButtonSprite::setOpacity(GLubyte opacity) {
     CCSprite::setOpacity(opacity);
-    m_bg->setOpacity(opacity);
-    m_label->setOpacity(opacity);
-    if (auto icon = typeinfo_cast<CCRGBAProtocol*>(m_icon)) {
+    m_impl->bg->setOpacity(opacity);
+    m_impl->label->setOpacity(opacity);
+    if (auto icon = typeinfo_cast<CCRGBAProtocol*>(m_impl->icon)) {
         icon->setOpacity(opacity);
     }
+}
+
+NineSlice* IconButtonSprite::getBg() {
+    return m_impl->bg;
+}
+
+cocos2d::CCLabelBMFont* IconButtonSprite::getLabel() {
+    return m_impl->label;
+}
+
+cocos2d::CCNode* IconButtonSprite::getIcon() {
+    return m_impl->icon;
 }

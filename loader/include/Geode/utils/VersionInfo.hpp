@@ -27,7 +27,7 @@ namespace geode {
 
     /**
      * A version label, like v1.0.0-alpha or v2.3.4-prerelease. Limited to these
-     * options; arbitary identifiers are not supported. Additional numbering
+     * options; arbitrary identifiers are not supported. Additional numbering
      * may be added after the identifier, such as v1.0.0-beta.1
      */
     struct VersionTag {
@@ -148,7 +148,7 @@ namespace geode {
             m_tag = tag;
         }
 
-        static Result<VersionInfo> parse(std::string const& string);
+        static Result<VersionInfo> parse(std::string string);
 
         constexpr size_t getMajor() const {
             return m_major;
@@ -208,7 +208,7 @@ namespace geode {
             VersionCompare const& compare
         ) : m_version(version), m_compare(compare) {}
 
-        static Result<ComparableVersionInfo> parse(std::string const& string);
+        static Result<ComparableVersionInfo> parse(std::string string);
 
         constexpr bool compare(VersionInfo const& version) const {
             return compareWithReason(version) == VersionCompareResult::Match;

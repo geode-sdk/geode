@@ -11,7 +11,7 @@ namespace geode::node_ids {
         requires std::is_base_of_v<CCNode, T>
     T* setIDSafe(CCNode* node, int index, char const* id) {
         if constexpr (std::is_same_v<CCNode, T>) {
-            if (auto child = cocos::getChild(node, index)) {
+            if (auto child = node->getChildByIndex(index)) {
                 child->setID(id);
                 return child;
             }

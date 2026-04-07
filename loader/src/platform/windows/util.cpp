@@ -12,14 +12,27 @@ using namespace geode::prelude;
 #include <shobjidl.h>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/loader/GameEvent.hpp>
 #include <Geode/loader/Log.hpp>
 #include <filesystem>
 #include <Geode/utils/permission.hpp>
 #include <Geode/utils/ObjcHook.hpp>
 #include <Geode/utils/string.hpp>
 #include "../../utils/thread.hpp"
+#include <arc/sync/oneshot.hpp>
 
-bool utils::clipboard::write(std::string const& data) {
+// https://stackoverflow.com/questions/25986331/how-to-determine-windows-version-in-future-proof-way
+#pragma comment(lib, "ntdll.lib")
+
+extern "C" {
+	typedef LONG NTSTATUS, *PNTSTATUS;
+	#define STATUS_SUCCESS (0x00000000)
+
+	// Windows 2000 and newer
+	NTSYSAPI NTSTATUS NTAPI RtlGetVersion(PRTL_OSVERSIONINFOEXW lpVersionInformation);
+}
+
+bool utils::clipboard::write(ZStringView data) {
     if (!OpenClipboard(nullptr)) return false;
     if (!EmptyClipboard()) {
         CloseClipboard();
@@ -92,12 +105,12 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
             if (!std::filesystem::is_directory(dir, whatever)) {
                 dir = dir.parent_path();
             }
-            if (auto id = ILCreateFromPathW(dir.wstring().c_str())) {
+            if (auto id = ILCreateFromPathW(dir.c_str())) {
                 std::filesystem::path selectPath = path / ".";
                 if (!std::filesystem::is_directory(path, whatever)) {
                     selectPath = path;
                 }
-                auto selectEntry = ILCreateFromPathW(selectPath.wstring().c_str());
+                auto selectEntry = ILCreateFromPathW(selectPath.c_str());
                 if (SHOpenFolderAndSelectItems(id, 1, (PCUITEMID_CHILD_ARRAY)(&selectEntry), 0) == S_OK) {
                     success = true;
                 }
@@ -110,8 +123,43 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     return success;
 }
 
-Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions const& options) {
-    using RetTask = Task<Result<std::filesystem::path>>;
+// If successful, the bool represents whether a file was picked (true) or dialog was cancelled (false)
+static arc::Future<Result<bool>> asyncNfdPick(
+    NFDMode mode,
+    file::FilePickOptions const& options,
+    void* result
+) {
+    auto [tx, rx] = arc::oneshot::channel<Result<>>();
+
+    auto hwnd = *co_await async::waitForMainThread<HWND>([] {
+        return WindowFromDC(wglGetCurrentDC());
+    });
+
+    auto thread = std::thread([&, tx = std::move(tx)] mutable {
+        auto pickresult = nfdPick(mode, options, result, hwnd);
+        (void) tx.send(pickresult);
+    });
+
+    // wait for the result, and join the thread
+    auto recvresult = co_await rx.recv();
+    if (thread.joinable()) thread.join();
+
+    if (!recvresult) {
+        co_return Err("Error occurred while picking file");
+    }
+
+    auto res = std::move(recvresult).unwrap();
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        if (err == "Dialog cancelled") {
+            co_return Ok(false);
+        }
+        co_return Err(std::move(err));
+    }
+    co_return Ok(true);
+}
+
+arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options) {
     #define TURN_INTO_NFDMODE(mode) \
         case file::PickMode::mode: nfdMode = NFDMode::mode; break;
 
@@ -121,34 +169,29 @@ Task<Result<std::filesystem::path>> file::pick(PickMode mode, FilePickOptions co
         TURN_INTO_NFDMODE(SaveFile);
         TURN_INTO_NFDMODE(OpenFolder);
         default:
-            return RetTask::immediate(Err<std::string>("Invalid pick mode"));
+            co_return Err("Invalid pick mode");
     }
+
     std::filesystem::path path;
-    auto pickresult = nfdPick(nfdMode, options, &path);
-    if (pickresult.isErr()) {
-        if (pickresult.unwrapErr() == "Dialog cancelled") {
-            return RetTask::cancelled();
-        }
-        return RetTask::immediate(Err(pickresult.unwrapErr()));
-    } else {
-        return RetTask::immediate(Ok(path));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, options, &path));
+    if (!picked) {
+        co_return Ok(std::nullopt);
     }
+
+    co_return Ok(std::move(path));
 }
 
-Task<Result<std::vector<std::filesystem::path>>> file::pickMany(FilePickOptions const& options) {
-    using RetTask = Task<Result<std::vector<std::filesystem::path>>>;
-
+arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
     std::vector<std::filesystem::path> paths;
-    auto pickResult = nfdPick(NFDMode::OpenFiles, options, &paths);
-    if (pickResult.isErr()) {
-        return RetTask::immediate(Err(pickResult.err().value()));
-    } else {
-        return RetTask::immediate(Ok(paths));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
+    if (!picked) {
+        co_return Ok(std::vector<std::filesystem::path>{});
     }
-    // return Task<Result<std::vector<std::filesystem::path>>>::immediate(std::move(file::pickFiles(options)));
+
+    co_return Ok(std::move(paths));
 }
 
-void utils::web::openLinkInBrowser(std::string const& url) {
+void utils::web::openLinkUnsafe(ZStringView url) {
     ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 
@@ -169,7 +212,7 @@ std::filesystem::path dirs::getGameDir() {
         GetModuleFileNameW(NULL, buffer.data(), MAX_PATH);
 
         const std::filesystem::path path(buffer.data());
-        return std::filesystem::weakly_canonical(path.parent_path().wstring()).wstring();
+        return std::filesystem::weakly_canonical(path.parent_path()).wstring();
     }();
 
     return path;
@@ -190,12 +233,12 @@ std::filesystem::path dirs::getSaveDir() {
             auto appdataPath = std::filesystem::path(buffer.data());
             auto savePath = appdataPath / executableName;
 
-            if (SHCreateDirectoryExW(NULL, savePath.wstring().c_str(), NULL) >= 0) {
-                return std::filesystem::weakly_canonical(savePath.wstring()).wstring();
+            if (SHCreateDirectoryExW(NULL, savePath.c_str(), NULL) >= 0) {
+                return std::filesystem::weakly_canonical(savePath).wstring();
             }
         }
 
-        return std::filesystem::weakly_canonical(executablePath.parent_path().wstring()).wstring();
+        return std::filesystem::weakly_canonical(executablePath.parent_path()).wstring();
     }();
 
     return path;
@@ -226,14 +269,15 @@ void geode::utils::game::exit(bool saveData) {
         }
     }
 
+    GameEvent(GameEventType::Exiting).send();
     std::exit(0);
 }
 
-void geode::utils::game::exit() {
-    exit(true);
+void geode::utils::game::restart(bool saveData) {
+    restart(saveData, false);
 }
 
-void geode::utils::game::restart(bool saveData) {
+void geode::utils::game::restart(bool saveData, bool safeMode) {
     // TODO: mat
     // TODO: be VERY careful before enabling this again, this function is called in platform/windows/main.cpp,
     // before we even check if we are in forward compatibility mode or not.
@@ -249,17 +293,16 @@ void geode::utils::game::restart(bool saveData) {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    auto const gdName = L"\"" + std::filesystem::path(buffer).filename().wstring() + L"\"";
+    auto gdName = L"\"" + std::filesystem::path(buffer).filename().native();
+    if (safeMode) {
+        gdName += L"\" --geode:safe-mode";
+    }
 
     // launch updater
-    auto const updaterPath = (workingDir / "GeodeUpdater.exe").wstring();
-    ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.wstring().c_str(), false);
+    auto const updaterPath = workingDir / "GeodeUpdater.exe";
+    ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.c_str(), false);
 
     exit(saveData);
-}
-
-void geode::utils::game::restart() {
-    restart(true);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
@@ -272,18 +315,20 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
 
     std::wstring params;
     if (deleteSaveData) {
-        params = L"\"/DATA=" + dirs::getSaveDir().wstring() + L"\"";
+        params.append(L"\"/DATA=");
+        params.append(dirs::getSaveDir().native());
+        params.push_back(L'\"');
     }
 
     // launch uninstaller
     auto const uninstallerPath = workingDir / "GeodeUninstaller.exe";
-    ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.wstring().c_str(), false);
+    ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.c_str(), false);
 }
 
-Result<> geode::hook::addObjcMethod(std::string const& className, std::string const& selectorName, void* imp) {
+Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {
     return Err("Wrong platform");
 }
-Result<void*> geode::hook::getObjcMethodImp(std::string const& className, std::string const& selectorName) {
+Result<void*> geode::hook::getObjcMethodImp(char const* className, char const* selectorName) {
     return Err("Wrong platform");
 }
 
@@ -291,14 +336,14 @@ bool geode::utils::permission::getPermissionStatus(Permission permission) {
     return true; // unimplemented
 }
 
-void geode::utils::permission::requestPermission(Permission permission, std::function<void(bool)> callback) {
+void geode::utils::permission::requestPermission(Permission permission, geode::Function<void(bool)> callback) {
     callback(true); // unimplemented
 }
 
 // [Set|Get]ThreadDescription are pretty new, so the user's system might not have them
 // or they might only be accessible dynamically (see msdocs link below for more info)
-auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
-auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
+static auto setThreadDesc = reinterpret_cast<decltype(&SetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription"));
+static auto getThreadDesc = reinterpret_cast<decltype(&GetThreadDescription)>(GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
 
 static std::optional<std::string> getNameFromOs() {
     if (!getThreadDesc) {
@@ -312,7 +357,7 @@ static std::optional<std::string> getNameFromOs() {
 
     std::string name = utils::string::wideToUtf8(wname);
     LocalFree(wname);
-    
+
     return name;
 }
 
@@ -335,7 +380,7 @@ typedef struct tagTHREADNAME_INFO {
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void obliterate(std::string const& name) {
+void obliterate(ZStringView name) {
     // exception
     THREADNAME_INFO info;
     info.dwType = 0x1000;
@@ -350,7 +395,7 @@ void obliterate(std::string const& name) {
     __except (EXCEPTION_EXECUTE_HANDLER) { }
 #pragma warning(pop)
 }
-void geode::utils::thread::platformSetName(std::string const& name) {
+void geode::utils::thread::platformSetName(ZStringView name) {
     // SetThreadDescription
     if (setThreadDesc) {
         auto res = setThreadDesc(GetCurrentThread(), string::utf8ToWide(name).c_str());
@@ -360,10 +405,10 @@ void geode::utils::thread::platformSetName(std::string const& name) {
     obliterate(name);
 }
 
-std::string geode::utils::getEnvironmentVariable(const char* name) {
+std::string geode::utils::getEnvironmentVariable(ZStringView name) {
     char buffer[1024];
     size_t count = 0;
-    if (0 == getenv_s(&count, buffer, name) && count != 0) {
+    if (0 == getenv_s(&count, buffer, name.c_str()) && count != 0) {
         return buffer;
     }
 
@@ -395,4 +440,80 @@ std::string geode::utils::formatSystemError(int code) {
 cocos2d::CCRect geode::utils::getSafeAreaRect() {
     auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
     return cocos2d::CCRect(0.0f, 0.0f, winSize.width, winSize.height);
+}
+
+double geode::utils::getInputTimestamp() {
+    static LARGE_INTEGER freq = []{
+        LARGE_INTEGER f;
+        QueryPerformanceFrequency(&f);
+        return f;
+    }();
+
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    return static_cast<double>(counter.QuadPart) / static_cast<double>(freq.QuadPart);
+}
+
+bool geode::utils::platform::isWine() {
+    auto details = getDetails();
+    return details.wineVersion.has_value();
+}
+
+// https://stackoverflow.com/questions/25986331/how-to-determine-windows-version-in-future-proof-way
+// https://www.winehq.org/pipermail/wine-devel/2008-September/069387.html
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    RTL_OSVERSIONINFOEXW versionInfo;
+    versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
+    NTSTATUS status = RtlGetVersion(&versionInfo);
+    if (status == STATUS_SUCCESS) {
+        details.majorVersion = versionInfo.dwMajorVersion;
+        details.minorVersion = versionInfo.dwMinorVersion;
+        details.buildNumber = versionInfo.dwBuildNumber;
+    }
+    else {
+        log::error("Failed to get Windows version: {}", status);
+        details.majorVersion = 0;
+        details.minorVersion = 0;
+        details.buildNumber = 0;
+    }
+
+    SYSTEM_INFO si;
+	GetSystemInfo(&si);
+    details.arch = si.wProcessorArchitecture;
+
+    if(HMODULE hntdll = GetModuleHandle("ntdll.dll")) {
+        using WineVersionFunc = char const* (CDECL *)(void);
+        static WineVersionFunc getWineVersion = reinterpret_cast<WineVersionFunc>(GetProcAddress(hntdll, "wine_get_version"));
+        if (getWineVersion) {
+            details.wineVersion = getWineVersion();
+        }
+    }
+
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    std::string archStr;
+    switch (details.arch) {
+        case PROCESSOR_ARCHITECTURE_AMD64:
+            archStr = "x64";
+            break;
+        case PROCESSOR_ARCHITECTURE_ARM64:
+            archStr = "ARM64";
+            break;
+        case PROCESSOR_ARCHITECTURE_INTEL:
+            archStr = "x86";
+            break;
+        default:
+            archStr = "Unknown Architecture";
+    }
+
+    std::string versionStr = fmt::format("Windows {} {}.{}.{}", archStr, details.majorVersion, details.minorVersion, details.buildNumber);
+    if (details.wineVersion.has_value()) {
+        versionStr += fmt::format(" (Wine {})", *details.wineVersion);
+    }
+    return versionStr;
 }

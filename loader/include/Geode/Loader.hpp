@@ -6,7 +6,6 @@
 #include "loader/Mod.hpp"
 #include "loader/GameEvent.hpp"
 #include "loader/ModEvent.hpp"
-#include "loader/EventV2.hpp"
 #include "loader/Setting.hpp"
 #include "loader/Dirs.hpp"
 

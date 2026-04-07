@@ -457,6 +457,15 @@ FunctionEnd
 
 SectionGroup "Geode"
     Section "Loader" LOADER_SECTION
+        check_gd_open:
+            nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq GeometryDash.exe" | find /I "GeometryDash.exe"'
+            Pop $0
+            Pop $1
+            StrCmp $0 "0" 0 continue_install
+                MessageBox MB_ABORTRETRYIGNORE|MB_ICONEXCLAMATION $(GEODE_TEXT_GD_RUNNING) IDRETRY check_gd_open IDIGNORE continue_install
+                Quit
+        continue_install:
+
         SetOutPath $INSTDIR
 
         File ${BINDIR}\Geode.dll
@@ -492,7 +501,13 @@ SectionGroupEnd
 Section "Visual Studio Runtime"
     SetOutPath $INSTDIR
     File VC_redist.x64.exe
+    DetailPrint "Installing Visual Studio Runtime..."
+    FindWindow $0 "#32770" "" $HWNDPARENT
+    GetDlgItem $1 $0 1006
+    SendMessage $1 ${WM_SETTEXT} 0 "STR:$(GEODE_TEXT_INSTALLING_VCREDIST)"
+    SetDetailsPrint none
     ExecWait "$INSTDIR\VC_redist.x64.exe /install /quiet /norestart"
+    SetDetailsPrint both
     Delete "$INSTDIR\VC_redist.x64.exe"
 SectionEnd
 

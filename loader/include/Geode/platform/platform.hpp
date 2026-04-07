@@ -11,6 +11,22 @@
     #define GEODE_PRETTY_FUNCTION std::string(__PRETTY_FUNCTION__)
 #endif
 
+#define GEODE_WRAPPER_STR(...) #__VA_ARGS__
+#define GEODE_STR(...) GEODE_WRAPPER_STR(__VA_ARGS__)
+
+#if defined (_MSC_VER) && !defined(__clang__)
+    #define GEODE_CXX_STANDARD _MSVC_LANG
+#else
+    #define GEODE_CXX_STANDARD __cplusplus
+#endif
+
+static_assert(
+    GEODE_CXX_STANDARD >= 202302L,
+    "\n\nError: Geode requires C++23 support to build! (" GEODE_STR(GEODE_CXX_STANDARD) " < 202302L)\n"
+    "Please modify your CMakeLists.txt and change CMAKE_CXX_STANDARD from 20 to 23.\n"
+    "If you're using an outdated compiler that doesn't support C++23, please update it.\n\n"
+);
+
 // Windows
 #ifdef GEODE_IS_WINDOWS
 
@@ -27,6 +43,7 @@
 
     #define GEODE_API extern "C" __declspec(dllexport)
     #define GEODE_EXPORT __declspec(dllexport)
+    #define GEODE_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 
     #if defined(GEODE_IS_WINDOWS64)
         #define GEODE_IS_X64
@@ -53,6 +70,7 @@
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
+    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 
     #define GEODE_IS_X64
     #define GEODE_CDECL_CALL
@@ -74,6 +92,7 @@
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
+    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 
     #define GEODE_IS_X64
     #define GEODE_CDECL_CALL
@@ -95,6 +114,7 @@
 
     #define GEODE_API extern "C" __attribute__((visibility("default")))
     #define GEODE_EXPORT __attribute__((visibility("default")))
+    #define GEODE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 
     #if defined(GEODE_IS_ANDROID64)
         #define GEODE_IS_X64
@@ -131,6 +151,7 @@ namespace geode {
             ArmV8      = Android64 | MacArm | iOS,
             Desktop    = Windows | Mac,
             Mobile     = Android | iOS,
+            All        = Desktop | Mobile,
         };
 
         using Type = decltype(Unknown);
@@ -170,52 +191,18 @@ namespace geode {
          * Parse string into PlatformID. String should be all-lowercase, for
          * example "windows" or "linux"
          */
-        static GEODE_DLL PlatformID from(const char* str);
-        static GEODE_DLL PlatformID from(std::string const& str);
+        static GEODE_DLL PlatformID from(std::string_view str);
 
         /**
          * Determines if a given platform string "covers" the given platform.
          * For example, "android" is covered by Platform::Android32 and Platform::Android64.
          * Input string must follow the format in PlatformID::toShortString.
          */
-        static GEODE_DLL bool coveredBy(const char* str, PlatformID t);
-        static GEODE_DLL bool coveredBy(std::string const& str, PlatformID t);
-        /**
-         * Returns the list of platforms covered by this string name. For
-         * example, "android" would return both Android32 and Android64
-         * todo in v5: deprecate this as the flagged version deals with this
-         */
-        static GEODE_DLL std::vector<PlatformID> getCovered(std::string_view str);
+        static GEODE_DLL bool coveredBy(std::string_view str, PlatformID t);
 
-        // todo in v5: this does not need to be constexpr in the header. dllexport it
-        static constexpr char const* toString(Type lp) {
-            switch (lp) {
-                case Unknown: return "Unknown";
-                case Windows: return "Windows";
-                case MacIntel: return "MacIntel";
-                case MacArm: return "MacArm";
-                case iOS: return "iOS";
-                case Android32: return "Android32";
-                case Android64: return "Android64";
-                default: break;
-            }
-            return "Undefined";
-        }
+        static GEODE_DLL std::string_view toString(Type lp);
 
-        // todo in v5: this does not need to be constexpr in the header. dllexport it
-        static constexpr char const* toShortString(Type lp, bool ignoreArch = false) {
-            switch (lp) {
-                case Unknown: return "unknown";
-                case Windows: return "win";
-                case MacIntel: return ignoreArch ? "mac" : "mac-intel";
-                case MacArm: return ignoreArch ? "mac" : "mac-arm";
-                case iOS: return "ios";
-                case Android32: return ignoreArch ? "android" : "android32";
-                case Android64: return ignoreArch ? "android" : "android64";
-                default: break;
-            }
-            return "undefined";
-        }
+        static GEODE_DLL std::string_view toShortString(Type lp, bool ignoreArch = false);
 
         template <class T>
             requires requires(T t) {

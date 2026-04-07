@@ -5,9 +5,9 @@
 
 using namespace geode::prelude;
 
-class ModtoberPopup : public GeodePopup<> {
+class ModtoberPopup : public GeodePopup {
 protected:
-    bool setup() override;
+    bool init() override;
 
     void onDiscord(CCObject*);
 

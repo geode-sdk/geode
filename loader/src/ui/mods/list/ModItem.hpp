@@ -6,17 +6,14 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <server/DownloadManager.hpp>
 #include "../sources/ModSource.hpp"
 #include "../UpdateModListState.hpp"
+#include "ModListItem.hpp"
 
 using namespace geode::prelude;
-
-enum class ModListDisplay {
-    SmallList,
-    BigList,
-    Grid,
-};
 
 // i made it this way just in case someone wanted to add to the enum in the future
 // mat is allowed to judge
@@ -51,10 +48,9 @@ struct matjson::Serialize<ModListDisplay> {
     }
 };
 
-class ModItem : public CCNode {
+class ModItem : public ModListItem {
 protected:
     ModSource m_source;
-    CCScale9Sprite* m_bg;
     CCNode* m_logo;
     CCNode* m_infoContainer;
     CCNode* m_titleContainer;
@@ -62,25 +58,25 @@ protected:
     CCLabelBMFont* m_versionLabel;
     CCNode* m_developers;
     CCNode* m_recommendedBy;
-    CCScale9Sprite* m_description;
+    NineSlice* m_description;
     CCLabelBMFont* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
     ButtonSprite* m_outdatedLabel;
+    ButtonSprite* m_deprecatedLabel;
     CCNode* m_downloadWaiting;
     CCNode* m_downloadBarContainer;
     Slider* m_downloadBar;
-    CCMenu* m_viewMenu;
     CCMenuItemToggler* m_enableToggle = nullptr;
+    CCMenuItemToggler* m_pinToggle = nullptr;
     CCMenuItemSpriteExtra* m_updateBtn = nullptr;
-    EventListener<UpdateModListStateFilter> m_updateStateListener;
-    EventListener<server::ServerRequest<std::optional<server::ServerModUpdate>>> m_checkUpdateListener;
-    EventListener<server::ModDownloadFilter> m_downloadListener;
-    std::optional<server::ServerModUpdate> m_availableUpdate;
-    EventListener<EventFilter<SettingNodeValueChangeEvent>> m_settingNodeListener;
+    ListenerHandle m_updateStateHandle;
+    async::TaskHolder<server::ServerResult<server::ServerModUpdateOneCheck>> m_checkUpdateListener;
+    ListenerHandle m_downloadHandle;
+    server::ServerModUpdateOneCheck m_availableUpdate;
+    ListenerHandle m_settingNodeHandle;
     Ref<CCNode> m_badgeContainer = nullptr;
     Ref<CCNode> m_downloadCountContainer;
-    ModListDisplay m_display = ModListDisplay::SmallList;
-    float m_targetWidth = 300;
+    Ref<CCNode> m_updatedAtContainer;
     CCLabelBMFont* m_versionDownloadSeparator;
 
     /**
@@ -91,8 +87,9 @@ protected:
 
     void updateState();
 
-    void onCheckUpdates(typename server::ServerRequest<std::optional<server::ServerModUpdate>>::Event* event);
+    void onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result);
 
+    void onPin(CCObject*);
     void onEnable(CCObject*);
     void onView(CCObject*);
     void onViewError(CCObject*);
@@ -102,7 +99,24 @@ protected:
 public:
     static ModItem* create(ModSource&& source);
 
-    void updateDisplay(float width, ModListDisplay display);
-
     ModSource& getSource() &;
+};
+
+/**
+ * Standalone ModItem that you give a Mod ID to and it'll either show the mod 
+ * if it's installed or fetch from server if it is not
+ */
+class AnyModItem : public ModListItem {
+protected:
+    ModItem* m_item = nullptr;
+    LoadingSpinner* m_loading;
+    async::TaskHolder<server::ServerResult<server::ServerModMetadata>> m_listener;
+
+    bool init(ZStringView modID);
+    void gotSrc(ModSource&& src);
+
+public:
+    static AnyModItem* create(ZStringView modID);
+
+    void updateDisplay(float width, ModListDisplay display) override;
 };

@@ -22,6 +22,8 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+#include <arc/future/Future.hpp>
+#include "Signal.hpp"
 
 namespace geode {
     template <class T>
@@ -29,8 +31,8 @@ namespace geode {
         Mod* m_mod;
         std::string m_key;
 
-        HandleToSaved(std::string const& key, Mod* mod, T const& value) :
-            T(value), m_key(key), m_mod(mod) {}
+        HandleToSaved(std::string key, Mod* mod, T value) :
+            T(std::move(value)), m_key(std::move(key)), m_mod(mod) {}
 
         HandleToSaved(HandleToSaved const&) = delete;
         HandleToSaved(HandleToSaved&&) = delete;
@@ -79,6 +81,7 @@ namespace geode {
 
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
+        void settingReact(geode::Function<void()> fn);
     public:
         // no copying
         Mod(Mod const&) = delete;
@@ -89,21 +92,25 @@ namespace geode {
         Mod(ModMetadata const& metadata);
         ~Mod();
 
-        std::string getID() const;
-        std::string getName() const;
+        ZStringView getID() const;
+        ZStringView getName() const;
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
         std::filesystem::path getPackagePath() const;
         VersionInfo getVersion() const;
-        bool isEnabled() const;
+        bool isLoaded() const;
+        /**
+         * Whether the mod is currently enabled, or marked as to be enabled 
+         * after a restart. Useful for UI
+         * @note This does not communicate whether the mod is actually 
+         * *loaded* – for that, use `Mod::isLoaded`
+         */
         bool isOrWillBeEnabled() const;
         bool isInternal() const;
         bool needsEarlyLoad() const;
 
-        [[deprecated("Use Mod::getMetadataRef which is better for efficiency")]]
-        ModMetadata getMetadata() const; // TODO: remove in v5
-        ModMetadata const& getMetadataRef() const;
+        ModMetadata const& getMetadata() const;
 
         std::filesystem::path getTempDir() const;
         /**
@@ -130,9 +137,10 @@ namespace geode {
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
         std::vector<Mod*> getDependants() const;
+        std::vector<Mod*> getEnabledDependants() const;
 #endif
 
-        using CheckUpdatesTask = Task<Result<std::optional<VersionInfo>, std::string>>;
+        using CheckUpdatesTask = arc::Future<Result<std::optional<VersionInfo>>>;
         /**
          * Check if this Mod has updates available on the mods index. If
          * you're using this for automatic update checking, use
@@ -246,9 +254,21 @@ namespace geode {
         T getSettingValue(std::string_view key) const {
             using S = typename SettingTypeForValueType<T>::SettingType;
             if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
-                return sett->getValue();
+                return T(sett->getValue());
             }
             return T();
+        }
+
+        template <class T>
+        comm::Signal<T> makeSettingSignal(std::string_view key) {
+            comm::Signal<T> sig = getSettingValue<T>(key);
+            settingReact([=, this] { setSettingValue<T>(key, *sig); });
+
+            listenForSettingChanges(key, [=](T value) mutable {
+                *sig = value;
+            }, this);
+
+            return sig;
         }
 
         template <class T>
@@ -331,21 +351,21 @@ namespace geode {
          */
         template<class DetourType>
         Result<Hook*> hook(
-            void* address, DetourType detour, std::string const& displayName = "",
+            void* address, DetourType detour, std::string displayName = "",
             tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
-            tulip::hook::HookMetadata const& hookMetadata = tulip::hook::HookMetadata()
+            tulip::hook::HookMetadata hookMetadata = tulip::hook::HookMetadata()
         ) {
-            auto hook = Hook::create(address, detour, displayName, convention, hookMetadata);
+            auto hook = Hook::create(address, detour, std::move(displayName), convention, std::move(hookMetadata));
             GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
             return Ok(ptr);
         }
 
         Result<Hook*> hook(
-            void* address, void* detour, std::string const& displayName,
-            tulip::hook::HandlerMetadata const& handlerMetadata,
-            tulip::hook::HookMetadata const& hookMetadata
+            void* address, void* detour, std::string displayName,
+            tulip::hook::HandlerMetadata handlerMetadata,
+            tulip::hook::HookMetadata hookMetadata
         ) {
-            auto hook = Hook::create(address, detour, displayName, handlerMetadata, hookMetadata);
+            auto hook = Hook::create(address, detour, std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata));
             GEODE_UNWRAP_INTO(auto ptr, this->claimHook(std::move(hook)));
             return Ok(ptr);
         }
@@ -379,10 +399,14 @@ namespace geode {
          * @returns Successful result on success,
          * errorful result with info on error
          */
-        Result<Patch*> patch(void* address, ByteVector const& data) {
+        Result<Patch*> patch(void* address, ByteSpan data) {
             auto patch = Patch::create(address, data);
             GEODE_UNWRAP_INTO(auto ptr, this->claimPatch(std::move(patch)));
             return Ok(ptr);
+        }
+
+        Result<Patch*> patch(void* address, ByteVector data) {
+            return this->patch(address, ByteSpan(data));
         }
 
         /**
@@ -454,7 +478,7 @@ namespace geode {
          */
         bool hasUnresolvedIncompatibilities() const;
 
-        std::string_view expandSpriteName(std::string_view name);
+        std::string expandSpriteName(std::string_view name);
 
         /**
          * Get info about the mod as JSON
@@ -488,14 +512,8 @@ namespace geode {
          * mod is made for the correct version of the game and Geode
          */
         std::optional<LoadProblem> targetsOutdatedVersion() const;
-        /**
-         * @note Make sure to also call `targetsOutdatedVersion` if you want to
-         * make sure the mod is actually loadable
-         */
-        bool hasLoadProblems() const;
-        std::vector<LoadProblem> getAllProblems() const;
-        std::vector<LoadProblem> getProblems() const;
-        std::vector<LoadProblem> getRecommendations() const;
+        std::optional<LoadProblem> failedToLoad() const;
+        std::optional<LoadProblem> getLoadProblem() const;
         bool shouldLoad() const;
         bool isCurrentlyLoading() const;
 
@@ -503,6 +521,12 @@ namespace geode {
          * Get the load priority of this mod.
          */
         int getLoadPriority() const;
+
+        /**
+         * Get if the user has the mod pinned.
+         */
+        bool isPinned() const;
+        void setPinned(bool pinned);
 
         friend class ModImpl;
     };
@@ -536,8 +560,14 @@ constexpr auto operator""_spr() {
 
 #else
 
-GEODE_HIDDEN inline char const* operator"" _spr(char const* str, size_t len) {
-    return geode::Mod::get()->expandSpriteName({ str, len }).data();
+// can't really work without the mod id macro
+// GEODE_HIDDEN inline char const* operator""_spr(char const* str, size_t len) {
+//     return geode::Mod::get()->expandSpriteName({ str, len }).data();
+// }
+
+GEODE_HIDDEN inline char const* operator""_spr(char const* str, size_t len) {
+    geode::log::error("GEODE_MOD_ID not defined, _spr cannot be used");
+    return nullptr;
 }
 
 #endif

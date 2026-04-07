@@ -13,7 +13,9 @@ if (GEODE_BUILDING_DOCS)
 	set(GEODE_DONT_BUILD_TEST_MODS ON)
 endif()
 
-option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
+option(GEODE_UNITY_BUILD "Enables unity builds" OFF)
+option(GEODE_SET_TARGET_AS_SYSTEM "Sets the target include directories for Geode as SYSTEM, silencing Geode related warning on mod build." OFF)
+option(GEODE_NO_PUGIXML_HEADER "Makes the pugixml.hpp and DS_Dictionary.h headers in Geode blank" OFF)
 
 # Check if git is installed, raise a fatal error if not
 find_program(GIT_EXECUTABLE git)
@@ -198,15 +200,15 @@ include(cmake/GeodeFile.cmake)
 # so please update them when you set the game version
 
 # begin GEODE_GD_VERSION
-# win:     2.2074
-# mac:     2.2074
-# ios:     2.2074
-# android: 2.2074
+# win:     2.2081
+# mac:     2.2081
+# ios:     2.2081
+# android: 2.2081
 # end GEODE_GD_VERSION
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.2074)
-	set(GEODE_COMP_GD_VERSION 22074)
+	set(GEODE_GD_VERSION 2.2081 CACHE INTERNAL "Geode GD Version")
+	set(GEODE_COMP_GD_VERSION 22081 CACHE INTERNAL "Geode Comparable GD Version")
 endif()
 
 target_compile_definitions(
@@ -238,6 +240,10 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	target_compile_options(${PROJECT_NAME} INTERFACE -Werror=return-type)
 endif()
 
+if (GEODE_NO_PUGIXML_HEADER)
+	target_compile_definitions(${PROJECT_NAME} INTERFACE GEODE_NO_PUGIXML_HEADER=1)
+endif()
+
 # if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 # 	set_property(TARGET ${PROJECT_NAME} PROPERTY LINKER_TYPE LLD)
 # 	target_link_options(${PROJECT_NAME} INTERFACE -fuse-ld=lld)
@@ -252,9 +258,33 @@ if (ANDROID)
 endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/result@1.3.3")
-CPMAddPackage("gh:geode-sdk/json@3.2.2")
-CPMAddPackage("gh:fmtlib/fmt#11.1.4")
+CPMAddPackage("gh:geode-sdk/result@1.4.1")
+CPMAddPackage("gh:geode-sdk/json@3.3.0")
+CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
+CPMAddPackage("gh:fmtlib/fmt#12.1.0")
+
+# allow overriding asp / arc versions
+if (NOT DEFINED GEODE_ARC_VERSION)
+	set(GEODE_ARC_VERSION "@1.5.5" CACHE STRING "")
+endif()
+if (NOT DEFINED GEODE_ASP_VERSION)
+	set(GEODE_ASP_VERSION "#51d3773" CACHE STRING "")
+endif()
+
+CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")
+# enable all arc features in geode, but let mods do it granularly
+if (NOT PROJECT_IS_TOP_LEVEL AND NOT DEFINED ARC_FEATURE_FULL)
+	set(ARC_FEATURE_FULL OFF CACHE BOOL "" FORCE)
+endif()
+CPMAddPackage("gh:dankmeme01/arc${GEODE_ARC_VERSION}")
+
+# use unity for both arc and its dependencies,
+# they're fairly small libs so it helps a lot with compile times
+set_target_properties(asp PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+set_target_properties(arc PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+if (TARGET qsox)
+	set_target_properties(qsox PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 64)
+endif()
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 
@@ -263,6 +293,17 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 if (GEODE_DISABLE_FMT_CONSTEVAL)
 	message(VERBOSE "Disabling FMT_CONSTEVAL")
 	target_compile_definitions(fmt PUBLIC -DFMT_CONSTEVAL=)
+endif()
+
+# throw an error if the compiler is too old, for async we require Clang 19 and MSVC 19.44+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0")
+		message(FATAL_ERROR "Clang version is too old, 19.0 or higher required. Please update your LLVM installation.")
+	endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.44")
+		message(FATAL_ERROR "MSVC version is too old, 19.44 or higher required. Please update your Visual Studio installation or install Visual Studio 2026.")
+	endif()
 endif()
 
 # Tulip hook (hooking)
@@ -283,7 +324,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.7")
+	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.11")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
@@ -306,16 +347,28 @@ if (NOT GEODE_DISABLE_PRECOMPILED_HEADERS)
 	)
 endif()
 
-target_include_directories(GeodeBindings PUBLIC
-	${GEODE_LOADER_PATH}/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/include
-	${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
-	${GEODE_LOADER_PATH}/include/Geode/fmod
-)
+if (GEODE_SET_TARGET_AS_SYSTEM)
+	target_include_directories(GeodeBindings SYSTEM PUBLIC
+		${GEODE_LOADER_PATH}/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
+		${GEODE_LOADER_PATH}/include/Geode/fmod
+	)
+else()
+	target_include_directories(GeodeBindings PUBLIC
+		${GEODE_LOADER_PATH}/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/include
+		${GEODE_LOADER_PATH}/include/Geode/cocos/extensions
+		${GEODE_LOADER_PATH}/include/Geode/fmod
+	)
+endif()
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_compile_definitions(GeodeBindings PUBLIC GEODE_USE_NEW_DESTRUCTOR_LOCK=1)
-target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json GeodeResult)
-target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
+target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json std23::nontype_functional GeodeResult asp arc)
+if (TARGET debase-rt)
+  debase_depends(${PROJECT_NAME} GeodeBindings)
+else()
+  target_link_libraries(${PROJECT_NAME} INTERFACE GeodeBindings)
+endif()
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
 	file(MAKE_DIRECTORY ${GEODE_BIN_PATH})

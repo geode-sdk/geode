@@ -3,6 +3,7 @@
 #include "../load.hpp"
 #include <Windows.h>
 
+#include <Geode/utils/general.hpp>
 #include "loader/LoaderImpl.hpp"
 #include "loader/console.hpp"
 
@@ -147,7 +148,24 @@ void fixCurrentWorkingDirectory() {
     auto size = GetModuleFileNameW(nullptr, cwd.data(), cwd.size());
     if (size == cwd.size()) return;
 
-    SetCurrentDirectoryW(std::filesystem::path(cwd.data()).parent_path().wstring().c_str());
+    SetCurrentDirectoryW(std::filesystem::path(cwd.data()).parent_path().c_str());
+}
+
+bool cleanModeCheck() {
+    if (
+        (GetAsyncKeyState(VK_MENU) & (1 << 15)) &&
+        (GetAsyncKeyState(VK_SHIFT) & (1 << 15))
+    ) {
+        auto choice = MessageBoxW(
+            NULL,
+            L"(This has been triggered because you were holding ALT+SHIFT)\n"
+            L"Do you want to open Geometry Dash without Geode?",
+            L"Attention",
+            MB_YESNO | MB_ICONINFORMATION
+        );
+        return choice == IDYES;
+    }
+    return false;
 }
 
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
@@ -157,25 +175,27 @@ int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
     fixCurrentWorkingDirectory();
 
-    if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
-        console::messageBox(
-            "Unable to Load Geode!",
-            fmt::format(
-                "Geometry Dash is outdated!\n"
-                "Geode requires GD {} but you have {}.\n"
-                "Please, update Geometry Dash to {}.",
-                GEODE_STR(GEODE_GD_VERSION),
-                LoaderImpl::get()->getGameVersion(),
-                GEODE_STR(GEODE_GD_VERSION)
-            )
-        );
-        // TODO: should geode FreeLibrary itself here?
-    } else {
-        patchDelayLoad();
+    if (!cleanModeCheck()) {
+        if (versionToTimestamp(GEODE_STR(GEODE_GD_VERSION)) > gdTimestamp) {
+            console::messageBox(
+                "Unable to Load Geode!",
+                fmt::format(
+                    "Geometry Dash is outdated!\n"
+                    "Geode requires GD {} but you have {}.\n"
+                    "Please, update Geometry Dash to {}.",
+                    GEODE_STR(GEODE_GD_VERSION),
+                    LoaderImpl::get()->getGameVersion(),
+                    GEODE_STR(GEODE_GD_VERSION)
+                )
+            );
+            // TODO: should geode FreeLibrary itself here?
+        } else {
+            patchDelayLoad();
 
-        int exitCode = geodeEntry(hInstance);
-        if (exitCode != 0)
-            return exitCode;
+            int exitCode = geodeEntry(hInstance);
+            if (exitCode != 0)
+                return exitCode;
+        }
     }
 
     return reinterpret_cast<decltype(&wWinMain)>(mainTrampolineAddr)(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
@@ -385,4 +405,61 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     }
 
     return TRUE;
+}
+
+// TODO v5: below is a _Throw_Cpp_error reimpl, this is temp for debugging
+
+static constexpr const char* msgs[] = {
+    // error messages
+    "device or resource busy",
+    "invalid argument",
+    "no such process",
+    "not enough memory",
+    "operation not permitted",
+    "resource deadlock would occur",
+    "resource unavailable try again",
+};
+
+using errc = std::errc;
+
+static constexpr errc codes[] = {
+    // system_error codes
+    errc::device_or_resource_busy,
+    errc::invalid_argument,
+    errc::no_such_process,
+    errc::not_enough_memory,
+    errc::operation_not_permitted,
+    errc::resource_deadlock_would_occur,
+    errc::resource_unavailable_try_again,
+};
+
+[[noreturn]] void GEODE_DLL __cdecl throw_cpp_error_hook(int code) {
+    throw std::system_error((int) codes[code], std::generic_category(), msgs[code]);
+}
+
+static void fixThrowCppErrorStub() {
+    auto address = reinterpret_cast<void*>(&std::_Throw_Cpp_error);
+
+    // movabs rax, <hook>
+    std::vector<uint8_t> patchBytes = {
+        0x48, 0xb8
+    };
+
+    for (auto byte : geode::toBytes(&throw_cpp_error_hook)) {
+        patchBytes.push_back(byte);
+    }
+
+    // jmp rax
+    patchBytes.push_back(0xff);
+    patchBytes.push_back(0xe0);
+
+    if (auto res = Mod::get()->patch(address, patchBytes)) {} else {
+        log::warn("_Throw_Cpp_error hook failed: {}", res.unwrapErr());
+    }
+}
+
+$execute {
+    if (geode::utils::platform::isWine()) {
+        fixThrowCppErrorStub();
+    }
 }

@@ -19,35 +19,85 @@ struct MacConsoleData {
 };
 
 bool s_isOpen = false;
+bool s_outputToConsole = false;
 MacConsoleData s_platformData;
 
-void console::messageBox(char const* title, std::string const& info, Severity) {
-    CFStringRef cfTitle = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
-    CFStringRef cfMessage = CFStringCreateWithCString(NULL, info.c_str(), kCFStringEncodingUTF8);
+void console::messageBox(ZStringView title, ZStringView info, Severity) {
+    CFStringRef cfTitle = CFStringCreateWithCString(NULL, title.c_str(), kCFStringEncodingUTF8);
+    CFStringRef cfMessage = CFStringCreateWithBytes(NULL, (unsigned char*)info.data(), info.size(), kCFStringEncodingUTF8, false);
 
     CFUserNotificationDisplayNotice(
         0, kCFUserNotificationNoteAlertLevel, NULL, NULL, NULL, cfTitle, cfMessage, NULL
     );
 }
 
-void console::log(std::string const& msg, Severity severity) {
-    if (s_isOpen) {
-        int colorcode = 0;
+void console::log(ZStringView zmsg, Severity severity) {
+    // this is copied from the windows code
+    if (s_isOpen || s_outputToConsole) {
+        int color = 0;
+        int color2 = -1;
         switch (severity) {
-            case Severity::Debug: colorcode = 36; break;
-            case Severity::Info: colorcode = 34; break;
-            case Severity::Warning: colorcode = 33; break;
-            case Severity::Error: colorcode = 31; break;
-            default: colorcode = 35; break;
+            case Severity::Trace:
+                color = 54;
+                color2 = 254;
+                break;
+            case Severity::Debug:
+                color = 243;
+                color2 = 250;
+                break;
+            case Severity::Info:
+                color = 45;
+                color2 = 254;
+                break;
+            case Severity::Warning:
+                color = 229;
+                color2 = 230;
+                break;
+            case Severity::Error:
+                color = 9;
+                color2 = 224;
+                break;
+            default:
+                color = 7;
+                break;
         }
-        auto newMsg = "\033[1;" + std::to_string(colorcode) + "m" + msg.substr(0, 8) + "\033[0m" + msg.substr(8);
 
-        std::cout << newMsg << "\n" << std::flush;
+        std::string_view sv{zmsg};
+
+        std::string_view colored;
+        std::string_view rest;
+
+        // the string in 'sv' is usually already preformatted as "HH:MM:SS(.mmm) LEVEL [thread] ...",
+        // we want to color the time and log level, so look until the first [
+        size_t bracketStart = sv.find_first_of('[');
+        if (bracketStart != std::string::npos) {
+            bracketStart -= 1; // don't color the space
+
+            colored = sv.substr(0, bracketStart);
+            rest = sv.substr(bracketStart);
+        } else {
+            rest = sv;
+        }
+
+        StringBuffer<> buf;
+        buf.append("\x1b[38;5;{}m{}\x1b[0m{}\n", color, colored, rest);
+
+        std::cout << buf.view() << std::flush;
     }
 }
 
+void console::setup() {
+    // detect if running under a terminal window
+    if (isatty(fileno(stdout))) {
+        s_outputToConsole = true;
+        return;
+    }
 
-void console::setup() { }
+    if (geode::utils::getEnvironmentVariable("GEODE_FORCE_CONSOLE_OUTPUT") == "1") {
+        s_outputToConsole = true;
+    }
+}
+
 void console::openIfClosed() {
     if (s_isOpen) return;
 
@@ -160,7 +210,7 @@ void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
 }
 
 bool gameVersionIsAmbiguous(std::string gameVersion) {
-    return gameVersion == "2.207";
+    return gameVersion == "2.207" || gameVersion == "2.208";
 }
 
 std::array<std::uint8_t, 16> getBinaryUUID() {
@@ -209,6 +259,8 @@ const auto& uuidToVersionMap() {
         {"9C1D62A7-7C2F-3514-AEFB-D1AB7BBD48FF", "2.2072"},
         {"0B1FCFE4-79E8-3246-8ECB-500FDBDCFD9A", "2.2073"},
         {"27044C8B-76BD-303C-A035-5314AF1D9E6E", "2.2074"},
+        {"9E958BAE-B00D-37B1-A75E-6195B0FCAAFD", "2.2080"},
+        {"ABCA9EC8-DDEE-317A-BC32-3F41A842311D", "2.2081"}
 #elif defined(GEODE_IS_INTEL_MAC)
         {"29549F90-F083-35A8-B917-9962262FE112", "2.200"},
         {"AE6DFCCC-153A-32AB-BFD5-6F2478BC41B6", "2.206"},
@@ -216,7 +268,9 @@ const auto& uuidToVersionMap() {
         {"08E24832-EC11-3637-910E-7CB6C0EF8EC0", "2.2071"},
         {"E53731FD-D1B6-33D2-BFA4-3B5D8D55279F", "2.2072"},
         {"1F4AFF98-DB51-382D-9BB2-59C911B88EB2", "2.2073"},
-        {"DB5CADC0-E533-3123-8A63-5A434FE391ED", "2.2074"}
+        {"DB5CADC0-E533-3123-8A63-5A434FE391ED", "2.2074"},
+        {"45A69FE9-4478-3D26-B75D-59D07E9261AF", "2.2080"},
+        {"3FBF9F72-5A83-3918-A82A-37BD3C019D7A", "2.2081"}
 #endif
     };
 

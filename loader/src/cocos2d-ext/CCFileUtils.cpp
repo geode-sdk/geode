@@ -12,31 +12,33 @@ static std::vector<std::string> PATHS;
 #pragma warning(push)
 #pragma warning(disable : 4273)
 
-std::optional<CCTexturePack> getTexturePack(std::string const& id) {
-    return ranges::find(PACKS, [id](CCTexturePack const& pack) {
-        return pack.m_id == id;
-    });
+static std::vector<CCTexturePack>::iterator getTexturePack(std::string_view id) {
+    for (auto it = PACKS.begin(); it != PACKS.end(); ++it) {
+        if (it->m_id == id) {
+            return it;
+        }
+    }
+    return PACKS.end();
 }
 
-void CCFileUtils::addTexturePack(CCTexturePack const& pack) {
+void CCFileUtils::addTexturePack(CCTexturePack pack) {
     // remove pack if it has already been added
-    ranges::remove(PACKS, [pack](CCTexturePack const& other) {
+    ranges::remove(PACKS, [&](CCTexturePack const& other) {
         return pack.m_id == other.m_id;
     });
     // add pack to start
-    PACKS.insert(PACKS.begin(), pack);
+    PACKS.insert(PACKS.begin(), std::move(pack));
     this->updatePaths();
 }
 
-void CCFileUtils::removeTexturePack(std::string const& id) {
-    std::optional<CCTexturePack> pack = getTexturePack(id);
-    if (pack.has_value()) {
-        REMOVED_PACKS.push_back(pack.value());
-        ranges::remove(PACKS, [id](CCTexturePack const& pack) {
-            return pack.m_id == id;
-        });
-        this->updatePaths();
-    }
+void CCFileUtils::removeTexturePack(std::string_view id) {
+    auto pack = getTexturePack(id);
+    if (pack == PACKS.end()) return;
+
+    REMOVED_PACKS.push_back(std::move(*pack));
+    PACKS.erase(pack);
+    
+    this->updatePaths();
 }
 
 void CCFileUtils::addPriorityPath(char const* path) {

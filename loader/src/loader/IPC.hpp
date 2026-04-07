@@ -5,5 +5,5 @@
 
 namespace geode::ipc {
     void setup();
-    matjson::Value processRaw(void* rawHandle, std::string const& buffer);
+    matjson::Value processRaw(void* rawHandle, std::string_view buffer);
 }

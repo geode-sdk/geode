@@ -24,4 +24,13 @@ namespace geode::geode_internal {
         static_assert(!geode_internal::IsModifyClass<After>,
             "typeinfo_cast will not work with a Modify class. use static_cast<MyModifyClass*>(typeinfo_cast<Class*>(...)) instead");
     }
+
+    template<class From, class To>
+    struct CopyConst {
+        using type = std::conditional_t<
+            std::is_const_v<std::remove_pointer_t<From>>,
+            std::add_const_t<std::remove_pointer_t<To>>,
+            std::remove_pointer_t<To>
+        >*;
+    };
 }

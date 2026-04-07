@@ -4,6 +4,9 @@
 #include <cocos2d.h>
 #include <cocos-ext.h>
 
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/NineSlice.hpp>
+
 namespace geode {
     /**
      * Creates the usual blue gradient BG for a layer. You should use this over
@@ -73,29 +76,31 @@ namespace geode {
     );
 
     class GEODE_DLL ListBorders : public cocos2d::CCNode {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     protected:
-        cocos2d::extension::CCScale9Sprite* m_top = nullptr;
-        cocos2d::extension::CCScale9Sprite* m_bottom = nullptr;
-        cocos2d::CCSprite* m_left = nullptr;
-        cocos2d::CCSprite* m_right = nullptr;
-        float m_topPadding = 7.5f;
-        float m_bottomPadding = 7.5f;
-
+        ListBorders();
+        ~ListBorders();
         bool init() override;
-
     public:
         static ListBorders* create();
 
-        void setSpriteFrames(const char* topAndBottom, const char* sides, float horizontalPadding = 7.5f);
+        void setSpriteFrames(char const* topAndBottom, char const* sides, float horizontalPadding = 7.5f);
         void setSprites(
-            cocos2d::extension::CCScale9Sprite* top,
-            cocos2d::extension::CCScale9Sprite* bottom,
+            NineSlice* top,
+            NineSlice* bottom,
             cocos2d::CCSprite* left,
             cocos2d::CCSprite* right,
             float topPadding = 7.5f,
             float bottomPadding = 7.5f
         );
         void setContentSize(cocos2d::CCSize const& size) override;
+        NineSlice* getTop();
+        NineSlice* getBottom();
+        cocos2d::CCSprite* getLeft();
+        cocos2d::CCSprite* getRight();
+        float getTopPadding();
+        float getBottomPadding();
     };
 
     enum class BackButtonStyle {
@@ -124,7 +129,7 @@ namespace geode {
      */
     GEODE_DLL CCMenuItemSpriteExtra* addBackButton(
         cocos2d::CCNode* to,
-        std::function<void(cocos2d::CCMenuItem*)> callback,
+        geode::Function<void(cocos2d::CCMenuItem*)> callback,
         BackButtonStyle style = BackButtonStyle::Green
     );
 }

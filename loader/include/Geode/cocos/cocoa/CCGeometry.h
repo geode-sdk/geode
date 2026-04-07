@@ -510,6 +510,14 @@ public:
 	constexpr float getMin(int idx) {
          return idx == 0 ? getMinX() : getMinY();
     }
+
+    // @note RobTop Addition
+    constexpr void inflateRect(float by) {
+        origin.x -= by;
+        origin.y -= by;
+        size.width += by * 2;
+        size.height += by * 2;
+    }
 };
 
 

@@ -7,7 +7,7 @@
 #pragma warning(disable : 4275)
 
 namespace geode {
-    class GEODE_DLL TabButton : public CCMenuItemToggler {
+    class GEODE_DLL TabButton final : public CCMenuItemToggler {
     public:
         static TabButton* create(
             TabBaseColor unselected, TabBaseColor selected, char const* text,

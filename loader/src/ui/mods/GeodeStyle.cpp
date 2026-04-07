@@ -3,6 +3,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui//NineSlice.hpp>
 
 $on_mod(Loaded) {
     // todo: these names should probably be shorter so they fit in SSO...
@@ -10,10 +11,13 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(112, 235, 41));
     ColorProvider::get()->define("mod-list-version-bg-updates-available"_spr, ccc3(88, 202, 255));
     ColorProvider::get()->define("mod-list-version-label-updates-available"_spr, ccc3(88, 202, 255));
+    ColorProvider::get()->define("mod-list-version-bg-deprecated"_spr, ccc3(255, 135, 88));
     ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245));
     ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163));
     ColorProvider::get()->define("mod-list-outdated-label"_spr, ccc3(245, 153, 245));
     ColorProvider::get()->define("mod-list-outdated-label-bg"_spr, ccc3(156, 123, 163));
+    ColorProvider::get()->define("mod-list-deprecated-label"_spr, ccc3(255, 135, 88));
+    ColorProvider::get()->define("mod-list-deprecated-label-bg"_spr, ccc3(175, 93, 60));
     ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 });
     ColorProvider::get()->define("mod-list-updates-available-bg"_spr, { 139, 89, 173, 255 });
     ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, { 45, 110, 222, 255 });
@@ -32,6 +36,8 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-problems-item-bg"_spr, { 255, 255, 255, 15 });
     ColorProvider::get()->define("mod-developer-item-bg"_spr, { 255, 255, 255, 15 });
     ColorProvider::get()->define("mod-list-paid-color"_spr, { 0, 255, 63, 255 });
+    
+    ColorProvider::get()->define("keybinds-list-category-label"_spr, ccc3(148, 116, 155));
 
     // Only used when GD theme is active
     ColorProvider::get()->define("mods-layer-gd-bg"_spr, { 0, 102, 255, 255 });
@@ -64,6 +70,7 @@ $on_mod(Loaded) {
             ColorProvider::get()->reset("mod-list-restart-required-label-bg"_spr);
             ColorProvider::get()->reset("mod-problems-item-bg"_spr);
             ColorProvider::get()->reset("mod-developer-item-bg"_spr);
+            ColorProvider::get()->reset("keybinds-list-category-label"_spr);
         }
         else {
             ColorProvider::get()->override("mod-list-bg"_spr, { 168, 85, 44, 255 });
@@ -78,11 +85,12 @@ $on_mod(Loaded) {
             ColorProvider::get()->override("mod-list-errors-found-2"_spr, { 235, 35, 112, 255 });
             ColorProvider::get()->override("mod-problems-item-bg"_spr, { 0, 0, 0, 75 });
             ColorProvider::get()->override("mod-developer-item-bg"_spr, { 0, 0, 0, 75 });
+            ColorProvider::get()->override("keybinds-list-category-label"_spr, ccc3(156, 185, 147));
         }
     };
 
     // Update colors when the theme is changed
-    listenForSettingChanges("enable-geode-theme", updateColors);
+    listenForSettingChanges<bool>("enable-geode-theme", updateColors);
 
     Loader::get()->queueInMainThread([updateColors = updateColors] {
         // this code is ran during static init, where settings aren't loaded yet, and getSettingValue will always return false.
@@ -95,9 +103,38 @@ bool isGeodeTheme(bool forceDisableTheme) {
     return !forceDisableTheme && Mod::get()->getSettingValue<bool>("enable-geode-theme");
 }
 
+bool GeodePopup::init(float width, float height, GeodePopupStyle style, bool forceDisableTheme) {
+    m_forceDisableTheme = forceDisableTheme;
+
+    const bool geodeTheme = isGeodeTheme(forceDisableTheme);
+    const char* bg;
+    switch (style) {
+        default:
+        case GeodePopupStyle::Default: bg = geodeTheme ? "GE_square01.png"_spr : "GJ_square01.png"; break;
+        case GeodePopupStyle::Alt:     bg = geodeTheme ? "GE_square02.png"_spr : "GJ_square02.png"; break;
+        case GeodePopupStyle::Alt2:    bg = geodeTheme ? "GE_square03.png"_spr : "GJ_square02.png"; break;
+    }
+
+    if (!Popup::init(width, height, bg))
+        return false;
+
+    this->setCloseButtonSpr(
+        CircleButtonSprite::createWithSpriteFrameName(
+            "close.png"_spr, .85f,
+            (geodeTheme ?
+                (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple : CircleBaseColor::DarkAqua) :
+                CircleBaseColor::Green
+            )
+        )
+    );
+
+    return true;
+}
+
 bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme) {
     if (!CCSprite::initWithFile(isGeodeTheme(forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png"))
-        return false;
+        if (!CCSprite::initWithFile("GJ_button_01.png"))
+            return false;
 
     m_stateSrc = state;
     m_topSprite = top;
@@ -107,7 +144,7 @@ bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme)
     this->addChildAtPosition(top, Anchor::Center);
 
     // Only schedule update if there is a need to do so
-    if (state) {
+    if (state != nullptr) {
         this->scheduleUpdate();
     }
 
@@ -187,13 +224,20 @@ const char* getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableThe
     }
 }
 
-IconButtonSprite* createGeodeButton(CCNode* icon, std::string const& text, GeodeButtonSprite bg, bool forceDisableTheme) {
-    return IconButtonSprite::create(getGeodeButtonSpriteName(bg, forceDisableTheme), icon, text.c_str(), "bigFont.fnt");
+IconButtonSprite* createGeodeButton(CCNode* icon, ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
+    return IconButtonSprite::create(
+        getGeodeButtonSpriteName(bg, forceDisableTheme),
+        icon, text.c_str(),
+        gold ? "goldFont.fnt" : "bigFont.fnt"
+    );
 }
-ButtonSprite* createGeodeButton(std::string const& text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme) {
+IconButtonSprite* createGeodeButton(CCNode* icon, ZStringView text, GeodeButtonSprite bg, bool forceDisableTheme) {
+    return createGeodeButton(icon, text, false, bg, forceDisableTheme);
+}
+ButtonSprite* createGeodeButton(ZStringView text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme) {
     return ButtonSprite::create(text.c_str(), width, absolute, gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg, forceDisableTheme), 0.0f, .8f);
 }
-ButtonSprite* createGeodeButton(std::string const& text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
+ButtonSprite* createGeodeButton(ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
     return ButtonSprite::create(text.c_str(), gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg, forceDisableTheme), .8f);
 }
 
@@ -206,10 +250,16 @@ CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale, CircleBa
     return ret;
 }
 
-ButtonSprite* createTagLabel(std::string const& text, std::pair<ccColor3B, ccColor3B> const& color) {
+ButtonSprite* createTagLabel(ZStringView text, std::pair<ccColor3B, ccColor3B> const& color) {
     auto label = ButtonSprite::create(text.c_str(), "bigFont.fnt", "white-square.png"_spr, .8f);
     label->m_label->setColor(color.first);
     label->m_BGSprite->setColor(color.second);
+    return label;
+}
+IconButtonSprite* createTagLabelWithIcon(CCNode* icon, ZStringView text, std::pair<ccColor3B, ccColor3B> const& color) {
+    auto label = IconButtonSprite::create("white-square.png"_spr, icon, text.c_str(), "bigFont.fnt");
+    label->getLabel()->setColor(color.first);
+    label->getBg()->setColor(color.second);
     return label;
 }
 ButtonSprite* createGeodeTagLabel(server::ServerTag const& tag) {
@@ -254,13 +304,13 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     this->setContentSize(itemSize);
     this->setAnchorPoint({ .5f, .5f });
 
-    m_deselectedBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);
+    m_deselectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
     m_deselectedBG->setScale(.8f);
     m_deselectedBG->setContentSize(itemSize / .8f);
     m_deselectedBG->setColor("mod-list-tab-deselected-bg"_cc3b);
     this->addChildAtPosition(m_deselectedBG, Anchor::Center);
 
-    m_selectedBG = CCScale9Sprite::createWithSpriteFrameName("tab-bg.png"_spr);
+    m_selectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
     m_selectedBG->setScale(.8f);
     m_selectedBG->setContentSize(itemSize / .8f);
     m_selectedBG->setColor(to3B(ColorProvider::get()->color(

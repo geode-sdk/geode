@@ -3,19 +3,14 @@
 #include <cocos2d.h>
 #include <cocos-ext.h>
 #include <Geode/binding/CCScrollLayerExt.hpp>
+#include <Geode/ui/NineSlice.hpp>
+#include <memory>
 
 namespace geode {
     class GEODE_DLL Scrollbar : public cocos2d::CCLayer {
     protected:
-        CCScrollLayerExt* m_target = nullptr;
-        cocos2d::extension::CCScale9Sprite* m_track;
-        cocos2d::extension::CCScale9Sprite* m_thumb;
-        cocos2d::CCPoint m_clickOffset;
-        float m_width;
-        bool m_resizeThumb;
-        bool m_trackIsRotated;
-        bool m_hoverHighlight;
-        bool m_touchDown = false;
+        Scrollbar();
+        ~Scrollbar() override;
 
         bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
         void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
@@ -29,8 +24,19 @@ namespace geode {
         bool init(CCScrollLayerExt* list);
 
     public:
+        bool isTouching();
+        CCScrollLayerExt* getTarget();
+        NineSlice* getTrack();
+        NineSlice* getThumb();
+
         void setTarget(CCScrollLayerExt* list);
+        void setTrack(NineSlice* track);
+        void setThumb(NineSlice* thumb);
 
         static Scrollbar* create(CCScrollLayerExt* list);
+
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
     };
 }

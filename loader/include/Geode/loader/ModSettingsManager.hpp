@@ -23,7 +23,7 @@ namespace geode {
         ModSettingsManager(ModMetadata const& metadata);
         ~ModSettingsManager();
 
-        ModSettingsManager(ModSettingsManager&&);
+        ModSettingsManager(ModSettingsManager&&) noexcept;
         ModSettingsManager(ModSettingsManager const&) = delete;
 
         /**

@@ -71,7 +71,7 @@ find_gd_installation() {
     verbose_log "Searching for Geometry Dash..."
     local DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
-    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.var/app/com.valvesoftware.Steam/data/Steam" "$HOME/snap/steam/common/.steam/steam"; do
+    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.steam/debian-installation" "$HOME/.var/app/com.valvesoftware.Steam/data/Steam" "$HOME/snap/steam/common/.steam/steam"; do
         local PATH_TEST="$GD_IDX/steamapps/common/Geometry Dash"
         verbose_log "- Testing path ${YELLOW}$PATH_TEST${NC}"
 
@@ -159,6 +159,11 @@ install() {
 
     echo "Installing..."
     mv $TEMP_DIR/geode/* "$GD_PATH"
+
+    if [ -f "$GD_PATH/XINPUT1_4.dll" ]; then
+        echo "Deleting conflicting XINPUT1_4.dll..."
+        rm "$GD_PATH/XINPUT1_4.dll"
+    fi
 }
 
 check_dependencies
@@ -183,15 +188,26 @@ EOF
 echo "Installing Geode..."
 
 # Get latest tag from the Index
-VERSION_JSON="$(curl -s 'https://api.geode-sdk.org/v1/loader/versions/latest')"
+VERSION_JSON="$(curl -s 'https://api.geode-sdk.org/v1/loader/versions/latest?platform=win')"
 if [ -x "$(command -v jq)" ]; then
-    TAG="$(echo "$VERSION_JSON" | jq -r .payload.tag)"
+    TAG="$(echo "$VERSION_JSON" | jq -r 'if (.payload | type) == "object" then .payload.tag else empty end' 2>/dev/null)"
 else
-    TAG="$(echo "$VERSION_JSON" | $py_cmd -c 'import json,sys;print(json.load(sys.stdin)["payload"]["tag"])' 2>/dev/null)"
+    TAG="$(echo "$VERSION_JSON" | $py_cmd -c 'import json,sys; d=json.load(sys.stdin); p=d.get("payload"); print(p["tag"] if isinstance(p, dict) else "")' 2>/dev/null)"
 fi
 
+# If Geode Index fails, try GitHub API
 if [ -z "$TAG" ]; then
-    echo "Failed to get latest version from the Geode index."
+    echo "Geode Index failed, checking GitHub releases..."
+    GITHUB_JSON="$(curl -s 'https://api.github.com/repos/geode-sdk/geode/releases?per_page=1')"
+    if [ -x "$(command -v jq)" ]; then
+        TAG="$(echo -E "$GITHUB_JSON" | jq -r '.[0].tag_name' 2>/dev/null)"
+    else
+        TAG="$(echo -E "$GITHUB_JSON" | $py_cmd -c 'import json,sys; print(json.load(sys.stdin)[0]["tag_name"])' 2>/dev/null)"
+    fi
+fi
+
+if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+    echo -e "${RED}Error:${NC} Failed to get latest version from Geode Index or GitHub."
     exit 1
 fi
 

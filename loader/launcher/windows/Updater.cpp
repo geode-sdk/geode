@@ -31,7 +31,7 @@ bool waitForFile(std::filesystem::path const& path) {
     int delay = 10;
     int maxDelayAttempts = 20;
     HANDLE hFile;
-    while ((hFile = CreateFileW(path.wstring().c_str(), FILE_GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
+    while ((hFile = CreateFileW(path.c_str(), FILE_GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_SHARING_VIOLATION) {
             Sleep(delay);
             // the delay would raise and go up to about 1 second, after which it will start a 20 second countdown
@@ -52,7 +52,8 @@ bool waitForFile(std::filesystem::path const& path) {
     if (hFile) {
         CloseHandle(hFile);
     } else {
-        showError(L"Unable to update Geode: " + path.filename().wstring() + L" is open by another process.");
+        auto filename = path.filename();
+        showError(L"Unable to update Geode: " + filename.native() + L" is open by another process.\n\nTry opening Geometry Dash once again or restart your PC if this issue persists.");
         return false;
     }
     return true;
@@ -85,9 +86,9 @@ void removePath(std::filesystem::path const& path) {
     std::filesystem::remove(path, error);
     if (error) {
         if (path.has_filename())
-            showError(L"Unable to update Geode: Unable to remove " + path.filename().wstring(), error);
+            showError(L"Unable to update Geode: Unable to remove " + path.filename().native(), error);
         else
-            showError(L"Unable to update Geode: Unable to remove " + path.wstring(), error);
+            showError(L"Unable to update Geode: Unable to remove " + path.native(), error);
         return;
     }
 }
@@ -130,15 +131,32 @@ int main(int argc, char* argv[]) {
             removePath(updatesDir);
     }
 
-    if (argc < 2)
+    // gd always restarts with its executable as the 1st arg
+    if (argc < 2){
+        if(MessageBoxW(
+            NULL, L"GeodeUpdater is an internal utility. If you want to update "
+            L"Geode manually, please download the installer from https://geode-sdk.org/install "
+            L"and follow the instructions.\n\nOpen the download page?", 
+            L"Geode Updater", MB_ICONINFORMATION | MB_YESNO
+        ) == IDYES) {
+            ShellExecuteW(NULL, L"open", L"https://geode-sdk.org/install", NULL, NULL, TRUE);
+        }
+
         return 0;
+    }
 
     if (!waitForFile(workingDir / argv[1])) {
         showError(L"There was an error restarting GD. Please, restart the game manually.");
         return 0;
     }
 
+    // build up args for gd
+    std::wstring args;
+    for (int i = 2; i < argc; i++) {
+        args += L" " + utf8ToWide(argv[i]);
+    }
+
     // restart gd using the provided path
-    ShellExecuteW(NULL, L"open", (workingDir / argv[1]).wstring().c_str(), L"", workingDir.wstring().c_str(), TRUE);
+    ShellExecuteW(NULL, L"open", (workingDir / argv[1]).c_str(), args.c_str(), workingDir.c_str(), TRUE);
     return 0;
 }

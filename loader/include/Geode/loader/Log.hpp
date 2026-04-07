@@ -4,104 +4,15 @@
 #include "../platform/cplatform.h"
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/function.hpp>
+#include <Geode/utils/StringBuffer.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/Result.hpp>
 #include <ccTypes.h>
 #include <chrono>
 #include <filesystem>
-#include <matjson.hpp>
-#include <type_traits>
-#include <fmt/core.h>
-// for formatting std::vector and such
-#include <fmt/ranges.h>
-// for std::optional
-#include <fmt/std.h>
-
-namespace geode {
-    // these are here because theyre special :-)
-    GEODE_DLL std::string format_as(cocos2d::CCObject const*);
-    GEODE_DLL std::string format_as(cocos2d::CCArray*);
-    GEODE_DLL std::string format_as(cocos2d::CCNode*);
-    class Mod;
-    GEODE_DLL std::string format_as(Mod*);
-
-    template <typename T, typename E>
-    std::string format_as(Result<T, E> const& result) {
-        std::string out;
-
-        auto formatValue = [&](auto&& value) {
-            using V = std::decay_t<decltype(value)>;
-            if constexpr (std::is_same_v<V, std::string>) {
-                fmt::format_to(std::back_inserter(out), "\"{}\"", value);
-            } else if constexpr (std::is_void_v<V>) {
-                // nothing
-            } else if constexpr (requires { geode::format_as(value); }) {
-                fmt::format_to(std::back_inserter(out), "{}", geode::format_as(value));
-            } else if constexpr (std::is_pointer_v<V>) {
-                fmt::format_to(std::back_inserter(out), "{}", (void*)value);
-            } else {
-                fmt::format_to(std::back_inserter(out), "{}", value);
-            }
-        };
-
-        if (result) {
-            out += "Ok(";
-            if constexpr (!std::is_void_v<T>) {
-                formatValue(result.unwrap());
-            }
-            out += ")";
-        } else {
-            out += "Err(";
-            if constexpr (!std::is_void_v<E>) {
-                formatValue(result.unwrapErr());
-            }
-            out += ")";
-        }
-
-        return out;
-    }
-}
-
-namespace geode::log::impl {
-    // What is this all for? well, fmtlib disallows writing custom formatters for non-void pointer types.
-    // So instead, we just wrap everything and pass it a string instead.
-
-    template <class T>
-    concept IsWrappedCocos = std::is_pointer_v<std::decay_t<T>> && requires(T ptr) { geode::format_as(ptr); };
-
-    template <class T>
-    inline decltype(auto) wrapCocosObj(T&& value) {
-        if constexpr (IsWrappedCocos<T>) {
-            return geode::format_as(value);
-        } else {
-            return std::forward<T>(value);
-        }
-    }
-
-    template <class T>
-    using TransformType = std::conditional_t<
-        IsWrappedCocos<T>,
-        decltype(wrapCocosObj<T>(std::declval<T>())),
-        T
-    >;
-
-    template <class... Args>
-    using FmtStr = fmt::format_string<TransformType<Args>...>;
-}
-
-namespace cocos2d {
-    GEODE_DLL std::string format_as(cocos2d::ccColor3B const&);
-    GEODE_DLL std::string format_as(cocos2d::ccColor4B const&);
-    GEODE_DLL std::string format_as(cocos2d::ccColor4F const&);
-    GEODE_DLL std::string format_as(cocos2d::CCPoint const&);
-    GEODE_DLL std::string format_as(cocos2d::CCRect const&);
-    GEODE_DLL std::string format_as(cocos2d::CCSize const&);
-}
-
-namespace gd {
-    inline std::string format_as(gd::string const& value) {
-        return value;
-    }
-}
+#include <asp/time/SystemTime.hpp>
+#include "Formatter.hpp"
 
 namespace geode {
 
@@ -109,35 +20,39 @@ namespace geode {
     Mod* getMod();
 
     namespace log {
-        using log_clock = std::chrono::system_clock;
         GEODE_DLL std::string generateLogName();
 
         GEODE_DLL void vlogImpl(Severity, Mod*, fmt::string_view format, fmt::format_args args);
 
         template <typename... Args>
-        inline void logImpl(Severity severity, Mod* mod, impl::FmtStr<Args...> str, Args&&... args) {
+        inline void logImpl(Severity severity, Mod* mod, format::FmtStr<Args...> str, Args&&... args) {
             [&]<typename... Ts>(Ts&&... args) {
                 vlogImpl(severity, mod, str, fmt::make_format_args(args...));
-            }(impl::wrapCocosObj(args)...);
+            }(format::wrap(std::forward<Args>(args))...);
         }
 
         template <typename... Args>
-        inline void debug(impl::FmtStr<Args...> str, Args&&... args) {
+        inline void trace(format::FmtStr<Args...> str, Args&&... args) {
+            logImpl(Severity::Trace, getMod(), str, std::forward<Args>(args)...);
+        }
+
+        template <typename... Args>
+        inline void debug(format::FmtStr<Args...> str, Args&&... args) {
             logImpl(Severity::Debug, getMod(), str, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        inline void info(impl::FmtStr<Args...> str, Args&&... args) {
+        inline void info(format::FmtStr<Args...> str, Args&&... args) {
             logImpl(Severity::Info, getMod(), str, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        inline void warn(impl::FmtStr<Args...> str, Args&&... args) {
+        inline void warn(format::FmtStr<Args...> str, Args&&... args) {
             logImpl(Severity::Warning, getMod(), str, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        inline void error(impl::FmtStr<Args...> str, Args&&... args) {
+        inline void error(format::FmtStr<Args...> str, Args&&... args) {
             logImpl(Severity::Error, getMod(), str, std::forward<Args>(args)...);
         }
 
@@ -146,6 +61,9 @@ namespace geode {
 
         GEODE_DLL void pushNest(Mod* mod);
         GEODE_DLL void popNest(Mod* mod);
+
+        /// Blocks the current thread until all logs are printed to console/file, recommended only for debugging purposes
+        GEODE_DLL void flush();
 
         inline void pushNest() {
             pushNest(getMod());
@@ -198,5 +116,93 @@ namespace geode {
 
         [[nodiscard]] GEODE_DLL std::shared_ptr<Nest> saveNest();
         GEODE_DLL void loadNest(std::shared_ptr<Nest> const& nest);
+
+        class Log;
+
+        // Borrowed log
+        struct GEODE_DLL BorrowedLog final {
+        private:
+            friend class Logger;
+            friend struct Log;
+
+            // these are private since we want to disallow users to deal with a BorrowedLog directly,
+            // only allow them to use it through a reference
+            BorrowedLog(Severity severity, int32_t nestCount, std::string_view content, std::string_view thread, std::string_view source, Mod* mod);
+            BorrowedLog(Log const& log);
+            BorrowedLog(BorrowedLog const&) = default;
+            BorrowedLog& operator=(BorrowedLog const&) = default;
+            ~BorrowedLog() = default;
+
+            Log intoLog() const;
+
+        public:
+            asp::SystemTime m_time;
+            Severity m_severity;
+            int32_t m_nestCount;
+            std::string_view m_content;
+            std::string_view m_thread;
+            std::string_view m_source;
+            Mod* m_mod = nullptr;
+
+            std::tuple<std::string_view, std::string_view, int32_t> truncateWithNest() const;
+
+            template <size_t N>
+            void formatTo(utils::StringBuffer<N>& buf, bool millis = false) const;
+        };
+
+        struct LogEvent final : ThreadSafeEvent<LogEvent, bool(BorrowedLog const&)> {
+            using ThreadSafeEvent::ThreadSafeEvent;
+        };
     }
+}
+
+template <size_t N>
+inline void geode::log::BorrowedLog::formatTo(utils::StringBuffer<N>& buf, bool millis) const {
+    auto ms = m_time.timeSinceEpoch().millis() % 1000;
+    auto local = asp::localtime(m_time.to_time_t());
+
+    if (millis) {
+        buf.append("{:%H:%M:%S}.{:03}", local, ms);
+    } else {
+        buf.append("{:%H:%M:%S}", local);
+    }
+
+    buf.append(' ');
+
+    switch (m_severity.m_value) {
+        case Severity::Debug: buf.append("DEBUG"); break;
+        case Severity::Info: buf.append("INFO "); break;
+        case Severity::Warning: buf.append("WARN "); break;
+        case Severity::Error: buf.append("ERROR"); break;
+        case Severity::Trace: buf.append("TRACE"); break;
+        default: buf.append("?????"); break;
+    }
+
+    buf.append(' ');
+
+    auto [source, thread, nestCount] = this->truncateWithNest();
+    bool sourceTrunc = source.size() != m_source.size();
+    bool threadTrunc = thread.size() != m_thread.size();
+
+    if (!thread.empty()) {
+        buf.append('[');
+        buf.append(thread);
+        if (threadTrunc) {
+            buf.append('>');
+        }
+        buf.append("] ");
+    }
+
+    buf.append('[');
+    buf.append(source);
+    if (sourceTrunc) {
+        buf.append('>');
+    }
+    buf.append("]: ");
+
+    for (int32_t i = 0; i < nestCount; i++) {
+        buf.append(' ');
+    }
+
+    buf.append(m_content);
 }

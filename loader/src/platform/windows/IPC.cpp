@@ -1,47 +1,38 @@
 #include <Geode/loader/IPC.hpp>
 #include <loader/IPC.hpp>
 
-#include <thread>
-#include <optional>
+#include <arc/iocp/IocpPipe.hpp>
 #include <string>
 
 using namespace geode::prelude;
 
 static constexpr auto IPC_BUFFER_SIZE = 512;
 
-void ipcPipeThread(HANDLE pipe) {
-    thread::setName("Geode IPC Pipe");
-
+static arc::Future<> ipcPipeTask(arc::IocpPipe pipe) {
     char buffer[IPC_BUFFER_SIZE * sizeof(TCHAR)];
-    DWORD read;
 
-    std::optional<std::string> replyID;
-
-    // log::debug("Waiting for I/O");
-    if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &read, nullptr)) {
+    if (auto res = co_await pipe.read(buffer, sizeof(buffer) - 1)) {
+        auto read = res.unwrap();
         buffer[read] = '\0';
-
-        std::string reply = ipc::processRaw((void*)pipe, buffer).dump();
-
-        DWORD written;
-        WriteFile(pipe, reply.c_str(), reply.size(), &written, nullptr);
+        
+        std::string reply = ipc::processRaw(pipe.handle(), buffer).dump();
+        auto res2 = co_await pipe.write(reply.data(), reply.size());
+        if (!res2) {
+            log::warn("Error writing to IPC pipe: {}", res2.unwrapErr());
+        }
+    } else {
+        log::warn("Error reading from IPC pipe: {}", res.unwrapErr());
     }
-    // log::debug("Connection done");
 
-    FlushFileBuffers(pipe);
-    DisconnectNamedPipe(pipe);
-    CloseHandle(pipe);
-
-    // log::debug("Disconnected pipe");
+    // IocpPipe will automatically flush and disconnect in destructor
 }
 
 void ipc::setup() {
-    std::thread ipcThread([]() {
-        thread::setName("Geode Main IPC");
+    async::spawn([] -> arc::Future<> {
         while (true) {
-            auto pipe = CreateNamedPipeW(
+            auto handle = CreateNamedPipeW(
                 utils::string::utf8ToWide(IPC_PIPE_NAME).c_str(),
-                PIPE_ACCESS_DUPLEX,
+                PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
                 PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
                 PIPE_UNLIMITED_INSTANCES,
                 IPC_BUFFER_SIZE,
@@ -49,7 +40,7 @@ void ipc::setup() {
                 NMPWAIT_USE_DEFAULT_WAIT,
                 nullptr
             );
-            if (pipe == INVALID_HANDLE_VALUE) {
+            if (handle == INVALID_HANDLE_VALUE) {
                 // todo: Rn this quits IPC, but we might wanna change that later
                 // to just continue trying. however, I'm assuming that if
                 // CreateNamedPipeA fails, then it will probably fail again if
@@ -58,19 +49,16 @@ void ipc::setup() {
                 log::warn("Unable to create pipe, quitting IPC");
                 break;
             }
-            // log::debug("Waiting for pipe connections");
-            if (ConnectNamedPipe(pipe, nullptr)) {
-                // log::debug("Got connection, creating thread");
-                std::thread pipeThread(&ipcPipeThread, pipe);
-                pipeThread.detach();
-            }
-            else {
-                // log::debug("No connection, cleaning pipe");
-                CloseHandle(pipe);
+
+            auto result = co_await arc::IocpPipe::listen(handle);
+            if (!result) {
+                log::warn("Unable to accept IPC connection: {}", result.unwrapErr());
+            } else {
+                async::spawn(ipcPipeTask(std::move(result.unwrap())));
             }
         }
-    });
-    ipcThread.detach();
+    }).setName("Geode IPC Listener");
 
     log::debug("IPC set up");
+
 }

@@ -86,7 +86,7 @@ void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
         SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
         return 0;
     }();
-    AddDllDirectory(path.wstring().c_str());
+    AddDllDirectory(path.c_str());
 }
 
 bool Loader::Impl::supportsLaunchArguments() const {

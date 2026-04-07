@@ -11,7 +11,8 @@ protected:
 
     void updateSpritePosition(float dt);
 
-    std::vector<EventListener<ColorProvidedFilter>> m_colorListeners;
+    // std::vector<EventListener<ColorProvidedFilter>> m_colorListeners;
+    std::vector<ListenerHandle> m_colorHandles;
 
 public:
     static SwelvyBG* create();

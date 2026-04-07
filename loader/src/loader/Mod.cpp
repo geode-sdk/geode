@@ -13,11 +13,11 @@ Mod::Mod(ModMetadata const& metadata) : m_impl(std::make_unique<Impl>(this, meta
 
 Mod::~Mod() {}
 
-std::string Mod::getID() const {
+ZStringView Mod::getID() const {
     return m_impl->getID();
 }
 
-std::string Mod::getName() const {
+ZStringView Mod::getName() const {
     return m_impl->getName();
 }
 
@@ -49,12 +49,12 @@ matjson::Value& Mod::getSavedSettingsData() {
     return m_impl->m_settings->getSaveData();
 }
 
-bool Mod::isEnabled() const {
-    return m_impl->isEnabled();
+bool Mod::isLoaded() const {
+    return m_impl->isLoaded();
 }
 
 bool Mod::isOrWillBeEnabled() const {
-    bool enabled = m_impl->isEnabled();
+    bool enabled = m_impl->shouldLoad();
     if (m_impl->m_requestedAction == ModRequestedAction::Enable) {
         enabled = true;
     }
@@ -69,14 +69,11 @@ bool Mod::isInternal() const {
 }
 
 bool Mod::needsEarlyLoad() const {
-    return m_impl->needsEarlyLoad();
+    std::vector<Mod*> checked;
+    return m_impl->needsEarlyLoad(checked);
 }
 
-ModMetadata Mod::getMetadata() const {
-    return m_impl->getMetadata();
-}
-
-ModMetadata const& Mod::getMetadataRef() const {
+ModMetadata const& Mod::getMetadata() const {
     return m_impl->getMetadata();
 }
 
@@ -92,10 +89,13 @@ std::filesystem::path Mod::getResourcesDir() const {
     return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
 }
 
-matjson::Value Mod::getDependencySettingsFor(std::string_view dependencyID) const {
-    auto id = std::string(dependencyID);
-    auto const& settings = ModMetadataImpl::getImpl(m_impl->m_metadata).m_dependencySettings;
-    return settings.contains(id) ? settings.at(id) : matjson::Value();
+matjson::Value Mod::getDependencySettingsFor(std::string_view id) const {
+    for (auto const& dep : this->getMetadata().getDependencies()) {
+        if (dep.getID() == id) {
+            return dep.getSettings();
+        }
+    }
+    return matjson::Value{};
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
@@ -106,29 +106,21 @@ void Mod::setMetadata(ModMetadata const& metadata) {
 std::vector<Mod*> Mod::getDependants() const {
     return m_impl->getDependants();
 }
+
+std::vector<Mod*> Mod::getEnabledDependants() const {
+    return m_impl->getEnabledDependants();
+}
 #endif
 
 Mod::CheckUpdatesTask Mod::checkUpdates() const {
-    return server::checkUpdates(this).map(
-        [](auto* result) -> Mod::CheckUpdatesTask::Value {
-            if (result->isOk()) {
-                if (auto value = result->unwrap()) {
-                    if (value->replacement) {
-                        return Err(
-                            "Mod has been replaced by {} - please visit the Geode "
-                            "menu to install the replacement",
-                            value->replacement->id
-                        );
-                    }
-                    return Ok(value->version);
-                }
-                return Ok(std::nullopt);
-            }
-            auto err = result->unwrapErr();
-            return Err("{} (code {})", err.details, err.code);
-        },
-        [](auto*) { return std::monostate(); }
-    );
+    auto res = co_await server::checkUpdates(this);
+    if (!res) {
+        auto err = std::move(res).unwrapErr();
+        co_return Err("{} (code {})", err.details, err.code);
+    }
+    auto value = std::move(res).unwrap();
+    if (!value.update) co_return Ok(std::nullopt);
+    co_return Ok(value.update->version);
 }
 
 Result<> Mod::saveData() {
@@ -164,11 +156,15 @@ bool Mod::hasSetting(std::string_view key) const {
 }
 
 std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
-    return m_impl->m_settings->get(std::string(key));
+    return m_impl->m_settings->get(key);
 }
 
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
-    return m_impl->m_settings->registerCustomSettingType(type, generator);
+    return m_impl->m_settings->registerCustomSettingType(type, std::move(generator));
+}
+
+void Mod::settingReact(geode::Function<void()> fn) {
+    m_impl->settingReact(std::move(fn));
 }
 
 std::string Mod::getLaunchArgumentName(std::string_view name) const {
@@ -247,7 +243,7 @@ bool Mod::hasUnresolvedIncompatibilities() const {
     return m_impl->hasUnresolvedIncompatibilities();
 }
 
-std::string_view Mod::expandSpriteName(std::string_view name) {
+std::string Mod::expandSpriteName(std::string_view name) {
     return m_impl->expandSpriteName(name);
 }
 
@@ -275,38 +271,22 @@ bool Mod::hasSavedValue(std::string_view key) {
     return this->getSaveContainer().contains(key);
 }
 
-bool Mod::hasLoadProblems() const {
-    return m_impl->hasLoadProblems();
-}
 std::optional<LoadProblem> Mod::targetsOutdatedVersion() const {
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isOutdated()) {
-            return problem;
-        }
+    if (m_impl->m_problem && m_impl->m_problem->type == LoadProblem::Type::Outdated) {
+        return m_impl->m_problem;
     }
     return std::nullopt;
 }
-std::vector<LoadProblem> Mod::getAllProblems() const {
-    return m_impl->getProblems();
-}
-std::vector<LoadProblem> Mod::getProblems() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isProblem()) {
-            result.push_back(problem);
-        }
+std::optional<LoadProblem> Mod::failedToLoad() const {
+    if (m_impl->m_problem && m_impl->m_problem->type != LoadProblem::Type::Outdated) {
+        return m_impl->m_problem;
     }
-    return result;
+    return std::nullopt;
 }
-std::vector<LoadProblem> Mod::getRecommendations() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isSuggestion()) {
-            result.push_back(problem);
-        }
-    }
-    return result;
+std::optional<LoadProblem> Mod::getLoadProblem() const {
+    return m_impl->m_problem;
 }
+
 bool Mod::shouldLoad() const {
     return m_impl->shouldLoad();
 }
@@ -316,4 +296,12 @@ bool Mod::isCurrentlyLoading() const {
 
 int Mod::getLoadPriority() const {
     return m_impl->getLoadPriority();
+}
+
+bool Mod::isPinned() const {
+    return m_impl->isPinned();
+}
+
+void Mod::setPinned(bool pinned) {
+    m_impl->setPinned(pinned);
 }

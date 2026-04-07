@@ -10,7 +10,7 @@ namespace geode {
 /**
  * A node for controlling spacing in Layouts. When a Layout is applied, if
  * space is left over, the remaining space is divided among all SpacerNodes in
- * the Layout. The space each node gets is the proprotion between its growth
+ * the Layout. The space each node gets is the proportion between its growth
  * factor and the sum of all the SpacerNodes' growth factors in the Layout
  * @example
  * node->addChild(SpacerNode::create(1));

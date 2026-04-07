@@ -182,6 +182,10 @@ public:
 	void updateDesignSize(int, int);
 	void updateFrameSize();
 
+    // @note RobTop Addition
+    void pumpRawInput();
+    // @note RobTop Addition
+    void performSafeClipboardPaste();
 
 public:
     static CCEGLView* s_pEglView;
@@ -261,6 +265,8 @@ protected:
     void onGLFWWindowPosCallback(GLFWwindow* window, int x, int y);
     // @note RobTop Addition
     void onGLFWWindowSizeFunCallback(GLFWwindow* window, int width, int height);
+    // @note RobTop Addition
+    void onGLFWWindowFocus(GLFWwindow* window, int focused);
 };
 
 NS_CC_END

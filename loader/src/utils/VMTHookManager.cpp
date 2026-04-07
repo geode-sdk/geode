@@ -1,20 +1,22 @@
 #include <Geode/utils/VMTHookManager.hpp>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace geode::prelude;
 
 struct VMTTableKey {
     std::string typenamePtr;
     ptrdiff_t thunkOffset = 0;
+    std::string instanceNamePtr;
 
     bool operator==(const VMTTableKey& other) const {
-        return typenamePtr == other.typenamePtr && thunkOffset == other.thunkOffset;
+        return typenamePtr == other.typenamePtr && thunkOffset == other.thunkOffset && instanceNamePtr == other.instanceNamePtr;
     }
 };
 
 struct VMTTableKeyHash {
     std::size_t operator()(const VMTTableKey& key) const {
-        return std::hash<std::string>()(key.typenamePtr) ^ std::hash<ptrdiff_t>()(key.thunkOffset);
+        return std::hash<std::string>()(key.typenamePtr) ^ std::hash<ptrdiff_t>()(key.thunkOffset) ^ std::hash<std::string>()(key.instanceNamePtr);
     }
 };
 
@@ -44,10 +46,17 @@ struct VMTMapValue {
     std::vector<void*> detours;
 };
 
+struct VMTPairKeyHash {
+    std::size_t operator()(const std::pair<void*, void*>& key) const {
+        return std::hash<void*>()(key.first) ^ std::hash<void*>()(key.second);
+    }
+};
+
 class VMTHookManager::Impl {
 public:
     std::unordered_map<VMTTableKey, VMTTableValue, VMTTableKeyHash> m_tables;
     std::unordered_map<VMTMapKey, VMTMapValue, VMTMapKeyHash> m_hooks;
+    std::unordered_set<std::pair<void*, void*>, VMTPairKeyHash> m_physicalHooks;
 
     void*& getTable(void* instance, ptrdiff_t thunkOffset);
     void replaceTable(void* instance, ptrdiff_t thunkOffset, void* vtable);
@@ -57,13 +66,13 @@ public:
 
     Result<std::optional<std::shared_ptr<Hook>>> addHook(
         void* instance,  ptrdiff_t thunkOffset, ptrdiff_t vtableOffset, size_t vtableSize,
-        void* emptyFunc, void* newFunc, std::string const& typeName, std::string const& displayName,
-        tulip::hook::HandlerMetadata const& handlerMetadata,
-        tulip::hook::HookMetadata const& hookMetadata
+        void* emptyFunc, void* newFunc, std::string typeName, std::string displayName,
+        tulip::hook::HandlerMetadata handlerMetadata,
+        tulip::hook::HookMetadata hookMetadata
     );
 
-    Result<> forceDisableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset);
-    Result<> forceEnableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset);
+    Result<> forceDisableFunction(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset);
+    Result<> forceEnableFunction(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset);
 };
 
 void*& VMTHookManager::Impl::getTable(void* instance, ptrdiff_t thunkOffset) {
@@ -84,8 +93,12 @@ void VMTHookManager::Impl::replaceFunction(void* vtable, ptrdiff_t vtableOffset,
     this->getFunction(vtable, vtableOffset) = function;
 }
 
-Result<> VMTHookManager::Impl::forceDisableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    VMTMapKey mapKey{ typeName, thunkOffset, vtableOffset };
+Result<> VMTHookManager::Impl::forceDisableFunction(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
+    // i love when i have to do disgusting hacks like this!
+    auto objectInstance = static_cast<CCObject*>(instance);
+    auto instanceNamePtr = typeid(*objectInstance).name();
+
+    VMTMapKey mapKey{ std::move(typeName), thunkOffset, instanceNamePtr, vtableOffset };
     auto mapIt = m_hooks.find(mapKey);
 
     if (mapIt != m_hooks.end()) {
@@ -97,9 +110,13 @@ Result<> VMTHookManager::Impl::forceDisableFunction(void* instance, std::string 
     return Err("No hook found for the given type and thunk offset");
 }
 
-Result<> VMTHookManager::Impl::forceEnableFunction(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    VMTMapKey mapKey{ typeName, thunkOffset, vtableOffset };
-    auto mapIt = m_hooks.find(mapKey);
+Result<> VMTHookManager::Impl::forceEnableFunction(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
+    // i love when i have to do disgusting hacks like this!
+    auto objectInstance = static_cast<CCObject*>(instance);
+    auto instanceNamePtr = typeid(*objectInstance).name();
+
+    VMTMapKey mapKey{ std::move(typeName), thunkOffset, instanceNamePtr, vtableOffset };
+        auto mapIt = m_hooks.find(mapKey);
 
     if (mapIt != m_hooks.end()) {
         auto& value = mapIt->second;
@@ -112,16 +129,20 @@ Result<> VMTHookManager::Impl::forceEnableFunction(void* instance, std::string c
 
 Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
     void* instance, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset, size_t vtableSize,
-    void* emptyFunc, void* newFunc, std::string const& typeName, std::string const& displayName,
-    tulip::hook::HandlerMetadata const& handlerMetadata,
-    tulip::hook::HookMetadata const& hookMetadata)
+    void* emptyFunc, void* newFunc, std::string typeName, std::string displayName,
+    tulip::hook::HandlerMetadata handlerMetadata,
+    tulip::hook::HookMetadata hookMetadata)
 {
-    VMTMapKey mapKey{ typeName, thunkOffset, vtableOffset };
+    // i love when i have to do disgusting hacks like this!
+    auto objectInstance = static_cast<CCObject*>(instance);
+    auto instanceNamePtr = typeid(*objectInstance).name();
+
+    VMTMapKey mapKey{ std::move(typeName), thunkOffset, instanceNamePtr, vtableOffset };
     auto mapIt = m_hooks.find(mapKey);
     // log::debug("Map key: {}, {}, {}", typeName, thunkOffset, vtableOffset);
 
     if (mapIt == m_hooks.end()) {
-        VMTTableKey tableKey{ typeName, thunkOffset };
+        VMTTableKey tableKey{ mapKey.tableKey.typenamePtr, thunkOffset, instanceNamePtr };
         auto tableIt = m_tables.find(tableKey);
         // log::debug("Table key: {}, {}", typeName, thunkOffset);
 
@@ -149,12 +170,20 @@ Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
         // log::debug("Replacing with: {}", emptyFunc);
         this->replaceFunction(value.vtable, vtableOffset, emptyFunc);
 
-        // log::debug("Creating the original");
-        auto hook = Hook::create(emptyFunc, originalFunc, displayName, handlerMetadata, tulip::hook::HookMetadata{
-            .m_priority = INT_MAX
-        });
-        // log::debug("Claiming the hook");
-        GEODE_UNWRAP_INTO(auto hook2, Mod::get()->claimHook(hook));
+        // we have not generated an actual hook for this function yet,
+        // so let's do that
+        // this will get skipped if the same function is used in different
+        // instances with different types but still replace the table
+        if (m_physicalHooks.count({ emptyFunc, originalFunc }) == 0) {
+            // log::debug("Creating the original");
+            auto hook = Hook::create(emptyFunc, originalFunc, displayName, handlerMetadata, tulip::hook::HookMetadata{
+                .m_priority = INT_MAX
+            });
+            // log::debug("Claiming the hook");
+            GEODE_UNWRAP_INTO(auto hook2, Mod::get()->claimHook(hook));
+
+            m_physicalHooks.insert({ emptyFunc, originalFunc });
+        }
 
         // log::debug("Adding to hooks map");
         m_hooks[mapKey] = { value.vtable, emptyFunc, originalFunc };
@@ -171,9 +200,18 @@ Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
         // log::debug("Already added a hook for this function, just replacing the table");
         return Ok(std::nullopt);
     }
+
+    if (m_physicalHooks.count({ value.empty, newFunc }) > 0) {
+        // already added a physical hook for this function, just add to detours
+        // log::debug("Already added a physical hook for this function, just adding to detours");
+        detours.push_back(newFunc);
+        m_physicalHooks.insert({ value.empty, newFunc });
+        return Ok(std::nullopt);
+    }
+
     // need to generate the hook based on the existing original
     // log::debug("Adding new detour: {}", newFunc);
-    auto hook = Hook::create(value.empty, newFunc, displayName, handlerMetadata, hookMetadata);
+    auto hook = Hook::create(value.empty, newFunc, std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata));
     // log::debug("Done");
     detours.push_back(newFunc);
     return Ok(std::move(hook));
@@ -189,20 +227,20 @@ VMTHookManager::~VMTHookManager() = default;
 
 Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::addHookInternal(
     void* instance, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset, size_t vtableSize,
-    void* emptyFunc, void* newFunc, std::string const& typeName, std::string const& displayName,
-    tulip::hook::HandlerMetadata const& handlerMetadata,
-    tulip::hook::HookMetadata const& hookMetadata
+    void* emptyFunc, void* newFunc, std::string typeName, std::string displayName,
+    tulip::hook::HandlerMetadata handlerMetadata,
+    tulip::hook::HookMetadata hookMetadata
 ) {
     return m_impl->addHook(
         instance, thunkOffset, vtableOffset, vtableSize, emptyFunc,
-        newFunc, typeName, displayName, handlerMetadata, hookMetadata
+        newFunc, std::move(typeName), std::move(displayName), std::move(handlerMetadata), std::move(hookMetadata)
     );
 }
 
-Result<> VMTHookManager::forceEnableFunctionInternal(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    return m_impl->forceEnableFunction(instance, typeName, thunkOffset, vtableOffset);
+Result<> VMTHookManager::forceEnableFunctionInternal(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
+    return m_impl->forceEnableFunction(instance, std::move(typeName), thunkOffset, vtableOffset);
 }
 
-Result<> VMTHookManager::forceDisableFunctionInternal(void* instance, std::string const& typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
-    return m_impl->forceDisableFunction(instance, typeName, thunkOffset, vtableOffset);
+Result<> VMTHookManager::forceDisableFunctionInternal(void* instance, std::string typeName, ptrdiff_t thunkOffset, ptrdiff_t vtableOffset) {
+    return m_impl->forceDisableFunction(instance, std::move(typeName), thunkOffset, vtableOffset);
 }

@@ -1,4 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/cocos.hpp>
 
 #include <cocos2d.h>
 using namespace cocos2d;
@@ -800,8 +801,7 @@ CCObject* CCArray::copyWithZone(CCZone* pZone)
 
     CCObject* pObj = NULL;
     CCObject* pTmpObj = NULL;
-    CCARRAY_FOREACH(this, pObj)
-    {
+    for (auto pObj : geode::cocos::CCArrayExt(this)) {
         pTmpObj = pObj->copy();
         pArray->addObject(pTmpObj);
         pTmpObj->release();

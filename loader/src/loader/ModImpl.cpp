@@ -17,6 +17,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/string.hpp>
+#include <algorithm>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -100,27 +101,27 @@ std::filesystem::path Mod::Impl::getSaveDir() const {
     return m_saveDirPath;
 }
 
-std::string Mod::Impl::getID() const {
+ZStringView Mod::Impl::getID() const {
     return m_metadata.getID();
 }
 
-std::string Mod::Impl::getName() const {
+ZStringView Mod::Impl::getName() const {
     return m_metadata.getName();
 }
 
 bool Mod::Impl::isEphemeral() const {
-    return ModMetadataImpl::getImpl(m_metadata).m_softInvalidReason.has_value();
+    return ModMetadataImpl::getImpl(m_metadata).m_completelyUnparseable;
 }
 
-std::vector<std::string> Mod::Impl::getDevelopers() const {
+std::vector<std::string> const& Mod::Impl::getDevelopers() const {
     return m_metadata.getDevelopers();
 }
 
-std::optional<std::string> Mod::Impl::getDescription() const {
+std::optional<std::string> const& Mod::Impl::getDescription() const {
     return m_metadata.getDescription();
 }
 
-std::optional<std::string> Mod::Impl::getDetails() const {
+std::optional<std::string> const& Mod::Impl::getDetails() const {
     return m_metadata.getDetails();
 }
 
@@ -134,6 +135,13 @@ void Mod::Impl::setMetadata(ModMetadata const& metadata) {
 }
 std::vector<Mod*> Mod::Impl::getDependants() const {
     return m_dependants;
+}
+std::vector<Mod*> Mod::Impl::getEnabledDependants() const {
+    std::vector<Mod*> ret;
+    std::ranges::copy_if(m_dependants, std::back_inserter(ret), [](Mod* mod) {
+        return mod->isOrWillBeEnabled();
+    });
+    return ret;
 }
 #endif
 
@@ -160,18 +168,20 @@ matjson::Value& Mod::Impl::getSaveContainer() {
     return m_saved;
 }
 
-bool Mod::Impl::isEnabled() const {
-    return m_enabled || this->isInternal();
+bool Mod::Impl::isLoaded() const {
+    return m_loaded || this->isInternal();
 }
 
 bool Mod::Impl::isInternal() const {
     return m_metadata.getID() == "geode.loader";
 }
 
-bool Mod::Impl::needsEarlyLoad() const {
+bool Mod::Impl::needsEarlyLoad(std::vector<Mod*>& checked) const {
+    checked.push_back(m_self);
     if (this->getMetadata().needsEarlyLoad()) return true;
     for (auto& dep : m_dependants) {
-        if (dep->needsEarlyLoad()) return true;
+        if(std::find(checked.begin(), checked.end(), dep) != checked.end()) continue;
+        if (dep->m_impl->needsEarlyLoad(checked)) return true;
     }
     return false;
 }
@@ -236,7 +246,7 @@ Result<> Mod::Impl::saveData() {
     matjson::Value json = m_settings->save();
 
     // saveData is expected to be synchronous, and always called from GD thread
-    ModStateEvent(m_self, ModEventType::DataSaved).post();
+    ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
 
     auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
     if (!res) {
@@ -269,6 +279,10 @@ bool Mod::Impl::hasSetting(std::string_view key) const {
         }
     }
     return false;
+}
+
+void Mod::Impl::settingReact(geode::Function<void()> fn) {
+    m_settingObserver.reactToChanges(std::move(fn));
 }
 
 std::string Mod::Impl::getLaunchArgumentName(std::string_view name) const {
@@ -304,12 +318,12 @@ Result<> Mod::Impl::loadBinary() {
     if (!this->isInternal() && LoaderImpl::get()->isSafeMode()) {
         // pretend to have loaded the mod, so that it still shows up on the mod list properly,
         // while the user can still toggle/uninstall it
-        m_enabled = true;
+        m_loaded = true;
         return Ok();
     }
 
     log::debug("Loading binary for mod {}", m_metadata.getID());
-    if (m_enabled)
+    if (m_loaded)
         return Ok();
 
     if (!std::filesystem::exists(this->getBinaryPath())) {
@@ -326,12 +340,19 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->provideNextMod(m_self);
 
-    m_enabled = true;
+    m_loaded = true;
     m_isCurrentlyLoading = true;
     auto res = this->loadPlatformBinary();
     if (!res) {
+        // disable hooks/patches the mod managed to register before failure
+        // note that this will not save from any other side effects (i.e. registering an event listener)
+        for (auto patch : m_patches) { (void) patch->disable(); }
+        for (auto hook : m_hooks) { (void) hook->disable(); }
+        m_patches.clear();
+        m_hooks.clear();
+
         m_isCurrentlyLoading = false;
-        m_enabled = false;
+        m_loaded = false;
         // make sure to free up the next mod mutex
         LoaderImpl::get()->releaseNextMod();
         log::error("Failed to load binary for mod {}: {}", m_metadata.getID(), res.unwrapErr());
@@ -340,15 +361,15 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-    ModStateEvent(m_self, ModEventType::Loaded).post();
-    ModStateEvent(m_self, ModEventType::DataLoaded).post();
+    ModStateEvent(ModEventType::Loaded, std::move(m_self)).send();
+    ModStateEvent(ModEventType::DataLoaded, std::move(m_self)).send();
 
     // do we not have a function for getting all the dependencies of a mod directly? ok then
     // Anyway this lets all of this mod's dependencies know it has been loaded
     // In case they're API mods and want to know those kinds of things
     for (auto const& dep : ModMetadataImpl::getImpl(m_metadata).m_dependencies) {
-        if (auto depMod = Loader::get()->getLoadedMod(dep.id)) {
-            DependencyLoadedEvent(depMod, m_self).post();
+        if (auto depMod = Loader::get()->getLoadedMod(dep.getID())) {
+            DependencyLoadedEvent(m_self).send(std::move(depMod));
         }
     }
 
@@ -473,7 +494,7 @@ bool Mod::Impl::hasUnresolvedIncompatibilities() const {
 
 bool Mod::Impl::depends(std::string_view id) const {
     return utils::ranges::contains(m_metadata.getDependencies(), [id](ModMetadata::Dependency const& t) {
-        return t.id == id;
+        return t.getID() == id;
     });
 }
 
@@ -488,7 +509,7 @@ Result<Hook*> Mod::Impl::claimHook(std::shared_ptr<Hook> hook) {
     m_hooks.push_back(hook);
 
     auto ptr = hook.get();
-    if (!this->isEnabled() || !hook->getAutoEnable())
+    if (!this->isLoaded() || !hook->getAutoEnable())
         return Ok(ptr);
 
     if (!LoaderImpl::get()->isReadyToHook() && hook->getAutoEnable()) {
@@ -522,12 +543,13 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
                    "A hook that was getting disowned had its owner set but the owner "
                    "didn't have the hook in m_hooks.");
 
+    auto sharedHook = *foundIt;
     m_hooks.erase(foundIt);
 
-    if (!this->isEnabled() || !hook->getAutoEnable())
+    if (!this->isLoaded() || !sharedHook->getAutoEnable())
         return Ok();
 
-    auto res2 = hook->disable();
+    auto res2 = sharedHook->disable();
     if (!res2) {
         return Err("Cannot disable hook: {}", res2.unwrapErr());
     }
@@ -546,7 +568,7 @@ Result<Patch*> Mod::Impl::claimPatch(std::shared_ptr<Patch> patch) {
     m_patches.push_back(patch);
 
     auto ptr = patch.get();
-    if (!this->isEnabled() || !patch->getAutoEnable())
+    if (!this->isLoaded() || !patch->getAutoEnable())
         return Ok(ptr);
 
     auto res2 = ptr->enable();
@@ -576,7 +598,7 @@ Result<> Mod::Impl::disownPatch(Patch* patch) {
                    "didn't have the patch in m_patches.");
 
 
-    if (this->isEnabled() && patch->getAutoEnable()) {
+    if (this->isLoaded() && patch->getAutoEnable()) {
         auto res2 = patch->disable();
         if (!res2) {
             return Err("Cannot disable patch: {}", res2.unwrapErr());
@@ -613,7 +635,7 @@ Result<> Mod::Impl::createTempDir() {
         return Err("Unable to create mod runtime directory");
     }
 
-    // Mark temp dir creation as succesful
+    // Mark temp dir creation as successful
     m_tempDirName = tempPath;
 
     return Ok();
@@ -635,17 +657,8 @@ std::filesystem::path Mod::Impl::getPersistentDir(bool create) const {
     return dir;
 }
 
-std::string_view Mod::Impl::expandSpriteName(std::string_view name) {
-    std::string nameKey(name);
-    if (m_expandedSprites.contains(nameKey)) return m_expandedSprites[nameKey];
-
-    auto exp = new char[name.size() + 2 + m_metadata.getID().size()];
-    auto exps = (m_metadata.getID() + "/") + name.data();
-    memcpy(exp, exps.c_str(), exps.size() + 1);
-
-    m_expandedSprites[nameKey] = exp;
-
-    return exp;
+std::string Mod::Impl::expandSpriteName(std::string_view name) {
+    return fmt::format("{}/{}", this->getID(), name);
 }
 
 ModJson Mod::Impl::getRuntimeInfo() const {
@@ -660,7 +673,7 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     for (auto patch : m_patches) {
         obj["patches"].push(ModJson(patch->getRuntimeInfo()));
     }
-    obj["loaded"] = m_enabled;
+    obj["loaded"] = m_loaded;
     obj["temp-dir"] = this->getTempDir();
     obj["save-dir"] = this->getSaveDir();
     obj["config-dir"] = this->getConfigDir(false);
@@ -693,21 +706,16 @@ bool Mod::Impl::isCurrentlyLoading() const {
     return m_isCurrentlyLoading;
 }
 
-bool Mod::Impl::hasLoadProblems() const {
-    for (auto const& problem : m_problems) {
-        if (problem.isProblem()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-std::vector<LoadProblem> Mod::Impl::getProblems() const {
-    return m_problems;
-}
-
 int Mod::Impl::getLoadPriority() const {
     return m_metadata.getLoadPriority();
+}
+
+bool Mod::Impl::isPinned() const {
+    return Mod::get()->getSavedValue<bool>("is-pinned-" + m_metadata.getID(), false);
+}
+
+void Mod::Impl::setPinned(bool pinned) {
+    Mod::get()->setSavedValue<bool>("is-pinned-" + m_metadata.getID(), pinned);
 }
 
 static Result<ModMetadata> getModImplInfo() {
@@ -715,8 +723,7 @@ static Result<ModMetadata> getModImplInfo() {
         return fmt::format("Unable to parse mod.json: {}", err);
     }));
 
-    GEODE_UNWRAP_INTO(auto info, ModMetadata::create(json));
-    return Ok(info);
+    return Ok(ModMetadata::create(json));
 }
 
 Mod* Loader::Impl::getInternalMod() {
@@ -742,7 +749,7 @@ Mod* Loader::Impl::getInternalMod() {
     else {
         mod = new Mod(infoRes.unwrap());
     }
-    mod->m_impl->m_enabled = true;
+    mod->m_impl->m_loaded = true;
     m_mods.insert({ mod->getID(), mod });
     return mod;
 }

@@ -1,16 +1,20 @@
-#include "console.hpp"
 #include "LogImpl.hpp"
 
+#include "console.hpp"
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Types.hpp>
+#include <Geode/utils/StringBuffer.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/async.hpp>
+#include <asp/time/SystemTime.hpp>
+#include <arc/future/Select.hpp>
+#include <arc/time/Sleep.hpp>
 #include <fmt/chrono.h>
 #include <fmt/format.h>
-#include <iomanip>
 #include <memory>
 #include <ostream>
 #include <utility>
@@ -19,206 +23,127 @@ using namespace geode::prelude;
 using namespace geode::log;
 using namespace cocos2d;
 
-// Parse overloads
+static std::atomic<bool> g_logMillis{false};
+static constexpr size_t LOG_BUFFER_LIMIT = 32768;
 
-static bool g_logMillis = false;
+BorrowedLog::BorrowedLog(Severity severity, int32_t nestCount, std::string_view content, std::string_view thread, std::string_view source, Mod* mod)
+    : m_time(asp::SystemTime::now())
+    , m_severity(severity)
+    , m_thread(thread)
+    , m_source(source)
+    , m_nestCount(nestCount)
+    , m_content(content)
+    , m_mod(mod)
+{}
 
-std::string geode::format_as(Mod* mod) {
-    if (mod) {
-        return fmt::format("{{ Mod, {} }}", mod->getName());
-    }
-    else {
-        return "{ Mod, null }";
-    }
+BorrowedLog::BorrowedLog(Log const& log)
+    : m_time(log.m_time)
+    , m_severity(log.m_severity)
+    , m_thread(log.m_thread)
+    , m_source(log.m_source)
+    , m_nestCount(log.m_nestCount)
+    , m_content(log.m_content)
+    , m_mod(log.m_mod)
+{}
+
+Log BorrowedLog::intoLog() const {
+    return Log{
+        m_time,
+        m_severity,
+        m_nestCount,
+        std::string(m_content),
+        std::string(m_thread),
+        std::string(m_source),
+        m_mod
+    };
 }
 
-std::string geode::format_as(CCObject const* obj) {
-    if (obj) {
-        // TODO: try catch incase typeid fails
-        return fmt::format("{{ {}, {} }}", typeid(*obj).name(), fmt::ptr(obj));
+std::tuple<std::string_view, std::string_view, int32_t> BorrowedLog::truncateWithNest() const {
+    int32_t nestCount = m_nestCount;
+    auto source = m_source;
+    auto thread = m_thread;
+    auto initSourceLen = static_cast<int32_t>(source.size());
+    auto initThreadLen = static_cast<int32_t>(thread.size());
+
+    if (nestCount != 0) {
+        nestCount -= initSourceLen + initThreadLen;
+    }
+
+    if (nestCount >= 0) {
+        return { source, thread, nestCount };
+    }
+
+    int32_t needsCollapse = -nestCount;
+
+    if (initThreadLen == 0) { // no thread
+        auto sourceLen = std::max(initSourceLen - needsCollapse, 2);
+        if (sourceLen < source.size())
+            source = source.substr(0, sourceLen - 1);
     }
     else {
-        return "{ CCObject, null }";
-    }
-}
+        int32_t sourceCollapse = needsCollapse / 2;
+        int32_t threadCollapse = needsCollapse - sourceCollapse;
 
-std::string geode::format_as(CCNode* obj) {
-    if (obj) {
-        auto bb = obj->boundingBox();
-        return fmt::format(
-            "{{ {}, {}, ({}, {} | {} : {}) }}",
-            typeid(*obj).name(),
-            fmt::ptr(obj),
-            bb.origin.x,
-            bb.origin.y,
-            bb.size.width,
-            bb.size.height
-        );
-    }
-    else {
-        return "{ CCNode, null }";
-    }
-}
+        int32_t sourceLen = std::max(initSourceLen - sourceCollapse, 2);
+        int32_t threadLen = std::max(initThreadLen - threadCollapse, 2);
 
-std::string geode::format_as(CCArray* arr) {
-    std::string out = "[";
-
-    if (arr && arr->count()) {
-        for (int i = 0; i < arr->count(); ++i) {
-            out += format_as(arr->objectAtIndex(i));
-            if (i < arr->count() - 1) out += ", ";
+        sourceCollapse = initSourceLen - sourceLen;
+        threadCollapse = initThreadLen - threadLen;
+        int32_t remainder = needsCollapse - sourceCollapse - threadCollapse;
+        if (remainder > 0) {
+            sourceLen = std::max(sourceLen - remainder, 2);
         }
+
+        if (sourceLen < source.size())
+            source = source.substr(0, sourceLen - 1);
+        if (threadLen < thread.size())
+            thread = thread.substr(0, threadLen - 1);
     }
-    else out += "empty";
 
-    return out + "]";
-}
-
-std::string cocos2d::format_as(CCPoint const& pt) {
-    return fmt::format("{}, {}", pt.x, pt.y);
-}
-
-std::string cocos2d::format_as(CCSize const& sz) {
-    return fmt::format("{} : {}", sz.width, sz.height);
-}
-
-std::string cocos2d::format_as(CCRect const& rect) {
-    return fmt::format("{} | {}", rect.origin, rect.size);
-}
-
-std::string cocos2d::format_as(cocos2d::ccColor3B const& col) {
-    return fmt::format("rgb({}, {}, {})", col.r, col.g, col.b);
-}
-
-std::string cocos2d::format_as(cocos2d::ccColor4B const& col) {
-    return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
-}
-
-std::string cocos2d::format_as(cocos2d::ccColor4F const& col) {
-    return fmt::format("rgba({}, {}, {}, {})", col.r, col.g, col.b, col.a);
+    return { source, thread, nestCount };
 }
 
 // Log
 
+Log::Log(asp::SystemTime time, Severity severity, int32_t nestCount,
+    std::string content, std::string thread, std::string source, Mod* mod)
+    : m_time(time), m_severity(severity),
+      m_thread(std::move(thread)), m_source(std::move(source)),
+      m_nestCount(nestCount), m_content(std::move(content)), m_mod(mod)
+{}
+
+std::string Log::toString(bool millis) const {
+    StringBuffer<> buf;
+    BorrowedLog(*this).formatTo(buf, millis);
+    return buf.str();
+}
+
 inline static thread_local int32_t s_nestLevel = 0;
 inline static thread_local int32_t s_nestCountOffset = 0;
+inline static thread_local bool s_insideLogImpl = false;
+
+struct LogImplGuard {
+    LogImplGuard() { s_insideLogImpl = true; }
+    ~LogImplGuard() { s_insideLogImpl = false; }
+};
 
 void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_args args) {
-    if (!mod->isLoggingEnabled() || sev < mod->getLogLevel()) return;
+    // prevent recursion
+    if (s_insideLogImpl) return;
 
     auto nestCount = s_nestLevel * 2;
     if (nestCount != 0) {
         nestCount += s_nestCountOffset;
     }
 
-    Logger::get()->push(sev, thread::getName(), mod->getName(), nestCount,
-        fmt::vformat(format, args));
+    LogImplGuard _guard;
+
+    Logger::get()->push(sev, nestCount, fmt::vformat(format, args),
+        thread::getName(), mod->getName(), mod);
 }
 
 std::filesystem::path const& log::getCurrentLogPath() {
     return Logger::get()->getLogPath();
-}
-
-
-Log::Log(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
-    std::string&& content) :
-    m_time(log_clock::now()),
-    m_severity(sev),
-    m_thread(thread),
-    m_source(source),
-    m_nestCount(nestCount),
-    m_content(content) {}
-
-Log::~Log() = default;
-
-auto convertTime(auto timePoint) {
-    // std::chrono::current_zone() isnt available on clang (android),
-    // so do this instead to get the local time for logging.
-    // By accident this also gets rid of the decimal places in the seconds
-    auto timeEpoch = std::chrono::system_clock::to_time_t(timePoint);
-    return fmt::localtime(timeEpoch);
-}
-
-std::string Log::toString() const {
-    return this->toString(false);
-}
-
-std::string Log::toString(bool millis) const {
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_time.time_since_epoch()) % 1000;
-
-    std::string res = millis
-        ? fmt::format("{:%H:%M:%S}.{:03}", convertTime(m_time), ms.count())
-        : fmt::format("{:%H:%M:%S}", convertTime(m_time));
-
-    switch (m_severity.m_value) {
-        case Severity::Debug:
-            res += " DEBUG";
-            break;
-        case Severity::Info:
-            res += " INFO ";
-            break;
-        case Severity::Warning:
-            res += " WARN ";
-            break;
-        case Severity::Error:
-            res += " ERROR";
-            break;
-        default:
-            res += " ?????";
-            break;
-    }
-
-    auto nestCount = m_nestCount;
-    auto source = m_source;
-    auto thread = m_thread;
-
-    if (nestCount != 0) {
-        nestCount -= static_cast<int32_t>(source.size() + thread.size());
-    }
-
-    if (nestCount < 0) {
-        auto initSourceLength = static_cast<int32_t>(source.size());
-        auto initThreadLength = static_cast<int32_t>(thread.size());
-
-        auto needsCollapse = -nestCount;
-
-        if (initThreadLength == 0) {
-            auto sourceCollapse = needsCollapse;
-            auto sourceLength = std::max(initSourceLength - sourceCollapse, 2);
-            if (sourceLength < source.size())
-                source = fmt::format("{}>", source.substr(0, sourceLength - 1));
-        }
-        else {
-            auto sourceCollapse = needsCollapse / 2;
-            auto sourceLength = std::max(initSourceLength - sourceCollapse, 2);
-            sourceCollapse = initSourceLength - sourceLength;
-
-            auto threadCollapse = needsCollapse - sourceCollapse;
-            auto threadLength = std::max(initThreadLength - threadCollapse, 2);
-            threadCollapse = initThreadLength - threadLength;
-
-            sourceCollapse = needsCollapse - threadCollapse;
-            sourceLength = std::max(initSourceLength - sourceCollapse, 2);
-
-            if (sourceLength < source.size())
-                source = fmt::format("{}>", source.substr(0, sourceLength - 1));
-            if (threadLength < thread.size())
-                thread = fmt::format("{}>", thread.substr(0, threadLength - 1));
-        }
-    }
-
-    if (thread.empty())
-        res += fmt::format(" [{}]: ", source);
-    else
-        res += fmt::format(" [{}] [{}]: ", thread, source);
-
-    for (int32_t i = 0; i < nestCount; i++) {
-        res += " ";
-    }
-
-    res += m_content;
-
-    return res;
 }
 
 Severity Log::getSeverity() const {
@@ -227,19 +152,79 @@ Severity Log::getSeverity() const {
 
 // Logger
 
+Logger::Logger() {
+    auto [tx, rx] = arc::mpsc::channel<Log>(LOG_BUFFER_LIMIT);
+    m_logTx = std::move(tx);
+    m_logRx = std::move(rx);
+}
+
 Logger* Logger::get() {
     static Logger inst;
     return &inst;
 }
 
+Logger::~Logger() {
+}
+
+void Logger::shutdownThread() {
+    auto runtime = m_runtime.upgrade();
+
+    if (m_usingThread.exchange(false, std::memory_order::relaxed) && m_logThread && runtime) {
+        m_cancel.cancel();
+        m_logThread.blockOn();
+        for (auto& msg : m_logRx->drain()) {
+            this->outputLog(BorrowedLog(msg), true);
+        }
+    }
+
+    m_runtime = {};
+    this->flush();
+}
+
+std::mutex& getLogMutex() {
+    static std::mutex mutex;
+    return mutex;
+}
+
+static Severity logLevelFor(std::string_view level) {
+    if (level == "trace") {
+        return Severity::Trace;
+    } else if (level == "debug") {
+        return Severity::Debug;
+    } else if (level == "info") {
+        return Severity::Info;
+    } else if (level == "warn") {
+        return Severity::Warning;
+    } else if (level == "error") {
+        return Severity::Error;
+    } else {
+        return Severity::Info;
+    }
+}
+
 void Logger::setup() {
-    if (m_initialized) {
+    if (m_initialized.load(std::memory_order::acquire)) {
         return;
     }
 
+    std::lock_guard g(getLogMutex());
+
     g_logMillis = Mod::get()->getSettingValue<bool>("log-milliseconds");
-    listenForSettingChanges("log-milliseconds", [](bool val) {
-        g_logMillis = val;
+    m_consoleLevel = logLevelFor(
+        Mod::get()->getSettingValue<std::string_view>("console-log-level")
+    );
+    m_fileLevel = logLevelFor(
+        Mod::get()->getSettingValue<std::string_view>("file-log-level")
+    );
+
+    listenForSettingChanges<bool>("log-milliseconds", [](bool val) {
+        g_logMillis.store(val, std::memory_order::release);
+    });
+    listenForSettingChanges<std::string_view>("console-log-level", [this](std::string_view val) {
+        m_consoleLevel.store(logLevelFor(val), std::memory_order::relaxed);
+    });
+    listenForSettingChanges<std::string_view>("file-log-level", [this](std::string_view val) {
+        m_fileLevel.store(logLevelFor(val), std::memory_order::relaxed);
     });
 
     auto logDir = dirs::getGeodeLogDir();
@@ -253,23 +238,72 @@ void Logger::setup() {
     m_logPath = logDir / log::generateLogName();
     m_logStream = std::ofstream(m_logPath);
 
-    Severity consoleLogLevel = this->getConsoleLogLevel();
-    Severity fileLogLevel = this->getFileLogLevel();
-
     // Logs can and will probably be added before setup() is called, so we'll write them now
-    for (Log const& log : m_logs) {
-        const std::string logStr = log.toString(g_logMillis);
-        if (log.getSeverity() >= consoleLogLevel) {
-            console::log(logStr, log.getSeverity());
-        }
-        if (log.getSeverity() >= fileLogLevel) {
-            m_logStream << fmt::format("{}\n", logStr);
-        }
+    for (Log const& log : m_logRx->drain()) {
+        this->outputLog(BorrowedLog(log), true);
     }
 
-    m_logStream << std::flush;
+    this->flushLocked();
+    m_initialized.store(true, std::memory_order::release);
 
-    m_initialized = true;
+    // setup log thread
+    m_usingThread = Mod::get()->getSettingValue<bool>("log-thread");
+    if (m_usingThread) {
+        m_logThread = async::runtime().spawn(this->workerThread());
+        m_runtime = async::runtime().weakFromThis();
+        m_logThread.setName("Geode Log Worker");
+    }
+}
+
+arc::Future<> Logger::workerThread() {
+    bool running = true;
+    asp::Duration flushInterval = asp::Duration::fromSecs(1);
+    asp::Instant nextFlush = asp::Instant::now();
+    size_t unflushed = 0;
+
+    auto doFlush = [&] {
+        std::lock_guard g(getLogMutex());
+        this->flushLocked();
+        nextFlush = asp::Instant::now() + flushInterval;
+        unflushed = 0;
+    };
+
+    size_t flushRequests = 0;
+
+    while (running) {
+        auto now = asp::Instant::now();
+
+        if (now >= nextFlush || unflushed >= 64) {
+            doFlush();
+        }
+
+        // if we have a flush request, only fulfill it once all logs are printed
+        if (flushRequests && m_logRx->empty()) {
+            doFlush();
+            m_syncFlushSemaphore.release(flushRequests);
+            flushRequests = 0;
+        }
+
+        co_await arc::select(
+            arc::selectee(m_logRx->recv(), [&](auto res) {
+                if (!res) return;
+                Log log = std::move(res).unwrap();
+
+                std::lock_guard g(getLogMutex());
+                this->outputLog(BorrowedLog(log), true);
+            }),
+
+            arc::selectee(m_cancel.waitCancelled(), [&] { running = false; }),
+
+            arc::selectee(
+                m_syncFlushNotify.notified(),
+                [&] { flushRequests++; }
+            ),
+
+            // periodically flush
+            arc::selectee(arc::sleepUntil(nextFlush))
+        );
+    }
 }
 
 void Logger::deleteOldLogs(size_t maxAgeHours) {
@@ -299,76 +333,119 @@ void Logger::deleteOldLogs(size_t maxAgeHours) {
     }
 }
 
-std::mutex& getLogMutex() {
-    static std::mutex mutex;
-    return mutex;
-}
-
 Severity Logger::getConsoleLogLevel() {
-    const std::string level = Mod::get()->getSettingValue<std::string>("console-log-level");
-    if (level == "debug") {
-        return Severity::Debug;
-    } else if (level == "info") {
-        return Severity::Info;
-    } else if (level == "warn") {
-        return Severity::Warning;
-    } else if (level == "error") {
-        return Severity::Error;
-    } else {
-        return Severity::Info;
-    }
+    return m_consoleLevel.load(std::memory_order::relaxed);
 }
 
 Severity Logger::getFileLogLevel() {
-    const std::string level = Mod::get()->getSettingValue<std::string>("file-log-level");
-    if (level == "debug") {
-        return Severity::Debug;
-    } else if (level == "info") {
-        return Severity::Info;
-    } else if (level == "warn") {
-        return Severity::Warning;
-    } else if (level == "error") {
-        return Severity::Error;
-    } else {
-        return Severity::Info;
-    }
+    return m_fileLevel.load(std::memory_order::relaxed);
 }
 
+void Logger::push(Severity sev, int32_t nestCount, std::string content,
+    std::string_view thread, std::string_view source, Mod* mod)
+{
+    // check if we should log at all, before acquiring any locks,
+    // since this check is much cheaper than locking or pushing to queue
+    if (!this->shouldOutputLog(sev, mod)) return;
 
-void Logger::push(Severity sev, std::string&& thread, std::string&& source, int32_t nestCount,
-    std::string&& content) {
-    std::lock_guard g(getLogMutex());
-
-    Log& log = m_logs.emplace_back(sev, std::move(thread), std::move(source), nestCount,
-            std::move(content));
-
-    // If logger is not initialized, store the log anyway. When the logger is initialized the pending logs will be logged.
-    if (!m_initialized) {
+    // if thread is enabled or logging isn't initialized, push into the queue; otherwise print right now
+    if (!m_initialized.load(std::memory_order::relaxed) || m_usingThread.load(std::memory_order::relaxed)) {
+        (void) m_logTx->trySend(Log{
+            asp::SystemTime::now(),
+            sev,
+            nestCount,
+            std::move(content),
+            std::string(thread),
+            std::string(source),
+            mod
+        });
         return;
     }
 
-    auto const logStr = log.toString(g_logMillis);
+    std::lock_guard g(getLogMutex());
+    this->outputLog(BorrowedLog(
+        sev,
+        nestCount,
+        content,
+        thread,
+        source,
+        mod
+    ));
+}
 
-    if (sev >= this->getConsoleLogLevel()) {
-        console::log(logStr, log.getSeverity());
+void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
+    auto sev = log.m_severity;
+
+    // should we log this at all?
+    bool logConsole, logFile, logListeners, logModLevel;
+    if (!this->shouldOutputLog(sev, log.m_mod, logConsole, logFile, logListeners, logModLevel)) {
+        return;
     }
-    if (sev >= this->getFileLogLevel()) {
-        m_logStream << logStr << std::endl;
+
+    StringBuffer<> buf;
+    bool millis = g_logMillis.load(std::memory_order::relaxed);
+    log.formatTo(buf, millis);
+
+    if (logConsole && logModLevel) {
+        console::log(buf.c_str(), sev);
     }
+    if (logFile && logModLevel) {
+        m_logStream << buf.view() << '\n';
+        // don't flush stream for every log as that's super slow
+        if (!dontFlush) {
+            this->flushLocked();
+        }
+    }
+    if (logListeners) {
+        LogImplGuard _guard;
+        LogEvent().send(log);
+    }
+}
+
+bool Logger::shouldOutputLog(Severity sev, Mod* mod) {
+    bool console, file, listeners, modLevel;
+    return this->shouldOutputLog(sev, mod, console, file, listeners, modLevel);
+}
+
+bool Logger::shouldOutputLog(Severity sev, Mod* mod, bool& console, bool& file, bool& listeners, bool& modLevel) {
+    console = sev >= this->getConsoleLogLevel();
+    file = sev >= this->getFileLogLevel();
+    listeners = LogEvent().getReceiverCount() > 0;
+    modLevel = !mod || (mod->isLoggingEnabled() && sev >= mod->getLogLevel());
+
+    // always output the log if there are registered listeners, let them handle filtering
+    // otherwise, only output if the log is above a certain level
+    return listeners || ((console || file) && modLevel);
+}
+
+void Logger::flush() {
+    std::lock_guard g(getLogMutex());
+    this->flushLocked();
+}
+
+void Logger::flushLocked() {
+    m_logStream << std::flush;
+}
+
+void Logger::flushExternal() {
+    // if not using a log thread, then queue is always empty, so simply flush
+    if (!m_usingThread) {
+        this->flush();
+        return;
+    }
+
+    // synchronize with the log thread
+    m_syncFlushNotify.notifyOne();
+    m_syncFlushSemaphore.acquire();
+}
+
+void Logger::clear() {
+    m_logRx->drain();
 }
 
 Nest::Nest(std::shared_ptr<Nest::Impl> impl) : m_impl(std::move(impl)) { }
 Nest::Impl::Impl(int32_t nestLevel, int32_t nestCountOffset) :
     m_nestLevel(nestLevel), m_nestCountOffset(nestCountOffset) { }
-
-std::vector<Log> const& Logger::list() {
-    return m_logs;
-}
-
-void Logger::clear() {
-    std::lock_guard g(getLogMutex());
-    m_logs.clear();
-}
 
 std::filesystem::path const& Logger::getLogPath() const {
     return m_logPath;
@@ -377,7 +454,8 @@ std::filesystem::path const& Logger::getLogPath() const {
 // Misc
 
 std::string geode::log::generateLogName() {
-    return fmt::format("Geode {:%F %H.%M.%S}.log", convertTime(log_clock::now()));
+    auto now = asp::SystemTime::now();
+    return fmt::format("Geode {:%F %H.%M.%S}.log", asp::localtime(now.to_time_t()));
 }
 
 void log::pushNest(Mod* mod) {
@@ -390,6 +468,10 @@ void log::popNest(Mod* mod) {
     s_nestLevel--;
     if (s_nestLevel == 0)
         s_nestCountOffset = 0;
+}
+
+void log::flush() {
+    Logger::get()->flushExternal();
 }
 
 std::shared_ptr<Nest> log::saveNest() {

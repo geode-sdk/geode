@@ -45,19 +45,19 @@ Loader::LoadingState Loader::getLoadingState() {
     return m_impl->m_loadingState;
 }
 
-bool Loader::isModInstalled(std::string const& id) const {
+bool Loader::isModInstalled(std::string_view id) const {
     return m_impl->isModInstalled(id);
 }
 
-Mod* Loader::getInstalledMod(std::string const& id) const {
+Mod* Loader::getInstalledMod(std::string_view id) const {
     return m_impl->getInstalledMod(id);
 }
 
-bool Loader::isModLoaded(std::string const& id) const {
+bool Loader::isModLoaded(std::string_view id) const {
     return m_impl->isModLoaded(id);
 }
 
-Mod* Loader::getLoadedMod(std::string const& id) const {
+Mod* Loader::getLoadedMod(std::string_view id) const {
     return m_impl->getLoadedMod(id);
 }
 
@@ -65,35 +65,14 @@ std::vector<Mod*> Loader::getAllMods() {
     return m_impl->getAllMods();
 }
 
-std::vector<LoadProblem> Loader::getAllProblems() const {
-    return m_impl->getProblems();
-}
 std::vector<LoadProblem> Loader::getLoadProblems() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isProblem()) {
-            result.push_back(problem);
+    std::vector<LoadProblem> problems;
+    for (auto& problem : m_impl->getProblems()) {
+        if (problem.isProblemTheUserShouldCareAbout()) {
+            problems.push_back(problem);
         }
     }
-    return result;
-}
-std::vector<LoadProblem> Loader::getOutdated() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.isOutdated()) {
-            result.push_back(problem);
-        }
-    }
-    return result;
-}
-std::vector<LoadProblem> Loader::getRecommendations() const {
-    std::vector<LoadProblem> result;
-    for (auto problem : this->getAllProblems()) {
-        if (problem.type == LoadProblem::Type::Recommendation) {
-            result.push_back(problem);
-        }
-    }
-    return result;
+    return problems;
 }
 
 void Loader::queueInMainThread(ScheduledFunction&& func) {

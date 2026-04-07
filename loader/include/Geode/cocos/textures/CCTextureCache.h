@@ -62,6 +62,8 @@ public:
     CCDictionary* m_pTextures;
     //pthread_mutex_t                *m_pDictLock;
 
+    // @note RobTop Addition
+    bool m_asyncLoadingPrepared;
 
 private:
     /// todo: void addImageWithAsyncObject(CCAsyncObject* async);
@@ -106,7 +108,7 @@ public:
     * Supported image extensions: .png, .bmp, .tiff, .jpeg, .pvr, .gif
     * @note Robtop Addition: added a bool param
     */
-    CCTexture2D* addImage(const char* fileimage, bool);
+    CCTexture2D* addImage(const char* fileimage, bool skipSuffix);
 
     /* Returns a Texture2D object given a file image
     * If the file image was not previously loaded, it will create a new CCTexture2D object and it will return it.
