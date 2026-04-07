@@ -2,6 +2,7 @@
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/OverlayManager.hpp>
 #include <Geode/ui/Notification.hpp>
+#include <deque>
 
 using namespace geode::prelude;
 

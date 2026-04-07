@@ -4,6 +4,7 @@
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
     constexpr auto NOTIFICATION_DEFAULT_TIME = 1.8f;
