@@ -114,6 +114,18 @@ Notification* Notification::create(std::string const& text, CCSprite* icon, floa
     return nullptr;
 }
 
+Notification* Notification::createSkippable(std::string const& text, NotificationIcon icon, float maxTime) {
+    return Notification::createSkippable(text, createIcon(icon), maxTime);
+}
+
+Notification* Notification::createSkippable(std::string const& text, CCSprite* icon, float maxTime) {
+    if (auto ret = Notification::create(text, icon, maxTime)) {
+        ret->m_skippableOnQueue = true;
+        return ret;
+    }
+    return nullptr;
+}
+
 void Notification::setString(std::string const& text) {
     m_label->setString(text.c_str());
     this->updateLayout();
@@ -173,6 +185,10 @@ void Notification::show() {
             s_queue->addObject(this);
         }
         if (s_queue->firstObject() != this) {
+            auto current = static_cast<Notification*>(s_queue->firstObject());
+            if (current) {
+                current->maybeSkipForQueuedNotification();
+            }
             return;
         }
         if (!this->getParent()) {
@@ -200,6 +216,12 @@ void Notification::wait() {
             CCCallFunc::create(this, callfunc_selector(Notification::hide)),
             nullptr
         ));
+    }
+}
+
+void Notification::maybeSkipForQueuedNotification() {
+    if (m_showing && m_skippableOnQueue) {
+        this->hide();
     }
 }
 

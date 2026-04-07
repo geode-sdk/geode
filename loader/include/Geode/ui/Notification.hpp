@@ -27,6 +27,7 @@ namespace geode {
         cocos2d::CCSprite* m_icon = nullptr;
         float m_time;
         bool m_showing = false;
+        bool m_skippableOnQueue = false;
 
         bool init(std::string const& text, cocos2d::CCSprite* icon, float time);
         void updateLayout();
@@ -37,6 +38,7 @@ namespace geode {
         void animateOut();
         void showNextNotification();
         void wait();
+        void maybeSkipForQueuedNotification();
 
     public:
         /**
@@ -66,6 +68,36 @@ namespace geode {
             std::string const& text,
             cocos2d::CCSprite* icon,
             float time = NOTIFICATION_DEFAULT_TIME
+        );
+        /**
+         * Create a low-priority notification that is shown for at most
+         * maxTime seconds, but can be skipped early if another notification
+         * enters the queue.
+         * @param text Notification text
+         * @param icon Icon to show in the notification
+         * @param maxTime Maximum time to show the notification on screen
+         * @returns The new notification. Make sure to call show() to show the
+         * notification
+         */
+        static Notification* createSkippable(
+            std::string const& text,
+            NotificationIcon icon = NotificationIcon::None,
+            float maxTime = NOTIFICATION_DEFAULT_TIME
+        );
+        /**
+         * Create a low-priority notification with a custom icon that is shown
+         * for at most maxTime seconds, but can be skipped early if another
+         * notification enters the queue.
+         * @param text Notification text
+         * @param icon Icon to show in the notification
+         * @param maxTime Maximum time to show the notification on screen
+         * @returns The new notification. Make sure to call show() to show the
+         * notification
+         */
+        static Notification* createSkippable(
+            std::string const& text,
+            cocos2d::CCSprite* icon,
+            float maxTime = NOTIFICATION_DEFAULT_TIME
         );
 
         void setString(std::string const& text);
