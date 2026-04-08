@@ -10,6 +10,13 @@ struct XINPUT_VIBRATION;
 
 constexpr static auto MAX_PATH_CHARS = 32768u;
 
+constexpr wchar_t REDIST_ERROR[] = L"Could not load Geode!\n"
+    "This is likely due to an outdated redist package.\n"
+    "Do you want to update Microsoft Visual C++ Redistributable to try to fix this issue?";
+constexpr wchar_t ALT_REDIST_ERROR[] = L"Could not load Geode!\n\n"
+    "Please **delete** the following files from your Geometry Dash directory and try again: ";
+constexpr wchar_t OUTDATED_REDIST[] = L"Your installed Microsoft Visual C++ Redistributable is outdated.\nThis can cause random crashes and Geode might not work at all.\n\nDo you want to update it to fix this issue?";
+
 static HMODULE getXInput() {
     static auto xinput = []() -> HMODULE {
         std::wstring path(MAX_PATH_CHARS, L'\0');
@@ -68,12 +75,29 @@ static std::wstring getErrorString(DWORD error) {
     return L"Could not load Geode! Error code: " + std::to_wstring(error);
 }
 
+void downloadRedist() {
+    std::wstring cmdLine = L"GeodeUpdater.exe /redist";
+    std::vector<wchar_t> cmdBuffer(cmdLine.begin(), cmdLine.end());
+    cmdBuffer.push_back(L'\0');
+
+    STARTUPINFOW si = { sizeof(si) };
+    PROCESS_INFORMATION pi = { 0 };
+
+    if (CreateProcessW(
+        NULL,
+        cmdBuffer.data(),
+        NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi
+    )) {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        ExitProcess(0);
+    } else {
+        ShellExecuteW(NULL, L"open", L"https://aka.ms/vc14/vc_redist.x64.exe", NULL, NULL, SW_SHOWNORMAL);
+        ExitProcess(0);
+    }
+}
+
 static DWORD errorThread(LPVOID param) {
-    constexpr wchar_t REDIST_ERROR[] = L"Could not load Geode!\n"
-        "This is likely due to an outdated redist package.\n"
-        "Do you want to update Microsoft Visual C++ Redistributable 2022 to try to fix this issue?";
-    constexpr wchar_t ALT_REDIST_ERROR[] = L"Could not load Geode!\n\n"
-        "Please **delete** the following files from your Geometry Dash directory and try again: ";
     const DWORD error = reinterpret_cast<DWORD64>(param);
 
     if (error == ERROR_DLL_INIT_FAILED) {
@@ -94,8 +118,9 @@ static DWORD errorThread(LPVOID param) {
 
         if(foundDlls.empty()) {
             const auto choice = MessageBoxW(NULL, REDIST_ERROR, L"Load failed", MB_YESNO | MB_ICONWARNING);
-            if (choice == IDYES)
-                ShellExecuteW(NULL, L"open", L"https://aka.ms/vs/17/release/vc_redist.x64.exe", NULL, NULL, SW_SHOWNORMAL);
+            if (choice == IDYES) {
+                downloadRedist();
+            }
         } else {
             std::wstring files = ALT_REDIST_ERROR;
             bool first = true;
@@ -107,6 +132,12 @@ static DWORD errorThread(LPVOID param) {
             const auto choice = MessageBoxW(NULL, files.c_str(), L"Load failed", MB_OK | MB_ICONWARNING);
         }
 
+    } else if (error == ERROR_MOD_NOT_FOUND) {
+        if(!std::filesystem::exists(L"Geode.dll")) {
+            MessageBoxW(NULL, L"Could not find Geode.dll! Please make sure it is in the same directory as Geometry Dash.", L"Load failed", MB_OK | MB_ICONWARNING);
+        } else {
+            MessageBoxW(NULL, getErrorString(error).c_str(), L"Load failed", MB_OK | MB_ICONWARNING);
+        }
     } else {
         MessageBoxW(NULL, getErrorString(error).c_str(), L"Load failed" , MB_OK | MB_ICONWARNING);
     }
@@ -114,9 +145,36 @@ static DWORD errorThread(LPVOID param) {
     return 0u;
 }
 
+bool isRedistUpdated() {
+    HMODULE hMod = GetModuleHandleW(L"vcruntime140.dll");
+    if(!hMod) return true;
+
+    WCHAR szPath[MAX_PATH];
+    GetModuleFileNameW(hMod, szPath, MAX_PATH);
+
+    DWORD dummy;
+    DWORD dwSize = GetFileVersionInfoSizeW(szPath, &dummy);
+    if (dwSize == 0) return true;
+
+    std::vector<BYTE> data(dwSize);
+    if (!GetFileVersionInfoW(szPath, 0, dwSize, data.data())) return true;
+
+    VS_FIXEDFILEINFO* pFileInfo = nullptr;
+    UINT len = 0;
+    if (!VerQueryValueW(data.data(), L"\\", (LPVOID*)&pFileInfo, &len)) return true;
+
+    return HIWORD(pFileInfo->dwFileVersionMS) == 14 && LOWORD(pFileInfo->dwFileVersionMS) >= 44;
+}
+
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(module);
+
+        if (!isRedistUpdated()) {
+            if (MessageBoxW(NULL, OUTDATED_REDIST, L"Warning", MB_YESNO | MB_ICONWARNING) == IDYES) {
+                downloadRedist();
+            }
+        }
 
         // This is UB.
         if (LoadLibraryW(L"Geode.dll") == NULL) {
