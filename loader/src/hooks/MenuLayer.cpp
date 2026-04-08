@@ -15,6 +15,7 @@
 #include <loader/updater.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/modify/LevelSelectLayer.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 
 using namespace geode::prelude;
 
@@ -36,7 +37,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
     struct Fields {
         bool m_menuDisabled = false;
-        CCSprite* m_geodeButton = nullptr;
+        CCNode* m_geodeButton = nullptr;
         async::TaskHolder<Result<InstalledModsUpdateCheck, server::ServerError>> m_updateCheckTask;
     };
 
@@ -53,16 +54,45 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         // add geode button
         if (!m_fields->m_menuDisabled) {
-            m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
-                "geode-logo-outline-gold.png"_spr,
-                .95f,
-                CircleBaseColor::Green,
-                CircleBaseSize::MediumAlt
-            );
+            auto listener = NodeProvidingEvent("geode-button-sprite"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+                if (nodeOut) return; // someone overrode it already
+                CCSprite* geodeButton;
+                if (theme == "sapphire") {
+                    geodeButton = CircleButtonSprite::createWithSpriteFrameName(
+                        "sapphire-logo-outline-gold.png"_spr,
+                        .95f,
+                        CircleBaseColor::Green,
+                        CircleBaseSize::MediumAlt
+                    );
+                }
+                else {
+                    geodeButton = CircleButtonSprite::createWithSpriteFrameName(
+                        "geode-logo-outline-gold.png"_spr,
+                        .95f,
+                        CircleBaseColor::Green,
+                        CircleBaseSize::MediumAlt
+                    );
+                }
+
+                if (!geodeButton || geodeButton->isUsingFallback()) {
+                    nodeOut = nullptr;
+                }
+                else {
+                    nodeOut = geodeButton;
+                }
+            }, Priority::Last);
+
+            cocos2d::CCNode* geodeBtn = nullptr;
+            NodeProvidingEvent("geode-button-sprite"_spr).send(geodeBtn);
+
             auto geodeBtnSelector = &CustomMenuLayer::onGeode;
-            if (!m_fields->m_geodeButton || m_fields->m_geodeButton->isUsingFallback()) {
-                geodeBtnSelector = &CustomMenuLayer::onMissingTextures;
+            if (geodeBtn) {
+                m_fields->m_geodeButton = static_cast<CCSprite*>(geodeBtn);
+            }
+            else {
+                log::warn("No node provided for geode-button-sprite, using fallback instead");
                 m_fields->m_geodeButton = ButtonSprite::create("!!");
+                geodeBtnSelector = &CustomMenuLayer::onMissingTextures;
             }
 
             auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));

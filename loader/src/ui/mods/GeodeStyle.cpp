@@ -49,30 +49,10 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("swelvy-bg-4"_spr, { 173, 84, 146, 255 });
     ColorProvider::get()->define("swelvy-bg-5"_spr, { 113, 74, 154, 255 });
 
-    if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
-        ColorProvider::get()->override("swelvy-bg-0"_spr, { 216, 132, 132, 255 });
-        ColorProvider::get()->override("swelvy-bg-1"_spr, { 210, 189, 119, 255 });
-        ColorProvider::get()->override("swelvy-bg-2"_spr, { 195, 212, 136, 255 });
-        ColorProvider::get()->override("swelvy-bg-3"_spr, { 95, 184, 134, 255 });
-        ColorProvider::get()->override("swelvy-bg-4"_spr, { 100, 174, 189, 255 });
-        ColorProvider::get()->override("swelvy-bg-5"_spr, { 118, 90, 148, 255 });
-    }
-
-    auto updateColors = +[](bool enabled) {
-        if (enabled) {
-            ColorProvider::get()->reset("mod-list-bg"_spr);
-            ColorProvider::get()->reset("mod-list-version-bg-updates-available"_spr);
-            ColorProvider::get()->reset("mod-list-search-bg"_spr);
-            ColorProvider::get()->reset("mod-list-tab-deselected-bg"_spr);
-            ColorProvider::get()->reset("mod-list-tab-selected-bg"_spr);
-            ColorProvider::get()->reset("mod-list-tab-selected-bg-alt"_spr);
-            ColorProvider::get()->reset("mod-list-restart-required-label"_spr);
-            ColorProvider::get()->reset("mod-list-restart-required-label-bg"_spr);
-            ColorProvider::get()->reset("mod-problems-item-bg"_spr);
-            ColorProvider::get()->reset("mod-developer-item-bg"_spr);
-            ColorProvider::get()->reset("keybinds-list-category-label"_spr);
-        }
-        else {
+    auto updateColors = +[](std::string_view themeName) {
+        std::string theme;
+        ThemeIDProvidingEvent().send(theme);
+        if (theme == "geometry-dash") {
             ColorProvider::get()->override("mod-list-bg"_spr, { 168, 85, 44, 255 });
             ColorProvider::get()->override("mod-list-version-bg-updates-available"_spr, { 220, 190, 0, 120 });
             ColorProvider::get()->override("mod-list-search-bg"_spr, { 114, 63, 31, 255 });
@@ -87,20 +67,79 @@ $on_mod(Loaded) {
             ColorProvider::get()->override("mod-developer-item-bg"_spr, { 0, 0, 0, 75 });
             ColorProvider::get()->override("keybinds-list-category-label"_spr, ccc3(156, 185, 147));
         }
+        else {
+            if (theme == "rainbow") {
+                ColorProvider::get()->override("swelvy-bg-0"_spr, { 216, 132, 132, 255 });
+                ColorProvider::get()->override("swelvy-bg-1"_spr, { 210, 189, 119, 255 });
+                ColorProvider::get()->override("swelvy-bg-2"_spr, { 195, 212, 136, 255 });
+                ColorProvider::get()->override("swelvy-bg-3"_spr, { 95, 184, 134, 255 });
+                ColorProvider::get()->override("swelvy-bg-4"_spr, { 100, 174, 189, 255 });
+                ColorProvider::get()->override("swelvy-bg-5"_spr, { 118, 90, 148, 255 });
+            }
+            else if (theme == "geode") {
+                ColorProvider::get()->reset("swelvy-bg-0"_spr);
+                ColorProvider::get()->reset("swelvy-bg-1"_spr);
+                ColorProvider::get()->reset("swelvy-bg-2"_spr);
+                ColorProvider::get()->reset("swelvy-bg-3"_spr);
+                ColorProvider::get()->reset("swelvy-bg-4"_spr);
+                ColorProvider::get()->reset("swelvy-bg-5"_spr);
+            }
+            ColorProvider::get()->reset("mod-list-bg"_spr);
+            ColorProvider::get()->reset("mod-list-version-bg-updates-available"_spr);
+            ColorProvider::get()->reset("mod-list-search-bg"_spr);
+            ColorProvider::get()->reset("mod-list-tab-deselected-bg"_spr);
+            ColorProvider::get()->reset("mod-list-tab-selected-bg"_spr);
+            ColorProvider::get()->reset("mod-list-tab-selected-bg-alt"_spr);
+            ColorProvider::get()->reset("mod-list-restart-required-label"_spr);
+            ColorProvider::get()->reset("mod-list-restart-required-label-bg"_spr);
+            ColorProvider::get()->reset("mod-problems-item-bg"_spr);
+            ColorProvider::get()->reset("mod-developer-item-bg"_spr);
+            ColorProvider::get()->reset("keybinds-list-category-label"_spr);
+        }
     };
 
     // Update colors when the theme is changed
-    listenForSettingChanges<bool>("enable-geode-theme", updateColors);
+    listenForSettingChanges<std::string_view>("used-theme", updateColors);
 
     Loader::get()->queueInMainThread([updateColors = updateColors] {
         // this code is ran during static init, where settings aren't loaded yet, and getSettingValue will always return false.
         // because of that, we have to delay it until next frame.
-        updateColors(Mod::get()->getSettingValue<bool>("enable-geode-theme"));
+        updateColors(Mod::get()->getSettingValue<std::string_view>("used-theme"));
+
+        if (Mod::get()->getSettingValue<bool>("enable-geode-theme")) {
+            Mod::get()->setSettingValue<std::string_view>("used-theme", "Geode");
+            Mod::get()->setSettingValue<bool>("enable-geode-theme", false);
+        }
     });
+
+    ThemeIDProvidingEvent().listen([](std::string& idOut) {
+        if (!idOut.empty()) return; // someone overrode it already
+
+        auto theme = Mod::get()->getSettingValue<std::string_view>("used-theme");
+        static std::unordered_map<std::string_view, std::string> themeMap = {
+            { "Geode", "geode" },
+            { "Geometry Dash", "geometry-dash" },
+            { "Rainbow", "rainbow" },
+            { "Sapphire", "sapphire" },
+        };
+        if (themeMap.contains(theme)) {
+            idOut = themeMap[theme];
+        }
+        else {
+            // default fallback provided by us
+            idOut = "geode";
+        }
+        return;
+
+    }, Priority::Last).leak();
 }
 
 bool isGeodeTheme(bool forceDisableTheme) {
-    return !forceDisableTheme && Mod::get()->getSettingValue<bool>("enable-geode-theme");
+    if (forceDisableTheme) return false;
+    if (Mod::get()->getSettingValue<bool>("enable-geode-theme")) return true;
+    std::string theme;
+    ThemeIDProvidingEvent().send(theme);
+    return theme != "geometry-dash";
 }
 
 bool GeodePopup::init(float width, float height, GeodePopupStyle style, bool forceDisableTheme) {

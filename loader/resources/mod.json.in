@@ -92,11 +92,17 @@
             "name": "Disable Crash Popup",
             "description": "Disables the popup at startup asking if you'd like to send a bug report; intended for developers"
         },
-        "enable-geode-theme": {
-            "type": "bool",
-            "default": true,
-            "name": "Enable Geode-Themed Colors",
-            "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
+        "used-theme": {
+            "type": "string",
+            "name": "Used Theme",
+            "description": "The theme used for Geode menu. <cy>This does not affect any other menus!</c>",
+            "default": "Geode",
+            "one-of": [
+                "Geode",
+                "Geometry Dash",
+                "Rainbow",
+                "Sapphire"
+            ]
         },
         "infinite-local-mods-list": {
             "type": "bool",
