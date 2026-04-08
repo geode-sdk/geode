@@ -15,7 +15,16 @@ constexpr wchar_t REDIST_ERROR[] = L"Could not load Geode!\n"
     "Do you want to update Microsoft Visual C++ Redistributable to try to fix this issue?";
 constexpr wchar_t ALT_REDIST_ERROR[] = L"Could not load Geode!\n\n"
     "Please **delete** the following files from your Geometry Dash directory and try again: ";
-constexpr wchar_t OUTDATED_REDIST[] = L"Your installed Microsoft Visual C++ Redistributable is outdated.\nThis can cause random crashes and Geode might not work at all.\n\nDo you want to update it to fix this issue?";
+constexpr wchar_t OUTDATED_REDIST[] = L"Your installed Microsoft Visual C++ Redistributable is outdated.\n"
+    "This can cause random crashes and Geode might not work at all.\n\n"
+    "Do you want to update it to fix this issue?";
+constexpr wchar_t GEODE_NOT_FOUND_ERROR[] = L"Could not find Geode.dll!\n"
+    "To fix this issue, please download the installer again and re-install Geode.\n"
+    "Also make sure your antivirus is not blocking the file.\n\n"
+    "Open the download page?";
+constexpr wchar_t BAD_EXE_FORMAT_ERROR[] = L"Your installation of Geode is corrupted.\n"
+    "To fix this issue, please download the installer again and re-install Geode.\n\n"
+    "Open the download page?";
 
 static HMODULE getXInput() {
     static auto xinput = []() -> HMODULE {
@@ -97,6 +106,11 @@ void downloadRedist() {
     }
 }
 
+void openDownloadPage() {
+    ShellExecuteW(NULL, L"open", L"https://geode-sdk.org/install", NULL, NULL, SW_SHOWNORMAL);
+    ExitProcess(0);
+}
+
 static DWORD errorThread(LPVOID param) {
     const DWORD error = reinterpret_cast<DWORD64>(param);
 
@@ -134,9 +148,17 @@ static DWORD errorThread(LPVOID param) {
 
     } else if (error == ERROR_MOD_NOT_FOUND) {
         if(!std::filesystem::exists(L"Geode.dll")) {
-            MessageBoxW(NULL, L"Could not find Geode.dll! Please make sure it is in the same directory as Geometry Dash.", L"Load failed", MB_OK | MB_ICONWARNING);
+            if(MessageBoxW(NULL, GEODE_NOT_FOUND_ERROR, L"Load failed (error code: 126)", MB_YESNO | MB_ICONWARNING) == IDYES) {
+                openDownloadPage();
+            }
         } else {
-            MessageBoxW(NULL, getErrorString(error).c_str(), L"Load failed", MB_OK | MB_ICONWARNING);
+            if(MessageBoxW(NULL, REDIST_ERROR, L"Load failed (error code: 126)", MB_YESNO | MB_ICONWARNING) == IDYES) {
+                downloadRedist();
+            }
+        }
+    } else if (error == ERROR_BAD_EXE_FORMAT) {
+        if(MessageBoxW(NULL, BAD_EXE_FORMAT_ERROR, L"Load failed (error code: 193)", MB_YESNO | MB_ICONWARNING) == IDYES) {
+            openDownloadPage();
         }
     } else {
         MessageBoxW(NULL, getErrorString(error).c_str(), L"Load failed" , MB_OK | MB_ICONWARNING);
