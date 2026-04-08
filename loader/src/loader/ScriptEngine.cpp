@@ -40,6 +40,6 @@ namespace geode {
     };
 }
 
-$execute {
+$on_mod(Loaded) {
     CCScriptEngineManager::sharedManager()->setScriptEngine(new geode::ScriptEngine());
 }
