@@ -510,6 +510,8 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
         m_hideUpdatesSpr->setString("Hide");
     }
 
+    m_hasDeprecations = check.modsWithDeprecations.size() > 0;
+
     m_toggleUpdatesOnlyBtn->setContentSize(m_showUpdatesSpr->getScaledContentSize());
 
     // Recreate the menu with the updated label
@@ -753,6 +755,9 @@ void ModList::onToggleUpdates(CCObject*) {
         mut->type = mut->type == InstalledModListType::OnlyUpdates ?
             InstalledModListType::All :
             InstalledModListType::OnlyUpdates;
+        if(mut->type == InstalledModListType::OnlyUpdates && m_hasDeprecations) {
+            Notification::create("Click the (!) button to see\nalternatives for each mod.", nullptr, NOTIFICATION_DEFAULT_TIME * 3)->show();
+        }
     }
 }
 void ModList::onToggleErrors(CCObject*) {
@@ -762,7 +767,7 @@ void ModList::onToggleErrors(CCObject*) {
             InstalledModListType::All :
             InstalledModListType::OnlyErrors;
         if(mut->type == InstalledModListType::OnlyErrors) {
-            Notification::create("Click the (!) button to see\nthe errors for each mod.", nullptr, NOTIFICATION_DEFAULT_TIME * 2)->show();
+            Notification::create("Click the (!) button to see\nthe errors for each mod.", nullptr, NOTIFICATION_DEFAULT_TIME * 3)->show();
         }
     }
 }
