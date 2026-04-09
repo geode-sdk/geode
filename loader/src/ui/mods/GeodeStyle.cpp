@@ -3,7 +3,8 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
-#include <Geode/ui//NineSlice.hpp>
+#include <Geode/ui/NineSlice.hpp>
+#include <Geode/loader/Priority.hpp>
 
 $on_mod(Loaded) {
     // todo: these names should probably be shorter so they fit in SSO...
