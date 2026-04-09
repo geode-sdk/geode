@@ -51,12 +51,7 @@ void updater::downloadLatestLoaderResources() {
 
 Result<> updater::extractLoaderResources(ByteSpan data) {
     auto tempDir = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp", Mod::get()->getID());
-    auto tempDir2 = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp2", Mod::get()->getID());
     auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
-
-    GEODE_UNWRAP(asp::fs::removeAll(tempDir2).mapErr([](auto ec) {
-        return "Unable to remove old temporary directory 2: " + ec.message();
-    }));
 
     GEODE_UNWRAP(asp::fs::removeAll(tempDir).mapErr([](auto ec) {
         return "Unable to remove old temporary directory: " + ec.message();
@@ -75,15 +70,7 @@ Result<> updater::extractLoaderResources(ByteSpan data) {
         return "Unable to unzip new resources: " + e;
     }));
 
-    // renaming first should hopefully get rid of "Operation not permitted"
-    // which I imagine comes from mediastorage attempting to scan the files but not sure here
-    if(asp::fs::exists(resourcesDir)) {
-        GEODE_UNWRAP(asp::fs::rename(resourcesDir, tempDir2).mapErr([](auto ec) {
-            return "Unable to transfer old resources directory: " + ec.message();
-        }));
-    }
-
-    GEODE_UNWRAP(asp::fs::removeAll(tempDir2).mapErr([](auto ec) {
+    GEODE_UNWRAP(asp::fs::removeAll(resourcesDir).mapErr([](auto ec) {
         return "Unable to remove old resources directory: " + ec.message();
     }));
 

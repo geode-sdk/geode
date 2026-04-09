@@ -105,6 +105,20 @@ namespace geode::comm {
             other.m_receivers.clear();
         }
 
+        void migrateFromV2(Port&& other) noexcept {
+            m_receivers = std::move(other.m_receivers);
+            m_toRemove = std::move(other.m_toRemove);
+            m_toAdd = std::move(other.m_toAdd);
+            m_nextID = other.m_nextID;
+            m_sending = other.m_sending;
+
+            other.m_receivers.clear();
+            other.m_toRemove.clear();
+            other.m_toAdd.clear();
+            other.m_nextID = 1;
+            other.m_sending = 0;
+        }
+
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
             ReceiverHandle handle = static_cast<ReceiverHandle>(m_nextID++);
             if (m_sending > 0) {
@@ -188,7 +202,13 @@ namespace geode::comm {
     template <class Callable, template <class> class Container>
     class Port<Callable, true, Container>  {
         using VectorType = std::vector<Container<Callable>>;
+        // we should have just used a atomic shared ptr!
         asp::PtrSwap<VectorType> m_receivers;
+        mutable std::mutex m_mutex;
+        std::vector<typename std::vector<Container<Callable>>::iterator> m_toRemove;
+        std::vector<Container<Callable>> m_toAdd;
+        size_t m_nextID = 1;
+        size_t m_sending = 0;
     public:
         using CallableType = Callable;
         using EventCenterType = EventCenterGlobal;
@@ -199,169 +219,206 @@ namespace geode::comm {
             m_receivers.store(other.m_receivers.load());
         }
 
+        void migrateFromV2(Port&& other) noexcept {
+            m_receivers.store(other.m_receivers.load());
+        }
+
         ReceiverHandle addReceiver(Callable receiver, int priority = 0) noexcept {
-            ReceiverHandle handle = {};
-            m_receivers.rcu([&](auto const& ptr) {
-                auto newReceivers = asp::make_shared<VectorType>(*ptr.get());
-
-                handle = asp::iter::from(*newReceivers)
-                    .map([](auto r) { return r.get().m_handle; })
-                    .max()
-                    .value_or(0) + 1;
-
-                for (auto it = newReceivers->begin(); it != newReceivers->end(); ++it) {
-                    if (priority < it->m_priority) {
-                        newReceivers->insert(it, {std::move(receiver), priority, handle});
-                        return newReceivers;
-                    }
+            auto lock = std::unique_lock<std::mutex>(m_mutex);
+            ReceiverHandle handle = static_cast<ReceiverHandle>(m_nextID++);
+            auto receivers = m_receivers.load();
+            if (m_sending > 0) {
+                // geode::console::log(fmt::format("Added handler with id {} to toAdd", handle), Severity::Debug);
+                m_toAdd.push_back({std::move(receiver), priority, handle});
+                return handle;
+            }
+            for (auto it = receivers->begin(); it != receivers->end(); ++it) {
+                if (priority < it->m_priority) {
+                    // geode::console::log(fmt::format("Added handler with id {} to receivers", handle), Severity::Debug);
+                    receivers->insert(it, {std::move(receiver), priority, handle});
+                    return handle;
                 }
-                newReceivers->push_back({std::move(receiver), priority, handle});
-                return newReceivers;
-            });
-
+            }
+            receivers->push_back({std::move(receiver), priority, handle});
             return handle;
         }
 
         size_t removeReceiver(ReceiverHandle handle) noexcept {
-            size_t size = 0;
-            m_receivers.rcu([&](auto const& ptr) {
-                auto newReceivers = asp::make_shared<VectorType>(*ptr.get());
-                size = newReceivers->size();
-                for (int i = 0; i < size; ++i) {
-                    if ((*newReceivers)[i].m_handle == handle) {
-                        newReceivers->erase(newReceivers->begin() + i);
-                        size--;
-                        return newReceivers;
+            auto lock = std::unique_lock<std::mutex>(m_mutex);
+            auto receivers = m_receivers.load();
+            auto size = receivers->size();
+            for (int i = 0; i < size; ++i) {
+                if ((*receivers)[i].m_handle == handle) {
+                    if (m_sending > 0) {
+                        // geode::console::log(fmt::format("Added handler with id {} to toRemove", handle), Severity::Debug);
+                        m_toRemove.push_back(receivers->begin() + i);
+                    } else {
+                        // geode::console::log(fmt::format("Removed handler with id {} from receivers", handle), Severity::Debug);
+                        receivers->erase(receivers->begin() + i);
                     }
+                    // size - 1, return for symmetry
+                    return size - 1;
                 }
-                return newReceivers;
-            });
+            }
+            // size
             return size;
         }
 
         size_t getReceiverCount() const noexcept {
-            return m_receivers.load()->size();
+            auto lock = std::unique_lock<std::mutex>(m_mutex);
+            return m_receivers.load()->size() + m_toAdd.size() - m_toRemove.size();
         }
 
         template <class ...Args>
         requires std::invocable<Callable, Args...>
         bool send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            auto currentReceivers = m_receivers.load();
-            for (auto& callable : *currentReceivers) {
+            auto lock = std::unique_lock<std::mutex>(m_mutex);
+
+            m_sending++;
+            bool ret = false;
+            auto receivers = m_receivers.load();
+            for (auto& callable : *receivers) {
+                if (std::find_if(m_toRemove.begin(), m_toRemove.end(), [&callable](auto& it) {
+                    return it->m_handle == callable.m_handle;
+                }) != m_toRemove.end()) {
+                    // geode::console::log(fmt::format("Skipping handler with id {} because it is in toRemove", callable.m_handle), Severity::Debug);
+                    continue;
+                }
+                lock.unlock();
                 if (callable.call(value...)) {
-                    return true;
+                    ret = true;
+                    lock.lock();
+                    break;
                 }
+                lock.lock();
             }
-            return false;
-        }
-    };
+            m_sending--;
 
-    template <class Callable, bool ThreadSafe = false>
-    class OncePort : protected Port<Callable, ThreadSafe, PortCallableMove> {
-        std::conditional_t<ThreadSafe, std::atomic_flag, bool> m_sent = false;
-    public:
-        using CallableType = Callable;
-
-        using Port<Callable, ThreadSafe>::addReceiver;
-        using Port<Callable, ThreadSafe>::removeReceiver;
-
-        template <class ...Args>
-        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-
-            if constexpr (ThreadSafe) {
-                if (m_sent.test_and_set())
-                    return false;
-            } else {
-                if (m_sent) return false;
-                m_sent = true;
-            }
-
-            return Port<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
-        }
-        bool isSent() const noexcept {
-            if constexpr (ThreadSafe)
-                return m_sent.test();
-            else
-                return m_sent;
-        }
-    };
-
-    template <class Callable, bool ThreadSafe = false, template <class> class Container = PortCallableCopy>
-    class QueuedPort : protected Port<Callable, ThreadSafe, Container> {
-        using VectorType = std::vector<geode::CopyableFunction<void()>>;
-        std::conditional_t<ThreadSafe, asp::PtrSwap<VectorType>, VectorType> m_queue;
-    public:
-        using CallableType = Callable;
-
-        using Port<Callable, ThreadSafe>::addReceiver;
-        using Port<Callable, ThreadSafe>::removeReceiver;
-
-        template <class ...Args>
-        requires std::invocable<Callable, Args...>
-        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            auto lam = [=, this] {
-                return Port<Callable, ThreadSafe>::send(args...);
-            };
-
-            if constexpr (ThreadSafe) {
-                m_queue.rcu([&](auto const& ptr) {
-                    auto newQueue = asp::make_shared<VectorType>(*ptr.get());
-                    newQueue->push_back(lam);
-                    return newQueue;
-                });
-            } else {
-                m_queue.push_back(lam);
-            }
-            return false;
-        }
-
-        void flush() noexcept {
-            if constexpr (ThreadSafe) {
-                m_queue.rcu([&](auto const& ptr) {
-                    auto newQueue = asp::make_shared<VectorType>(*ptr.get());
-                    for (auto& q : *newQueue) {
-                        std::invoke(q);
-                    }
-                    newQueue->clear();
-                    return newQueue;
-                });
-            } else {
-                for (auto& q : m_queue) {
-                    std::invoke(q);
+            if (m_sending == 0) {
+                auto receivers = m_receivers.load();
+                std::sort(m_toRemove.rbegin(), m_toRemove.rend());
+                for (auto& it : m_toRemove) {
+                    receivers->erase(it);
                 }
-                m_queue.clear();
+                m_toRemove.clear();
+
+                receivers->insert(receivers->end(), std::make_move_iterator(m_toAdd.begin()), std::make_move_iterator(m_toAdd.end()));
+                m_toAdd.clear();
+                std::sort(receivers->begin(), receivers->end(), [](auto& a, auto& b) {
+                    return a.m_priority < b.m_priority;
+                });
             }
+
+            return ret;
         }
     };
 
-    template <class Callable, bool ThreadSafe = false>
-    class QueuedOncePort : protected QueuedPort<Callable, ThreadSafe, PortCallableMove> {
-        std::conditional_t<ThreadSafe, std::atomic_flag, bool> m_sent = false;
-    public:
-        using CallableType = Callable;
+    // template <class Callable, bool ThreadSafe = false>
+    // class OncePort : protected Port<Callable, ThreadSafe, PortCallableMove> {
+    //     std::conditional_t<ThreadSafe, std::atomic_flag, bool> m_sent = false;
+    // public:
+    //     using CallableType = Callable;
 
-        using QueuedPort<Callable, ThreadSafe>::addReceiver;
-        using QueuedPort<Callable, ThreadSafe>::removeReceiver;
-        using QueuedPort<Callable, ThreadSafe>::flush;
+    //     using Port<Callable, ThreadSafe>::addReceiver;
+    //     using Port<Callable, ThreadSafe>::removeReceiver;
 
-        template <class ...Args>
-        bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if constexpr (ThreadSafe) {
-                if (m_sent.test_and_set())
-                    return false;
-            } else {
-                if (m_sent) return false;
-                m_sent = true;
-            }
-            return QueuedPort<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
-        }
-        bool isSent() const noexcept {
-            if constexpr (ThreadSafe)
-                return m_sent.test();
-            else
-                return m_sent;
-        }
-    };
+    //     template <class ...Args>
+    //     bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+
+    //         if constexpr (ThreadSafe) {
+    //             if (m_sent.test_and_set())
+    //                 return false;
+    //         } else {
+    //             if (m_sent) return false;
+    //             m_sent = true;
+    //         }
+
+    //         return Port<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
+    //     }
+    //     bool isSent() const noexcept {
+    //         if constexpr (ThreadSafe)
+    //             return m_sent.test();
+    //         else
+    //             return m_sent;
+    //     }
+    // };
+
+    // template <class Callable, bool ThreadSafe = false, template <class> class Container = PortCallableCopy>
+    // class QueuedPort : protected Port<Callable, ThreadSafe, Container> {
+    //     using VectorType = std::vector<geode::CopyableFunction<void()>>;
+    //     std::conditional_t<ThreadSafe, asp::PtrSwap<VectorType>, VectorType> m_queue;
+    // public:
+    //     using CallableType = Callable;
+
+    //     using Port<Callable, ThreadSafe>::addReceiver;
+    //     using Port<Callable, ThreadSafe>::removeReceiver;
+
+    //     template <class ...Args>
+    //     requires std::invocable<Callable, Args...>
+    //     bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+    //         auto lam = [=, this] {
+    //             return Port<Callable, ThreadSafe>::send(args...);
+    //         };
+
+    //         if constexpr (ThreadSafe) {
+    //             m_queue.rcu([&](auto const& ptr) {
+    //                 auto newQueue = asp::make_shared<VectorType>(*ptr.get());
+    //                 newQueue->push_back(lam);
+    //                 return newQueue;
+    //             });
+    //         } else {
+    //             m_queue.push_back(lam);
+    //         }
+    //         return false;
+    //     }
+
+    //     void flush() noexcept {
+    //         if constexpr (ThreadSafe) {
+    //             m_queue.rcu([&](auto const& ptr) {
+    //                 auto newQueue = asp::make_shared<VectorType>(*ptr.get());
+    //                 for (auto& q : *newQueue) {
+    //                     std::invoke(q);
+    //                 }
+    //                 newQueue->clear();
+    //                 return newQueue;
+    //             });
+    //         } else {
+    //             for (auto& q : m_queue) {
+    //                 std::invoke(q);
+    //             }
+    //             m_queue.clear();
+    //         }
+    //     }
+    // };
+
+    // template <class Callable, bool ThreadSafe = false>
+    // class QueuedOncePort : protected QueuedPort<Callable, ThreadSafe, PortCallableMove> {
+    //     std::conditional_t<ThreadSafe, std::atomic_flag, bool> m_sent = false;
+    // public:
+    //     using CallableType = Callable;
+
+    //     using QueuedPort<Callable, ThreadSafe>::addReceiver;
+    //     using QueuedPort<Callable, ThreadSafe>::removeReceiver;
+    //     using QueuedPort<Callable, ThreadSafe>::flush;
+
+    //     template <class ...Args>
+    //     bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+    //         if constexpr (ThreadSafe) {
+    //             if (m_sent.test_and_set())
+    //                 return false;
+    //         } else {
+    //             if (m_sent) return false;
+    //             m_sent = true;
+    //         }
+    //         return QueuedPort<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
+    //     }
+    //     bool isSent() const noexcept {
+    //         if constexpr (ThreadSafe)
+    //             return m_sent.test();
+    //         else
+    //             return m_sent;
+    //     }
+    // };
 
     template <template <class, bool, template <class> class> class PortType, bool ThreadSafe, template <class> class Container>
     struct PortWrapper {
@@ -381,6 +438,10 @@ namespace geode::comm {
     template <template <class> class PortTemplate, class... PArgs>
     requires PortTemplateFor<PortTemplate, geode::CopyableFunction<bool(PArgs...)>>
     class OpaqueEventPortV2;
+
+    template <template <class> class PortTemplate, class... PArgs>
+    requires PortTemplateFor<PortTemplate, geode::CopyableFunction<bool(PArgs...)>>
+    class OpaqueEventPortV3;
 
     // In order to version Ports, we need to make a new EventPort class for every version,
     // and subclass the previous one. For example a V3 would subclass V2, which subclasses V1.
@@ -418,6 +479,7 @@ namespace geode::comm {
         }
 
         friend class OpaqueEventPortV2<PortTemplate, PArgs...>;
+        friend class OpaqueEventPortV3<PortTemplate, PArgs...>;
     };
 
     template <template <class> class PortTemplate, class... PArgs>
@@ -429,6 +491,18 @@ namespace geode::comm {
 
         void migrateFromV1(OpaqueEventPort<PortTemplate, PArgs...>* oldPort) noexcept {
             this->m_port.migrateFromV1(std::move(oldPort->m_port));
+        }
+    };
+
+    template <template <class> class PortTemplate, class... PArgs>
+    requires PortTemplateFor<PortTemplate, geode::CopyableFunction<bool(PArgs...)>>
+    class OpaqueEventPortV3 : public OpaqueEventPortV2<PortTemplate, PArgs...> {
+    public:
+        OpaqueEventPortV3() {}
+        ~OpaqueEventPortV3() noexcept override {}
+
+        void migrateFromV2(OpaqueEventPortV2<PortTemplate, PArgs...>* oldPort) noexcept {
+            this->m_port.migrateFromV2(std::move(oldPort->m_port));
         }
     };
 
@@ -564,17 +638,27 @@ namespace geode::comm {
         using IteratorType = typename MapType::iterator;
         using OpaqueEventType = OpaqueEventPort<PortTemplate, PArgs...>;
         using OpaqueEventV2Type = OpaqueEventPortV2<PortTemplate, PArgs...>;
-        using LatestOpaqueEventType = OpaqueEventV2Type;
+        using OpaqueEventV3Type = OpaqueEventPortV3<PortTemplate, PArgs...>;
+        using LatestOpaqueEventType = OpaqueEventV3Type;
         using EventCenterType = LatestOpaqueEventType::EventCenterType;
 
         // Here we migrate the port version if needed. This is what I meant by versioning,
         // we need to check for previous versions and move them into the current version.
         // Go to getPort definition.
         static OpaquePortBase* migratePort(OpaquePortBase* port) {
+            // handles V1->V3
             if (!geode::cast::typeinfo_cast<OpaqueEventV2Type*>(port)) {
                 auto oldPort = static_cast<OpaqueEventType*>(port);
-                auto newPort = new OpaqueEventV2Type();
+                auto newPort = new OpaqueEventV3Type();
                 newPort->migrateFromV1(oldPort);
+                return newPort;
+            }
+
+            // handles V2->V3
+            if (!geode::cast::typeinfo_cast<OpaqueEventV3Type*>(port)) {
+                auto oldPort = static_cast<OpaqueEventV2Type*>(port);
+                auto newPort = new OpaqueEventV3Type();
+                newPort->migrateFromV2(oldPort);
                 return newPort;
             }
             return nullptr;
@@ -604,7 +688,7 @@ namespace geode::comm {
         // All of the normal functions do static cast version, but that is not strictly needed,
         // what is needed however is updating this getPort function.
         OpaquePortBase* getPort() const noexcept override {
-            return new (std::nothrow) OpaqueEventV2Type();
+            return new (std::nothrow) OpaqueEventV3Type();
         }
 
         size_t hash() const noexcept override {

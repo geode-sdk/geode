@@ -395,7 +395,7 @@ function(package_geode_resources_now proname src dest header_dest)
         if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_TEXT_HASH EQUAL -1)
             
             # create list of lines form the contens of a file
-            file(STRINGS ${file} LINES)
+            file(STRINGS ${file} LINES ENCODING UTF-8)
             list(JOIN LINES "" JOINED)
             # compute hash of the lines
             string(LENGTH "${JOINED}" FILE_SIZE)

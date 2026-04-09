@@ -60,8 +60,6 @@ char const* getUsefulError(DWORD code) {
 std::string getLastWinError() {
     auto err = GetLastError();
     if (!err) return "None (0)";
-    if (err == 4551) return "Blocked by Windows Smart App Control (4551)";
-    if (err == 0xc0e90002) return "Blocked by Windows Smart App Control (0xc0e90002)";
     auto useful = getUsefulError(err);
     if (useful) return useful;
 

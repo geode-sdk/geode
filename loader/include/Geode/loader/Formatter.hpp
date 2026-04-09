@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/function.hpp>
-#include <Geode/utils/StringBuffer.hpp>
-#include <Geode/utils/cocos.hpp>
+#include "../utils/function.hpp"
+#include "../utils/cocos.hpp"
+#include "../utils/addresser.hpp"
+#include "Event.hpp"
 #include <Geode/Result.hpp>
 #include <arc/future/PollableMetadata.hpp>
 #include <ccTypes.h>
@@ -144,59 +144,62 @@ namespace geode::format {
         cocos2d::CCObject* m_obj;
     };
 
-    class FormatBase {
-    public:
-        virtual ~FormatBase() = default;
-    private:
-        virtual geode::Result<std::string> format(cocos2d::CCObject const* obj, std::string_view specifier) = 0;
-        friend class FormatterImpl;
+    // marker is not typed because we want all LogFormatEvents to share the same event queue
+    struct LogFormatEventMarker {
+        // guaranteed to be smaller than anything that comparable calculation may give
+        static int getNextReversePriority();
+
+        static constexpr auto COMPARABLE_DEPTH_MULTIPLIER = -10000; // between stub and replace, so anything bigger than 8000
     };
 
-    template<class T>
-    class FormatType : public FormatBase {
-    public:
-        using FormatCallback = geode::Function<std::string(T*, std::string_view)>;
+    template <class Type>
+    struct LogFormatEvent : public ThreadSafeEvent<LogFormatEventMarker, bool(std::string& output, cocos2d::CCObject* obj, std::string_view specifier)> {
+        using ThreadSafeEvent::ThreadSafeEvent;        
 
-        ~FormatType() = default;
-        FormatType(FormatCallback callback) : m_formatter(std::move(callback)) {}
-    private:
-        FormatCallback m_formatter;
+        template<class Callable>
+        ListenerHandle listen(cocos2d::CCObject* priorityFinder, Callable listener, int priority = 0) const noexcept {
+            auto comparableDepth = cast::getComparableDepth(priorityFinder);
 
-        geode::Result<std::string> format(cocos2d::CCObject const* obj, std::string_view specifier) override {
-            if (!geode::cast::typeinfo_cast<T*>(obj)) return geode::Err("Incorrect Type");
-            if (!m_formatter) return geode::Err("No formatter callback");
-            return geode::Ok(m_formatter(static_cast<T*>(const_cast<cocos2d::CCObject*>(obj)), specifier));
-        }
-
-        friend class FormatterImpl;
-    };
-
-    GEODE_DLL void registerFormatImpl(std::string_view name, std::unique_ptr<FormatBase> format);
-    GEODE_DLL geode::Result<std::string> handleFormatImpl(cocos2d::CCObject const* obj, std::string_view specifier);
-
-    template<class T, typename F>
-    inline void registerFormat(F&& callback) {
-        constexpr auto name = arc::getTypename<T>();
-
-        using Callback = typename FormatType<T>::FormatCallback;
-
-        if constexpr (std::is_invocable_r_v<std::string, F, T*, std::string_view>) {
-            registerFormatImpl(std::string_view{name.first, name.second}, std::make_unique<FormatType<T>>(std::forward<F>(callback)));
-        }
-        else if constexpr (std::is_invocable_r_v<std::string, F, T*>) {
-            registerFormatImpl(std::string_view{name.first, name.second}, std::make_unique<FormatType<T>>(Callback(
-                [f = std::forward<F>(callback)](T* obj, std::string_view) {
-                    return f(obj);
+            return ThreadSafeEvent::listen([listener = std::move(listener)](std::string& output, cocos2d::CCObject* obj, std::string_view specifier) {
+                if (auto casted = geode::cast::typeinfo_cast<Type*>(obj)) {
+                    if constexpr (std::is_invocable_r_v<bool, Callable, std::string&, Type*, std::string_view>) {
+                        return std::invoke(listener, output, casted, specifier);
+                    }
+                    else if constexpr (std::is_invocable_r_v<bool, Callable, std::string&, Type*>) {
+                        return std::invoke(listener, output, casted);
+                    }
+                    else {
+                        static_assert(
+                            false, 
+                            "LogFormatEvent listener must be invocable with (std::string&, Type*, std::string_view) or (std::string&, Type*)"
+                        );
+                    }
                 }
-            )));
+                return ListenerResult::Propagate;
+            }, LogFormatEventMarker::COMPARABLE_DEPTH_MULTIPLIER * comparableDepth + priority);
         }
-        else {
-            static_assert(
-                false, 
-                "Format callback must be invocable as std::string(T*) or std::string(T*, std::string_view)"
-            );
+
+        template<class Callable>
+        ListenerHandle listen(Callable listener) const noexcept {
+            return ThreadSafeEvent::listen([listener = std::move(listener)](std::string& output, cocos2d::CCObject* obj, std::string_view specifier) {
+                if (auto casted = geode::cast::typeinfo_cast<Type*>(obj)) {
+                    if constexpr (std::is_invocable_r_v<bool, Callable, std::string&, Type*, std::string_view>) {
+                        return std::invoke(listener, output, casted, specifier);
+                    }
+                    else if constexpr (std::is_invocable_r_v<bool, Callable, std::string&, Type*>) {
+                        return std::invoke(listener, output, casted);
+                    }
+                    else {
+                        static_assert(
+                            false, 
+                            "LogFormatEvent listener must be invocable with (std::string&, Type*, std::string_view) or (std::string&, Type*)"
+                        );
+                    }
+                }
+                return ListenerResult::Propagate;
+            }, LogFormatEventMarker::getNextReversePriority());
         }
-    }
+    };
     
     template <class T>
     concept CocosPtr =     
@@ -247,9 +250,17 @@ struct fmt::formatter<geode::format::Wrapper> {
     auto format(geode::format::Wrapper const& wrapper, FormatContext& ctx) const noexcept {
         if (!wrapper.m_obj) return fmt::format_to(ctx.out(), "{}", "{ CCObject, null }");
 
-        auto result = geode::format::handleFormatImpl(wrapper.m_obj, specifier);
-        if (result) return fmt::format_to(ctx.out(), "{{ {} ({}), {} }}", geode::cocos::getObjectName(wrapper.m_obj), wrapper.m_obj->getTag(), result.unwrap());
+        std::string output;
+        auto res = geode::format::LogFormatEvent<cocos2d::CCObject>().send(output, wrapper.m_obj, specifier);
 
-        return fmt::format_to(ctx.out(), "{{ {} ({}), {} }}", geode::cocos::getObjectName(wrapper.m_obj), wrapper.m_obj->getTag(), fmt::ptr(wrapper.m_obj));
+        std::string tagString;
+        if (wrapper.m_obj->getTag() != cocos2d::kCCNodeTagInvalid) {
+            tagString = fmt::format(" ({})", wrapper.m_obj->getTag());
+        }
+
+        if (res == geode::ListenerResult::Stop || output.size() > 0) {
+            return fmt::format_to(ctx.out(), "{{ {}{}, {} }}", geode::cocos::getObjectName(wrapper.m_obj), tagString, output);
+        }
+        return fmt::format_to(ctx.out(), "{{ {}{}, {} }}", geode::cocos::getObjectName(wrapper.m_obj), tagString, fmt::ptr(wrapper.m_obj));
     }
 };

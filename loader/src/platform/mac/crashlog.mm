@@ -1,20 +1,7 @@
-#include <crashlog.hpp>
 #include <crashlogApple.hpp>
 
-#include <Geode/utils/string.hpp>
-#include <array>
 #include <thread>
 #include <filesystem>
-#include <execinfo.h>
-#include <dlfcn.h>
-#include <algorithm>
-#include <asp/iter.hpp>
-
-#include <mach-o/dyld_images.h>
-#include <mach-o/dyld.h>
-#define CommentType CommentTypeDummy
-#import <Foundation/Foundation.h>
-#undef CommentType
 
 using namespace geode::prelude;
 using namespace crashlog;
@@ -66,6 +53,12 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 		s_backtrace[s_backtraceSize] = nullptr;
 	}
 
+    // erase first frame since it's always the signal handler and we don't care about it
+    for (size_t i = 1; i < s_backtraceSize; i++) {
+        s_backtrace[i - 1] = s_backtrace[i];
+    }
+    if (s_backtraceSize > 0) s_backtraceSize--;
+
     {
         std::unique_lock<std::mutex> lock(s_mutex);
         s_signal = signal;
@@ -79,90 +72,6 @@ extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext)
 
     s_crashIter--;
 	std::_Exit(EXIT_FAILURE);
-}
-
-
-std::vector<StackFrame> CrashContext::getStacktrace() {
-    std::vector<StackFrame> frames;
-
-    auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
-
-    for (int i = 1; i < s_backtraceSize; i++) {
-        void* address = s_backtrace[i];
-        std::string_view symbolStr{messages[i]};
-
-        StackFrame frame{};
-        frame.address = reinterpret_cast<uintptr_t>(address);
-        frame.image = g_context.imageFromAddress(address);
-
-        // if this is inside GD code, use function starts and look up the function in the known function list
-        if (frame.image && frame.image->isGameBinary()) {
-            uintptr_t imageOffset = frame.imageOffset();
-            // find closest function start
-            auto const& funcs = getFunctionStarts();
-            auto iter = std::upper_bound(funcs.begin(), funcs.end(), imageOffset);
-            if (iter != funcs.begin()) {
-                --iter;
-                auto funcOffset = *iter;
-                auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
-                frame.offset = imageOffset - funcOffset;
-
-                if (funcName.empty()) {
-                    frame.symbol = fmt::format("sub_{:x}", funcOffset);
-                } else {
-                    frame.symbol = funcName;
-                }
-            }
-        } else {
-            // parse from backtrace_symbols, and use dladdr as fallback
-            auto [symbol, offset] = parseBacktraceSymbol(symbolStr);
-
-            Dl_info info{};
-            if (symbol.empty() && dladdr(address, &info)) {
-                if (info.dli_sname) {
-                    symbol = info.dli_sname;
-                    offset = reinterpret_cast<uintptr_t>(address) - reinterpret_cast<uintptr_t>(info.dli_saddr);
-                }
-            }
-
-            auto demangled = demangle(std::string{symbol}.c_str());
-            frame.symbol = demangled.empty() ? symbol : demangled;
-            frame.offset = offset;
-        }
-
-        frames.push_back(std::move(frame));
-    }
-
-    // parse extra information (debug data)
-
-    auto debugOutput = addr2Line();
-
-    for (auto [i, line] : asp::iter::split(debugOutput, '\n').enumerate()) {
-        // grab the right parens
-        auto lastParen = line.rfind(')');
-        auto startParen = line.rfind('(', lastParen);
-        if (startParen == std::string::npos || lastParen == std::string::npos) {
-            continue;
-        }
-
-        auto inner = std::string_view{line}.substr(startParen + 1, lastParen - startParen - 1);
-        auto colon = inner.rfind(':');
-        if (colon == std::string::npos) {
-            continue;
-        }
-
-        auto file = inner.substr(0, colon);
-        auto lineStr = inner.substr(colon + 1);
-        auto lineNum = geode::utils::numFromString<uint32_t>(lineStr).unwrapOr(0);
-
-        auto& frame = frames[i];
-        frame.file = file;
-        frame.line = lineNum;
-    }
-
-    free(messages);
-
-    return frames;
 }
 
 static void handlerThread() {

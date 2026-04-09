@@ -390,7 +390,7 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
     RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(buffer.data());
     if (raw->header.dwType == RIM_TYPEKEYBOARD) {
         auto const& kb = raw->data.keyboard;
-        bool isDown = !(kb.Flags & RI_KEY_BREAK);
+        bool isDown = !(kb.Flags & RI_KEY_BREAK || kb.Message == WM_KEYUP);
         bool isE0 = (kb.Flags & RI_KEY_E0) != 0;
 
         uint16_t actualVKey = getActualVKey(kb.VKey, kb.MakeCode, kb.Flags);
@@ -553,7 +553,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         for (auto const& b : btns) {
             bool isDown = (evt.mouse.flags & b.down) != 0;
             bool isUp = (evt.mouse.flags & b.up) != 0;
-            if (isDown || isUp) {
+            if ((isDown && m_fMouseX >= 0.f && m_fMouseY >= 0.f) || isUp) {
                 MouseInputData data(
                     b.btn,
                     isDown ? Press : Release,

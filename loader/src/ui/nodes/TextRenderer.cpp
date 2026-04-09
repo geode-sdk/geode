@@ -489,7 +489,7 @@ void TextRenderer::breakLine(float incY) {
     }
     if (h > y) y = h;
     m_cursor.y -= y;
-    m_cursor.x = m_origin.x;
+    m_cursor.x = m_origin.x + this->getCurrentIndent();
 }
 
 float TextRenderer::adjustLineAlignment() {

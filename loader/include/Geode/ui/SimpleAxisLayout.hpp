@@ -189,6 +189,11 @@ public:
      */
     SimpleAxisLayout* ignoreInvisibleChildren(bool ignore = true);
     bool isIgnoreInvisibleChildren() const;
+    /**
+     * Sets the padding inside the layout, which is the empty space between the
+     * layout's border and its children. The default is set to 0 on all sides
+     */
+    SimpleAxisLayout* setPadding(Padding const& padding);
 
     Axis getAxis() const;
     AxisScaling getMainAxisScaling() const;
@@ -200,6 +205,7 @@ public:
     float getGap() const;
     std::optional<float> getMinRelativeScale() const;
     std::optional<float> getMaxRelativeScale() const;
+    Padding getPadding() const;
 };
 
 class GEODE_DLL SimpleRowLayout final : public SimpleAxisLayout {

@@ -4,6 +4,15 @@
 
 #include <mach-o/dyld_images.h>
 #include <mach-o/dyld.h>
+#include <array>
+#include <execinfo.h>
+#include <dlfcn.h>
+#include <cxxabi.h>
+#include <asp/iter.hpp>
+
+#define CommentType CommentTypeDummy
+#import <Foundation/Foundation.h>
+#undef CommentType
 
 using namespace geode::prelude;
 using namespace crashlog;
@@ -137,14 +146,44 @@ static std::string executeCommand(ZStringView cmd) {
     return stream.str();
 }
 
-static std::string addr2Line() {
+struct FrameDebugInfo {
+    std::string file;
+    uint32_t line;
+};
+
+static std::vector<FrameDebugInfo> addr2Line() {
     StringBuffer<> stream;
     stream.append("atos --fullPath -p {} ", getpid());
-    for (int i = 1; i < s_backtraceSize; ++i) {
+    for (int i = 0; i < s_backtraceSize; ++i) {
         stream.append("{} ", s_backtrace[i]);
     }
-    // std::cout << "command: " << stream.str() << std::endl;
-    return executeCommand(stream.str());
+
+    auto output = executeCommand(stream.str());
+
+    return asp::iter::split(output, '\n')
+        .map([](std::string_view line) -> FrameDebugInfo {
+            // grab the right parens
+            auto lastParen = line.rfind(')');
+            auto startParen = line.rfind('(', lastParen);
+            if (startParen == std::string::npos || lastParen == std::string::npos) {
+                return {};
+            }
+
+            auto inner = std::string_view{line}.substr(startParen + 1, lastParen - startParen - 1);
+            auto colon = inner.rfind(':');
+            if (colon == std::string::npos) {
+                return {};
+            }
+
+            auto file = inner.substr(0, colon);
+            auto lineStr = inner.substr(colon + 1);
+            auto lineNum = geode::utils::numFromString<uint32_t>(lineStr);
+
+            if (!lineNum) return {};
+
+            return { std::string(file), lineNum.unwrap() };
+        })
+        .collect();
 }
 
 static uint64_t decodeULEB128(const uint8_t*& p) {
@@ -221,4 +260,66 @@ static std::pair<std::string_view, uintptr_t> parseBacktraceSymbol(std::string_v
 
     auto symbol = leftPart.substr(lastSpacePos + 1);
     return { symbol, offset };
+}
+
+std::vector<StackFrame> CrashContext::getStacktrace() {
+    std::vector<StackFrame> frames;
+
+    auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
+
+    for (int i = 0; i < s_backtraceSize; i++) {
+        void* address = s_backtrace[i];
+        std::string_view symbolStr{messages[i]};
+
+        StackFrame frame{};
+        frame.address = reinterpret_cast<uintptr_t>(address);
+        frame.image = g_context.imageFromAddress(address);
+
+        // if this is inside GD code, use function starts and look up the function in the known function list
+        if (frame.image && frame.image->isGameBinary()) {
+            uintptr_t imageOffset = frame.imageOffset();
+            // find closest function start
+            auto const& funcs = getFunctionStarts();
+            auto iter = std::upper_bound(funcs.begin(), funcs.end(), imageOffset);
+            if (iter != funcs.begin()) {
+                --iter;
+                auto funcOffset = *iter;
+                auto funcName = crashlog::lookupFunctionByOffset(funcOffset);
+                frame.offset = imageOffset - funcOffset;
+
+                if (funcName.empty()) {
+                    frame.symbol = fmt::format("sub_{:x}", funcOffset);
+                } else {
+                    frame.symbol = funcName;
+                }
+            }
+        } else {
+            // parse from backtrace_symbols, and use dladdr as fallback
+            auto [symbol, offset] = parseBacktraceSymbol(symbolStr);
+
+            Dl_info info{};
+            if (symbol.empty() && dladdr(address, &info)) {
+                if (info.dli_sname) {
+                    symbol = info.dli_sname;
+                    offset = reinterpret_cast<uintptr_t>(address) - reinterpret_cast<uintptr_t>(info.dli_saddr);
+                }
+            }
+
+            auto demangled = demangle(std::string{symbol}.c_str());
+            frame.symbol = demangled.empty() ? symbol : demangled;
+            frame.offset = offset;
+        }
+
+        frames.push_back(std::move(frame));
+    }
+
+    free(messages);
+
+    // parse extra information (debug data)
+    for (auto& [i, dframe] : asp::iter::consume(addr2Line()).enumerate()) {
+        frames[i].file = std::move(dframe.file);
+        frames[i].line = dframe.line;
+    }
+
+    return frames;
 }

@@ -1,5 +1,35 @@
 # Geode Changelog
 
+## v5.5.3
+ * Use legacy messages for detecting isDown (5d0e824)
+ * Dont show unloaded mods in keybinds popup (f72a7cc)
+ * Fix MDTextArea culling (#1975)
+ * Enforce UTF-8 when calculating hashes (4cec228)
+
+## v5.5.2
+ * Fix transition breaking the Sapphire Popup
+
+## v5.5.1
+ * Fix JIT-less iOS bug
+
+## v5.5.0
+ * Add `allow-in-text-inputs` option for keybinds (d57cd23)
+ * Add `LogFormatEvent` to allow for registering custom object formatters (d1589cb)
+ * Add more default formatters and implement raw specifier (#1890)
+ * Add warning popup when disabling mod with dependencies (ec2f06d)
+ * Add check for GD version while building a mod (0d97b3f)
+ * Implement url checks to `openLinkInBrowser`, and then add `openLinkUnsafe` as an alternative (#1971)
+ * Allow setting Escape as a keybind (5d63661)
+ * Fix stuck inputs bug with modifier keys (c6bae4f)
+ * Fix mouse events being triggered when clicking the titlebar on Windows (ffd8b86)
+ * Fix CTRL key being stuck after zooming with the trackpad on specific hardware (ba1d352)
+ * Force web progress callbacks to be destroyed on main thread (80a912d)
+ * Fix a crash in the Android crash handler while including a check for crash handler crashes (85ef2bf)
+ * Fix data race in `EventCenterGlobal` which caused some event crashes (f7117da)
+ * Fix use-after-free with a null assignment to a `WeakRef` (bb849a6)
+ * Show generic source icon for mods not hosted on GitHub (ad76de8)
+ * Improvements to the crash handler on macOS and iOS (04e8eeb, 0bb8fca, 27fc7fd)
+
 ## v5.4.1
  * Revert `CCEGLView::get` change (9cdbf5c)
  * Fix crash when entering Geode menu without resources (000c5a1, 5b4210e)

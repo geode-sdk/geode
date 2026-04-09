@@ -252,6 +252,9 @@ Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
+    // skip disabled mods
+    if (!mod->isOrWillBeEnabled()) return;
+    
     if (!mod->isInternal()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
@@ -391,13 +394,30 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
             bool down = data.action != KeyboardInputData::Action::Release;
             bool repeat = data.action == KeyboardInputData::Action::Repeat;
 
+            if(!down) {
+                for (auto& [setting, activeKeybind] : m_activeKeybinds) {
+                    if (activeKeybind.key == data.key) {
+                        KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
+                    }
+                }
+
+                std::erase_if(m_activeKeybinds, [&](auto& pair) {
+                    return pair.second.key == data.key;
+                });
+            }
+
             auto it = m_keybindSettings.find(keybind);
             if (it == m_keybindSettings.end()) {
                 return ListenerResult::Propagate;
             }
 
+            bool imeActive = CCIMEDispatcher::sharedDispatcher()->hasDelegate();
+
             if (down) {
                 for (auto& setting : it->second) {
+                    if (imeActive && !setting->getAllowInTextInputs()) {
+                        continue;
+                    }
                     if (!repeat) m_activeKeybinds[setting.get()] = keybind;
                     if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
                         return ListenerResult::Stop;
@@ -1302,7 +1322,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                 "<cy>Do you want to delete the original file?</c>",
                 meta.getName()
             ),
-            "OK", "Delete File",
+            "Keep", "Delete",
             [path](auto, bool btn2) {
                 if (btn2) {
                     std::error_code ec;

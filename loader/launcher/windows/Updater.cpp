@@ -8,6 +8,9 @@ std::filesystem::path geodeDir;
 std::filesystem::path updatesDir;
 std::filesystem::path resourcesDir;
 
+constexpr static auto MAX_PATH_CHARS = 32768u;
+constexpr wchar_t VCREDIST_LINK[] = L"https://aka.ms/vc14/vc_redist.x64.exe";
+
 void showError(std::wstring const& error) {
     MessageBoxW(nullptr, error.c_str(), L"Error Loading Geode", MB_ICONERROR);
 }
@@ -111,6 +114,37 @@ void updateResources() {
     }
 }
 
+DWORD WINAPI vcredistThread(LPVOID lpParam) {
+    HRESULT coHr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
+    std::wstring tempPath(MAX_PATH_CHARS, L'\0');
+    DWORD size = GetTempPathW(tempPath.size(), tempPath.data());
+    if (size && size < tempPath.size()) {
+        tempPath.resize(size);
+        tempPath += L"geode_vc_redist.x64.exe";
+    }
+
+    HRESULT hr = URLDownloadToFileW(NULL, VCREDIST_LINK, tempPath.c_str(), 0, NULL);
+
+    if (SUCCEEDED(hr)) {
+        ShellExecuteW(NULL, L"open", tempPath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+    } else {
+        ShellExecuteW(NULL, L"open", VCREDIST_LINK, NULL, NULL, SW_SHOWNORMAL);
+    }
+
+    if (SUCCEEDED(coHr)) CoUninitialize();
+    
+    return 0;
+}
+
+void updateRedist() {
+    auto thread = CreateThread(NULL, 0, vcredistThread, NULL, 0, NULL);
+    if (thread) {
+        WaitForSingleObject(thread, INFINITE);
+        CloseHandle(thread);
+    }
+}
+
 int main(int argc, char* argv[]) {
     workingDir = std::filesystem::current_path();
     geodeDir = workingDir / "geode";
@@ -142,6 +176,11 @@ int main(int argc, char* argv[]) {
             ShellExecuteW(NULL, L"open", L"https://geode-sdk.org/install", NULL, NULL, TRUE);
         }
 
+        return 0;
+    }
+
+    if (std::string_view(argv[1]) == "/redist") {
+        updateRedist();
         return 0;
     }
 

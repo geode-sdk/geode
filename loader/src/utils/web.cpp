@@ -1830,3 +1830,25 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
         log::debug("DNS server {}: score {:.3f}", candidates[i].name, results[i]);
     }
 }
+
+void utils::web::openLinkInBrowser(ZStringView url) {
+    // evil path check for windows
+    auto urlView = url.view();
+    if (urlView.contains("#:")) {
+        return;
+    }
+
+    auto schemeEnd = urlView.find_first_of(':');
+    if (schemeEnd == std::string_view::npos) {
+        return;
+    }
+
+    std::string scheme{urlView.substr(0, schemeEnd)};
+    utils::string::toLowerIP(scheme);
+
+    if (scheme != "https" && scheme != "http" && scheme != "mailto") {
+        return;
+    }
+
+    openLinkUnsafe(url);
+}

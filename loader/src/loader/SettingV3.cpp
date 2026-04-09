@@ -1185,6 +1185,7 @@ public:
     std::optional<KeybindCategory> category;
     std::optional<std::string> migrateFrom;
     int m_priority = 0;
+    bool m_allowInTextInputs = false;
 };
 
 KeybindSettingV3::KeybindSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
@@ -1209,6 +1210,7 @@ Result<std::shared_ptr<KeybindSettingV3>> KeybindSettingV3::parse(std::string ke
     }
     root.has("migrate-from").into(ret->m_impl->migrateFrom);
     root.has("priority").into(ret->m_impl->m_priority);
+    root.has("allow-in-text-inputs").into(ret->m_impl->m_allowInTextInputs);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
@@ -1260,6 +1262,9 @@ std::optional<std::string> KeybindSettingV3::getMigrateFrom() const {
 }
 int KeybindSettingV3::getPriority() const {
     return m_impl->m_priority;
+}
+bool KeybindSettingV3::getAllowInTextInputs() const {
+    return m_impl->m_allowInTextInputs;
 }
 
 void KeybindSettingV3::setValue(std::vector<Keybind> value) {
