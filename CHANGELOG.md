@@ -9,6 +9,7 @@
  * Update TulipHook to fix several jitless iOS crashes (b8c36af)
  * Add more descriptive errors for Geode load failures (2b3d10f)
  * Add a notification when showing deprecations (98c210e)
+ * Add .nomedia directly to resources to help with Android resource updater issues (ba4dad3)
  * Prompt vcredist update if it's out of date (56a677c)
  * Change the `CCFileUtils` hooks to hook per-platform methods, fixing iOS hook (dcdd139, c3c817a, 24cf733, ad3f1aa)
  * Make `modify_cast` more powerful (#1884)
@@ -17,6 +18,7 @@
  * Fix `LazySprite` crash if the sprite is removed from within the load callback (4be3da0)
  * Fix markdown indentation on newlines (#1987)
  * Fix German translation for installer (#1986)
+ * Remove the counterproductive "Please share the whole crash log" line from crash logs (920a922)
  * Translate English strings to Polish in the installer (#1995)
  * Sapphire SDK can no longer be activated.
 
