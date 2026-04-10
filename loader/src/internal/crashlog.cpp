@@ -282,8 +282,6 @@ std::string crashlog::writeCrashlog(
         );
     }
 
-    file.append("\nPlease share the whole crash log when asking for help.\n");
-
     // geode info
     file.append("\n== Geode Information ==\n");
     printGeodeInfo(file);
