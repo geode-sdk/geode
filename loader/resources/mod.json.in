@@ -45,6 +45,7 @@
             "swelve/*.png"
         ],
         "files": [
+            ".nomedia",
             "sounds/*.ogg",
             "about.md",
             "changelog.md",
