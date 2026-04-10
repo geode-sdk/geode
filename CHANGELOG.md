@@ -1,5 +1,25 @@
 # Geode Changelog
 
+## v5.6.0
+ * Map joystick inputs to key inputs on Android (#2005)
+ * Add theming support (#2009)
+ * Add `NodeEvent` and `MenuItemActivatedEvent` (#1964)
+ * Add padding to `AxisLayout` and `SimpleAxisLayout` (#1999)
+ * Event port v3 with improved thread safety (#2003)
+ * Update TulipHook to fix several jitless iOS crashes (b8c36af)
+ * Add more descriptive errors for Geode load failures (2b3d10f)
+ * Add a notification when showing deprecations (98c210e)
+ * Prompt vcredist update if it's out of date (56a677c)
+ * Change the `CCFileUtils` hooks to hook per-platform methods, fixing iOS hook (dcdd139, c3c817a, 24cf733, ad3f1aa)
+ * Make `modify_cast` more powerful (#1884)
+ * Fix disabled mods still loading their spritesheets (#1934)
+ * Fix Android not deleting the last crashed file (9f0284d)
+ * Fix `LazySprite` crash if the sprite is removed from within the load callback (4be3da0)
+ * Fix markdown indentation on newlines (#1987)
+ * Fix German translation for installer (#1986)
+ * Translate English strings to Polish in the installer (#1995)
+ * Sapphire SDK can no longer be activated.
+
 ## v5.5.3
  * Use legacy messages for detecting isDown (5d0e824)
  * Dont show unloaded mods in keybinds popup (f72a7cc)
