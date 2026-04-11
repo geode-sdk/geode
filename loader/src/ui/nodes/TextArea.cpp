@@ -365,6 +365,13 @@ public:
 
     void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) override;
     void formatRichText();
+
+    void processLinkClick(
+        std::string const& link,
+        bool keyDown,
+        cocos2d::CCFontSprite* specificSpriteClicked,
+        std::set<cocos2d::CCFontSprite*> const& wordClicked
+    );
 };
 
 RichTextArea* RichTextArea::create(std::string text, std::string font, float scale) {
@@ -487,26 +494,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
             return Ok(value);
         },
         [&](std::string const& value, bool keyDown, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked) {
-            auto castedImpl = this->castedImpl();
-
-            if (keyDown){
-                for (const auto& linkCharacter : wordClicked)
-                {
-                    castedImpl->m_ogColorForLink.insert({linkCharacter, linkCharacter->getColor()});
-
-                    linkCharacter->setColor({ 78, 78, 255 });
-                }
-            }
-            else {
-                for (const auto& linkCharacter : wordClicked) {
-                    if (castedImpl->m_ogColorForLink.contains(linkCharacter)) {
-                        linkCharacter->setColor(castedImpl->m_ogColorForLink[linkCharacter]);
-                    }
-                }
-
-                if (specificSpriteClicked != nullptr)
-                    web::openLinkInBrowser(value);
-            }
+            this->castedImpl()->processLinkClick(value, keyDown, specificSpriteClicked, wordClicked);
         }
     ));
 
@@ -658,6 +646,32 @@ void RichTextArea::RichImpl::formatRichText() {
         m_richTextInstances[index + prevExtraOffset] = std::move(keys);
 
         prevExtraOffset = textAdditionOverallOffset;
+    }
+}
+
+void RichTextArea::RichImpl::processLinkClick(
+    std::string const& link,
+    bool keyDown,
+    cocos2d::CCFontSprite* specificSpriteClicked,
+    std::set<cocos2d::CCFontSprite*> const& wordClicked
+){
+    if (keyDown){
+        for (const auto& linkCharacter : wordClicked)
+        {
+            this->m_ogColorForLink.insert({linkCharacter, linkCharacter->getColor()});
+
+            linkCharacter->setColor({ 78, 78, 255 });
+        }
+    }
+    else {
+        for (const auto& linkCharacter : wordClicked) {
+            if (this->m_ogColorForLink.contains(linkCharacter)) {
+                linkCharacter->setColor(this->m_ogColorForLink[linkCharacter]);
+            }
+        }
+
+        if (specificSpriteClicked != nullptr)
+            web::openLinkInBrowser(link);
     }
 }
 
