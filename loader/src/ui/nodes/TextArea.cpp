@@ -522,6 +522,8 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
 
     std::map<std::shared_ptr<RichTextKeyInstanceBase>, int> m_charIndexForInstance{};
 
+    m_charactersForButton.clear();
+
     int index = 0;
     for (const char& c : m_text) {
         if (m_richTextInstances.contains(index)){
@@ -675,7 +677,13 @@ void RichTextArea::RichImpl::processLinkClick(
     if (keyDown){
         for (const auto& linkCharacter : wordClicked)
         {
-            this->m_ogColorForLink.insert({linkCharacter, linkCharacter->getColor()});
+            this->m_ogColorForLink.insert({
+                linkCharacter,
+                linkCharacter->getColor() == ccColor3B{255, 255, 255} ? 
+                    ccColor3B{m_self->getColor().r, m_self->getColor().g, m_self->getColor().b} :
+                    linkCharacter->getColor()
+                }
+            );
 
             linkCharacter->setColor({ 78, 78, 255 });
         }
@@ -710,8 +718,10 @@ bool RichTextArea::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
     {
         for (const auto& fontSpr : textForBtn)
         {
-            auto touchInSpace = fontSpr->getParent()->convertTouchToNodeSpace(pTouch);
-            if (fontSpr->boundingBox().containsPoint(touchInSpace)){
+            if (fontSpr == nullptr) continue;
+
+            auto touchInSpace = fontSpr->convertTouchToNodeSpace(pTouch);
+            if (touchInSpace.x > 0 && touchInSpace.y > 0 && touchInSpace.x <= fontSpr->getContentWidth() && touchInSpace.y <= fontSpr->getContentHeight()){
                 btnKey->callButton(true, fontSpr, textForBtn);
                 this->castedImpl()->m_currentlyHeldButton = btnKey;
                 return true;
@@ -728,8 +738,10 @@ void RichTextArea::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent){
 
         for (const auto& fontSpr : textForBtn)
         {
-            auto touchInSpace = fontSpr->getParent()->convertTouchToNodeSpace(pTouch);
-            if (fontSpr->boundingBox().containsPoint(touchInSpace)){
+            if (fontSpr == nullptr) continue;
+
+            auto touchInSpace = fontSpr->convertTouchToNodeSpace(pTouch);
+            if (touchInSpace.x > 0 && touchInSpace.y > 0 && touchInSpace.x <= fontSpr->getContentWidth() && touchInSpace.y <= fontSpr->getContentHeight()){
                 this->castedImpl()->m_currentlyHeldButton->callButton(false, fontSpr, textForBtn);
                 this->castedImpl()->m_currentlyHeldButton = nullptr;
                 return;
