@@ -74,7 +74,7 @@ namespace geode {
     class RichTextKeyInstanceBase {
     public:
         virtual ~RichTextKeyInstanceBase() = default;
-        virtual void applyChangesToSprite(cocos2d::CCFontSprite* spr, int index) = 0;
+        virtual void applyChangesToSprite(cocos2d::CCFontSprite* spr, int localIndex, int index) = 0;
         virtual std::string getKey() const = 0;
         virtual bool isCancellation() const = 0;
         virtual std::string runStrAddition() = 0;
@@ -92,9 +92,9 @@ namespace geode {
         T m_value;
         bool m_cancellation = false;
 
-        void applyChangesToSprite(cocos2d::CCFontSprite* spr, int index) override {
+        void applyChangesToSprite(cocos2d::CCFontSprite* spr, int localIndex, int index) override {
             if (m_key->m_applyToSprite != NULL)
-                m_key->m_applyToSprite(m_value, spr, index);
+                m_key->m_applyToSprite(m_value, spr, localIndex, index);
         }
 
         std::string getKey() const override {
@@ -155,7 +155,7 @@ namespace geode {
         RichTextKey(
             std::string key,
             geode::Function<Result<T>(std::string const& value)> validCheck,
-            geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int charIndex)> applyToSprite
+            geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex)> applyToSprite
         ) : m_key(std::move(key)),
             m_validCheck(std::move(validCheck)),
             m_applyToSprite(std::move(applyToSprite)) {}
@@ -180,7 +180,7 @@ namespace geode {
         RichTextKey(
             std::string key,
             geode::Function<Result<T>(std::string const& value)> validCheck,
-            geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int charIndex)> applyToSprite,
+            geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex)> applyToSprite,
             geode::Function<std::string(T const& value)> stringAddition
         ) : m_key(std::move(key)),
             m_validCheck(std::move(validCheck)),
@@ -215,7 +215,7 @@ namespace geode {
 
     public:
         geode::Function<Result<T>(std::string const& value)> m_validCheck = NULL;
-        geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int charIndex)> m_applyToSprite = NULL;
+        geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex)> m_applyToSprite = NULL;
         geode::Function<std::string(T const& value)> m_stringAddition = NULL;
         geode::Function<void(
                 T const& value,

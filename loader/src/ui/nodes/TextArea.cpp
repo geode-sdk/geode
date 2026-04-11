@@ -410,7 +410,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(colorRes.unwrap());
         },
-        [](ccColor3B const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
+        [](ccColor3B const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
             sprite->setColor({ value.r, value.g, value.b });
         }
     ));
@@ -426,7 +426,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(value == "true");
         },
-        [](bool const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
+        [](bool const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
             sprite->setFlipY(value);
         }
     ));
@@ -442,7 +442,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(value == "true");
         },
-        [](bool const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
+        [](bool const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
             sprite->setFlipX(value);
         }
     ));
@@ -468,7 +468,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(numRes.unwrap());
         },
-        [](float const& value, cocos2d::CCFontSprite* sprite, int charIndex) {
+        [](float const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
             sprite->setScale(value);
         }
     ));
@@ -520,6 +520,8 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
 
     std::map<std::string, std::shared_ptr<RichTextKeyInstanceBase>> appliedRichTextInstances{};
 
+    std::map<std::shared_ptr<RichTextKeyInstanceBase>, int> m_charIndexForInstance{};
+
     int index = 0;
     for (const char& c : m_text) {
         if (m_richTextInstances.contains(index)){
@@ -527,12 +529,15 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
                 if (appliedRichTextInstances.contains(instancePtr->getKey())) {
                     if (instancePtr->isCancellation()){
                         appliedRichTextInstances.erase(instancePtr->getKey());
+                        m_charIndexForInstance.erase(instancePtr);
                     }
                     else{
                         appliedRichTextInstances[instancePtr->getKey()] = instancePtr;
+                        m_charIndexForInstance[instancePtr] = 0;
                     }
                 } else {
                     appliedRichTextInstances.insert({instancePtr->getKey(), instancePtr});
+                    m_charIndexForInstance[instancePtr] = 0;
                 }
             }
         }
@@ -563,7 +568,7 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
             for (const auto& [key, instancePtr] : appliedRichTextInstances) {
                 auto lastChar = static_cast<cocos2d::CCFontSprite*>(line->getChildren()->lastObject());
                 
-                instancePtr->applyChangesToSprite(lastChar, index);
+                instancePtr->applyChangesToSprite(lastChar, m_charIndexForInstance[instancePtr], index);
 
                 if (instancePtr->isButton()){
                     if (!instancePtr->isCancellation()){
@@ -576,6 +581,10 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
                     }
                 }
 
+            }
+
+            for (const auto& [instancePtr, _] : appliedRichTextInstances) {
+                m_charIndexForInstance[_]++;
             }
         }
     }
