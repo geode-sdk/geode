@@ -50,7 +50,7 @@ inline bool hasSignalDetail(int signal) {
     return signal == SIGILL || signal == SIGFPE || signal == SIGSEGV || signal == SIGBUS || signal == SIGTRAP;
 }
 
-#ifdef GEODE_IS_ANDROID
+#ifdef GEODE_IS_ANDROID64
 inline ssize_t safeMemoryRead(void* buf, const void* src, size_t size) {
     struct iovec local { buf, size };
     struct iovec remote { const_cast<void*>(src), size };
@@ -82,20 +82,33 @@ inline void describeInstructionBytes(crashlog::Buffer& stream, const uint8_t* by
 }
 
 inline void tryWriteSigillInstruction(crashlog::Buffer& stream, void* address) {
-    // read a couple instructions before & after
     uintptr_t addr = reinterpret_cast<uintptr_t>(address);
-    uintptr_t readStart = (addr - 8) & 4;
-    size_t readSize = (addr - readStart) + 8;
-
     uint8_t buf[128];
-    auto result = safeMemoryRead(buf, reinterpret_cast<void*>(readStart), readSize);
-    if (result > 0) {
-        describeInstructionBytes(stream, buf, result, addr - readStart);
-        return;
+
+    // read a couple instructions before & after the target
+    size_t bytesBefore = 8;
+    size_t bytesAfter = 8;
+
+    while (true) {
+        uintptr_t readStart = (addr - bytesBefore) & ~0x3; // align to 4 bytes
+        size_t readSize = (addr - readStart) + 4 + bytesAfter;
+
+        auto result = safeMemoryRead(buf, reinterpret_cast<void*>(readStart), readSize);
+        if (result > 0) {
+            describeInstructionBytes(stream, buf, result, addr - readStart);
+            return;
+        }
+
+        __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Failed to read inst at %p with before=%zu after=%zu; err=%d", address, bytesBefore, bytesAfter, errno);
+
+        if (bytesBefore == 0) break;
+
+        bytesBefore -= 4;
+        bytesAfter -= 4;
     }
 
-    // try to read just the faulting instruction if fails
-    result = safeMemoryRead(buf, address, 4);
+    // try to read just the faulting 4 bytes if everything fails
+    auto result = safeMemoryRead(buf, address, 4);
     if (result > 0) {
         describeInstructionBytes(stream, buf, result, 0);
         return;
@@ -110,7 +123,7 @@ inline void writeSignalDetail(crashlog::Buffer& stream, crashlog::CrashContext& 
         case SIGILL: {
             stream.append("Illegal instruction was encountered at ");
             ctx.formatAddress(siginfo->si_addr, stream);
-#ifdef GEODE_IS_ANDROID
+#ifdef GEODE_IS_ANDROID64
             tryWriteSigillInstruction(stream, siginfo->si_addr);
 #endif
         } break;
