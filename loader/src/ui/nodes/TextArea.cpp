@@ -361,6 +361,8 @@ public:
     std::map<std::shared_ptr<RichTextKeyInstanceBase>, std::set<CCFontSprite*>> m_charactersForButton{};
     std::shared_ptr<RichTextKeyInstanceBase> m_currentlyHeldButton = nullptr;
 
+    std::string m_rawText;
+
     std::map<CCFontSprite*, ccColor3B> m_ogColorForLink{};
 
     void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) override;
@@ -498,10 +500,16 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
+    castedImpl()->m_rawText = m_impl->m_text;
+
     castedImpl()->formatRichText();
     m_impl->updateContainer();
 
     return true;
+}
+
+std::string RichTextArea::getRawText(){
+    return castedImpl()->m_rawText;
 }
 
 void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) {
@@ -710,6 +718,7 @@ Result<std::shared_ptr<RichTextKeyInstanceBase>> RichTextKey<T>::createInstance(
 
 void RichTextArea::setText(std::string text) {
     m_impl->m_text = std::move(text);
+    castedImpl()->m_rawText = m_impl->m_text;
     castedImpl()->formatRichText();
     m_impl->updateContainer();
 }
