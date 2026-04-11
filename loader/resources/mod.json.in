@@ -16,7 +16,6 @@
         "homepage": "https://geode-sdk.org",
         "source": "https://github.com/geode-sdk/geode"
     },
-    "repository": "https://github.com/geode-sdk/geode",
     "resources": {
         "fonts": {
             "mdFont": {
