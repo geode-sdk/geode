@@ -36,14 +36,14 @@ runs:
     if: inputs.host == 'mac' && inputs.use-ccache
 
   - name: Setup sccache
-    uses: hendrikmuhs/ccache-action@v1.2.13
+    uses: hendrikmuhs/ccache-action@v1.2.22
     with:
       variant: sccache
       key: ${{ inputs.target }}-v1
     if: inputs.use-ccache
 
   - name: Setup CPM Cache
-    uses: actions/cache@v4
+    uses: actions/cache@v5.0.4
     with:
       path: cpm-cache
       key: cpm-${{ inputs.target }}-v1-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
@@ -51,7 +51,7 @@ runs:
         cpm-${{ inputs.target }}-v1-
 
   - name: Setup info.rc Cache
-    uses: actions/cache@v4
+    uses: actions/cache@v5.0.4
     with:
       path: build/**/info.rc*
       key: rc-${{ inputs.target }}-v1-${{ hashFiles('VERSION', 'loader/CMakeLists.txt', 'loader/src/platform/windows/info.rc.in') }}
