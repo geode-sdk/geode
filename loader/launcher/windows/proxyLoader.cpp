@@ -26,7 +26,7 @@ constexpr wchar_t BAD_EXE_FORMAT_ERROR[] = L"Your installation of Geode is corru
     "To fix this issue, please download the installer again and re-install Geode.\n\n"
     "Open the download page?";
 constexpr wchar_t SMART_APP_CONTROL_ERROR[] = L"Your installation of Geode is being blocked by Smart App Control.\n\n"
-    "Windows prevented the mod from loading because it is an unrecognized application. "
+    "Windows prevented Geode from loading because it is an unrecognized application. "
     "This is a security feature in Windows that blocks applications "
     "from small developers - including most Geometry Dash mods."
     "\n\n"
