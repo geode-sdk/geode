@@ -206,8 +206,6 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID _) {
             }
         }
 
-        CreateThread(NULL, 0, &errorThread, reinterpret_cast<LPVOID>(static_cast<DWORD64>(4551)), 0, NULL);
-
         // This is UB.
         if (LoadLibraryW(L"Geode.dll") == NULL) {
             const auto param = reinterpret_cast<LPVOID>(static_cast<DWORD64>(GetLastError()));
