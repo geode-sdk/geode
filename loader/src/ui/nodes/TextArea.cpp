@@ -402,7 +402,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
 
-    registerRichTextKey<ccColor3B>(std::make_shared<RichTextKey<ccColor3B>>(
+    registerRichTextKey(std::make_shared<RichTextKey<ccColor3B>>(
         "color",
         [](std::string value) -> Result<ccColor3B> {
             auto colorRes = cc3bFromHexString(value);
@@ -415,7 +415,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    registerRichTextKey<bool>(std::make_shared<RichTextKey<bool>>(
+    registerRichTextKey(std::make_shared<RichTextKey<bool>>(
         "flip",
         [](std::string value) -> Result<bool> {
             if (value == "") return Ok(true);
@@ -431,7 +431,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    registerRichTextKey<bool>(std::make_shared<RichTextKey<bool>>(
+    registerRichTextKey(std::make_shared<RichTextKey<bool>>(
         "mirror",
         [](std::string value) -> Result<bool> {
             if (value == "") return Ok(true);
@@ -447,7 +447,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    registerRichTextKey<std::time_t>(std::make_shared<RichTextKey<std::time_t>>(
+    registerRichTextKey(std::make_shared<RichTextKey<std::time_t>>(
         "workingTime",
         [](std::string value) -> Result<std::time_t> {
             auto timeRes = geode::utils::numFromString<time_t>(value);
@@ -460,7 +460,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    registerRichTextKey<float>(std::make_shared<RichTextKey<float>>(
+    registerRichTextKey(std::make_shared<RichTextKey<float>>(
         "size",
         [](std::string value) -> Result<float> {
             auto numRes = geode::utils::numFromString<float>(value);
@@ -474,7 +474,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     ));
 
     // maybe one day someone will make this work but its fine :(
-    // registerRichTextKey<std::string>(std::make_shared<RichTextKey<std::string>>(
+    // registerRichTextKey(std::make_shared<RichTextKey<std::string>>(
     //     "font",
     //     [](std::string value) -> Result<std::string> {
     //         auto temp = CCLabelBMFont::create("Test", value.c_str());
@@ -490,7 +490,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     //     }
     // ));
 
-    registerRichTextKey<std::string>(std::make_shared<RichTextKey<std::string>>(
+    registerRichTextKey(std::make_shared<RichTextKey<std::string>>(
         "link",
         [](std::string value) -> Result<std::string> {
             return Ok(value);
@@ -723,8 +723,7 @@ void RichTextArea::setText(std::string text) {
     m_impl->updateContainer();
 }
 
-template <class T>
-void RichTextArea::registerRichTextKey(std::shared_ptr<RichTextKey<T>> key){
+void RichTextArea::registerRichTextKey(std::shared_ptr<RichTextKeyBase> key){
     if (this->castedImpl()->m_richTextKeys.contains(key->getKey())) return;
 
     this->castedImpl()->m_richTextKeys.insert({key->getKey(), key});

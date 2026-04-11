@@ -209,8 +209,7 @@ namespace geode {
         void setText(std::string text) override;
         std::string getRawText();
 
-        template<class T>
-        void registerRichTextKey(std::shared_ptr<RichTextKey<T>> key);
+        void registerRichTextKey(std::shared_ptr<RichTextKeyBase> key);
     protected:
         RichTextArea();
         ~RichTextArea();
