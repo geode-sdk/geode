@@ -41,16 +41,19 @@ char const* getUsefulError(DWORD code) {
                    "to them as it is likely not your fault.";
 
         case 4551:
-            return "Blocked by Windows Smart App Control (4551);\n\nThe mod was blocked "
-                    "from loading by Windows Smart App Control. This is a security feature "
-                    "in Windows that blocks unrecognized applications including most "
-                    "Geometry Dash mods.";
-
+            return "Blocked by Windows Smart App Control (4551);\n\nWindows prevented"
+                    "the mod from loading because it is an unrecognized application. "
+                    "This is a security feature in Windows that blocks applications "
+                    "from small developers - including most Geometry Dash mods.\n\n"
+                    "You can disable Smart App Control in Windows Security settings to make the mod load."
+                    "[Click here to learn more about Smart App Control](https://learn.microsoft.com/en-us/windows/apps/develop/smart-app-control/overview).";
         case 0xc0e90002:
-            return "Blocked by Windows Smart App Control (0xc0e90002);\n\nThe mod was blocked "
-                    "from loading by Windows Smart App Control. This is a security feature "
-                    "in Windows that blocks unrecognized applications including most "
-                    "Geometry Dash mods.";
+            return "Blocked by Windows Smart App Control (0xc0e90002);\n\nWindows prevented"
+                    "the mod from loading because it is an unrecognized application. "
+                    "This is a security feature in Windows that blocks applications "
+                    "from small developers - including most Geometry Dash mods.\n\n"
+                    "You can disable Smart App Control in Windows Security settings to make the mod load."
+                    "[Click here to learn more about Smart App Control](https://learn.microsoft.com/en-us/windows/apps/develop/smart-app-control/overview).";
 
         default: break;
     }
