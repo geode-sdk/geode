@@ -354,7 +354,7 @@ using namespace geode::prelude;
 class RichTextArea::RichImpl : public SimpleTextAreaImpl {
 public:
     RichTextArea* m_self = nullptr;
-    RichImpl(RichTextArea* self) : SimpleTextAreaImpl(self) {}
+    RichImpl(RichTextArea* self)  : m_self(self), SimpleTextAreaImpl(self) {}
 
     std::map<std::string, std::shared_ptr<RichTextKeyBase>> m_richTextKeys;
     std::map<int, std::vector<std::shared_ptr<RichTextKeyInstanceBase>>> m_richTextInstances;
