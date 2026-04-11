@@ -25,6 +25,5 @@
 #include "ui/SimpleAxisLayout.hpp"
 #include "ui/SpacerNode.hpp"
 #include "ui/TextArea.hpp"
-#include "ui/RichTextArea.hpp"
 #include "ui/TextInput.hpp"
 #include "ui/TextRenderer.hpp"
