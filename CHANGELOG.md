@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v5.6.1
+ * Revert TulipHook update to fix several jitless iOS crashes
+
 ## v5.6.0
  * Map joystick inputs to key inputs on Android (#2005)
  * Add theming support (#2009)
