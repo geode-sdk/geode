@@ -1,5 +1,190 @@
 # Geode Changelog
 
+## v5.6.1
+ * Revert TulipHook update to fix several jitless iOS crashes
+
+## v5.6.0
+ * Map joystick inputs to key inputs on Android (#2005)
+ * Add theming support (#2009)
+ * Add `NodeEvent` and `MenuItemActivatedEvent` (#1964)
+ * Add padding to `AxisLayout` and `SimpleAxisLayout` (#1999)
+ * Event port v3 with improved thread safety (#2003)
+ * Update TulipHook to fix several jitless iOS crashes (b8c36af)
+ * Add more descriptive errors for Geode load failures (2b3d10f)
+ * Add a notification when showing deprecations (98c210e)
+ * Add .nomedia directly to resources to help with Android resource updater issues (ba4dad3)
+ * Prompt vcredist update if it's out of date (56a677c)
+ * Change the `CCFileUtils` hooks to hook per-platform methods, fixing iOS hook (dcdd139, c3c817a, 24cf733, ad3f1aa)
+ * Make `modify_cast` more powerful (#1884)
+ * Fix disabled mods still loading their spritesheets (#1934)
+ * Fix Android not deleting the last crashed file (9f0284d)
+ * Fix `LazySprite` crash if the sprite is removed from within the load callback (4be3da0)
+ * Fix markdown indentation on newlines (#1987)
+ * Fix German translation for installer (#1986)
+ * Remove the counterproductive "Please share the whole crash log" line from crash logs (920a922)
+ * Translate English strings to Polish in the installer (#1995)
+ * Sapphire SDK can no longer be activated.
+
+## v5.5.3
+ * Use legacy messages for detecting isDown (5d0e824)
+ * Dont show unloaded mods in keybinds popup (f72a7cc)
+ * Fix MDTextArea culling (#1975)
+ * Enforce UTF-8 when calculating hashes (4cec228)
+
+## v5.5.2
+ * Fix transition breaking the Sapphire Popup
+
+## v5.5.1
+ * Fix JIT-less iOS bug
+
+## v5.5.0
+ * Add `allow-in-text-inputs` option for keybinds (d57cd23)
+ * Add `LogFormatEvent` to allow for registering custom object formatters (d1589cb)
+ * Add more default formatters and implement raw specifier (#1890)
+ * Add warning popup when disabling mod with dependencies (ec2f06d)
+ * Add check for GD version while building a mod (0d97b3f)
+ * Implement url checks to `openLinkInBrowser`, and then add `openLinkUnsafe` as an alternative (#1971)
+ * Allow setting Escape as a keybind (5d63661)
+ * Fix stuck inputs bug with modifier keys (c6bae4f)
+ * Fix mouse events being triggered when clicking the titlebar on Windows (ffd8b86)
+ * Fix CTRL key being stuck after zooming with the trackpad on specific hardware (ba1d352)
+ * Force web progress callbacks to be destroyed on main thread (80a912d)
+ * Fix a crash in the Android crash handler while including a check for crash handler crashes (85ef2bf)
+ * Fix data race in `EventCenterGlobal` which caused some event crashes (f7117da)
+ * Fix use-after-free with a null assignment to a `WeakRef` (bb849a6)
+ * Show generic source icon for mods not hosted on GitHub (ad76de8)
+ * Improvements to the crash handler on macOS and iOS (04e8eeb, 0bb8fca, 27fc7fd)
+
+## v5.4.1
+ * Revert `CCEGLView::get` change (9cdbf5c)
+ * Fix crash when entering Geode menu without resources (000c5a1, 5b4210e)
+
+## v5.4.0
+ * Crashlog rework/unification. Includes a removal of Breakpad on Android! (#1939)
+ * Integrated fallback sprites into Geode (#1819)
+ * Info/button setting types (#1903)
+ * Add `geode::SliderNode` (#1854)
+ * Add `CircleBaseColor::Red` (41f65f7)
+ * Enable signals, and then add `geode::Mod::settingReact` for those signals (17656a8)
+ * Add platform details under `geode::utils::platform` (#1941)
+ * Add `CCNode::getParentByType` (a86381d)
+ * Add `Button::getAnimationType` and `NineSlice::getScaleMultiplier` (#1938)
+ * Disable copying/move operators for fields (83e7a59)
+ * `CCEGLView::get` now uses the CCEGLView singleton (21f5567)
+ * Improvements to the missing dependencies popup (9fa3a79)
+ * Add restart in safe mode button to crash popup on Windows (#1940)
+ * Improve fallback behavior of Geode button when texture is missing (444fab8)
+ * Fix crash when exiting game on macOS (52e16a2)
+ * Fix additional enable/disable flips in setting errors (aae2fe3)
+ * Fix input timestamps on Android (fdb2f26)
+ * macOS text input improvements (9c2289e, 21461ec)
+ * Fix left/right arrow keys in text inputs on Windows (1b66527)
+ * Fix for thread_local crash on Android (08a89a4)
+ * Fix listener assignment leak (85fc0be)
+ * Call web intercept events before calling completion (ae55e2d)
+ * Improvements to loader resource downloading (04be0ba, c09ce5e)
+ * Improvements to mod error messaging on Windows (e74724e, 5646cb0, 2262a8e)
+ * Add Debian steam path to Linux install script (#1843)
+ * Rework and fix multiple sprites (#1896)
+ * Fix slider setting clamping when slider bypass is enabled (#1930)
+ * Several net_libs updates (91de7bf, 7b66058, 3bab07c)
+ * Update TulipHook
+   * This fixes a crash when hooking some functions on ARMv8 platforms (8e88b37)
+
+## v5.3.0
+ * Add `CCDrawNode` hook to fix an uninitialized member (cfe6542)
+ * Add `geode::openKeybindsPopup` (#1880)
+ * Fix key up events being sent to one listener instead of all (ac26c86)
+ * Fix modifier keys being inconsistent in keyDown and keyUp on Windows (f355139)
+ * Fix deprecations being parsed incorrectly (f0452d6)
+ * Try to test multiple DNS servers on launch and choose the best one for requests (41f833b, 1f46105, 4a71fe1, 32bfad3)
+ * Add a setting for choosing a custom DNS server (#1878)
+ * Fix mods having the default log level set to Debug instead of Trace (1e22c4a)
+ * Allow mods to load if their incompatible mods are outdated (c6d589a)
+
+## v5.2.0
+ * Fix `async::TaskHolder` and `async::spawn` callback destructors not always being ran on main thread (9a853fb)
+ * Force disable IPv6 on macOS (and on other systems if unsupported) (055b968)
+ * Copy args for first send in global events (0542ab8)
+ * Change default log level to Debug (b1734ae)
+ * Fix trace logs showing up as ????? (d700353)
+ * Print verbose curl logs after failed web requests (c9d9467)
+ * Fix loading circle not spinning when downloading mods (3e6b845)
+ * Fix no percentage being shown when downloading resources (3350f62)
+ * Make web requests time out after 2.5 seconds if DNS resolution or TLS connection are stuck (b3d4eb8)
+ * Check for characters with modifiers (1976d2a)
+ * Fix unfriendly keybind modifiers (#1809)
+ * Fix std::vector calls on a gd::vector (#1874)
+ * Queue additional mouse events on main thread (mac) (05bf789)
+ * Release pressed keys on unfocus (9aeb60f)
+ * Add IDs for quick shortcuts in Geode settings (#1844)
+
+
+## v5.1.0
+ * Fix custom settings not loading their values (14378af)
+ * Fix shutdown not triggering game exit event on MacOS (#1860)
+ * Fix web requests sometimes having an artificial delay of 250ms (5f39a44)
+ * Add DNS Server option and use Cloudflare DoH by default (0c679df, 2075419)
+ * Add `WebResponse::timings()` (9c336e5)
+ * Add `async::wrapSpawn` (5c881fc)
+ * Automatically enable compression for web requests (8cb12ec)
+ * Force IPv4 for web requests if IPv6 is not supported (3fb8adb)
+ * Make `SettingNodeV3::resetToDefault` no-op if the value is already the default (#1853)
+ * Fix `Mod::disownHook` crash (#1849)
+ * Update TulipHook (fixes cbz/cbnz/tbz/tbnz reloc in aarch64, double params and returns in armv7)
+ * Download network libraries when building Geode instead of bundling them in the repo (#1858)
+ * Move quick shortcuts in Geode settings above other settings (67e43cd)
+
+## v5.0.1
+ * Fix excessive amount of requests to mod updates (833e8c6)
+ * Fix keyboard settings default values not being applied on first launch (52d840b)
+ * Allow devs to use custom pugixml (20cc12f)
+
+## v5.0.0
+ * Add trace level logs (2be2b8f)
+ * Fix some event issues (6946f95, 4b8e79b)
+ * Fix modifying values on `geode::Button` when held (#1818)
+
+## v5.0.0-beta.4
+ * Add `requires-patching` mod.json key for iOS (3b5e715)
+ * Add `geode::Button` (#1810)
+ * Update network libraries (curl, openssl, etc)
+ * Fix recursion and race conditions on Events (#1808, #1817)
+ * Fix `CCLabelBMFont` ctor crash (96bab68)
+ * Add iOS controller support, and fix some input bugs (#1742)
+ * Improve mod dependency popup (#1797)
+ * Make `async::waitForMainThread` fully cancel safe (4b851bd)
+ * Properly implement DNS lookup on Android (73d61b9)
+ * Fix `NineSlice` opacity/color cascade behavior (#1805)
+
+## v5.0.0-beta.3
+ * Add keybind categories, and a global list of keybinds (134878e, b16c2b9, d4eb55a, 3bfe471, 9de1bf1, db160d8)
+ * Keybind listener improvements (#1782)
+   * Adds priority, and stopping the keybind event will stop the input event
+ * Add timestamp to keybind event (ff13011)
+ * Add modifiers to mouse events (#1783)
+ * Add the update time when sorting installed mods via Recently Installed (470ca41)
+ * Add mod list pinning (#1775)
+ * Migrate old Custom Keybinds keybinds by adding `migrate-from` (601e3c5)
+ * Move some buttons to geode settings (403b546)
+ * Make `LogEvent` thread-safe (bd5d968)
+ * Fix `file::pickMany` on android (fc7e3bc)
+ * Fix `IconButtonSprite` positioning code (517cf41)
+ * Fix server time parsing (#1768)
+ * Fix inputs leaking when GD window isn't on foreground (d1e9ff4)
+ * Fix controller support on Windows (0f93c33)
+ * Fix `CCArrayExt::toVector` (63589c5)
+
+## v5.0.0-beta.2
+ * Implement mod deprecations (#1748)
+ * Fix web request crashes and optimize web requests by a lot (f695ecd, c76be25)
+ * Fix destructor lock (838c56f, a10ec6c)
+ * Fix many (compile time and runtime) issues with async on MSVC (c73c12e)
+ * Add `geode::utils::getInputTimestamp` (#1751)
+ * Add controller sprites to keybind settings (#1750)
+ * Improve string split implementation (#1756)
+ * Use `QuadPart` for input timestamps, fixing CBS / COS issue (ed60ea7)
+
 ## v5.0.0-beta.1
  * Add keybind setting (#1729)
  * Add restart button to Geode menu (#1739)

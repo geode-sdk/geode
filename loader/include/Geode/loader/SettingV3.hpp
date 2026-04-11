@@ -10,8 +10,7 @@
 #include "../utils/JsonValidation.hpp"
 #include "../utils/Keyboard.hpp"
 #include "../utils/function.hpp"
-
-class ModSettingsPopup;
+#include "../utils/StringMap.hpp"
 
 namespace geode {
     class ModSettingsManager;
@@ -352,6 +351,51 @@ namespace geode {
         void reset() override;
     };
 
+    class GEODE_DLL InfoSettingV3 final : public SettingV3 {
+    private:
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
+    public:
+        InfoSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<InfoSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        bool load(matjson::Value const& json) override;
+        bool save(matjson::Value& json) const override;
+        SettingNodeV3* createNode(float width) override;
+
+        std::optional<cocos2d::ccColor3B> getColor() const;
+
+        bool isDefaultValue() const override;
+        void reset() override;
+    };
+
+    class GEODE_DLL ButtonSettingV3 final : public SettingV3 {
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
+    public:
+        ButtonSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<ButtonSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        bool load(matjson::Value const& json) override;
+        bool save(matjson::Value& json) const override;
+        SettingNodeV3* createNode(float width) override;
+
+        utils::StringMap<std::string> getButtons();
+
+        bool isDefaultValue() const override;
+        void reset() override;
+    };
+
     class GEODE_DLL BoolSettingV3 final : public SettingBaseValueV3<bool> {
     private:
         class Impl;
@@ -512,6 +556,18 @@ namespace geode {
         SettingNodeV3* createNode(float width) override;
     };
 
+    enum class KeybindCategory : uint8_t {
+        /// Keybinds that work everywhere, like opening a mod menu
+        Universal = 0,
+        /// Keybinds that work when playing levels
+        Gameplay = 1,
+        /// Keybinds that work in the editor
+        Editor = 2,
+
+        // If your keybind doesn't fit into these categories, it will just be
+        // listed under the mod
+    };
+
     class GEODE_DLL KeybindSettingV3 final : public SettingV3 {
     private:
         class Impl;
@@ -539,6 +595,11 @@ namespace geode {
         void setValue(std::vector<Keybind> value);
         bool isDefaultValue() const override;
         void reset() override;
+
+        std::optional<KeybindCategory> getCategory() const;
+        std::optional<std::string> getMigrateFrom() const;
+        int getPriority() const;
+        bool getAllowInTextInputs() const;
     };
 
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {
@@ -546,11 +607,10 @@ namespace geode {
         class Impl;
         std::shared_ptr<Impl> m_impl;
 
-        friend class ::ModSettingsPopup;
-
     protected:
         bool init(std::shared_ptr<SettingV3> setting, float width);
 
+        // todo in v6: make updateState public
         /**
          * Update the state of this setting node, bringing all inputs
          * up-to-date with the current value. Derivatives of `SettingNodeV3`
@@ -591,15 +651,24 @@ namespace geode {
         virtual bool hasUncommittedChanges() const = 0;
         virtual bool hasNonDefaultValue() const = 0;
 
+        // This is extremely silly and will be removed in v6 in favour of just
+        // making `updateState` itself be public
+        // todo in v6: make updateState public and remove this
+        void updateState2(cocos2d::CCNode* invoker);
+
         // Can be overridden by the setting itself
         // Can / should be used to do alternating BG
         void setDefaultBGColor(cocos2d::ccColor4B color);
 
         cocos2d::CCLabelBMFont* getNameLabel() const;
+        CCMenuItemSpriteExtra* getDescriptionButton() const;
         cocos2d::CCLabelBMFont* getStatusLabel() const;
         cocos2d::CCMenu* getNameMenu() const;
         cocos2d::CCMenu* getButtonMenu() const;
         cocos2d::CCLayerColor* getBG() const;
+
+        // Useful if you're programmatically creating setting nodes
+        void overrideDescription(std::optional<ZStringView> description);
 
         void setContentSize(cocos2d::CCSize const& size) override;
 
@@ -689,12 +758,20 @@ namespace geode {
         GEODE_DLL SettingChangedEventV3(Mod* mod, std::string settingKey);
     };
 
-    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, bool(std::string_view, std::string_view, Keybind const&, bool, bool), bool(Keybind const&, bool, bool), std::string, std::string> {
+    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, bool(std::string_view, std::string_view, Keybind const&, bool, bool, double), bool(Keybind const&, bool, bool, double), std::string, std::string> {
     public:
-        // listener params keybind, down, repeat
+        // listener params keybind, down, repeat, timestamp
         // filter params modID, settingKey
         using GlobalEvent::GlobalEvent;
         GEODE_DLL KeybindSettingPressedEventV3(Mod* mod, std::string settingKey);
+    };
+
+    class ButtonSettingPressedEventV3 final : public GlobalEvent<ButtonSettingPressedEventV3, bool(std::string_view, std::string_view, std::string_view), bool(std::string_view), std::string, std::string> {
+    public:
+        // filter params modID, settingKey
+        // filter params buttonKey
+        using GlobalEvent::GlobalEvent;
+        GEODE_DLL ButtonSettingPressedEventV3(Mod* mod, std::string settingKey);
     };
 
     class SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*), bool(SettingNodeV3*), std::string, std::string> {
@@ -799,19 +876,19 @@ namespace geode {
     }
 
     template <class Callback>
-    requires std::is_invocable_v<Callback, Keybind const&, bool, bool>
+    requires std::is_invocable_v<Callback, Keybind const&, bool, bool, double>
     ListenerHandle* listenForKeybindSettingPresses(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
         return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::move(callback)).leak();
     }
 
     template <class Callback>
-    requires std::is_invocable_v<Callback, std::string_view, Keybind const&, bool, bool>
+    requires std::is_invocable_v<Callback, std::string_view, Keybind const&, bool, bool, double>
     ListenerHandle* listenForAllKeybindSettingPresses(Callback&& callback, Mod* mod = getMod()) {
-        return KeybindSettingPressedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, Keybind const& keybind, bool down, bool repeat) {
+        return KeybindSettingPressedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, Keybind const& keybind, bool down, bool repeat, double timestamp) {
             if (mod && getModID(mod) != modID) {
                 return;
             }
-            return callback(key, keybind, down, repeat);
+            return callback(key, keybind, down, repeat, timestamp);
         }).leak();
     }
 }

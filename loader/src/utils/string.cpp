@@ -6,7 +6,6 @@ using namespace geode::prelude;
 #ifdef GEODE_IS_WINDOWS
 
 #include <Windows.h>
-#include <cwctype>
 #include <stringapiset.h>
 
 std::string utils::string::wideToUtf8(std::wstring_view wstr) {
@@ -121,16 +120,16 @@ std::string utils::string::replace(
 }
 
 template <typename T>
-auto doSplit(std::string_view str, std::string_view split) {
+std::vector<T> doSplit(std::string_view str, std::string_view split) {
     std::vector<T> res;
-    if (str.empty()) return res;
-
-    size_t pos = 0;
-    while ((pos = str.find(split)) != std::string::npos) {
-        res.push_back(T{ str.substr(0, pos) });
-        str.remove_prefix(pos + split.length());
+    if (!str.empty()) {
+        size_t pos = 0;
+        while ((pos = str.find(split)) != std::string::npos) {
+            res.emplace_back(str.substr(0, pos));
+            str.remove_prefix(pos + split.size());
+        }
+        res.emplace_back(str);
     }
-    res.push_back(T{ str });
     return res;
 }
 

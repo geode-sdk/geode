@@ -5,6 +5,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/ZStringView.hpp>
+#include <Geode/loader/Signal.hpp>
 
 namespace geode {
     class Mod::Impl {
@@ -53,6 +54,10 @@ namespace geode {
          */
         std::unique_ptr<ModSettingsManager> m_settings = nullptr;
         /**
+         * Setting observer.
+         */
+        comm::Observer m_settingObserver;
+        /**
          * Whether the mod resources are loaded or not
          */
         bool m_resourcesLoaded = false;
@@ -63,7 +68,7 @@ namespace geode {
         /**
          * The minimum log level for this mod
          */
-        Severity m_logLevel = Severity::Debug;
+        Severity m_logLevel = Severity::Trace;
         std::unordered_map<std::string, char const*> m_expandedSprites;
         bool m_isCurrentlyLoading = false;
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
@@ -104,6 +109,7 @@ namespace geode {
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
         std::vector<Mod*> getDependants() const;
+        std::vector<Mod*> getEnabledDependants() const;
 #endif
 
         Result<> saveData();
@@ -116,6 +122,7 @@ namespace geode {
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
         bool hasSetting(std::string_view key) const;
+        void settingReact(geode::Function<void()> fn);
 
         std::string getLaunchArgumentName(std::string_view name) const;
         std::vector<std::string> getLaunchArgumentNames() const;
@@ -158,6 +165,9 @@ namespace geode {
         bool isCurrentlyLoading() const;
 
         int getLoadPriority() const;
+
+        bool isPinned() const;
+        void setPinned(bool pinned);
     };
 
     class ModImpl : public Mod::Impl {

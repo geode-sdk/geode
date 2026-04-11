@@ -6,6 +6,9 @@
 namespace geode {
     class GEODE_DLL NineSlice : public cocos2d::CCNodeRGBA {
     public:
+        using cocos2d::CCNodeRGBA::addChild;
+        using cocos2d::CCNodeRGBA::removeChild;
+
         struct Insets {
             float top;
             float right;
@@ -20,6 +23,7 @@ namespace geode {
 
         /// Sets a multiplier for the slices to be scaled by
         void setScaleMultiplier(float scaleMultiplier);
+        float getScaleMultiplier();
 
         /// Sets whether the slices should repeat or scale, by default, it scales
         void setRepeatCenter(bool repeat);
@@ -51,17 +55,26 @@ namespace geode {
 
         cocos2d::CCSpriteBatchNode* getBatchNode();
 
+        virtual void addChild(cocos2d::CCNode* child, int zOrder, int tag) override;
+        virtual void removeChild(cocos2d::CCNode* child, bool cleanup) override;
+        virtual cocos2d::CCArray* getChildren() override;
+        virtual unsigned int getChildrenCount() const override;
+
         virtual void setContentSize(cocos2d::CCSize const& size) override;
         virtual void visit() override;
 
         virtual void setColor(cocos2d::ccColor3B const& color) override;
         virtual void setOpacity(GLubyte opacity) override;
+        virtual void setOpacityModifyRGB(bool var) override;
 
+        virtual void updateDisplayedOpacity(GLubyte parentOpacity) override;
+        virtual void updateDisplayedColor(cocos2d::ccColor3B const& parentColor) override;
+        
     protected:
         NineSlice();
         ~NineSlice();
 
-        bool initWithFile(geode::ZStringView file, cocos2d::CCRect const& rect, const Insets& insets);
+        bool initWithFile(geode::ZStringView file, cocos2d::CCRect const& rect, Insets const& insets);
         bool initWithSpriteFrameName(geode::ZStringView spriteFrameName, Insets const& insets);
         bool initWithSpriteFrame(cocos2d::CCSpriteFrame* spriteFrame, Insets const& insets);
 

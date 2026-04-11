@@ -1,4 +1,5 @@
 #include "updater.hpp"
+#include <asp/fs/fs.hpp>
 #include <Geode/utils/web.hpp>
 #include <resources.hpp>
 #include <hash.hpp>
@@ -48,41 +49,70 @@ void updater::downloadLatestLoaderResources() {
     );
 }
 
+Result<> updater::extractLoaderResources(ByteSpan data) {
+    auto tempDir = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp", Mod::get()->getID());
+    auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
+
+    GEODE_UNWRAP(asp::fs::removeAll(tempDir).mapErr([](auto ec) {
+        return "Unable to remove old temporary directory: " + ec.message();
+    }));
+
+    GEODE_UNWRAP(asp::fs::createDir(tempDir).mapErr([](auto ec) {
+        return "Unable to create temporary directory: " + ec.message();
+    }));
+
+    // unzip resources zip
+    auto unzip = GEODE_UNWRAP(file::Unzip::create(data).mapErr([](auto const& e) {
+        return "Unable to load new resources archive: " + e;
+    }));
+
+    GEODE_UNWRAP(unzip.extractAllTo(tempDir).mapErr([](auto const& e) {
+        return "Unable to unzip new resources: " + e;
+    }));
+
+    GEODE_UNWRAP(asp::fs::removeAll(resourcesDir).mapErr([](auto ec) {
+        return "Unable to remove old resources directory: " + ec.message();
+    }));
+
+    // this might fail due to fuse on certain devices? might have to do with sd card usage too
+    // society if we could just access /data/media/0/ directly...
+    if(!asp::fs::rename(tempDir, resourcesDir)) {
+        GEODE_UNWRAP(asp::fs::copy(tempDir, resourcesDir).mapErr([](auto ec) {
+            return "Unable to copy new resources directory: " + ec.message();
+        }));
+
+        GEODE_UNWRAP(asp::fs::removeAll(tempDir).mapErr([](auto ec) {
+            return "Unable to remove final temporary directory: " + ec.message();
+        }));
+    }
+
+    updater::updateSpecialFiles();
+    return Ok();
+}
+
 void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError) {
     if (RUNNING_REQUESTS.contains(url)) return;
 
-    // TODO: progress
-    // ResourceDownloadEvent().send(
-    //     UpdateProgress(
-    //         static_cast<uint8_t>(progress->downloadProgress().value_or(0)),
-    //         "Downloading resources"
-    //     )
-    // );
+    auto progress = [](const web::WebProgress& prog) {
+        ResourceDownloadEvent().send(
+            UpdateProgress(
+                static_cast<uint8_t>(prog.downloadProgress().value_or(0)),
+                "Downloading resources"
+            )
+        );
+    };
 
     auto& holder = RUNNING_REQUESTS[url];
     holder.spawn(
         "Geode resources download",
-        web::WebRequest{}.get(url),
+        web::WebRequest{}.onProgress(std::move(progress)).get(url),
         [url](auto response) {
             if (response.ok()) {
-                auto tempResourcesZip = dirs::getTempDir() / "new.zip";
-                auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
-
-                // unzip resources zip
                 auto data = std::move(response).data();
-                auto unzip = file::Unzip::create(data);
-                if (unzip) {
-                    auto ok = unzip.unwrap().extractAllTo(resourcesDir);
-                    if (ok) {
-                        updater::updateSpecialFiles();
-                        ResourceDownloadEvent().send(UpdateFinished());
-                    }
-                    else {
-                        ResourceDownloadEvent().send(UpdateFailed("Unable to unzip new resources: " + ok.unwrapErr()));
-                    }
-                }
-                else {
-                    ResourceDownloadEvent().send(UpdateFailed("Unable to unzip new resources: " + unzip.unwrapErr()));
+                if (GEODE_UNWRAP_IF_ERR(e, updater::extractLoaderResources(data))) {
+                    ResourceDownloadEvent().send(UpdateFailed(e));
+                } else {
+                    ResourceDownloadEvent().send(UpdateFinished());
                 }
             }
             else {

@@ -1,6 +1,7 @@
 #pragma once
 #include "AsStaticFunction.hpp"
 #include "Field.hpp"
+#include <Geode/loader/Priority.hpp>
 #include <Geode/Enums.hpp>
 #include "IDManager.hpp"
 
@@ -108,94 +109,6 @@
             this->m_hooks[#ClassName_ "::" #ClassName_] = hook;                                                  \
         }                                                                                                        \
     } while (0);
-
-namespace geode {
-    class Priority {
-    public:
-        /// @brief First priority, used for running hooks before all others
-        /// @note Should be used with caution, consider using VeryEarly instead
-        static inline constexpr int32_t First = -3000;
-
-        /// @brief Very early priority, used for running hooks very early
-        /// @note Recommended over First
-        static inline constexpr int32_t VeryEarly = -2000;
-
-        /// @brief Early priority, used for running hooks early
-        static inline constexpr int32_t Early = -1000;
-
-        /// @brief Normal priority, used for running hooks at the normal time
-        static inline constexpr int32_t Normal = 0;
-
-        /// @brief Late priority, used for running hooks late
-        static inline constexpr int32_t Late = 1000;
-
-        /// @brief Very late priority, used for running hooks very late
-        /// @note Recommended over Last
-        static inline constexpr int32_t VeryLate = 2000;
-
-        /// @brief Last priority, used for running hooks after all others
-        /// @note Should be used with caution, consider using VeryLate instead
-        static inline constexpr int32_t Last = 3000;
-
-        /// @brief First pre priority, used for running hooks before all others
-        /// @note Should be used with caution, consider using VeryEarlyPre instead
-        static inline constexpr int32_t FirstPre = First;
-
-        /// @brief Very early pre priority, used for running hooks very early
-        /// @note Recommended over FirstPre
-        static inline constexpr int32_t VeryEarlyPre = VeryEarly;
-
-        /// @brief Early pre priority, used for running hooks early
-        static inline constexpr int32_t EarlyPre = Early;
-
-        /// @brief Normal pre priority, used for running hooks at the normal time
-        static inline constexpr int32_t NormalPre = Normal;
-
-        /// @brief Late pre priority, used for running hooks late
-        static inline constexpr int32_t LatePre = Late;
-
-        /// @brief Very late pre priority, used for running hooks very late
-        /// @note Recommended over LastPre
-        static inline constexpr int32_t VeryLatePre = VeryLate;
-
-        /// @brief Last pre priority, used for running hooks after all others
-        /// @note Should be used with caution, consider using VeryLatePre instead
-        static inline constexpr int32_t LastPre = Last;
-
-        /// @brief First post priority, used for running hooks before all others
-        /// @note Should be used with caution, consider using VeryEarlyPost instead
-        static inline constexpr int32_t FirstPost = Last;
-
-        /// @brief Very early post priority, used for running hooks very early
-        /// @note Recommended over FirstPost
-        static inline constexpr int32_t VeryEarlyPost = VeryLate;
-
-        /// @brief Early post priority, used for running hooks early
-        static inline constexpr int32_t EarlyPost = Late;
-
-        /// @brief Normal post priority, used for running hooks at the normal time
-        static inline constexpr int32_t NormalPost = Normal;
-
-        /// @brief Late post priority, used for running hooks late
-        static inline constexpr int32_t LatePost = Early;
-
-        /// @brief Very late post priority, used for running hooks very late
-        /// @note Recommended over LastPost
-        static inline constexpr int32_t VeryLatePost = VeryEarly;
-
-        /// @brief Last post priority, used for running hooks after all others
-        /// @note Should be used with caution, consider using VeryLatePost instead
-        static inline constexpr int32_t LastPost = First;
-
-        /// @brief Stub priority, used for stubbing out functions & editing parameters
-        /// @note Should be used with extreme caution, may cause mod incompatibilities
-        static inline constexpr int32_t Stub = -4000;
-
-        /// @brief Replace priority, used for replacing original functions
-        /// @note Should be used with extreme caution, may cause mod incompatibilities
-        static inline constexpr int32_t Replace = 4000;
-    };
-}
 
 namespace geode::modifier {
     template <class Derived, class Base>
@@ -596,34 +509,80 @@ namespace geode::internal {
 
     template <class T>
     using ModifyBase = typename extract_modify_base<T>::type;
+
+    template <typename DerivedPtr, typename Base>
+    concept IsRealModify =
+      !std::is_void_v<Base> &&
+      requires { std::remove_pointer_t<DerivedPtr>::m_fields; } &&
+      std::is_base_of_v<geode::Modify<std::remove_pointer_t<DerivedPtr>, Base>, std::remove_pointer_t<DerivedPtr>>;
 }
 
 namespace geode::cast {
     /**
-     * A cast specialized to cast to modify classes. Static casts to the base class of the modify class first,
-     * and then static casts to the modify class itself.
-     * @example modify_cast<MyGJBaseGameLayer*>(PlayLayer::get());
+     * A cast specialized to cast to modify classes. Can convert to, from, and between modify classes.
+     * @example
+     * // Casting to a modify class from a non-modify class. Equivalent to:
+     * // PlayLayer* myPlayLayer = ...;
+     * // static_cast<HookedGJBaseGameLayer*>(static_cast<GJBaseGameLayer*>(myPlayLayer));
+     * PlayLayer* myPlayLayer = ...;
+     * modify_cast<HookedGJBaseGameLayer*>(myPlayLayer);
+     *
+     * @example
+     * // Casting from a modify class to a non-modify class. Equivalent to:
+     * // HookedPlayLayer* myHookedPlayLayer = ...;
+     * // static_cast<GJBaseGameLayer*>(static_cast<PlayLayer*>(myHookedPlayLayer));
+     * HookedPlayLayer* myHookedPlayLayer = ...;
+     * modify_cast<GJBaseGameLayer*>(myHookedPlayLayer);
+     *
+     * @example
+     * // Casting from a modify class to another modify class. Equivalent to:
+     * // HookedPlayLayer* myHookedPlayLayer = ...;
+     * // static_cast<HookedBaseGameLayer*>(static_cast<GJBaseGameLayer*>(static_cast<PlayLayer*>(myHookedPlayLayer)));
+     * HookedPlayLayer* myHookedPlayLayer = ...;
+     * modify_cast<HookedGJBaseGameLayer*>(myHookedPlayLayer);
      */
-    template <class Target, class Original>
+    template<typename Target, typename Original>
     constexpr Target modify_cast(Original original) {
-
+        // If Target is probably (fully checked later) a modify class, then this is its modify base, otherwise it's void
         using TargetBase = geode::internal::ModifyBase<std::remove_pointer_t<Target>>;
+        // If Original is probably (fully checked later) a modify class, then this is its modify base, otherwise it's void
+        using OriginalBase = geode::internal::ModifyBase<std::remove_pointer_t<Original>>;
+        // ModifyBase returns void if an m_fields attribute does not exist or if it does not derive from FieldIntermediate.
+        // Theoretically, someone could make a class that has m_fields of type FieldIntermediate and fool the first check.
+        // The second check, IsRealModify makes sure that that doesn't happen, it's probably unnecessary, but it was fairly
+        // easy to do.
 
         static_assert(std::is_pointer_v<Target> && !std::is_pointer_v<std::remove_pointer_t<Target>>, "Target class has to be a single pointer.");
         static_assert(std::is_pointer_v<Original> && !std::is_pointer_v<std::remove_pointer_t<Original>>, "Original class has to be a single pointer.");
-        static_assert(
-            (
-                requires { std::remove_pointer_t<Target>::m_fields; !std::is_void_v<TargetBase>; } &&
-                std::is_base_of_v<geode::Modify<std::remove_pointer_t<Target>, TargetBase>, std::remove_pointer_t<Target>>
-            ),
-            "The target class has to be a Modify class."
-        );
-        static_assert(
-            !std::is_void_v<TargetBase> && requires { static_cast<TargetBase*>(original); },
-            "The original class has to be castable to the class the modify class is modifying."
-        );
-        return static_cast<Target>(static_cast<TargetBase*>(original));
-    }
+
+        if constexpr (geode::internal::IsRealModify<Target, TargetBase> && !geode::internal::IsRealModify<Original, OriginalBase>) {
+            static_assert(
+                requires { static_cast<TargetBase*>(original); },
+                "The original class has to be castable to the target modify class's base."
+            );
+            return static_cast<Target>(static_cast<TargetBase*>(original));
+        }
+
+        else if constexpr (!geode::internal::IsRealModify<Target, TargetBase> && geode::internal::IsRealModify<Original, OriginalBase>) {
+            static_assert(
+                requires { static_cast<Target>(static_cast<TargetBase*>(original)); },
+                "The original modify class's base has to be castable to the target class."
+            );
+            return static_cast<Target>(static_cast<TargetBase*>(original));
+        }
+
+        else if constexpr (geode::internal::IsRealModify<Target, TargetBase> && geode::internal::IsRealModify<Original, OriginalBase>) {
+            static_assert(
+                requires { static_cast<TargetBase*>(static_cast<OriginalBase*>(original)); },
+                "The original modify class's base has to be castable to the target modify class's base."
+            );
+            return static_cast<Target>(static_cast<TargetBase*>(static_cast<OriginalBase*>(original)));
+        }
+
+        else {
+            static_assert(false, "There are no modify classes in modify_cast.");
+        }
+      }
 }
 
 /**

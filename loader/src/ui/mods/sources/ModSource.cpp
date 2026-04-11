@@ -1,4 +1,5 @@
 #include "ModSource.hpp"
+#include "ui/mods/UpdateModListState.hpp"
 
 #include <Geode/loader/ModMetadata.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
@@ -7,8 +8,10 @@
 #include <Geode/binding/GameObject.hpp>
 #include <unordered_set>
 
-ModSource::ModSource(Mod* mod) : m_value(mod) {}
-ModSource::ModSource(server::ServerModMetadata&& metadata) : m_value(metadata) {}
+ModSource::ModSource(Mod* mod, ModListSource* listSource)
+  : m_value(mod), m_listSource(listSource) {}
+ModSource::ModSource(server::ServerModMetadata&& metadata, ModListSource* listSource)
+  : m_value(metadata), m_listSource(listSource) {}
 
 std::string ModSource::getID() const {
     return std::visit(makeVisitor {
@@ -78,16 +81,20 @@ server::ServerModUpdateOneCheck ModSource::hasUpdates() const {
 
 ModSource ModSource::convertForPopup() const {
     return std::visit(makeVisitor {
-        [](Mod* mod) {
-            return ModSource(mod);
+        [listSource = m_listSource](Mod* mod) {
+            return ModSource(mod, listSource);
         },
-        [](server::ServerModMetadata const& metadata) {
+        [listSource = m_listSource](server::ServerModMetadata const& metadata) {
             if (auto mod = Loader::get()->getInstalledMod(metadata.id)) {
-                return ModSource(mod);
+                return ModSource(mod, listSource);
             }
-            return ModSource(server::ServerModMetadata(metadata));
+            return ModSource(server::ServerModMetadata(metadata), listSource);
         },
     }, m_value);
+}
+
+ModListSource* ModSource::getListSource() const {
+    return m_listSource;
 }
 
 Mod* ModSource::asMod() const {
@@ -182,4 +189,50 @@ void ModSource::startInstall() {
                 : std::nullopt
         );
     }
+}
+void ModSource::requestEnable() {
+    std::visit(makeVisitor {
+        [&](Mod* mod) {
+            auto doEnable = [mod]() {
+                // Toggle the mod state
+                auto res = mod->isOrWillBeEnabled() ? mod->disable() : mod->enable();
+                if (!res) {
+                    FLAlertLayer::create(
+                        "Error Toggling Mod",
+                        res.unwrapErr(),
+                        "OK"
+                    )->show();
+                }
+
+                // Update state of the mod item
+                UpdateModListStateEvent().send(UpdateModState(mod->getID()));
+            };
+
+            auto dependants = mod->getEnabledDependants();
+            bool status = mod->isOrWillBeEnabled();
+            if (dependants.size() > 0 && status) {
+                // the string building is not very i18n compatible
+                // but we'll cross that bridge when we get there
+                auto popup = createQuickPopup(
+                    fmt::format("{0} Mod", status ? "Disable" : "Enable").c_str(),
+                    fmt::format(
+                        "Are you sure you want to <cr>{0}</c> <co>{2}</c>? Doing this will make <cy>{3} other mods</c> {1}.",
+                        status ? "disable" : "enable", status ? "fail to load" : "work",
+                        mod->getName(), dependants.size()
+                    ),
+                    "No", "Yes",
+                    [doEnable = std::move(doEnable)] (auto, bool btn2) mutable {
+                        if (btn2) {
+                            doEnable();
+                        }
+                    }
+                );
+            } else {
+                doEnable();
+            }
+        },
+        [&](server::ServerModMetadata const& metadata) {
+            // Server mods cannot be enabled/disabled
+        }
+    }, m_value);
 }

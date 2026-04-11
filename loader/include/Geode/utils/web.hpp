@@ -7,6 +7,7 @@
 #include <Geode/utils/general.hpp>
 #include <Geode/loader/Event.hpp>
 #include <arc/sync/oneshot.hpp>
+#include <asp/time/Duration.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
 #include <chrono>
@@ -15,6 +16,17 @@
 #include <span>
 
 namespace geode::utils::web {
+    /**
+     * Opens an arbitrary link through the system. This accepts any kind of URL, including non-web protocols.
+     *
+     * Warning: do not use this on untrusted user input! This can lead to remote code execution.
+     */
+    GEODE_DLL void openLinkUnsafe(ZStringView url);
+
+    /**
+     * Opens a URL.
+     * The provided link will only be opened if its scheme is http, https or mailto.
+     */
     GEODE_DLL void openLinkInBrowser(ZStringView url);
 
     // https://curl.se/libcurl/c/CURLOPT_HTTPAUTH.html
@@ -128,6 +140,27 @@ namespace geode::utils::web {
 
     class WebRequest;
 
+    /// Contains detailed values about how long each phase of the request took
+    struct RequestTimings final {
+        /// How long the request had to wait in queue, until it was picked up by the web worker
+        asp::Duration queueWait;
+        /// How long the DNS lookup took
+        asp::Duration nameLookup;
+        /// How long the connection to the server took
+        asp::Duration connect;
+        /// How long the TLS handshake took
+        asp::Duration tlsHandshake;
+        /// How long it took to fully send the request body
+        asp::Duration requestSend;
+        /// How long it took to receive the first byte of the response
+        asp::Duration firstByte;
+        /// How long it took to fully receive the response body after receiving the first byte
+        asp::Duration download;
+
+        /// Total duration of the request, from the moment it was sent until it was fully completed
+        asp::Duration total;
+    };
+
     class GEODE_DLL WebResponse final {
     private:
         class Impl;
@@ -174,6 +207,17 @@ namespace geode::utils::web {
          * an empty string is returned.
          */
         std::string_view errorMessage() const;
+
+        /**
+         * Returns verbose logs from the network library, which may massively help in debugging network issues.
+         */
+        std::string_view verboseLogs() const;
+
+        /**
+         * Returns the timings of the request, with detailed information about how long each phase of the request took.
+         * These values will be all zeroes if the request did not complete successfully.
+         */
+        RequestTimings const& timings() const;
     };
 
     class WebProgress final {
@@ -270,7 +314,7 @@ namespace geode::utils::web {
          * Sets the response's encoding. Valid values include: br, gzip, deflate, ...
          * You can set multiple encoding types by calling this method with a comma separated list
          * of the encodings of your choosing.
-         * Defaults to not sending an Accept-Encoding: header, and in turn, does not decompress received contents automatically.
+         * Defaults to sending the built-in supported encodings in the Accept-Encoding header.
          *
          * @example
          * auto req = web::WebRequest()
@@ -340,6 +384,8 @@ namespace geode::utils::web {
         /**
          * Sets the Certificate Authority (CA) bundle content.
          * Defaults to sending the Geode CA bundle, found here: https://github.com/geode-sdk/net_libs/blob/main/ca_bundle.h
+         *
+         * Setting the content to an empty string also defaults to the Geode CA bundle.
          *
          * @param content
          * @return WebRequest&

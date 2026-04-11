@@ -263,6 +263,7 @@ bool WeakRefController::isManaged() {
     return m_obj;
 }
 
+// TODO: this function is flawed and will break if other is not null and please remind me to rewrite the entirety of weakref in v6
 void WeakRefController::swap(CCObject* other) {
     WeakRefPool::get()->check(m_obj);
     m_obj = other;

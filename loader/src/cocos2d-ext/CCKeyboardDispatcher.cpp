@@ -134,6 +134,7 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
         {
             delegate->keyUp(key, timestamp);
         }
+        break;
     }
     m_bUnknown38 = false;
 

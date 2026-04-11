@@ -106,6 +106,10 @@ void Mod::setMetadata(ModMetadata const& metadata) {
 std::vector<Mod*> Mod::getDependants() const {
     return m_impl->getDependants();
 }
+
+std::vector<Mod*> Mod::getEnabledDependants() const {
+    return m_impl->getEnabledDependants();
+}
 #endif
 
 Mod::CheckUpdatesTask Mod::checkUpdates() const {
@@ -157,6 +161,10 @@ std::shared_ptr<Setting> Mod::getSetting(std::string_view key) const {
 
 Result<> Mod::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
     return m_impl->m_settings->registerCustomSettingType(type, std::move(generator));
+}
+
+void Mod::settingReact(geode::Function<void()> fn) {
+    m_impl->settingReact(std::move(fn));
 }
 
 std::string Mod::getLaunchArgumentName(std::string_view name) const {
@@ -288,4 +296,12 @@ bool Mod::isCurrentlyLoading() const {
 
 int Mod::getLoadPriority() const {
     return m_impl->getLoadPriority();
+}
+
+bool Mod::isPinned() const {
+    return m_impl->isPinned();
+}
+
+void Mod::setPinned(bool pinned) {
+    m_impl->setPinned(pinned);
 }

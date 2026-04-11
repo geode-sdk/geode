@@ -219,6 +219,10 @@ namespace geode {
          * Whether this mod is an API or not
          */
         [[nodiscard]] bool isAPI() const;
+        /**
+         * Whether this mod requires runtime memory patching
+         */
+        [[nodiscard]] bool needsPatching() const;
 
         /**
          * Gets the target GD version for the current platform.
@@ -253,13 +257,13 @@ namespace geode {
         Result<> checkTargetVersions() const;
 
         /**
-         * Check if this `ModMetadata` had parsing errors (or was completely 
+         * Check if this `ModMetadata` had parsing errors (or was completely
          * unparseable)
          */
         bool hasErrors() const;
         std::vector<std::string> const& getErrors() const;
         /**
-         * Check if this `ModMetadata` was completely unparseable, i.e. created 
+         * Check if this `ModMetadata` was completely unparseable, i.e. created
          * from an invalid ZIP file etc.
          */
         bool wasCompletelyUnparseable() const;
@@ -291,14 +295,14 @@ namespace geode {
 #endif
 
         /**
-         * Create `ModMetadata` from a `.geode` package. Note that this 
-         * function may fail if the JSON data is wrong; make sure to check 
+         * Create `ModMetadata` from a `.geode` package. Note that this
+         * function may fail if the JSON data is wrong; make sure to check
          * `hasErrors()` afterwards on the `ModMetadata`!
          */
         static ModMetadata createFromGeodeFile(std::filesystem::path const& path);
         /**
-         * Create `ModMetadata` from a parsed json document. Note that this 
-         * function may fail if the JSON data is wrong; make sure to check 
+         * Create `ModMetadata` from a parsed json document. Note that this
+         * function may fail if the JSON data is wrong; make sure to check
          * `hasErrors()` afterwards on the `ModMetadata`!
          */
         static ModMetadata create(ModJson const& json);

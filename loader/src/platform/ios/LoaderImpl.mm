@@ -31,7 +31,8 @@ void console::log(ZStringView zmsg, Severity severity) {
     if (s_isOpen) {
         int colorcode = 0;
         switch (severity) {
-            case Severity::Debug: colorcode = 36; break;
+            case Severity::Trace: colorcode = 95; break;
+            case Severity::Debug: colorcode = 90; break;
             case Severity::Info: colorcode = 34; break;
             case Severity::Warning: colorcode = 33; break;
             case Severity::Error: colorcode = 31; break;
@@ -112,7 +113,6 @@ std::string Loader::Impl::getGameVersion() {
  * but who cares about semver, right?
  */
 bool Loader::Impl::isModVersionSupported(VersionInfo const& target) {
-    if (m_isPatchless && target < VersionInfo(4, 6, 0)) return false;
     return semverCompare(this->getVersion(), target);
 }
 

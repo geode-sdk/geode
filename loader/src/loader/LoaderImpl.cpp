@@ -37,8 +37,8 @@
 using namespace geode::prelude;
 
 comm::EventCenter* geode::comm::EventCenter::get() {
-    static EventCenter instance;
-    return &instance;
+    static auto s_instance = new EventCenter();
+    return s_instance;
 }
 
 Loader::Impl* LoaderImpl::get() {
@@ -252,6 +252,9 @@ Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
 }
 
 void Loader::Impl::updateModResources(Mod* mod) {
+    // skip disabled mods
+    if (!mod->isOrWillBeEnabled()) return;
+    
     if (!mod->isInternal()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
@@ -383,6 +386,69 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
         }
 
         m_mods.insert({metadata.getID(), mod});
+    }
+
+    if (!m_keybindSettings.empty()) {
+        KeyboardInputEvent().listen([this](KeyboardInputData& data) {
+            Keybind keybind(data.key, data.modifiers);
+            bool down = data.action != KeyboardInputData::Action::Release;
+            bool repeat = data.action == KeyboardInputData::Action::Repeat;
+
+            if(!down) {
+                for (auto& [setting, activeKeybind] : m_activeKeybinds) {
+                    if (activeKeybind.key == data.key) {
+                        KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
+                    }
+                }
+
+                std::erase_if(m_activeKeybinds, [&](auto& pair) {
+                    return pair.second.key == data.key;
+                });
+            }
+
+            auto it = m_keybindSettings.find(keybind);
+            if (it == m_keybindSettings.end()) {
+                return ListenerResult::Propagate;
+            }
+
+            bool imeActive = CCIMEDispatcher::sharedDispatcher()->hasDelegate();
+
+            if (down) {
+                for (auto& setting : it->second) {
+                    if (imeActive && !setting->getAllowInTextInputs()) {
+                        continue;
+                    }
+                    if (!repeat) m_activeKeybinds[setting.get()] = keybind;
+                    if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
+                        return ListenerResult::Stop;
+                    }
+                }
+            } else {
+                for (auto& setting : it->second) {
+                    auto it2 = m_activeKeybinds.find(setting.get());
+                    if (it2 != m_activeKeybinds.end() && it2->second.key == data.key) {
+                        KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
+                        m_activeKeybinds.erase(it2);
+                    }
+                }
+            }
+            return ListenerResult::Propagate;
+        }).leak();
+
+        MouseInputEvent().listen([this](MouseInputData& data) {
+            auto key = MouseInputData::buttonToKeyCode(data.button);
+            if (key == KEY_None) {
+                return ListenerResult::Propagate;
+            }
+            auto keybind = Keybind(key, data.modifiers);
+            bool down = data.action == MouseInputData::Action::Press;
+            for (auto& setting : m_keybindSettings[keybind]) {
+                if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, false, data.timestamp)) {
+                    return ListenerResult::Stop;
+                }
+            }
+            return ListenerResult::Propagate;
+        }).leak();
     }
 }
 
@@ -518,10 +584,17 @@ void Loader::Impl::findProblems() {
         // invalid target version
         // Also this makes it so that when GD updates, outdated mods get shown as
         // "Outdated" in the UI instead of "Missing Dependencies"
+        // btw hi if you ever change this line please update LoaderImpl and ModMetadataImpl as well
         auto res = mod->getMetadata().checkGameVersion();
         if (!res) {
             this->addProblem({ LoadProblem::Type::Outdated, mod, res.unwrapErr() });
             log::error("{}", res.unwrapErr());
+            continue;
+        }
+
+        if (m_isPatchless && mod->getMetadata().needsPatching()) {
+            this->addProblem({ LoadProblem::Type::Unknown, mod, "This mod requires JIT" });
+            log::error("{} requires JIT, but loader is JIT-less", id);
             continue;
         }
 
@@ -557,13 +630,13 @@ void Loader::Impl::findProblems() {
 
         // Collect breaking incompatibilities
         for (auto const& dep : mod->getMetadata().getIncompatibilities()) {
-            if (!dep.getMod() || !dep.getVersion().compare(dep.getMod()->getVersion()) || !dep.getMod()->shouldLoad()) {
+            if (!dep.getMod() || !dep.getVersion().compare(dep.getMod()->getVersion()) || !dep.getMod()->shouldLoad() || !dep.getMod()->getMetadata().checkGameVersion()) {
                 continue;
             }
             if (dep.isBreaking()) {
                 // todo: which direction is this relationship in?
                 // todo: if mod A marks B as breaking, is B the one that shouldn't be loaded?
-                breakingIncompatibilities.push_back(dep.getMod()->getName());
+                breakingIncompatibilities.push_back(dep.getMod()->getID());
                 log::warn("{} breaks {} {}", id, dep.getID(), dep.getVersion());
             }
             else {
@@ -586,12 +659,12 @@ void Loader::Impl::findProblems() {
             else {
                 auto installedDependency = m_mods.at(dep.getID());
                 if (!installedDependency->isLoaded()) {
-                    disabledDependencies.push_back(installedDependency->getName());
+                    disabledDependencies.push_back(installedDependency->getID());
                 }
                 else if (dep.getVersion().compareWithReason(installedDependency->getVersion()) == VersionCompareResult::TooOld) {
                     outdatedDependencies.push_back(fmt::format(
                         "{} ({} -> {})",
-                        installedDependency->getName(),
+                        installedDependency->getID(),
                         installedDependency->getVersion(),
                         dep.getVersion()
                     ));
@@ -613,55 +686,29 @@ void Loader::Impl::findProblems() {
             std::string message;
             bool lastWasIncompatible = false;
             for (auto const& [whatToDo, mods] : std::initializer_list<std::pair<std::string_view, std::vector<std::string> const&>> {
-                std::make_pair("incompatible", breakingIncompatibilities),
-                std::make_pair("installed", noninstalledDependencies),
-                std::make_pair("enabled", disabledDependencies),
-                std::make_pair("updated", outdatedDependencies),
+                std::make_pair("disable", breakingIncompatibilities),
+                std::make_pair("install", noninstalledDependencies),
+                std::make_pair("enable", disabledDependencies),
+                std::make_pair("update", outdatedDependencies),
             }) {
                 if (mods.empty()) continue;
                 if (message.empty()) {
-                    // Incompatibilities have a different message because
-                    // they're not missing dependencies
-                    if (whatToDo == "incompatible") {
-                        message = fmt::format(
-                            "{} is incompatible with the following mod{}: {}",
-                            mod->getName(), (mods.size() == 1 ? "" : "s"), ranges::join(mods, ", ")
-                        );
-                        lastWasIncompatible = true;
-                    }
-                    // Everything else is missing dependency-related
-                    else {
-                        message = fmt::format(
-                            "{} requires the following mod{} to be {}: {}",
-                            mod->getName(), (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
-                        );
-                    }
+                    message = fmt::format(
+                        "Please <cy>{}</c> the following mod{} to use <co>{}</c>: {}",
+                        whatToDo, (mods.size() == 1 ? "" : "s"), mod->getName(),
+                        //ranges::join(mods, ", "),
+                        ranges::join(mods, std::string(""), [](const std::string& m) {
+                            return fmt::format("\n\n<mod:{}>", m.substr(0, m.find(' ')));
+                        })
+                    );
                 }
                 else {
-                    message += "\n";
-
-                    // Enclose missing dependencies after incompatibilities in
-                    // parentheses since those aren't the main point of the
-                    // error message
-                    message += (breakingIncompatibilities.size() ? "(" : "");
-
-                    // If the first sentence was about an incompatibility, we
-                    // need to have the next sentence specify that we are now
-                    // listing dependencies
-                    if (lastWasIncompatible) {
-                        message += fmt::format(
-                            "And requires these mod{} to be {}: {}",
-                            (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
-                        );
-                    }
-                    else {
-                        message += fmt::format(
-                            "And these mod{} to be {}: {}",
-                            (mods.size() == 1 ? "" : "s"), whatToDo, ranges::join(mods, ", ")
-                        );
-                    }
-                    message += breakingIncompatibilities.size() ? ")" : "";
-                    lastWasIncompatible = false;
+                    message += fmt::format("\n\nand {} the following mod{}: {}",
+                        whatToDo, (mods.size() == 1 ? "" : "s"),
+                        ranges::join(mods, std::string(""), [](const std::string& m) {
+                            return fmt::format("\n\n<mod:{}>", m.substr(0, m.find(' ')));
+                        })
+                    );
                 }
             }
             this->addProblem({
@@ -926,7 +973,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     std::filesystem::remove_all(tempDir, ec);
     if (ec) {
         auto message = formatSystemError(ec.value());
-        return Err("Unable to delete temp dir: " + message);
+        return Err("Unable to delete temp dir: " + message GEODE_WINDOWS( + " Try <cg>restarting your PC</c> to fix the issue."));
     }
 
     (void)utils::file::createDirectoryAll(tempDir);
@@ -1275,7 +1322,7 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
                 "<cy>Do you want to delete the original file?</c>",
                 meta.getName()
             ),
-            "OK", "Delete File",
+            "Keep", "Delete",
             [path](auto, bool btn2) {
                 if (btn2) {
                     std::error_code ec;
@@ -1358,4 +1405,27 @@ bool Loader::Impl::isPatchless() const {
 
 std::optional<std::string> Loader::Impl::getBinaryPath() const {
     return m_binaryPath;
+}
+
+void Loader::Impl::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds) {
+    for (auto& keybind : setting->getValue()) {
+        if (!std::ranges::contains(keybinds, keybind)) {
+            if (auto it = m_keybindSettings.find(keybind); it != m_keybindSettings.end()) {
+                auto& vec = it->second;
+                vec.erase(std::remove(vec.begin(), vec.end(), setting), vec.end());
+                if (vec.empty()) {
+                    m_keybindSettings.erase(it);
+                }
+            }
+        }
+    }
+
+    for (auto& keybind : keybinds) {
+        auto& settings = m_keybindSettings[keybind];
+        if (!std::ranges::contains(settings, setting)) {
+            settings.insert(std::ranges::find_if(settings, [&setting](auto& s) {
+                return setting->getPriority() < s->getPriority();
+            }), setting);
+        }
+    }
 }

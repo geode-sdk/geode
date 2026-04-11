@@ -64,7 +64,7 @@ $on_mod(Loaded) {
 static std::string s_receivedEvent;
 
 // Events
-$execute {
+$on_mod(Loaded) {
     TestEvent().listen(+[](std::string_view data) {
         log::info("Received event: {}", data);
         s_receivedEvent = data;
@@ -82,7 +82,7 @@ auto advanceFrame() {
     return task;
 }
 
-$execute {
+$on_mod(Loaded) {
     $async() {
         auto start = std::chrono::steady_clock::now();
         log::info("Waiting for 10 frames...");

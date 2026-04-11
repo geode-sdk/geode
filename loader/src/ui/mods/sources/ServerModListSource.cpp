@@ -15,7 +15,7 @@ ServerModListSource::ProviderTask ServerModListSource::fetchPage(size_t page, bo
     auto list = std::move(result).unwrap();
     auto content = ModListSource::ProvidedMods();
     for (auto&& mod : std::move(list.mods)) {
-        content.mods.push_back(ModSource(std::move(mod)));
+        content.mods.push_back(ModSource(std::move(mod), this));
     }
     content.totalModCount = list.totalModCount;
     co_return Ok(std::move(content));

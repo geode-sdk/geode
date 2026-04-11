@@ -67,6 +67,7 @@ protected:
     CCNode* m_downloadBarContainer;
     Slider* m_downloadBar;
     CCMenuItemToggler* m_enableToggle = nullptr;
+    CCMenuItemToggler* m_pinToggle = nullptr;
     CCMenuItemSpriteExtra* m_updateBtn = nullptr;
     ListenerHandle m_updateStateHandle;
     async::TaskHolder<server::ServerResult<server::ServerModUpdateOneCheck>> m_checkUpdateListener;
@@ -75,6 +76,7 @@ protected:
     ListenerHandle m_settingNodeHandle;
     Ref<CCNode> m_badgeContainer = nullptr;
     Ref<CCNode> m_downloadCountContainer;
+    Ref<CCNode> m_updatedAtContainer;
     CCLabelBMFont* m_versionDownloadSeparator;
 
     /**
@@ -87,6 +89,7 @@ protected:
 
     void onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result);
 
+    void onPin(CCObject*);
     void onEnable(CCObject*);
     void onView(CCObject*);
     void onViewError(CCObject*);

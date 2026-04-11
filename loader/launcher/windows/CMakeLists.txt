@@ -51,3 +51,6 @@ if (MSVC)
 	target_link_options(ProxyLoader PRIVATE /NOIMPLIB /DEBUG:NONE)
 	target_link_options(Updater PRIVATE /DEBUG:NONE)
 endif()
+
+target_link_libraries(ProxyLoader PRIVATE version)
+target_link_libraries(Updater PRIVATE urlmon)

@@ -6,7 +6,8 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <regex>
-#include "SettingNodeV3.hpp"
+#include <ui/mods/settings/SettingNodeV3.hpp>
+#include <loader/LoaderImpl.hpp>
 #include <matjson/std.hpp>
 
 using namespace geode::prelude;
@@ -137,10 +138,13 @@ namespace enable_if_parsing {
         }
         std::string shouldEnableReason(std::string_view defaultModID) const override {
             // Surely this will never break!
+            // sister, it just broke so here's Surely this will never break! v2™
             auto str = component->shouldEnableReason(defaultModID);
-            string::replaceIP(str, "Enable", "___TEMP");
-            string::replaceIP(str, "Disable", "Enable");
-            string::replaceIP(str, "___TEMP", "Disable");
+            if (str.starts_with("Enable")) {
+                str.replace(0, 6, "Disable");
+            } else if (str.starts_with("Disable")) {
+                str.replace(0, 7, "Enable");
+            }
             return str;
         }
     };
@@ -456,6 +460,8 @@ SettingChangedEventV3::SettingChangedEventV3(Mod* mod, std::string settingKey) :
 
 KeybindSettingPressedEventV3::KeybindSettingPressedEventV3(Mod* mod, std::string settingKey) : KeybindSettingPressedEventV3(mod->getID(), std::move(settingKey)) {}
 
+ButtonSettingPressedEventV3::ButtonSettingPressedEventV3(Mod* mod, std::string settingKey) : ButtonSettingPressedEventV3(mod->getID(), std::move(settingKey)) {}
+
 SettingNodeSizeChangeEventV3::SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeSizeChangeEventV3(mod->getID(), std::move(settingKey)) {}
 
 SettingNodeValueChangeEventV3::SettingNodeValueChangeEventV3(Mod* mod, std::string settingKey) : SettingNodeValueChangeEventV3(mod->getID(), std::move(settingKey)) {}
@@ -604,6 +610,116 @@ bool TitleSettingV3::isDefaultValue() const {
     return true;
 }
 void TitleSettingV3::reset() {}
+
+class InfoSettingV3::Impl final {
+public:
+    std::optional<ccColor3B> color;
+};
+
+InfoSettingV3::InfoSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
+
+Result<std::shared_ptr<InfoSettingV3>> InfoSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
+    auto ret = std::make_shared<InfoSettingV3>(PrivateMarker());
+    auto root = checkJson(json, "InfoSettingV3");
+    ret->init(std::move(key), std::move(modID), root);
+    ret->parseNameAndDescription(root);
+
+    if (!ret->getDescription() || ret->getDescription()->empty()) {
+        return Err("Setting '{}' in mod {} - Description must not be empty!", std::move(key), std::move(modID));
+    }
+
+    std::optional<std::string> color;
+    root.has("color").into(color);
+
+    if (color) {
+        auto converted = cc3bFromHexString(color.value());
+        if (converted) ret->m_impl->color = converted.unwrap();
+    }
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
+bool InfoSettingV3::load(matjson::Value const& json) {
+    return true;
+}
+
+bool InfoSettingV3::save(matjson::Value&) const {
+    return true;
+}
+
+std::optional<ccColor3B> InfoSettingV3::getColor() const {
+    return m_impl->color;
+}
+
+SettingNodeV3* InfoSettingV3::createNode(float width) {
+    return InfoSettingNodeV3::create(
+        std::static_pointer_cast<InfoSettingV3>(shared_from_this()), width
+    );
+}
+
+bool InfoSettingV3::isDefaultValue() const {
+    return true;
+}
+
+void InfoSettingV3::reset() {}
+
+class ButtonSettingV3::Impl final {
+public:
+    StringMap<std::string> buttons;
+};
+
+ButtonSettingV3::ButtonSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
+
+Result<std::shared_ptr<ButtonSettingV3>> ButtonSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
+    auto ret = std::make_shared<ButtonSettingV3>(PrivateMarker());
+    auto root = checkJson(json, "ButtonSettingV3");
+    ret->parseBaseProperties(key, modID, root);
+
+    if (auto buttons = root.has("buttons")) {
+        if (!buttons.isObject()) {
+            return Err("Setting '{}' in mod {} - \"buttons\" must be an object!", std::move(key), std::move(modID));
+        }
+        auto buttonsObj = buttons.takeJson();
+        for (const auto& [k, v] : buttonsObj) {
+            if (!v.isString()) {
+                return Err("Setting '{}' in mod {} - \"buttons.{}\" must be a string!", std::move(key), std::move(modID), k);
+            }
+            ret->m_impl->buttons[k] = v.asString().unwrapOrDefault();
+        }
+    }
+
+    if (ret->m_impl->buttons.empty()) {
+        return Err("Setting '{}' in mod {} - \"buttons\" must not be empty!", std::move(key), std::move(modID));
+    }
+
+    root.checkUnknownKeys();
+    return root.ok(ret);
+}
+
+bool ButtonSettingV3::load(matjson::Value const& json) {
+    return true;
+}
+
+bool ButtonSettingV3::save(matjson::Value&) const {
+    return true;
+}
+
+StringMap<std::string> ButtonSettingV3::getButtons() {
+    return m_impl->buttons;
+}
+
+SettingNodeV3* ButtonSettingV3::createNode(float width) {
+    return ButtonSettingNodeV3::create(
+        std::static_pointer_cast<ButtonSettingV3>(shared_from_this()), width
+    );
+}
+
+bool ButtonSettingV3::isDefaultValue() const {
+    return true;
+}
+
+void ButtonSettingV3::reset() {}
 
 class BoolSettingV3::Impl final {
 public:
@@ -1066,6 +1182,10 @@ class KeybindSettingV3::Impl final {
 public:
     std::vector<Keybind> defaultValue;
     std::vector<Keybind> value;
+    std::optional<KeybindCategory> category;
+    std::optional<std::string> migrateFrom;
+    int m_priority = 0;
+    bool m_allowInTextInputs = false;
 };
 
 KeybindSettingV3::KeybindSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {}
@@ -1074,6 +1194,23 @@ Result<std::shared_ptr<KeybindSettingV3>> KeybindSettingV3::parse(std::string ke
     auto ret = std::make_shared<KeybindSettingV3>(PrivateMarker());
     auto root = checkJson(json, "KeybindSettingV3");
     ret->parseBaseProperties(std::move(key), std::move(modID), root);
+    std::string category;
+    if (root.hasNullable("category").into(category)) {
+        switch (hash(category)) {
+            case hash("editor"): ret->m_impl->category = KeybindCategory::Editor; break;
+            case hash("universal"): ret->m_impl->category = KeybindCategory::Universal; break;
+            case hash("gameplay"): ret->m_impl->category = KeybindCategory::Gameplay; break;
+            default: {
+                return Err(
+                    "Unknown keybind category \"{}\" in setting \"{}\" from mod {}",
+                    category, key, modID
+                );
+            } break;
+        }
+    }
+    root.has("migrate-from").into(ret->m_impl->migrateFrom);
+    root.has("priority").into(ret->m_impl->m_priority);
+    root.has("allow-in-text-inputs").into(ret->m_impl->m_allowInTextInputs);
     root.checkUnknownKeys();
     return root.ok(ret);
 }
@@ -1107,21 +1244,34 @@ void KeybindSettingV3::parseBaseProperties(std::string key, std::string modID, J
         this->parseDefaultValue(root);
     }
     m_impl->value = m_impl->defaultValue;
+    LoaderImpl::get()->onKeybindSettingChanged(std::static_pointer_cast<KeybindSettingV3>(shared_from_this()), m_impl->value);
 }
 
 void KeybindSettingV3::setDefaultValue(std::vector<Keybind> value) {
     m_impl->defaultValue = std::move(value);
 }
-
 std::vector<Keybind> const& KeybindSettingV3::getDefaultValue() const {
     return m_impl->defaultValue;
 }
 
+std::optional<KeybindCategory> KeybindSettingV3::getCategory() const {
+    return m_impl->category;
+}
+std::optional<std::string> KeybindSettingV3::getMigrateFrom() const {
+    return m_impl->migrateFrom;
+}
+int KeybindSettingV3::getPriority() const {
+    return m_impl->m_priority;
+}
+bool KeybindSettingV3::getAllowInTextInputs() const {
+    return m_impl->m_allowInTextInputs;
+}
+
 void KeybindSettingV3::setValue(std::vector<Keybind> value) {
+    LoaderImpl::get()->onKeybindSettingChanged(std::static_pointer_cast<KeybindSettingV3>(shared_from_this()), value);
     m_impl->value = std::move(value);
     this->markChanged();
 }
-
 std::vector<Keybind> const& KeybindSettingV3::getValue() const {
     return m_impl->value;
 }
@@ -1139,6 +1289,7 @@ bool KeybindSettingV3::load(matjson::Value const& json) {
     if (res.isErr()) {
         return false;
     }
+    LoaderImpl::get()->onKeybindSettingChanged(std::static_pointer_cast<KeybindSettingV3>(shared_from_this()), res.unwrap());
     m_impl->value = std::move(res).unwrap();
     return true;
 }

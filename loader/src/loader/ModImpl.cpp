@@ -17,6 +17,7 @@
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/string.hpp>
+#include <algorithm>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -134,6 +135,13 @@ void Mod::Impl::setMetadata(ModMetadata const& metadata) {
 }
 std::vector<Mod*> Mod::Impl::getDependants() const {
     return m_dependants;
+}
+std::vector<Mod*> Mod::Impl::getEnabledDependants() const {
+    std::vector<Mod*> ret;
+    std::ranges::copy_if(m_dependants, std::back_inserter(ret), [](Mod* mod) {
+        return mod->isOrWillBeEnabled();
+    });
+    return ret;
 }
 #endif
 
@@ -271,6 +279,10 @@ bool Mod::Impl::hasSetting(std::string_view key) const {
         }
     }
     return false;
+}
+
+void Mod::Impl::settingReact(geode::Function<void()> fn) {
+    m_settingObserver.reactToChanges(std::move(fn));
 }
 
 std::string Mod::Impl::getLaunchArgumentName(std::string_view name) const {
@@ -531,12 +543,13 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
                    "A hook that was getting disowned had its owner set but the owner "
                    "didn't have the hook in m_hooks.");
 
+    auto sharedHook = *foundIt;
     m_hooks.erase(foundIt);
 
-    if (!this->isLoaded() || !hook->getAutoEnable())
+    if (!this->isLoaded() || !sharedHook->getAutoEnable())
         return Ok();
 
-    auto res2 = hook->disable();
+    auto res2 = sharedHook->disable();
     if (!res2) {
         return Err("Cannot disable hook: {}", res2.unwrapErr());
     }
@@ -695,6 +708,14 @@ bool Mod::Impl::isCurrentlyLoading() const {
 
 int Mod::Impl::getLoadPriority() const {
     return m_metadata.getLoadPriority();
+}
+
+bool Mod::Impl::isPinned() const {
+    return Mod::get()->getSavedValue<bool>("is-pinned-" + m_metadata.getID(), false);
+}
+
+void Mod::Impl::setPinned(bool pinned) {
+    Mod::get()->setSavedValue<bool>("is-pinned-" + m_metadata.getID(), pinned);
 }
 
 static Result<ModMetadata> getModImplInfo() {

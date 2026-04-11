@@ -43,7 +43,7 @@ BorrowedLog::BorrowedLog(Log const& log)
     , m_source(log.m_source)
     , m_nestCount(log.m_nestCount)
     , m_content(log.m_content)
-    , m_mod(nullptr)
+    , m_mod(log.m_mod)
 {}
 
 Log BorrowedLog::intoLog() const {
@@ -101,58 +101,6 @@ std::tuple<std::string_view, std::string_view, int32_t> BorrowedLog::truncateWit
     }
 
     return { source, thread, nestCount };
-}
-
-// Parse overloads
-
-std::string geode::format_as(Mod* mod) {
-    if (mod) {
-        return fmt::format("{{ Mod, {} }}", mod->getName());
-    }
-    else {
-        return "{ Mod, null }";
-    }
-}
-
-std::string geode::format_as(CCObject const* obj) {
-    if (obj) {
-        return fmt::format("{{ {}, {} }}", getObjectName(obj), fmt::ptr(obj));
-    } else {
-        return "{ CCObject, null }";
-    }
-}
-
-std::string geode::format_as(CCNode* obj) {
-    if (obj) {
-        return fmt::format(
-            "{{ {}, {}, ({}) }}",
-            getObjectName(obj),
-            fmt::ptr(obj),
-            obj->boundingBox()
-        );
-    } else {
-        return "{ CCNode, null }";
-    }
-}
-
-std::string geode::format_as(CCArray* arr) {
-    if (arr && arr->count()) {
-        fmt::memory_buffer buffer;
-        buffer.push_back('[');
-
-        for (int i = 0; i < arr->count(); ++i) {
-            auto* obj = arr->objectAtIndex(i);
-            buffer.append(format_as(obj));
-            if (i + 1 < arr->count()) {
-                buffer.append(std::string_view(", "));
-            }
-        }
-
-        buffer.push_back(']');
-        return fmt::to_string(buffer);
-    } else {
-        return "[empty]";
-    }
 }
 
 // Log
@@ -239,7 +187,9 @@ std::mutex& getLogMutex() {
 }
 
 static Severity logLevelFor(std::string_view level) {
-    if (level == "debug") {
+    if (level == "trace") {
+        return Severity::Trace;
+    } else if (level == "debug") {
         return Severity::Debug;
     } else if (level == "info") {
         return Severity::Info;

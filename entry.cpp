@@ -1,5 +1,6 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Log.hpp>
 #include <Geode/utils/async.hpp>
 
 namespace geode {
@@ -26,6 +27,20 @@ GEODE_API void geodeImplicitEntry() {
     if (!mod->isInternal()) {
         arc::setGlobalRuntime(&geode::async::runtime());
     }
+
+    arc::setLogFunction([](auto msg, arc::LogLevel level) {
+        using enum arc::LogLevel;
+
+        switch (level) {
+            case Warn:
+                geode::log::warn("[arc] {}", msg); break;
+            case Error:
+                geode::log::error("[arc] {}", msg); break;
+            default:
+                // log::debug("[arc] {}", msg);
+                break;
+        }
+    });
 }
 
 #if defined(_DEBUG) && defined(GEODE_IS_WINDOWS)

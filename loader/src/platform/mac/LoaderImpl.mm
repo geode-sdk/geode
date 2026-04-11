@@ -19,6 +19,7 @@ struct MacConsoleData {
 };
 
 bool s_isOpen = false;
+bool s_outputToConsole = false;
 MacConsoleData s_platformData;
 
 void console::messageBox(ZStringView title, ZStringView info, Severity) {
@@ -31,31 +32,72 @@ void console::messageBox(ZStringView title, ZStringView info, Severity) {
 }
 
 void console::log(ZStringView zmsg, Severity severity) {
-    auto msg = zmsg.view();
-
-    if (s_isOpen) {
-        int colorcode = 0;
+    // this is copied from the windows code
+    if (s_isOpen || s_outputToConsole) {
+        int color = 0;
+        int color2 = -1;
         switch (severity) {
-            case Severity::Debug: colorcode = 36; break;
-            case Severity::Info: colorcode = 34; break;
-            case Severity::Warning: colorcode = 33; break;
-            case Severity::Error: colorcode = 31; break;
-            default: colorcode = 35; break;
+            case Severity::Trace:
+                color = 54;
+                color2 = 254;
+                break;
+            case Severity::Debug:
+                color = 243;
+                color2 = 250;
+                break;
+            case Severity::Info:
+                color = 45;
+                color2 = 254;
+                break;
+            case Severity::Warning:
+                color = 229;
+                color2 = 230;
+                break;
+            case Severity::Error:
+                color = 9;
+                color2 = 224;
+                break;
+            default:
+                color = 7;
+                break;
         }
-        
-        auto newMsg = fmt::format(
-            "\033[1;{}m{}\033[0m{}",
-            colorcode,
-            msg.substr(0, 8),
-            msg.substr(8)
-        );
 
-        std::cout << newMsg << "\n" << std::flush;
+        std::string_view sv{zmsg};
+
+        std::string_view colored;
+        std::string_view rest;
+
+        // the string in 'sv' is usually already preformatted as "HH:MM:SS(.mmm) LEVEL [thread] ...",
+        // we want to color the time and log level, so look until the first [
+        size_t bracketStart = sv.find_first_of('[');
+        if (bracketStart != std::string::npos) {
+            bracketStart -= 1; // don't color the space
+
+            colored = sv.substr(0, bracketStart);
+            rest = sv.substr(bracketStart);
+        } else {
+            rest = sv;
+        }
+
+        StringBuffer<> buf;
+        buf.append("\x1b[38;5;{}m{}\x1b[0m{}\n", color, colored, rest);
+
+        std::cout << buf.view() << std::flush;
     }
 }
 
+void console::setup() {
+    // detect if running under a terminal window
+    if (isatty(fileno(stdout))) {
+        s_outputToConsole = true;
+        return;
+    }
 
-void console::setup() { }
+    if (geode::utils::getEnvironmentVariable("GEODE_FORCE_CONSOLE_OUTPUT") == "1") {
+        s_outputToConsole = true;
+    }
+}
+
 void console::openIfClosed() {
     if (s_isOpen) return;
 

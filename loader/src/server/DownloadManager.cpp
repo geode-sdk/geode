@@ -433,6 +433,11 @@ std::vector<RecentlyUpdatedMod> const& ModDownloadManager::getRecentlyUpdatedMod
     m_impl->loadRecentlyUpdated();
     return m_impl->recentlyUpdated;
 }
+std::optional<RecentlyUpdatedMod> ModDownloadManager::getRecentlyUpdatedInfo(std::string_view id) {
+    m_impl->loadRecentlyUpdated();
+    auto it = std::ranges::find_if(m_impl->recentlyUpdated, [&id](auto const& u) { return u.modID == id; });
+    return it != m_impl->recentlyUpdated.end() ? std::optional(*it) : std::nullopt;
+}
 
 ModDownloadManager* ModDownloadManager::get() {
     static auto inst = new ModDownloadManager();

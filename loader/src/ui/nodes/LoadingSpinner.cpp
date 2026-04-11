@@ -13,7 +13,7 @@ LoadingSpinner::LoadingSpinner() : m_impl(std::make_unique<Impl>()) { }
 LoadingSpinner::~LoadingSpinner() { }
 
 bool LoadingSpinner::init(float sideLength) {
-    if (!CCNode::init())
+    if (!CCNodeRGBA::init())
         return false;
 
     this->setID("loading-spinner");
@@ -51,9 +51,6 @@ LoadingSpinner* LoadingSpinner::create(float sideLength) {
 
 void LoadingSpinner::setVisible(bool visible) {
     CCNode::setVisible(visible);
-    if (visible) {
-        this->spin();
-    }
 }
 
 void LoadingSpinner::setContentSize(const CCSize& size) {

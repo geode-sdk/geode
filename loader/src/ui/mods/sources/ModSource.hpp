@@ -6,15 +6,18 @@
 
 using namespace geode::prelude;
 
+class ModListSource;
+
 class ModSource final {
 private:
     std::variant<Mod*, server::ServerModMetadata> m_value;
     server::ServerModUpdateOneCheck m_availableUpdate;
+    ModListSource* m_listSource;
 
 public:
     ModSource() = default;
-    ModSource(Mod* mod);
-    ModSource(server::ServerModMetadata&& metadata);
+    ModSource(Mod* mod, ModListSource* listSource = nullptr);
+    ModSource(server::ServerModMetadata&& metadata, ModListSource* listSource = nullptr);
 
     std::string getID() const;
     ModMetadata const& getMetadata() const;
@@ -31,6 +34,8 @@ public:
     // an installed version of a server mod
     ModSource convertForPopup() const;
 
+    ModListSource* getListSource() const;
+
     Mod* asMod() const;
     server::ServerModMetadata const* asServer() const;
 
@@ -41,4 +46,5 @@ public:
     server::ServerFuture<std::vector<server::ServerTag>> fetchValidTags() const;
     server::ServerFuture<server::ServerModUpdateOneCheck> checkUpdates();
     void startInstall();
+    void requestEnable();
 };

@@ -34,10 +34,70 @@ namespace crashlog {
      */
     std::filesystem::path GEODE_DLL getCrashLogDirectory();
 
+    struct Image {
+        uintptr_t address = 0;
+        std::string name_;
+        size_t size = 0;
+
+        std::string_view name() const;
+        std::string_view shortName() const;
+        bool isGameBinary() const;
+    };
+
+    struct StackFrame {
+        uintptr_t address = 0;
+        Image* image = nullptr;
+        std::string symbol;
+        uintptr_t offset = 0;
+        std::string description;
+
+        std::string file;
+        uint32_t line = 0;
+
+        ptrdiff_t imageOffset() const;
+        ptrdiff_t functionOffset() const;
+    };
+
+    struct Register {
+        std::string_view name;
+        size_t value;
+    };
+
+    struct CrashContext {
+        static constexpr size_t MAX_FRAMES = 128;
+
+        std::vector<Image> images;
+        std::vector<StackFrame> frames;
+        std::vector<Register> registers;
+        geode::Mod* faultyMod = nullptr;
+        void const* crashAddr = nullptr;
+        Buffer infoStream;
+
+        void initialize(void const* crashAddr);
+
+        Image* imageFromAddress(void const* addr);
+        geode::Mod* modFromAddress(void const* addr);
+        geode::Mod* modFromImage(Image const* image);
+
+        // Formats a memory address into something that can more precisely point its location,
+        // i.e. 0x12345678 -> "0x12345678 (GeometryDash + 0x5678)"
+        void formatAddress(void const* addr, Buffer& stream, bool shortName = true);
+
+        /// These functions are implemented differently per-platform and not defined in the common crashlog.cpp
+        /// As well, each platform must call initialize() after a crash to initialize the context.
+
+        static std::vector<Image> getImages();
+        static std::vector<StackFrame> getStacktrace();
+        static std::vector<Register> getRegisters();
+        static std::string_view getGeodeBinaryName();
+        void writeInfo(Buffer& stream);
+    };
 
     std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers);
+    std::string GEODE_DLL writeCrashlog(const CrashContext& ctx);
 
     std::string writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers, std::filesystem::path& outCrashlogPath);
+    std::string writeCrashlog(const CrashContext& ctx, std::filesystem::path& outCrashlogPath);
 
     std::string getDateString(bool filesafe);
 

@@ -3,6 +3,7 @@
 #include "../load.hpp"
 #include <Windows.h>
 
+#include <Geode/utils/general.hpp>
 #include "loader/LoaderImpl.hpp"
 #include "loader/console.hpp"
 
@@ -457,13 +458,8 @@ static void fixThrowCppErrorStub() {
     }
 }
 
-static bool isWine() {
-    auto dll = LoadLibraryW(L"ntdll.dll");
-    return GetProcAddress(dll, "wine_get_version") != nullptr;
-}
-
 $execute {
-    if (isWine()) {
+    if (geode::utils::platform::isWine()) {
         fixThrowCppErrorStub();
     }
 }

@@ -3,6 +3,7 @@
 #include <Geode/Prelude.hpp>
 #include <cocos2d.h>
 #include <android/keycodes.h>
+#include <android/input.h>
 #include <jni.h>
 #include <unordered_map>
 
@@ -155,9 +156,9 @@ namespace {
                 isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
                 { static_cast<uint64_t>(keycode), 0 },
                 timestamp,
-                (isShiftPressed ? KeyboardInputData::Mods_Shift : KeyboardInputData::Mods_None) |
-                (isCtrlPressed ? KeyboardInputData::Mods_Control : KeyboardInputData::Mods_None) |
-                (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
+                (isShiftPressed ? KeyboardModifier::Shift : KeyboardModifier::None) |
+                (isCtrlPressed ? KeyboardModifier::Control : KeyboardModifier::None) |
+                (isAltPressed ? KeyboardModifier::Alt : KeyboardModifier::None)
             );
 
             if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
@@ -165,9 +166,9 @@ namespace {
             }
 
             keyboard_dispatcher->updateModifierKeys(
-                data.modifiers & KeyboardInputData::Mods_Shift,
-                data.modifiers & KeyboardInputData::Mods_Control,
-                data.modifiers & KeyboardInputData::Mods_Alt,
+                data.modifiers & KeyboardModifier::Shift,
+                data.modifiers & KeyboardModifier::Control,
+                data.modifiers & KeyboardModifier::Alt,
                 false
             );
 
@@ -202,9 +203,9 @@ namespace {
                 KeyboardInputData::Action::Release,
                 { static_cast<uint64_t>(keycode), 0 },
                 timestamp,
-                (isShiftPressed ? KeyboardInputData::Mods_Shift : KeyboardInputData::Mods_None) |
-                (isCtrlPressed ? KeyboardInputData::Mods_Control : KeyboardInputData::Mods_None) |
-                (isAltPressed ? KeyboardInputData::Mods_Alt : KeyboardInputData::Mods_None)
+                (isShiftPressed ? KeyboardModifier::Shift : KeyboardModifier::None) |
+                (isCtrlPressed ? KeyboardModifier::Control : KeyboardModifier::None) |
+                (isAltPressed ? KeyboardModifier::Alt : KeyboardModifier::None)
             );
 
             if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
@@ -212,9 +213,9 @@ namespace {
             }
 
             keyboard_dispatcher->updateModifierKeys(
-                data.modifiers & KeyboardInputData::Mods_Shift,
-                data.modifiers & KeyboardInputData::Mods_Control,
-                data.modifiers & KeyboardInputData::Mods_Alt,
+                data.modifiers & KeyboardModifier::Shift,
+                data.modifiers & KeyboardModifier::Control,
+                data.modifiers & KeyboardModifier::Alt,
                 false
             );
 
@@ -254,6 +255,80 @@ namespace {
 
         return res;
     }
+
+    std::unordered_map<cocos2d::enumKeyCodes, bool> runningAxes{};
+
+    void dispatchGamepadKeyEvent(jlong timestamp, cocos2d::enumKeyCodes key, bool isDown) {
+        double timeInSeconds = static_cast<double>(timestamp) / 1'000'000'000.0;
+
+        auto keyboard_dispatcher = cocos2d::CCDirector::sharedDirector()->getKeyboardDispatcher();
+        KeyboardInputData data(
+            key,
+            isDown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
+            { 0, 0 },
+            timeInSeconds,
+            KeyboardModifier::None
+        );
+
+        if (KeyboardInputEvent(key).send(data) != ListenerResult::Propagate) {
+            return;
+        }
+
+        keyboard_dispatcher->updateModifierKeys(
+            data.modifiers & KeyboardModifier::Shift,
+            data.modifiers & KeyboardModifier::Control,
+            data.modifiers & KeyboardModifier::Alt,
+            false
+        );
+
+        keyboard_dispatcher->dispatchKeyboardMSG(
+            data.key,
+            data.action != KeyboardInputData::Action::Release,
+            data.action == KeyboardInputData::Action::Repeat,
+            data.timestamp
+        );
+    }
+
+    void handleTrigger(cocos2d::enumKeyCodes key, float value, jlong timestamp) {
+        auto isDown = value >= 0.11;
+        auto currentValue = runningAxes[key];
+
+        if (isDown == currentValue) {
+            return;
+        }
+
+        runningAxes[key] = isDown;
+        dispatchGamepadKeyEvent(timestamp, key, isDown);
+    }
+
+    std::int8_t normalizedValueForAxis(float value) {
+        auto threshold = 0.3f;
+
+        if (value > threshold) {
+            return 1;
+        } else if (value < -threshold) {
+            return -1;
+        }
+
+        return 0;
+    }
+
+    void handleStick(cocos2d::enumKeyCodes posKey, cocos2d::enumKeyCodes negKey, float value, jlong timestamp) {
+        auto state = normalizedValueForAxis(value);
+
+        bool negValue = state < 0;
+        bool posValue = state > 0;
+
+        if (runningAxes[posKey] != posValue) {
+            runningAxes[posKey] = posValue;
+            dispatchGamepadKeyEvent(timestamp, posKey, posValue);
+        }
+
+        if (runningAxes[negKey] != negValue) {
+            runningAxes[negKey] = negValue;
+            dispatchGamepadKeyEvent(timestamp, negKey, negValue);
+        }
+    }
 }
 
 
@@ -264,8 +339,9 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         return;
     }
 
-    auto isController = eventSource == 0x00000401 || eventSource == 0x01000010;
-    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000.0;
+    auto isController = (eventSource & AINPUT_SOURCE_GAMEPAD) == AINPUT_SOURCE_GAMEPAD
+        || (eventSource & AINPUT_SOURCE_JOYSTICK) == AINPUT_SOURCE_JOYSTICK;
+    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000'000.0;
 
     if (isDown) {
         onKeyDown(isController, keyCode, modifiers, repeatCount > 0, timeInSeconds);
@@ -313,7 +389,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         return;
     }
 
-    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000.0;
+    double timeInSeconds = static_cast<double>(timestamp) / 1'000'000'000.0;
     auto glView = cocos2d::CCDirector::sharedDirector()->getOpenGLView();
     switch (type) {
         case AndroidTouchInput::Type::Began:
@@ -358,7 +434,24 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         );
     }
 
-    AndroidRichInputEvent().send(timestamp, deviceId, eventSource, AndroidJoystickInput(std::move(inputs)));
+    if (AndroidRichInputEvent().send(timestamp, deviceId, eventSource, AndroidJoystickInput(inputs)) != ListenerResult::Propagate) {
+        return;
+    }
+
+    if (!inputs.empty()) {
+        auto& lastPacket = inputs.back();
+        handleTrigger(CONTROLLER_LT, lastPacket.leftTrigger, timestamp);
+        handleTrigger(CONTROLLER_RT, lastPacket.rightTrigger, timestamp);
+
+        handleStick(CONTROLLER_LTHUMBSTICK_RIGHT, CONTROLLER_LTHUMBSTICK_LEFT, lastPacket.leftX, timestamp);
+        handleStick(CONTROLLER_LTHUMBSTICK_DOWN, CONTROLLER_LTHUMBSTICK_UP, lastPacket.leftY, timestamp);
+
+        handleStick(CONTROLLER_RTHUMBSTICK_RIGHT, CONTROLLER_RTHUMBSTICK_LEFT, lastPacket.rightX, timestamp);
+        handleStick(CONTROLLER_RTHUMBSTICK_DOWN, CONTROLLER_RTHUMBSTICK_UP, lastPacket.rightY, timestamp);
+
+        handleStick(CONTROLLER_Right, CONTROLLER_Left, lastPacket.hatX, timestamp);
+        handleStick(CONTROLLER_Down, CONTROLLER_Up, lastPacket.hatY, timestamp);
+    }
 }
 
 AndroidScrollInput::AndroidScrollInput(float scrollX, float scrollY) : m_scrollX(scrollX), m_scrollY(scrollY) {}
@@ -419,4 +512,17 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceChang
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceRemoved(JNIEnv*, jobject, jint deviceId, jint eventSource) {
     geode::AndroidInputDeviceEvent().send(deviceId, geode::AndroidInputDeviceStatus::Removed);
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_resizeSurface(
+    JNIEnv* env, jobject, jint width, jint height
+) {
+    auto fWidth = static_cast<float>(width);
+    auto fHeight = static_cast<float>(height);
+
+    cocos2d::CCEGLView::sharedOpenGLView()->setFrameSize(fWidth, fHeight);
+    cocos2d::CCDirector::sharedDirector()->updateScreenScale({fWidth, fHeight});
+    cocos2d::CCDirector::sharedDirector()->setViewport();
+    cocos2d::CCDirector::sharedDirector()->setProjection(cocos2d::kCCDirectorProjection2D);
 }

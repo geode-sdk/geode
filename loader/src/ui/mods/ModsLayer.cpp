@@ -21,6 +21,7 @@
 #include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
 #include <Geode/ui/MDPopup.hpp>
+#include "settings/KeybindsPopup.hpp"
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())
@@ -44,7 +45,7 @@ bool ModsStatusNode::init() {
     m_statusPercentage = CCLabelBMFont::create("", "bigFont.fnt");
     m_statusPercentage->setID("status-percentage-label");
     m_statusPercentage->setScale(.8f);
-    m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-25, 0));
+    m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-35, 0));
 
     m_loadingCircle = createLoadingCircle(32);
     m_statusBG->addChildAtPosition(m_loadingCircle, Anchor::Left, ccp(25, 0));
@@ -280,45 +281,6 @@ void ModsStatusNode::onConfirm(CCObject*) {
 void ModsStatusNode::onCancel(CCObject*) {
     server::ModDownloadManager::get()->cancelAll();
 }
-
-void ModsLayer::onOpenModsFolder(CCObject*) {
-    file::openFolder(dirs::getModsDir());
-}
-
-void ModsLayer::onAddModFromFile(CCObject*) {
-    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
-        return FLAlertLayer::create(
-            nullptr,
-            "Manually Installing Mods",
-            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
-            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
-            "<cr>Proceed at your own risk!</c>",
-            "OK", nullptr,
-            350
-        )->show();
-    }
-
-    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
-        .filters = { file::FilePickOptions::Filter {
-            .description = "Geode Mods",
-            .files = { "*.geode" },
-        }}
-    }), [](Result<std::optional<std::filesystem::path>> result) {
-        if (result.isOk() && result.unwrap().has_value()) {
-            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
-                InstalledModListSource::get(InstalledModListType::All)->clearCache();
-            });
-        }
-        else if (!result.isOk()) {
-            FLAlertLayer::create(
-                "Unable to Select File",
-                result.unwrapErr(),
-                "OK"
-            )->show();
-        }
-    });
-}
-
 void ModsStatusNode::onRestart(CCObject*) {
     // Update button state to let user know it's restarting but it might take a bit
     m_restartBtn->setEnabled(false);
@@ -358,13 +320,29 @@ bool ModsLayer::init() {
 
     const bool geodeTheme = isGeodeTheme();
     if (!isSafeMode) {
-        if (geodeTheme) {
-            this->addChild(SwelvyBG::create());
-        }
-        else {
-            this->addChild(createLayerBG());
-            addSideArt(this);
-        }
+        auto listener = NodeProvidingEvent("geode-background"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+            if (nodeOut) return; // someone overrode it already
+            auto winSize = CCDirector::get()->getWinSize();
+            CCNode* geodeBackground;
+            if (theme == "sapphire") {
+                geodeBackground = CCSprite::create("sapphire-bg.png"_spr);
+                geodeBackground->setScaleX((winSize.width) / geodeBackground->getContentSize().width);
+                geodeBackground->setScaleY((winSize.height) / geodeBackground->getContentSize().height);
+                geodeBackground->setPosition({winSize.width / 2, winSize.height / 2});
+            }
+            else if (theme == "geometry-dash") {
+                geodeBackground = createLayerBG();
+                addSideArt(this);
+            }
+            else {
+                geodeBackground = SwelvyBG::create();
+            }
+            nodeOut = geodeBackground;
+        }, Priority::Last);
+
+        cocos2d::CCNode* geodeBackground = nullptr;
+        NodeProvidingEvent("geode-background"_spr).send(geodeBackground);
+        this->addChild(geodeBackground);
     }
 
     m_modListDisplay = Mod::get()->getSavedValue<ModListDisplay>("mod-list-display-type");
@@ -415,53 +393,39 @@ bool ModsLayer::init() {
         CircleBaseSize::Medium
     );
     settingsSpr->setScale(.8f);
-    settingsSpr->setTopOffset(ccp(.5f, 0));
+    settingsSpr->setTopOffset(ccp(-0.1f, 0));
     auto settingsBtn = CCMenuItemSpriteExtra::create(
         settingsSpr, this, menu_selector(ModsLayer::onSettings)
     );
     settingsBtn->setID("settings-button");
     actionsMenu->addChild(settingsBtn);
 
-    auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload.png"_spr);
-    restartGDSpr->setColor({ 255, 215, 65 });
-    auto restartGDCircleSpr = createGeodeCircleButton(
-        restartGDSpr, 1.f,
+    auto keybindsSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("keybinds.png"_spr), 1.f,
         CircleBaseSize::Medium
     );
-    restartGDCircleSpr->setScale(.8f);
-    restartGDCircleSpr->setTopOffset(ccp(.5f, 0));
-    auto restartGDBtn = CCMenuItemSpriteExtra::create(
-        restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
+    keybindsSpr->setScale(.8f);
+    keybindsSpr->setTopOffset(ccp(0.2f, 1));
+    auto keybindsBtn = CCMenuItemSpriteExtra::create(
+        keybindsSpr, this, menu_selector(ModsLayer::onKeybinds)
     );
-    restartGDBtn->setID("restart-gd-button");
-    actionsMenu->addChild(restartGDBtn);
+    keybindsBtn->setID("settings-button");
+    actionsMenu->addChild(keybindsBtn);
 
-    auto folderSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("gj_folderBtn_001.png"), 1.f,
-        CircleBaseSize::Medium
-    );
-    folderSpr->setScale(0.8f);
-    auto folderBtn = CCMenuItemSpriteExtra::create(
-        folderSpr,
-        this,
-        menu_selector(ModsLayer::onOpenModsFolder)
-    );
-    folderBtn->setID("mods-folder-button");
-    actionsMenu->addChild(folderBtn);
-
-    auto addSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("file-add.png"_spr), 1.f,
-        CircleBaseSize::Medium
-    );
-    addSpr->setScale(.8f);
-    addSpr->setTopRelativeScale(.8f);
-    auto addBtn = CCMenuItemSpriteExtra::create(
-        addSpr,
-        this,
-        menu_selector(ModsLayer::onAddModFromFile)
-    );
-    addBtn->setID("mods-add-button");
-    actionsMenu->addChild(addBtn);
+    if (Mod::get()->getSettingValue<bool>("restart-button")) {
+        auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload-gold.png"_spr);
+        auto restartGDCircleSpr = createGeodeCircleButton(
+            restartGDSpr, 1.f,
+            CircleBaseSize::Medium
+        );
+        restartGDCircleSpr->setScale(.8f);
+        restartGDCircleSpr->setTopOffset(ccp(1.5f, -1.f));
+        auto restartGDBtn = CCMenuItemSpriteExtra::create(
+            restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
+        );
+        restartGDBtn->setID("restart-gd-button");
+        actionsMenu->addChild(restartGDBtn);
+    }
 
     actionsMenu->setLayout(
         SimpleColumnLayout::create()
@@ -499,26 +463,62 @@ bool ModsLayer::init() {
     frameBG->ignoreAnchorPointForPosition(false);
     m_frame->addChildAtPosition(frameBG, Anchor::Center);
 
-    auto tabsTop = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-top.png"_spr : "mods-list-top-gd.png"_spr);
+    auto topListener = NodeProvidingEvent("geode-mods-list-top"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+        if (nodeOut) return; // someone overrode it already
+        
+        if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-sapphire.png"_spr);
+        else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-gd.png"_spr);
+        else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top.png"_spr);
+        nodeOut->setAnchorPoint({ .5f, .0f });
+    }, Priority::Last);
+
+    CCNode* tabsTop = nullptr;
+    NodeProvidingEvent("geode-mods-list-top"_spr).send(tabsTop);
     tabsTop->setID("frame-top-sprite");
-    tabsTop->setAnchorPoint({ .5f, .0f });
     tabsTop->setZOrder(1);
     m_frame->addChildAtPosition(tabsTop, Anchor::Top, ccp(0, -2));
 
-    auto tabsLeft = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-side.png"_spr : "mods-list-side-gd.png"_spr);
+    auto leftListener = NodeProvidingEvent("geode-mods-list-left"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+        if (nodeOut) return; // someone overrode it already
+
+        if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-sapphire.png"_spr);
+        else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-gd.png"_spr);
+        else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side.png"_spr);
+        nodeOut->setScaleY(m_frame->getContentHeight() / nodeOut->getContentHeight());
+    }, Priority::Last);
+
+    CCNode* tabsLeft = nullptr;
+    NodeProvidingEvent("geode-mods-list-left"_spr).send(tabsLeft);
     tabsLeft->setID("frame-left-sprite");
-    tabsLeft->setScaleY(m_frame->getContentHeight() / tabsLeft->getContentHeight());
     m_frame->addChildAtPosition(tabsLeft, Anchor::Left, ccp(6.5f, 1));
 
-    auto tabsRight = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-side.png"_spr : "mods-list-side-gd.png"_spr);
+    auto rightListener = NodeProvidingEvent("geode-mods-list-right"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+        if (nodeOut) return; // someone overrode it already
+
+        if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-sapphire.png"_spr);
+        else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-gd.png"_spr);
+        else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side.png"_spr);
+        nodeOut->setScaleY(m_frame->getContentHeight() / nodeOut->getContentHeight());
+        static_cast<CCSprite*>(nodeOut)->setFlipX(true);
+    }, Priority::Last);
+
+    CCNode* tabsRight = nullptr;
+    NodeProvidingEvent("geode-mods-list-right"_spr).send(tabsRight);
     tabsRight->setID("frame-right-sprite");
-    tabsRight->setFlipX(true);
-    tabsRight->setScaleY(m_frame->getContentHeight() / tabsRight->getContentHeight());
     m_frame->addChildAtPosition(tabsRight, Anchor::Right, ccp(-6.5f, 1));
 
-    auto tabsBottom = CCSprite::createWithSpriteFrameName(geodeTheme ? "mods-list-bottom.png"_spr : "mods-list-bottom-gd.png"_spr);
+    auto bottomListener = NodeProvidingEvent("geode-mods-list-bottom"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+        if (nodeOut) return; // someone overrode it already
+
+        if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-bottom-sapphire.png"_spr);
+        else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-bottom-gd.png"_spr);
+        else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-bottom.png"_spr);
+        nodeOut->setAnchorPoint({ .5f, 1.f });
+    }, Priority::Last);
+
+    CCNode* tabsBottom = nullptr;
+    NodeProvidingEvent("geode-mods-list-bottom"_spr).send(tabsBottom);
     tabsBottom->setID("frame-bottom-sprite");
-    tabsBottom->setAnchorPoint({ .5f, 1.f });
     tabsBottom->setZOrder(1);
     m_frame->addChildAtPosition(tabsBottom, Anchor::Bottom, ccp(0, 3));
 
@@ -862,6 +862,9 @@ void ModsLayer::onTheme(CCObject*) {
 void ModsLayer::onSettings(CCObject*) {
     openSettingsPopup(Mod::get(), false);
 }
+void ModsLayer::onKeybinds(CCObject*) {
+    KeybindsPopup::create()->show();
+}
 void ModsLayer::onRestartGD(CCObject*) {
     createQuickPopup(
         "Restart Geometry Dash",
@@ -873,6 +876,12 @@ void ModsLayer::onRestartGD(CCObject*) {
             }
         }
     );
+}
+void ModsLayer::onOpenModsFolder(CCObject*) {
+    file::openFolder(dirs::getModsDir());
+}
+void ModsLayer::onAddModFromFile(CCObject*) {
+    ModsLayer::installModFromFile();
 }
 
 ModsLayer* ModsLayer::create() {
@@ -909,3 +918,40 @@ server::ServerFuture<InstalledModsUpdateCheck> ModsLayer::checkInstalledModsForU
     co_return Ok(std::move(updatesFound));
 }
 
+void ModsLayer::refreshList() {
+    onRefreshList(nullptr);
+}
+
+void ModsLayer::installModFromFile() {
+    if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
+        return FLAlertLayer::create(
+            nullptr,
+            "Manually Installing Mods",
+            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
+            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
+            "<cr>Proceed at your own risk!</c>",
+            "OK", nullptr,
+            350
+        )->show();
+    }
+
+    async::spawn(file::pick(file::PickMode::OpenFile, file::FilePickOptions {
+        .filters = { file::FilePickOptions::Filter {
+            .description = "Geode Mods",
+            .files = { "*.geode" },
+        }}
+    }), [](Result<std::optional<std::filesystem::path>> result) {
+        if (result.isOk() && result.unwrap().has_value()) {
+            LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
+                InstalledModListSource::get(InstalledModListType::All)->clearCache();
+            });
+        }
+        else if (!result.isOk()) {
+            FLAlertLayer::create(
+                "Unable to Select File",
+                result.unwrapErr(),
+                "OK"
+            )->show();
+        }
+    });
+}

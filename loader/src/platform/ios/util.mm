@@ -17,10 +17,13 @@ using namespace geode::prelude;
 #include <Geode/binding/MenuLayer.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/Utils.hpp>
+#include <mach-o/utils.h>
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <stdlib.h>
 #include <string.h>
+
+#import <Foundation/Foundation.h>
 
 using geode::utils::permission::Permission;
 
@@ -32,7 +35,7 @@ std::string utils::clipboard::read() {
     return std::string([[UIPasteboard generalPasteboard].string UTF8String]);
 }
 
-void utils::web::openLinkInBrowser(ZStringView url) {
+void utils::web::openLinkUnsafe(ZStringView url) {
     [[UIApplication sharedApplication]
         openURL:[NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]] options:{} completionHandler:nil];
 }
@@ -570,4 +573,33 @@ bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
         delete[] data;
     }
     return success;
+}
+
+bool geode::utils::platform::isWine() {
+    return false;
+}
+
+const char* getCurrentArch() {
+    if (@available(iOS 16.0, *)) {
+        return macho_arch_name_for_mach_header(nullptr);
+    } else {
+        return "arm64";
+    }
+}
+
+// https://stackoverflow.com/questions/11072804/how-do-i-determine-the-os-version-at-runtime-in-os-x-or-ios-without-using-gesta
+PlatformDetails geode::utils::platform::getDetails() {
+    PlatformDetails details;
+
+    auto version = [[NSProcessInfo processInfo] operatingSystemVersion];
+    details.majorVersion = version.majorVersion;
+    details.minorVersion = version.minorVersion;
+    details.patchVersion = version.patchVersion;
+    details.arch = getCurrentArch();
+    return details;
+}
+
+std::string geode::utils::platform::getString() {
+    auto details = getDetails();
+    return fmt::format("iOS {} {}.{}.{}", details.arch, details.majorVersion, details.minorVersion, details.patchVersion);
 }

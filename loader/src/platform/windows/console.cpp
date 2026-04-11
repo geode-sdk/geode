@@ -183,12 +183,16 @@ void console::log(ZStringView msg, Severity severity) {
     int color = 0;
     int color2 = -1;
     switch (severity) {
+        case Severity::Trace:
+            color = 54;
+            color2 = 254;
+            break;
         case Severity::Debug:
             color = 243;
             color2 = 250;
             break;
         case Severity::Info:
-            color = 33;
+            color = 45;
             color2 = 254;
             break;
         case Severity::Warning:
@@ -230,6 +234,7 @@ void console::log(ZStringView msg, Severity severity) {
 void console::messageBox(ZStringView title, ZStringView info, Severity severity) {
     unsigned int icon;
     switch (severity) {
+        case Severity::Trace:
         case Severity::Debug:
         case Severity::Info:
             icon = MB_ICONINFORMATION;

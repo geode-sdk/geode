@@ -113,6 +113,7 @@ namespace server {
 
         void markRecentlyUpdated(std::string_view id);
         std::vector<RecentlyUpdatedMod> const& getRecentlyUpdatedMods();
+        std::optional<RecentlyUpdatedMod> getRecentlyUpdatedInfo(std::string_view id);
     };
 }
 

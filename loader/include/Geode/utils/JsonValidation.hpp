@@ -131,6 +131,10 @@ namespace geode {
          */
         matjson::Value json() const;
         /**
+         * Move out the underlying raw JSON value
+         */
+        matjson::Value takeJson();
+        /**
          * Get the key name of this JSON value. If this is an array index,
          * returns the index as a string. If this is the root object,
          * returns the root scope name.
@@ -171,14 +175,14 @@ namespace geode {
         template <class T>
         T get(T const& defaultValue = T()) {
             if (auto v = this->tryGet<T>()) {
-                return *std::move(v);
+                return std::move(*v);
             }
             return defaultValue;
         }
         template <class T>
         JsonExpectedValue& into(T& value) {
             if (auto v = this->tryGet<T>()) {
-                value = *std::move(v);
+                value = std::move(*v);
             }
             return *this;
         }
@@ -186,7 +190,7 @@ namespace geode {
         JsonExpectedValue& into(std::optional<T>& value) {
             if (this->isNull()) return *this;
             if (auto v = this->tryGet<T>()) {
-                value.emplace(*std::move(v));
+                value.emplace(std::move(*v));
             }
             return *this;
         }
@@ -274,7 +278,7 @@ namespace geode {
 
         Result<> ok();
         template <class T>
-        Result<T> ok(T value) {
+        Result<std::decay_t<T>> ok(T&& value) {
             auto ok = this->ok();
             if (!ok) {
                 return Err(ok.unwrapErr());

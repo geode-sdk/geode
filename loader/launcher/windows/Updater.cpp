@@ -8,6 +8,9 @@ std::filesystem::path geodeDir;
 std::filesystem::path updatesDir;
 std::filesystem::path resourcesDir;
 
+constexpr static auto MAX_PATH_CHARS = 32768u;
+constexpr wchar_t VCREDIST_LINK[] = L"https://aka.ms/vc14/vc_redist.x64.exe";
+
 void showError(std::wstring const& error) {
     MessageBoxW(nullptr, error.c_str(), L"Error Loading Geode", MB_ICONERROR);
 }
@@ -53,7 +56,7 @@ bool waitForFile(std::filesystem::path const& path) {
         CloseHandle(hFile);
     } else {
         auto filename = path.filename();
-        showError(L"Unable to update Geode: " + filename.native() + L" is open by another process.");
+        showError(L"Unable to update Geode: " + filename.native() + L" is open by another process.\n\nTry opening Geometry Dash once again or restart your PC if this issue persists.");
         return false;
     }
     return true;
@@ -111,6 +114,37 @@ void updateResources() {
     }
 }
 
+DWORD WINAPI vcredistThread(LPVOID lpParam) {
+    HRESULT coHr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
+    std::wstring tempPath(MAX_PATH_CHARS, L'\0');
+    DWORD size = GetTempPathW(tempPath.size(), tempPath.data());
+    if (size && size < tempPath.size()) {
+        tempPath.resize(size);
+        tempPath += L"geode_vc_redist.x64.exe";
+    }
+
+    HRESULT hr = URLDownloadToFileW(NULL, VCREDIST_LINK, tempPath.c_str(), 0, NULL);
+
+    if (SUCCEEDED(hr)) {
+        ShellExecuteW(NULL, L"open", tempPath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+    } else {
+        ShellExecuteW(NULL, L"open", VCREDIST_LINK, NULL, NULL, SW_SHOWNORMAL);
+    }
+
+    if (SUCCEEDED(coHr)) CoUninitialize();
+    
+    return 0;
+}
+
+void updateRedist() {
+    auto thread = CreateThread(NULL, 0, vcredistThread, NULL, 0, NULL);
+    if (thread) {
+        WaitForSingleObject(thread, INFINITE);
+        CloseHandle(thread);
+    }
+}
+
 int main(int argc, char* argv[]) {
     workingDir = std::filesystem::current_path();
     geodeDir = workingDir / "geode";
@@ -131,15 +165,37 @@ int main(int argc, char* argv[]) {
             removePath(updatesDir);
     }
 
-    if (argc < 2)
+    // gd always restarts with its executable as the 1st arg
+    if (argc < 2){
+        if(MessageBoxW(
+            NULL, L"GeodeUpdater is an internal utility. If you want to update "
+            L"Geode manually, please download the installer from https://geode-sdk.org/install "
+            L"and follow the instructions.\n\nOpen the download page?", 
+            L"Geode Updater", MB_ICONINFORMATION | MB_YESNO
+        ) == IDYES) {
+            ShellExecuteW(NULL, L"open", L"https://geode-sdk.org/install", NULL, NULL, TRUE);
+        }
+
         return 0;
+    }
+
+    if (std::string_view(argv[1]) == "/redist") {
+        updateRedist();
+        return 0;
+    }
 
     if (!waitForFile(workingDir / argv[1])) {
         showError(L"There was an error restarting GD. Please, restart the game manually.");
         return 0;
     }
 
+    // build up args for gd
+    std::wstring args;
+    for (int i = 2; i < argc; i++) {
+        args += L" " + utf8ToWide(argv[i]);
+    }
+
     // restart gd using the provided path
-    ShellExecuteW(NULL, L"open", (workingDir / argv[1]).c_str(), L"", workingDir.c_str(), TRUE);
+    ShellExecuteW(NULL, L"open", (workingDir / argv[1]).c_str(), args.c_str(), workingDir.c_str(), TRUE);
     return 0;
 }

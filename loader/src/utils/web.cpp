@@ -15,21 +15,44 @@
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/web.hpp>
 #include <arc/future/Select.hpp>
+#include <arc/future/Join.hpp>
 #include <arc/time/Sleep.hpp>
+#include <arc/time/Timeout.hpp>
 #include <arc/task/CancellationToken.hpp>
 #include <arc/sync/Mutex.hpp>
 #include <arc/sync/mpsc.hpp>
+#include <arc/net/TcpStream.hpp>
 #include <asp/collections/SmallVec.hpp>
+#include <asp/iter.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
-#include <queue>
-#include <semaphore>
 #include <sstream>
+
+#ifdef GEODE_IS_ANDROID
+# include <ares.h>
+# include <jni.h>
+# include <Geode/cocos/platform/android/jni/JniHelper.h>
+#endif
 
 using namespace geode::prelude;
 using namespace geode::utils::web;
 using namespace geode::utils::string;
 using namespace arc;
+
+struct DnsServer {
+    std::string_view name;
+    std::string dohUrl;
+    std::vector<qsox::IpAddress> addresses;
+};
+
+static std::atomic<bool> g_knownIpv6Support{false};
+static std::atomic<bool> g_verboseLogging{false};
+static asp::Mutex<std::optional<DnsServer>> g_bestDnsServer;
+static float g_bestDnsScore = -7.5f; // arbitrary value, do not choose a server if score is less than this
+
+static bool verboseLog() {
+    return g_verboseLogging.load(std::memory_order::relaxed);
+}
 
 static long unwrapProxyType(ProxyType type) {
     switch (type) {
@@ -106,12 +129,65 @@ static long unwrapHttpVersion(HttpVersion version)
     unreachable("Unexpected HTTP Version!");
 }
 
+static std::optional<HttpVersion> wrapHttpVersion(long version) {
+    switch (version) {
+        using enum HttpVersion;
+
+        case CURL_HTTP_VERSION_1_0:
+            return VERSION_1_0;
+        case CURL_HTTP_VERSION_1_1:
+            return VERSION_1_1;
+        case CURL_HTTP_VERSION_2_0:
+            return VERSION_2_0;
+        case CURL_HTTP_VERSION_3:
+            return VERSION_3;
+        default:
+            return std::nullopt;
+    }
+}
+
+static void setDNSOptions(CURL* curl, DnsServer const& server) {
+    if (!server.dohUrl.empty()) {
+        curl_easy_setopt(curl, CURLOPT_DOH_URL, server.dohUrl.c_str());
+        return;
+    }
+
+    if (server.addresses.empty()) {
+        return;
+    }
+
+    bool useIpv6 = g_knownIpv6Support.load(std::memory_order::relaxed);
+    StringBuffer<> buf;
+    bool first = true;
+
+    for (auto& addr : server.addresses) {
+        if (addr.isV6() && !useIpv6) continue;
+
+        if (!first) {
+            buf.append(',');
+        }
+        first = false;
+
+        if (addr.isV6()) {
+            buf.append("[{}]", addr.toString());
+        } else if (addr.isV4()) {
+            buf.append("{}", addr.toString());
+        }
+    }
+
+    log::trace("using DNS servers: {}", buf.view());
+
+    curl_easy_setopt(curl, CURLOPT_DNS_SERVERS, buf.c_str());
+}
+
 class WebResponse::Impl {
 public:
     int m_code;
     ByteVector m_data;
     std::string m_errMessage;
+    utils::StringBuffer<8> m_logs; // always heap
     utils::StringMap<std::vector<std::string>> m_headers;
+    RequestTimings m_timings;
 
     Result<> into(std::filesystem::path const& path) const;
 };
@@ -341,6 +417,14 @@ std::string_view WebResponse::errorMessage() const {
     return m_impl->m_errMessage;
 }
 
+std::string_view WebResponse::verboseLogs() const {
+    return m_impl->m_logs.view();
+}
+
+RequestTimings const& WebResponse::timings() const {
+    return m_impl->m_timings;
+}
+
 class web::WebRequestsManager {
 private:
     class Impl;
@@ -364,10 +448,10 @@ public:
             : request(std::move(req)), mod(mod), id(id), onComplete(std::move(cb)) {}
 
         void complete(WebResponse res) {
-            onComplete(res);
-
             WebResponseEvent(mod->getID()).send(res);
             IDBasedWebResponseEvent(id).send(res);
+
+            onComplete(res);
         }
 
         void onError(int code, std::string_view msg) {
@@ -382,7 +466,7 @@ public:
         }
     };
 
-    arc::mpsc::SendResult<std::shared_ptr<RequestData>> tryEnqueue(std::shared_ptr<RequestData> data);
+    mpsc::SendResult<std::shared_ptr<RequestData>> tryEnqueue(std::shared_ptr<RequestData> data);
     void cancel(std::shared_ptr<RequestData> data);
 };
 
@@ -415,10 +499,14 @@ public:
     std::optional<std::string> m_userAgent;
     std::optional<std::string> m_acceptEncodingType;
     std::optional<ByteVector> m_body;
-    std::optional<std::chrono::seconds> m_timeout;
+    std::optional<asp::Duration> m_timeout;
     std::optional<std::pair<std::uint64_t, std::uint64_t>> m_range;
     std::vector<geode::Function<void(WebProgress const&)>> m_progressCallbacks;
     std::string m_CABundleContent;
+    std::optional<DnsServer> m_dnsServer;
+    bool m_bypassDnsCache = false;
+    bool m_bypassConnectionPool = false;
+    bool m_silentFailure = false;
     bool m_certVerification = true;
     bool m_transferBody = true;
     bool m_followRedirects = true;
@@ -444,6 +532,10 @@ public:
         if (m_curlHeaders) {
             curl_slist_free_all(m_curlHeaders);
         }
+
+        // ensure that progress callbacks are destroyed in the main thread,
+        // because they may capture objects with non thread-safe destructors
+        geode::queueInMainThread([_ = std::move(m_progressCallbacks)] {});
     }
 
     WebResponse makeError(GeodeWebError code, std::string_view msg) {
@@ -513,6 +605,15 @@ public:
 
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(m_httpVersion));
 
+        // HTTP/3 provides very little benefit in general but it may help certain users with weird firewalls,
+        // don't use it by default but allow it to be enabled with a launch flag
+        auto useHttp3 = Loader::get()->getLaunchFlag("use-http3");
+        if (m_httpVersion == HttpVersion::DEFAULT && useHttp3) {
+            auto cachePath = pathToString(Mod::get()->getSaveDir() / "altsvc_cache.txt");
+            curl_easy_setopt(curl, CURLOPT_ALTSVC_CTRL, CURLALTSVC_H3);
+            curl_easy_setopt(curl, CURLOPT_ALTSVC, cachePath.c_str());
+        }
+
         // Set request method
         if (m_method != "GET") {
             if (m_method == "POST") {
@@ -560,9 +661,31 @@ public:
             }
         }
 
-        // weird windows stuff, don't remove if we still use schannel!
-        GEODE_WINDOWS(sslOptions |= CURLSSLOPT_REVOKE_BEST_EFFORT);
+        // Enable TLS early data for 0-rtt resumption, if appropriate
+        if (m_method == "GET" || m_method == "HEAD" || m_method == "OPTIONS") {
+            sslOptions |= CURLSSLOPT_EARLYDATA;
+        }
+
         curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, sslOptions);
+
+        // Set DNS options
+        if (m_dnsServer) {
+            setDNSOptions(curl, *m_dnsServer);
+        } else {
+            auto lock = g_bestDnsServer.lock();
+            if (*lock) {
+                setDNSOptions(curl, **lock);
+            }
+        }
+        if (m_bypassDnsCache) {
+            curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 0L);
+        }
+
+        // Bypass connection pool (used for DNS probing)
+        if (m_bypassConnectionPool) {
+            curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 1L);
+            curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
+        }
 
         // Transfer body
         curl_easy_setopt(curl, CURLOPT_NOBODY, m_transferBody ? 0L : 1L);
@@ -575,12 +698,18 @@ public:
         // Set encoding
         if (m_acceptEncodingType) {
             curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, m_acceptEncodingType->c_str());
+        } else {
+            // enable all supported compression types
+            curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
         }
 
         // Set timeout
         if (m_timeout) {
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT, m_timeout->count());
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, (long)m_timeout->millis());
         }
+
+        // always set connection timeout to avoid hanging indefinitely (2.5 seconds)
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2500L);
 
         // Set range
         if (m_range) {
@@ -624,50 +753,54 @@ public:
         // Do not fail if response code is 4XX or 5XX
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0L);
 
-        // IPv4
-        if (Mod::get()->getLaunchFlag("curl-force-ipv4")) {
+        // Force IPv4 if the flag is set or if we are not sure that IPv6 is supported
+        if (Mod::get()->getLaunchFlag("curl-force-ipv4") || !g_knownIpv6Support.load(std::memory_order::relaxed)) {
             curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         }
 
         // Verbose logging
-        if (Mod::get()->getSettingValue<bool>("verbose-curl-logs")) {
-            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-            curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, +[](CURL* handle, curl_infotype type, char* data, size_t size, void* clientp) {
-                while (size > 0 && (data[size - 1] == '\n' || data[size - 1] == '\r')) {
-                    size--; // remove trailing newline
-                }
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, +[](CURL* handle, curl_infotype type, char* data, size_t size, void* clientp) {
+            while (size > 0 && (data[size - 1] == '\n' || data[size - 1] == '\r')) {
+                size--; // remove trailing newline
+            }
 
-                switch (type) {
-                    case CURLINFO_TEXT:
-                        log::debug("[Curl] {}", std::string_view(data, size));
-                        break;
-                    case CURLINFO_HEADER_IN:
-                        log::debug("[Curl] Header in: {}", std::string_view(data, size));
-                        break;
-                    case CURLINFO_HEADER_OUT:
-                        log::debug("[Curl] Header out: {}", std::string_view(data, size));
-                        break;
-                    case CURLINFO_DATA_IN:
-                        log::debug("[Curl] Data in ({} bytes)", size);
-                        break;
-                    case CURLINFO_DATA_OUT:
-                        log::debug("[Curl] Data out ({} bytes)", size);
-                        break;
-                    case CURLINFO_SSL_DATA_IN:
-                        log::debug("[Curl] SSL data in ({} bytes)", size);
-                        break;
-                    case CURLINFO_SSL_DATA_OUT:
-                        log::debug("[Curl] SSL data out ({} bytes)", size);
-                        break;
-                    case CURLINFO_END:
-                        log::debug("[Curl] End of info");
-                        break;
-                    default:
-                        log::debug("[Curl] Unknown info type: {}", static_cast<int>(type));
-                        break;
-                }
-            });
-        }
+            // skip data
+            if (type == CURLINFO_DATA_IN || type == CURLINFO_DATA_OUT || type == CURLINFO_SSL_DATA_IN || type == CURLINFO_SSL_DATA_OUT) {
+                return 0;
+            }
+
+            std::string_view content(data, size);
+            if (verboseLog()) {
+                log::debug("[Curl] {}", content);
+            }
+
+            if (!clientp) {
+                return 0;
+            }
+
+            auto& rlogs = static_cast<ResponseData*>(clientp)->response.m_impl->m_logs;
+
+            switch (type) {
+                case CURLINFO_TEXT:
+                    rlogs.append(content);
+                    rlogs.append('\n');
+                    break;
+                case CURLINFO_HEADER_IN:
+                    rlogs.append("Header in: {}\n", content);
+                    break;
+                case CURLINFO_HEADER_OUT:
+                    rlogs.append("Header out: {}\n", content);
+                    break;
+                case CURLINFO_END:
+                    rlogs.append("--- End of info ---\n");
+                    break;
+                default: break;
+            }
+
+            return 0;
+        });
+        curl_easy_setopt(curl, CURLOPT_DEBUGDATA, requestData);
 
         // If an error happens, we want to get a more specific description of the issue
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, m_errorBuf);
@@ -701,11 +834,9 @@ public:
 
         // Track & post progress on the Promise
         // onProgress can only be not set if using sendSync without one, and hasBeenCancelled is always null in that case
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, requestData);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, +[](void* ptr, double dtotal, double dnow, double utotal, double unow) -> int {
+        curl_easy_setopt(curl, CURLOPT_XFERINFODATA, requestData);
+        curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, +[](void* ptr, curl_off_t dtotal, curl_off_t dnow, curl_off_t utotal, curl_off_t unow) -> int {
             auto data = static_cast<ResponseData*>(ptr);
-
-            // TODO v5: external cancellation?
 
             // Store progress inside the request
             using enum std::memory_order;
@@ -873,7 +1004,7 @@ WebRequest& WebRequest::userAgent(std::string name) {
 }
 
 WebRequest& WebRequest::timeout(std::chrono::seconds time) {
-    m_impl->m_timeout = time;
+    m_impl->m_timeout = asp::Duration::fromSecs(time.count());
     return *this;
 }
 
@@ -975,7 +1106,10 @@ std::optional<ByteVector> WebRequest::getBody() const {
 }
 
 std::optional<std::chrono::seconds> WebRequest::getTimeout() const {
-    return m_impl->m_timeout;
+    if (m_impl->m_timeout) {
+        return std::chrono::seconds(m_impl->m_timeout->seconds());
+    }
+    return std::nullopt;
 }
 
 HttpVersion WebRequest::getHttpVersion() const {
@@ -998,10 +1132,6 @@ struct PollReadiness {
 };
 
 struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> {
-    enum class State {
-        Init,
-        Waiting,
-    } m_state = State::Init;
     std::unordered_map<curl_socket_t, RegisteredSocket>* m_sockets;
     asp::SmallVec<std::pair<curl_socket_t, uint64_t>, 16> registered;
 
@@ -1011,29 +1141,20 @@ struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> 
     MultiPollFuture& operator=(MultiPollFuture&&) = default;
 
     std::optional<PollReadiness> poll(arc::Context& cx) {
-        switch (m_state) {
-            case State::Init: {
-                // initial state: poll all sockets, return immediately if there's activity on one of them
-                for (auto& [fd, rs] : *m_sockets) {
-                    auto ready = rs.rio.pollReady(rs.interest | Interest::Error, cx, rs.rioId);
-                    if (ready != 0) {
-                        return PollReadiness{fd, ready};
-                    }
+        // poll all sockets, return immediately if there's activity on any of them
+        for (auto& [fd, rs] : *m_sockets) {
+            bool wasRegistered = rs.rioId != 0;
+            auto ready = rs.rio.pollReady(rs.interest | Interest::Error, cx, rs.rioId);
+            if (ready != 0) {
+                return PollReadiness{fd, ready};
+            }
 
-                    registered.emplace_back(fd, rs.rioId);
-                }
-
-                m_state = State::Waiting;
-                return std::nullopt;
-            } break;
-
-            case State::Waiting: {
-                // nothing to do here, just wait to get woken up
-                return std::nullopt;
-            } break;
-
-            default: std::unreachable();
+            if (!wasRegistered) {
+                registered.emplace_back(fd, rs.rioId);
+            }
         }
+
+        return std::nullopt;
     }
 
     ~MultiPollFuture() {
@@ -1048,6 +1169,42 @@ struct ARC_NODISCARD MultiPollFuture : Pollable<MultiPollFuture, PollReadiness> 
     }
 };
 
+/// Attempts to establish an IPv6 connection to a known endpoint to determine if IPv6 is supported on this network
+static arc::Future<> ipv6Probe() {
+#ifdef GEODE_IS_MACOS
+    // macos causes too many issues, so we just completely disable ipv6 there
+    // feel free to remove this in 10 years or so when it finally works properly
+    co_return;
+#endif
+
+    // try to connect to cloudflare
+    auto res = co_await arc::TcpStream::connect("[2606:4700:4700::1111]:80");
+    if (!res) {
+        log::debug("IPv6 probe failed (connect): {}", res.unwrapErr());
+        co_return;
+    }
+
+    auto stream = std::move(res).unwrap();
+    std::string_view req = "HEAD / HTTP/1.1\r\nHost: cloudflare.com\r\nConnection: close\r\n\r\n";
+
+    auto r = co_await stream.sendAll(req.data(), req.size());
+    if (!r) {
+        log::debug("IPv6 probe failed (send): {}", r.unwrapErr());
+        co_return;
+    }
+
+    char buf[512];
+    auto res2 = co_await stream.receive(buf, sizeof(buf));
+    if (!res2) {
+        log::debug("IPv6 probe failed (receive): {}", res2.unwrapErr());
+        co_return;
+    }
+
+    // assume that ipv6 works now
+    g_knownIpv6Support.store(true, std::memory_order::relaxed);
+    log::trace("IPv6 probe succeeded");
+}
+
 class WebRequestsManager::Impl {
 public:
     CURLM* m_multiHandle;
@@ -1058,6 +1215,7 @@ public:
     arc::CancellationToken m_cancel;
     arc::Notify m_wakeNotify;
     asp::Instant m_nextWakeup = asp::Instant::farFuture();
+    std::atomic<bool> m_probingDns{false};
 
     std::unordered_set<std::shared_ptr<RequestData>> m_activeRequests;
     std::unordered_map<curl_socket_t, RegisteredSocket> m_sockets;
@@ -1085,30 +1243,13 @@ public:
         });
         curl_multi_setopt(m_multiHandle, CURLMOPT_TIMERDATA, this);
 
-        m_worker = async::runtime().spawn([this, rx = std::move(rx), crx = std::move(crx)] mutable -> arc::Future<> {
-            bool running = true;
-            while (running) {
-                co_await arc::select(
-                    arc::selectee(
-                        m_cancel.waitCancelled(),
-                        [&] { running = false; }
-                    ),
-
-                    arc::selectee(rx.recv(), [&](auto req) {
-                        if (req) this->workerAddRequest(std::move(req).unwrap());
-                    }),
-
-                    arc::selectee(crx.recv(), [&](auto req) {
-                        if (req) this->workerCancelRequest(std::move(req).unwrap());
-                    }),
-
-                    arc::selectee(
-                        this->workerPoll()
-                    )
-                );
-            }
-        });
+        m_worker = async::runtime().spawn(this->workerFunc(std::move(rx), std::move(crx)));
         m_worker.setName("Geode Web Worker");
+
+        g_verboseLogging.store(Mod::get()->getSettingValue<bool>("verbose-curl-logs"));
+        listenForSettingChanges<bool>("verbose-curl-logs", [this](bool value) {
+            g_verboseLogging.store(value);
+        });
     }
 
     // Note for future people: this is currently leaked because cleanup is unsafe in statics
@@ -1142,33 +1283,38 @@ public:
         req->curl = handle;
         curl_easy_setopt(handle, CURLOPT_PRIVATE, req.get());
 
-        // log::debug("Added request ({})", req->request->m_url);
+        if (verboseLog()) {
+            log::debug("Added request ({})", req->request->m_url);
+        }
         curl_multi_add_handle(m_multiHandle, handle);
         m_activeRequests.insert(std::move(req));
         this->workerKickCurl();
     }
 
     void workerCancelRequest(std::shared_ptr<RequestData> req) {
-        // log::debug("Cancelled request ({})", req->request->m_url);
+        if (verboseLog()) {
+            log::debug("Cancelled request ({})", req->request->m_url);
+        }
         req->onError(GeodeWebError::REQUEST_CANCELLED, "Request cancelled");
 
         this->cleanupRequest(std::move(req));
     }
 
     void cleanupRequest(std::shared_ptr<RequestData> req) {
-        // log::debug("Removing request ({})", req->request->m_url);
+        if (verboseLog()) {
+            log::debug("Removing request ({})", req->request->m_url);
+        }
         m_activeRequests.erase(req);
 
         auto curl = std::exchange(req->curl, nullptr);
         if (curl) {
             curl_multi_remove_handle(m_multiHandle, curl);
             curl_easy_cleanup(curl);
+            this->workerKickCurl();
         }
-
-        this->workerKickCurl();
     }
 
-    Future<> workerPoll() {
+    auto workerPoll() {
         int stillRunning = 0;
         CURLMcode mc = curl_multi_perform(m_multiHandle, &stillRunning);
         if (mc != CURLM_OK) {
@@ -1188,6 +1334,33 @@ public:
 
                 auto& requestData = *rdptr;
 
+                // Populate HTTPVersion with the updated info
+                long version = 0;
+                curl_easy_getinfo(handle, CURLINFO_HTTP_VERSION, &version);
+
+                if (auto ver = wrapHttpVersion(version)) {
+                    requestData.request->m_httpVersion = *ver;
+                }
+
+                // Get detailed timing info for the request
+                curl_off_t queueTime, dnsTime, connectTime, appcTime, posttxTime, starttxTime, totalTime;
+                curl_easy_getinfo(handle, CURLINFO_QUEUE_TIME_T, &queueTime);
+                curl_easy_getinfo(handle, CURLINFO_NAMELOOKUP_TIME_T, &dnsTime);
+                curl_easy_getinfo(handle, CURLINFO_CONNECT_TIME_T, &connectTime);
+                curl_easy_getinfo(handle, CURLINFO_APPCONNECT_TIME_T, &appcTime);
+                curl_easy_getinfo(handle, CURLINFO_POSTTRANSFER_TIME_T, &posttxTime);
+                curl_easy_getinfo(handle, CURLINFO_STARTTRANSFER_TIME_T, &starttxTime);
+                curl_easy_getinfo(handle, CURLINFO_TOTAL_TIME_T, &totalTime);
+                auto& timings = requestData.response.m_impl->m_timings;
+                timings.queueWait = asp::Duration::fromMicros(queueTime);
+                timings.nameLookup = asp::Duration::fromMicros(dnsTime);
+                timings.connect = asp::Duration::fromMicros(connectTime - dnsTime);
+                timings.tlsHandshake = asp::Duration::fromMicros(appcTime - connectTime);
+                timings.requestSend = asp::Duration::fromMicros(posttxTime - appcTime);
+                timings.firstByte = asp::Duration::fromMicros(starttxTime - posttxTime);
+                timings.download = asp::Duration::fromMicros(totalTime - starttxTime);
+                timings.total = asp::Duration::fromMicros(totalTime);
+
                 // Get the response code; note that this will be invalid if the
                 // curlResponse is not CURLE_OK
                 long code = 0;
@@ -1201,8 +1374,13 @@ public:
                 // Check if the request failed on curl's side or because of cancellation
                 if (msg->data.result != CURLE_OK) {
                     std::string_view err = curl_easy_strerror(msg->data.result);
-                    log::error("cURL failure, error: {}", err);
-                    log::warn("Error buffer: {}", errorBuf);
+
+                    if (!requestData.request->m_silentFailure) {
+                        log::error("cURL failure for URL {}, error: {}", requestData.request->m_url, err);
+                        log::warn("Error buffer: {}", errorBuf);
+                        log::warn("Verbose request logs:\n{}", requestData.response.verboseLogs());
+                    }
+
                     requestData.onError(
                         // Make all CURL error codes negatives to not conflict with HTTP codes
                         msg->data.result * -1,
@@ -1228,15 +1406,10 @@ public:
 
         // poll until there is socket activity or the timer expires
 
-        co_await arc::select(
-            arc::selectee(m_wakeNotify.notified()),
-
-            arc::selectee(arc::sleepUntil(deadline), [&] {
-                this->workerKickCurl();
-            }),
-
-            arc::selectee(this->workerPollSockets(), [&](PollReadiness readiness) {
+        return arc::select(
+            arc::selectee(this->workerPollSockets(), [this](PollReadiness readiness) {
                 auto [fd, ready] = readiness;
+                // log::debug("socket activity, fd: {}, ready: {}", fd, (int)ready);
                 int ev = 0;
                 if (ready & Interest::Readable) ev |= CURL_CSELECT_IN;
                 if (ready & Interest::Writable) ev |= CURL_CSELECT_OUT;
@@ -1244,7 +1417,11 @@ public:
 
                 int running = 0;
                 curl_multi_socket_action(m_multiHandle, fd, ev, &running);
-            }, activeTransfers)
+            }, activeTransfers),
+
+            arc::selectee(arc::sleepUntil(deadline), [this] {
+                this->workerKickCurl();
+            })
         );
     }
 
@@ -1262,6 +1439,8 @@ public:
     void socketCallback(CURL* easy, curl_socket_t s, int what, void* socketp) {
         auto& driver = Runtime::current()->ioDriver();
         auto it = m_sockets.find(s);
+
+        log::trace("socket callback, socket: {}, what: {}, registered: {}", (int)s, what, it != m_sockets.end());
 
         if (what == CURL_POLL_REMOVE) {
             // remove the socket, which unregisters it from the io driver as well
@@ -1291,12 +1470,121 @@ public:
     }
 
     void timerCallback(CURLM* multi, long timeout_ms) {
+        // log::trace("timer callback, wake in {}ms", timeout_ms);
+
         if (timeout_ms == -1) {
             m_nextWakeup = asp::Instant::farFuture();
         } else {
             m_nextWakeup = asp::Instant::now() + asp::Duration::fromMillis(timeout_ms);
         }
     }
+
+    Future<> workerFunc(auto rx, auto crx) {
+#ifdef GEODE_IS_ANDROID
+        co_await async::waitForMainThread([] {
+            setupAresJVM();
+        });
+#endif
+
+        arc::spawn(ipv6Probe());
+
+        m_probingDns.store(true, std::memory_order::relaxed);
+        arc::spawn(this->dnsProbe());
+
+        bool running = true;
+        std::vector<std::shared_ptr<RequestData>> heldRequests;
+
+        while (running) {
+            // potentially send all held requests
+            if (!heldRequests.empty() && !m_probingDns.load(std::memory_order::relaxed)) {
+                for (auto& req : heldRequests) {
+                    log::trace("Resuming request that was put on hold: {}", req->request->m_url);
+                    this->workerAddRequest(std::move(req));
+                }
+                heldRequests.clear();
+            }
+
+            co_await arc::select(
+                arc::selectee(
+                    m_cancel.waitCancelled(),
+                    [&] { running = false; }
+                ),
+
+                arc::selectee(m_wakeNotify.notified()),
+
+                arc::selectee(rx.recv(), [&](auto r) {
+                    if (!r) return;
+                    auto req = std::move(r).unwrap();
+
+                    // if we don't have a working DNS server yet, hold this request for a bit (unless it's a probe)
+                    if (m_probingDns.load(std::memory_order::relaxed) && !req->request->m_dnsServer) {
+                        log::trace("Putting request on hold: {}", req->request->m_url);
+                        heldRequests.push_back(std::move(req));
+                        return;
+                    }
+                    this->workerAddRequest(std::move(req));
+                }),
+
+                arc::selectee(crx.recv(), [&](auto r) {
+                    if (!r) return;
+                    auto req = std::move(r).unwrap();
+
+                    // remove from held and also always call cancel, it's harmless
+                    auto it = std::ranges::find(heldRequests, req);
+                    if (it != heldRequests.end()) {
+                        heldRequests.erase(it);
+                    }
+
+                    this->workerCancelRequest(std::move(req));
+                }),
+
+                arc::selectee(
+                    this->workerPoll()
+                )
+            );
+        }
+    }
+
+#ifdef GEODE_IS_ANDROID
+    static void setupAresJVM() {
+        /// https://c-ares.org/docs/ares_library_init_android.html
+        auto jvm = JniHelper::getJavaVM();
+        JNIEnv* env = nullptr;
+        if (jvm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+            return;
+        }
+
+        jclass fmodClass = env->FindClass("org/fmod/FMOD");
+        auto instanceField = env->GetStaticFieldID(fmodClass, "INSTANCE", "Lorg/fmod/FMOD;");
+        jobject fmodInstance = env->GetStaticObjectField(fmodClass, instanceField);
+
+        auto contextField = env->GetStaticFieldID(fmodClass, "gContext", "Landroid/content/Context;");
+
+        jobject context = env->GetStaticObjectField(fmodClass, contextField);
+        jclass contextClass = env->GetObjectClass(context);
+
+        env->DeleteLocalRef(fmodClass);
+
+        auto getSystemService = env->GetMethodID(contextClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;");
+        jstring connectivityServiceStr = env->NewStringUTF("connectivity");
+        jobject connectivityManager = env->CallObjectMethod(context, getSystemService, connectivityServiceStr);
+
+        env->DeleteLocalRef(context);
+        env->DeleteLocalRef(contextClass);
+        env->DeleteLocalRef(connectivityServiceStr);
+
+        // leaking global ref is fine as it will be kept for the lifetime of the app
+        auto globalConnectivityManager = env->NewGlobalRef(connectivityManager);
+        env->DeleteLocalRef(connectivityManager);
+
+        ares_library_init_jvm(jvm);
+        ares_library_init_android(globalConnectivityManager);
+    }
+#endif
+
+    arc::Future<float> testOne(std::string_view url, DnsServer const& server);
+    arc::Future<float> testDnsServer(DnsServer const& server);
+    arc::Future<> dnsProbe();
 };
 
 WebRequestsManager::WebRequestsManager() : m_impl(new Impl()) {}
@@ -1342,8 +1630,6 @@ WebFuture::~WebFuture() {
 }
 
 std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
-    using RequestData = WebRequestsManager::RequestData;
-
     if (!m_impl->m_sent) {
         // send the actual request
         auto res = WebRequestsManager::get()->tryEnqueue(m_impl->m_request);
@@ -1359,6 +1645,7 @@ std::optional<WebResponse> WebFuture::poll(arc::Context& cx) {
     }
 
     auto result = std::move(rpoll).value();
+
     if (!result) {
         m_impl->m_finished = true;
         return m_impl->m_request->request->makeError(GeodeWebError::CHANNEL_CLOSED, "Failed to receive web response: channel closed");
@@ -1378,4 +1665,190 @@ void WebRequestsManager::cancel(std::shared_ptr<RequestData> data) {
 
 mpsc::SendResult<std::shared_ptr<WebRequestsManager::RequestData>> WebRequestsManager::tryEnqueue(std::shared_ptr<RequestData> data) {
     return m_impl->m_reqtx->trySend(std::move(data));
+}
+
+static std::optional<DnsServer> serverForString(std::string_view which) {
+    if (which == "Cloudflare") {
+        return DnsServer {
+            .name = which,
+            .addresses = {
+                qsox::Ipv4Address{1, 1, 1, 1},
+                qsox::Ipv4Address{1, 0, 0, 1},
+                qsox::Ipv6Address{0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111},
+                qsox::Ipv6Address{0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001}
+            }
+        };
+    } else if (which == "Google") {
+        return DnsServer {
+            .name = which,
+            .addresses = {
+                qsox::Ipv4Address{8, 8, 8, 8},
+                qsox::Ipv4Address{8, 8, 4, 4},
+                qsox::Ipv6Address{0x2001, 0x4860, 0x4860, 0, 0, 0, 0x8888, 0},
+                qsox::Ipv6Address{0x2001, 0x4860, 0x4860, 0, 0, 0, 0x8844, 0}
+            }
+        };
+    } else if (which == "Cloudflare DoH") {
+        return DnsServer {
+            .name = which,
+            .dohUrl = "https://cloudflare-dns.com/dns-query",
+            // bootstrap addresses
+            .addresses = {
+                qsox::Ipv4Address{1, 1, 1, 1},
+                qsox::Ipv6Address{0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111},
+            }
+        };
+    } else if (which == "System") {
+        return DnsServer { "System" };
+    }
+
+    return std::nullopt;
+}
+
+arc::Future<float> WebRequestsManager::Impl::testOne(std::string_view url, DnsServer const& server) {
+    WebRequest req;
+    req.m_impl->m_dnsServer = server;
+    req.m_impl->m_bypassDnsCache = true;
+    req.m_impl->m_bypassConnectionPool = true;
+    req.m_impl->m_silentFailure = !verboseLog();
+    req.m_impl->m_timeout = asp::Duration::fromMillis(1500);
+
+    auto res = co_await arc::timeout(asp::Duration::fromSecs(2), req.get(std::string{url}));
+    if (!res) {
+        // timed out (shouldn't happen)
+        log::debug("Request to {} (via {} DNS) timed out", url, server.name);
+        co_return -10.f;
+    }
+
+    auto r = std::move(res).unwrap();
+    if (r.error()) {
+        // curl error occurred, likely dns / tls error
+        log::debug("Request to {} (via {} DNS) failed: {}", url, server.name, r.code());
+        co_return -5.f;
+    }
+
+    // otherwise, base the score on dns lookup time, 0ms gives 5.0 score and >= 250ms gives 0.0 score
+    // divide time by 2 for doh for fairness
+    auto dnsTime = std::clamp(
+        r.timings().nameLookup.millis<float>() / (server.dohUrl.empty() ? 1.f : 2.f),
+        0.f,
+        250.f
+    );
+    log::trace("Request to {} (via {} DNS) took {:.1f}ms to resolve", url, server.name, dnsTime);
+
+    co_return (250.f - dnsTime) / 50.f;
+}
+
+arc::Future<float> WebRequestsManager::Impl::testDnsServer(DnsServer const& server) {
+    float score = 0.f;
+
+    // multipliers depending on how reliable we expect the server to be and how important it is
+    std::array<std::pair<std::string_view, float>, 3> testUrls {{
+        {"https://api.geode-sdk.org", 2.f},
+        {"https://cloudflare.com/cdn-cgi/trace", 1.5f},
+        {"https://github.com/robots.txt", 1.25f},
+    }};
+
+    auto results = co_await arc::joinAll(
+        testOne(testUrls[0].first, server),
+        testOne(testUrls[1].first, server),
+        testOne(testUrls[2].first, server)
+    );
+
+    for (size_t i = 0; i < results.size(); i++) {
+        score += results[i] * testUrls[i].second;
+    }
+
+    // replace the best dns server with this one, if the score is better than the current best
+    // we do this at this stage, so that if one server completes very quick, we can start using it immediately
+    auto lock = g_bestDnsServer.lock();
+    if (score >= g_bestDnsScore) {
+        *lock = server;
+        g_bestDnsScore = score;
+        log::debug("Switching to {} for DNS resolution", server.name);
+
+        // if the score is okay, notify that we can send requests now
+        // otherwise wait until a better server, so there's a smaller chance of the request failing
+        if (score >= 5.f) {
+            m_probingDns.store(false, std::memory_order::release);
+            m_wakeNotify.notifyOne();
+        }
+    }
+
+    co_return score;
+}
+
+arc::Future<> WebRequestsManager::Impl::dnsProbe() {
+    // reset the flag and notify worker task once we are done
+    auto _dtor = arc::scopeDtor([&] {
+        m_probingDns.store(false, std::memory_order::release);
+        m_wakeNotify.notifyOne();
+    });
+
+    auto custom = Mod::get()->getSettingValue<std::string_view>("curl-custom-dns3");
+    if (!custom.empty()) {
+        auto ips = asp::iter::split(custom, ',').filterMap([&](std::string_view s) {
+            return qsox::IpAddress::parse(std::string{s}).ok();
+        }).collect();
+
+        if (!ips.empty()) {
+            log::debug("Using custom DNS server(s): {}", custom);
+
+            *g_bestDnsServer.lock() = DnsServer{
+                .name = "Custom",
+                .addresses = ips
+            };
+
+            co_return;
+        } else {
+            log::warn("Invalid custom DNS server(s): {}", custom);
+        }
+    }
+
+    auto override = Mod::get()->getSettingValue<std::string_view>("curl-dns3");
+    if (override != "Auto") {
+        log::debug("Using DNS server override: {}", override);
+        *g_bestDnsServer.lock() = serverForString(override);
+        co_return;
+    }
+
+    constexpr size_t Servers = 4;
+    std::array<DnsServer, Servers> candidates {
+        serverForString("Cloudflare").value(),
+        serverForString("Google").value(),
+        serverForString("Cloudflare DoH").value(),
+        serverForString("System").value(),
+    };
+    std::array<float, Servers> results = co_await arc::joinAll(
+        testDnsServer(candidates[0]),
+        testDnsServer(candidates[1]),
+        testDnsServer(candidates[2]),
+        testDnsServer(candidates[3])
+    );
+
+    for (size_t i = 0; i < results.size(); i++) {
+        log::debug("DNS server {}: score {:.3f}", candidates[i].name, results[i]);
+    }
+}
+
+void utils::web::openLinkInBrowser(ZStringView url) {
+    // evil path check for windows
+    auto urlView = url.view();
+    if (urlView.contains("#:")) {
+        return;
+    }
+
+    auto schemeEnd = urlView.find_first_of(':');
+    if (schemeEnd == std::string_view::npos) {
+        return;
+    }
+
+    std::string scheme{urlView.substr(0, schemeEnd)};
+    utils::string::toLowerIP(scheme);
+
+    if (scheme != "https" && scheme != "http" && scheme != "mailto") {
+        return;
+    }
+
+    openLinkUnsafe(url);
 }

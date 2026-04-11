@@ -18,12 +18,6 @@ else()
 	set(PROJECT_VERSION_SUFFIX "" CACHE INTERNAL "" )
 endif()
 
-# I think CMake is trying to link zlib from the host system?
-# This prevents it from doing that.
-if (WIN32 AND CMAKE_CROSSCOMPILING)
-	set(MZ_FORCE_FETCH_LIBS ON)
-endif()
-
 # https://stackoverflow.com/a/63924044/9124836
 # https://stackoverflow.com/a/72396471
 execute_process(
@@ -153,8 +147,8 @@ if (WIN32)
 endif()
 
 
-if (ANDROID AND GEODE_USE_BREAKPAD)
-	CPMAddPackage("gh:qimiko/breakpad#169df6a")
+if (ANDROID)
+	CPMAddPackage("gh:geode-sdk/libunwindstack#876b46d")
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
@@ -186,18 +180,6 @@ if (GEODE_NO_UNDEFINED_VIRTUALS)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_NO_UNDEFINED_VIRTUALS)
 endif()
 
-# CA Bundle
-CPMAddPackage(
-	GITHUB_REPOSITORY geode-sdk/net_libs
-	GIT_TAG 6abd76c
-# CPM is bugged and will not allow an empty string.
-# https://github.com/cpm-cmake/CPM.cmake/issues/467
-# https://github.com/cpm-cmake/CPM.cmake/issues/461
-	GIT_SUBMODULES "nghttp3"
-	GIT_SUBMODULES_RECURSE OFF
-)
-target_link_libraries(${PROJECT_NAME} ca-bundle)
-
 # Package resources for UI
 package_geode_resources_now(
 	${PROJECT_NAME}
@@ -215,10 +197,7 @@ if (ANDROID)
 	# needed to define some opengl functions
 	target_link_libraries(${PROJECT_NAME} EGL)
 
-	if (GEODE_USE_BREAKPAD)
-		target_compile_definitions(${PROJECT_NAME} PRIVATE -DGEODE_USE_BREAKPAD)
-		target_link_libraries(${PROJECT_NAME} Breakpad)
-	endif()
+	target_link_libraries(${PROJECT_NAME} unwindstack)
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -260,12 +239,12 @@ if (NOT GEODE_BUILDING_DOCS)
 	set(MZ_OPENSSL OFF CACHE INTERNAL "")
 	set(MZ_LIBBSD OFF CACHE INTERNAL "")
 	set(MZ_FETCH_LIBS ON CACHE INTERNAL "" FORCE)
-	set(MZ_FORCE_FETCH_LIBS ${WIN32} CACHE INTERNAL "")
 	set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
-	CPMAddPackage("gh:geode-sdk/minizip-ng#43d9254")
-	if (WIN32)
-		set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
-	endif()
+	set(MZ_FORCE_FETCH_LIBS OFF CACHE INTERNAL "" FORCE)
+	# sets ZLIB_LIBRARY and ZLIB_INCLUDE_DIR
+	include(DownloadNetLibs.cmake)
+	
+	CPMAddPackage("gh:geode-sdk/minizip-ng#e9dda96")
 
 	# Silence warnings from dependencies
 	include(CheckCXXCompilerFlag)
@@ -296,11 +275,6 @@ if (NOT GEODE_BUILDING_DOCS)
 endif()
 
 target_link_libraries(${PROJECT_NAME} TulipHook geode-sdk mat-json-impl)
-
-# Required by curl for macos
-if (APPLE)
-	target_link_libraries(${PROJECT_NAME} z)
-endif()
 
 # always use unity builds for some dependencies
 if (TARGET md4c)
@@ -368,7 +342,7 @@ if (APPLE)
 elseif (WIN32)
 	add_subdirectory(launcher/windows)
 
-	target_link_libraries(${PROJECT_NAME} dbghelp winmm)
+	target_link_libraries(${PROJECT_NAME} dbghelp winmm xinput)
 
 	target_compile_definitions(${PROJECT_NAME} PUBLIC ISOLATION_AWARE_ENABLED=1)
 

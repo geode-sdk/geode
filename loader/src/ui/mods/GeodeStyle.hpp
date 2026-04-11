@@ -6,6 +6,7 @@
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Popup.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/loader/Mod.hpp>
@@ -58,13 +59,38 @@ enum class GeodeButtonSprite {
     Gray,
 };
 const char* getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme = false);
-IconButtonSprite* createGeodeButton(CCNode* icon, ZStringView text, GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false);
-ButtonSprite* createGeodeButton(ZStringView text, int width, bool absolute = false, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false);
-ButtonSprite* createGeodeButton(ZStringView text, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false);
+IconButtonSprite* createGeodeButton(
+    CCNode* icon,
+    ZStringView text,
+    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    bool forceDisableTheme = false
+);
+IconButtonSprite* createGeodeButton(
+    CCNode* icon,
+    ZStringView text,
+    bool gold,
+    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    bool forceDisableTheme = false
+);
+ButtonSprite* createGeodeButton(
+    ZStringView text,
+    int width,
+    bool absolute = false,
+    bool gold = false,
+    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    bool forceDisableTheme = false
+);
+ButtonSprite* createGeodeButton(
+    ZStringView text,
+    bool gold = false,
+    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    bool forceDisableTheme = false
+);
 
 CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium, bool altColor = false, bool forceDisableTheme = false);
 
 ButtonSprite* createTagLabel(ZStringView text, std::pair<ccColor3B, ccColor3B> const& color);
+IconButtonSprite* createTagLabelWithIcon(CCNode* icon, ZStringView text, std::pair<ccColor3B, ccColor3B> const& color);
 ButtonSprite* createGeodeTagLabel(server::ServerTag const& tag);
 std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag);
 

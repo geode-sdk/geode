@@ -26,11 +26,11 @@ namespace geode {
     using ByteSpan = std::span<uint8_t const>;
 
     template <class... T>
-    requires (std::is_convertible_v<T, uint8_t> && ...) 
+    requires (std::is_convertible_v<T, uint8_t> && ...)
     constexpr auto byteArray(T... bytes) {
         return std::array<uint8_t, sizeof...(T)>{ uint8_t{bytes}... };
     }
-    
+
 
     template <typename T>
     ByteVector toBytes(T const& a) {
@@ -226,6 +226,17 @@ namespace geode {
         GEODE_DLL std::string timePointAsString(std::chrono::system_clock::time_point const& tp);
 
         /**
+         * Converts a time point to a relative string in a format like "2 days ago"
+         * @param abbreviated If true, the string is abbreviated to "2d" etc.
+         */
+        GEODE_DLL std::string timeToAgoString(std::chrono::system_clock::time_point tp, bool abbreviated = false);
+        /**
+         * Converts a time point to a relative string in a format like "2 days ago"
+         * @param abbreviated If true, the string is abbreviated to "2d" etc.
+         */
+        GEODE_DLL std::string timeToAgoString(asp::SystemTime tp, bool abbreviated = false);
+
+        /**
          * Gets the display pixel factor for the current screen,
          * i.e. the ratio between physical pixels and logical pixels on one axis.
          * On most platforms this is 1.0, but on retina displays for example this returns 2.0.
@@ -325,6 +336,15 @@ namespace geode::utils::game {
     GEODE_DLL void restart(bool saveData /* = true */);
 
     /**
+     * Restarts the game, optionally saving the game data.
+     *
+     * @param saveData Whether to save the game data
+     * @param safeMode Whether to restart in safe mode
+
+     */
+    GEODE_DLL void restart(bool saveData /* = true */, bool safeMode /* = false */);
+
+    /**
      * Launches the loader uninstaller, optionally deleting saved data.
      *
      * @param deleteSaveData  Whether to delete the saved game data
@@ -353,4 +373,23 @@ namespace geode::utils::thread {
      * @param name The thread name to assign
      */
     GEODE_DLL void setName(std::string name);
+}
+
+namespace geode::utils::platform {
+    /// Returns whether the game is running under Wine. Returns false for
+    /// every non-Windows platforms, and for Windows if returns true if the
+    /// game is running under Wine, and false otherwise.
+    /// @return True if the game is running under Wine, false otherwise.
+    GEODE_DLL bool isWine();
+
+    /// Returns the platform details of the current process. This is a struct
+    /// that is different for each platform, so accessing its members should
+    /// be done under platform-specific code.
+    /// @return The platform details struct
+    GEODE_DLL PlatformDetails getDetails();
+
+    /// Returns a human-readable string describing the platform the game is
+    /// running on. This is used in crash logs and mod compatibility checks.
+    /// @return The platform string
+    GEODE_DLL std::string getString();
 }

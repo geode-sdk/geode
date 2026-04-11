@@ -33,7 +33,7 @@ namespace geode::cocos {
     template <class InpT, bool Retain>
     class CCArrayExt;
     template <class Key, class ValueInpT, bool Retain>
-    class CCDictionaryExt; 
+    class CCDictionaryExt;
 }
 
 template <typename T>
@@ -509,7 +509,7 @@ namespace geode {
          * @param other The new object to swap to
          */
         void swap(T* other) {
-            if (m_controller) {
+            if (m_controller && other) {
                 m_controller->swap(other);
             } else if (other) {
                 m_controller = WeakRefPool::get()->manage(other);
@@ -524,11 +524,13 @@ namespace geode {
         }
 
         WeakRef<T>& operator=(WeakRef<T> const& other) {
-            this->swap(static_cast<T*>(other.m_controller ? other.m_controller->get() : nullptr));
+            if (this != &other) {
+                this->swap(static_cast<T*>(other.m_controller ? other.m_controller->get() : nullptr));
+            }
             return *this;
         }
 
-        WeakRef<T>& operator=(WeakRef<T>&& other) {
+        WeakRef<T>& operator=(WeakRef<T>&& other) noexcept {
             m_controller = std::move(other.m_controller);
             return *this;
         }
@@ -1089,10 +1091,10 @@ namespace geode::cocos {
 
         CCArrayExt() : m_arr(cocos2d::CCArray::create()) {}
 
-        CCArrayExt(cocos2d::CCArray* arr)
-          : m_arr(arr) {}
+        CCArrayExt(cocos2d::CCArray* arr) : m_arr(arr) {}
 
-        CCArrayExt(std::vector<T> const& vec) : m_arr(cocos2d::CCArray::createWithCapacity(vec.size())) {
+        template <typename Cont> requires (std::ranges::input_range<Cont>)
+        CCArrayExt(Cont const& vec) : m_arr(cocos2d::CCArray::createWithCapacity(vec.size())) {
             for (auto obj : vec) {
                 m_arr->addObject(obj);
             }
@@ -1100,7 +1102,7 @@ namespace geode::cocos {
 
         CCArrayExt(CCArrayExt const& a) : m_arr(a.m_arr) {}
 
-        CCArrayExt(CCArrayExt&& a) : m_arr(a.m_arr) {
+        CCArrayExt(CCArrayExt&& a) noexcept : m_arr(a.m_arr) {
             a.m_arr = nullptr;
         }
 
@@ -1150,13 +1152,14 @@ namespace geode::cocos {
             return m_arr;
         }
 
-        std::vector<T> toVector() const {
-            std::vector<T> vec;
-            vec.reserve(this->size());
-            for (auto item : *this) {
-                vec.push_back(item);
-            }
-            return vec;
+        template <template <typename...> typename Cont = std::vector, typename Elem = T*>
+        Cont<Elem> to() const {
+            return Cont<Elem>(this->begin(), this->end());
+        }
+
+        template <typename Elem = T*>
+        auto toVector() const {
+            return this->to<std::vector, Elem>();
         }
 
         bool empty() const {
@@ -1283,7 +1286,7 @@ namespace geode::cocos {
 
         CCDictionaryExt(CCDictionaryExt const& d) : m_dict(d.m_dict) {}
 
-        CCDictionaryExt(CCDictionaryExt&& d) : m_dict(std::exchange(d.m_dict, nullptr)) {}
+        CCDictionaryExt(CCDictionaryExt&& d) noexcept : m_dict(std::exchange(d.m_dict, nullptr)) {}
 
         auto begin() {
             return Iterator(m_dict->m_pElements);

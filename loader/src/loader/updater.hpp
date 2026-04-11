@@ -4,6 +4,7 @@
 #include <matjson.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/general.hpp>
 
 namespace geode::updater {
     using UpdateFinished = std::monostate;
@@ -11,19 +12,20 @@ namespace geode::updater {
     using UpdateFailed = std::string;
     using UpdateStatus = std::variant<UpdateFinished, UpdateProgress, UpdateFailed>;
 
-    class ResourceDownloadEvent : public Event<ResourceDownloadEvent, bool(UpdateStatus const&)> {
+    class ResourceDownloadEvent : public ThreadSafeEvent<ResourceDownloadEvent, bool(UpdateStatus const&)> {
     public:
         // listener params status
-        using Event::Event;
+        using ThreadSafeEvent::ThreadSafeEvent;
     };
 
-    class LoaderUpdateEvent : public Event<LoaderUpdateEvent, bool(UpdateStatus const&)> {
+    class LoaderUpdateEvent : public ThreadSafeEvent<LoaderUpdateEvent, bool(UpdateStatus const&)> {
     public:
         // listener params status
-        using Event::Event;
+        using ThreadSafeEvent::ThreadSafeEvent;
     };
 
     void updateSpecialFiles();
+    Result<> extractLoaderResources(ByteSpan data);
     void tryDownloadLoaderResources(std::string url, bool tryLatestOnError = true);
     void downloadLoaderResources(bool useLatestRelease = false);
     void downloadLatestLoaderResources();

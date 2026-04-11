@@ -31,19 +31,6 @@ arc::Runtime& runtime() {
 }
 
 $on_mod(Loaded) {
-    arc::setLogFunction([](auto msg, arc::LogLevel level) {
-        using enum arc::LogLevel;
-
-        switch (level) {
-            case Warn:
-                log::warn("[arc] {}", msg); break;
-            case Error:
-                log::error("[arc] {}", msg); break;
-            default:
-                // log::debug("[arc] {}", msg); break;
-        }
-    });
-
     GameEvent(GameEventType::Exiting).listen([] {
         log::info("Shutting down logger and async runtime..");
         log::Logger::get()->shutdownThread();

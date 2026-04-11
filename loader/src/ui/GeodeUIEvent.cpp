@@ -44,7 +44,7 @@
 //     return std::nullopt;
 // }
 
-// $execute {
+// $on_mod(Loaded) {
 //     new EventListener<EventFilter<ModLogoUIEvent>>(+[](ModLogoUIEvent* event) {
 //         if (event->getModID() == "geode.loader") {
 //             auto fart = CCSprite::createWithSpriteFrameName("GJ_demonIcon_001.png");

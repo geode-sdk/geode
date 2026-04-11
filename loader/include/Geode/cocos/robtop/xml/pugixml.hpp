@@ -11,6 +11,8 @@
  * Copyright (C) 2003, by Kristen Wegner (kristen@tima.net)
  */
 
+#ifndef GEODE_NO_PUGIXML_HEADER
+
 #include "../../include/cocos2d.h"
 
 #ifndef PUGIXML_VERSION
@@ -1269,3 +1271,5 @@ namespace std
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+
+#endif // GEODE_NO_PUGIXML_HEADER

@@ -5,10 +5,12 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/LazySprite.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
 #include "mods/GeodeStyle.hpp"
 #include "mods/settings/ModSettingsPopup.hpp"
+#include "mods/settings/KeybindsPopup.hpp"
 #include "mods/popups/ModPopup.hpp"
 
 class LoadServerModLayer : public Popup {
@@ -197,7 +199,7 @@ std::optional<arc::TaskHandle<bool>> geode::openInfoPopup(std::string modID) {
                 popup->show();
             });
         }
-        
+
         co_return ret;
     });
 }
@@ -218,6 +220,19 @@ Popup* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
         return popup;
     }
     return nullptr;
+}
+
+Popup* geode::openKeybindsPopup(std::optional<KeybindCategory> category, Mod* mod) {
+    auto tab = KeybindsPopupTab::All;
+    if (category) switch (*category) {
+        case KeybindCategory::Universal: tab = KeybindsPopupTab::Universal; break;
+        case KeybindCategory::Gameplay: tab = KeybindsPopupTab::Gameplay; break;
+        case KeybindCategory::Editor: tab = KeybindsPopupTab::Editor; break;
+    }
+
+    auto popup = KeybindsPopup::create(tab, mod);
+    popup->show();
+    return popup;
 }
 
 using ModLogoSrc = std::variant<Mod*, std::string, std::filesystem::path>;
@@ -250,10 +265,26 @@ protected:
                 if (!mod->isInternal()) {
                     m_sprite->loadFromFile(dirs::getModRuntimeDir() / mod->getID() / "logo.png");
                 } else {
-                    if (Mod::get()->getSavedValue("alternate-geode-style", false)) {
-                        m_sprite->initWithSpriteFrameName("geode-logo-alternate.png"_spr);
-                    }
-                    else {
+                    // We only support lazySprite for this because i have no idea how to better integrate this
+                    auto listener = NodeProvidingEvent("geode-mod-logo-sprite"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+                        auto sprite = typeinfo_cast<LazySprite*>(nodeOut);
+                        if (!sprite) return; // someone overrode it, which will probably break maybe
+
+                        if (theme == "rainbow") {
+                            m_sprite->initWithSpriteFrameName("geode-logo-alternate.png"_spr);
+                        }
+                        else if (theme == "sapphire") {
+                            m_sprite->initWithSpriteFrameName("sapphire-logo.png"_spr);
+                        }
+                        else {
+                            m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
+                        }
+                    }, Priority::Last);
+                    CCNode* ptr = m_sprite;
+                    NodeProvidingEvent("geode-mod-logo-sprite"_spr).send(ptr);
+
+                    // fallback
+                    if (ptr != m_sprite) {
                         m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
                     }
                 }
