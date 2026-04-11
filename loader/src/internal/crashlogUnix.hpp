@@ -101,20 +101,11 @@ inline void tryWriteSigillInstruction(crashlog::Buffer& stream, void* address) {
 
         __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Failed to read inst at %p with before=%zu after=%zu; err=%d", address, bytesBefore, bytesAfter, errno);
 
-        if (bytesBefore == 0) break;
+        if (bytesBefore == 0) break; // give up
 
         bytesBefore -= 4;
         bytesAfter -= 4;
     }
-
-    // try to read just the faulting 4 bytes if everything fails
-    auto result = safeMemoryRead(buf, address, 4);
-    if (result > 0) {
-        describeInstructionBytes(stream, buf, result, 0);
-        return;
-    }
-
-    // give up otherwise
 }
 #endif
 
