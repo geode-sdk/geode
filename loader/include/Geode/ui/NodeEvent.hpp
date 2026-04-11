@@ -2,6 +2,11 @@
 
 #include "../loader/Event.hpp"
 
+namespace cocos2d {
+    class CCNode;
+    class CCMenuItem;
+}
+
 namespace geode {
 
     enum class NodeEventType {
