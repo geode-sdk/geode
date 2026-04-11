@@ -702,24 +702,20 @@ void RichTextArea::setText(std::string text) {
 
 template <class T>
 void RichTextArea::registerRichTextKey(std::shared_ptr<RichTextKey<T>> key){
-    RichTextArea::RichImpl* castedImpl = this->castedImpl();
+    if (this->castedImpl()->m_richTextKeys.contains(key->getKey())) return;
 
-    if (castedImpl->m_richTextKeys.contains(key->getKey())) return;
-
-    castedImpl->m_richTextKeys.insert({key->getKey(), key});
+    this->castedImpl()->m_richTextKeys.insert({key->getKey(), key});
 }
 
 bool RichTextArea::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
-    RichTextArea::RichImpl* castedImpl = this->castedImpl();
-
-    for (const auto& [btnKey, textForBtn] : castedImpl->m_charactersForButton)
+    for (const auto& [btnKey, textForBtn] : this->castedImpl()->m_charactersForButton)
     {
         for (const auto& fontSpr : textForBtn)
         {
             auto touchInSpace = fontSpr->getParent()->convertTouchToNodeSpace(pTouch);
             if (fontSpr->boundingBox().containsPoint(touchInSpace)){
                 btnKey->callButton(true, fontSpr, textForBtn);
-                castedImpl->m_currentlyHeldButton = btnKey;
+                this->castedImpl()->m_currentlyHeldButton = btnKey;
                 return true;
             }
         }
@@ -729,25 +725,23 @@ bool RichTextArea::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
 }
 
 void RichTextArea::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent){
-    RichTextArea::RichImpl* castedImpl = this->castedImpl();
-
-    if (castedImpl->m_charactersForButton.contains(castedImpl->m_currentlyHeldButton)){
-        auto textForBtn = castedImpl->m_charactersForButton[castedImpl->m_currentlyHeldButton];
+    if (this->castedImpl()->m_charactersForButton.contains(this->castedImpl()->m_currentlyHeldButton)){
+        auto textForBtn = this->castedImpl()->m_charactersForButton[this->castedImpl()->m_currentlyHeldButton];
 
         for (const auto& fontSpr : textForBtn)
         {
             auto touchInSpace = fontSpr->getParent()->convertTouchToNodeSpace(pTouch);
             if (fontSpr->boundingBox().containsPoint(touchInSpace)){
-                castedImpl->m_currentlyHeldButton->callButton(false, fontSpr, textForBtn);
-                castedImpl->m_currentlyHeldButton = nullptr;
+                this->castedImpl()->m_currentlyHeldButton->callButton(false, fontSpr, textForBtn);
+                this->castedImpl()->m_currentlyHeldButton = nullptr;
                 return;
             }
         }
 
-        castedImpl->m_currentlyHeldButton->callButton(false, nullptr, textForBtn);
+        this->castedImpl()->m_currentlyHeldButton->callButton(false, nullptr, textForBtn);
     }
 
-    castedImpl->m_currentlyHeldButton = nullptr;
+    this->castedImpl()->m_currentlyHeldButton = nullptr;
 }
 void RichTextArea::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
     RichTextArea::ccTouchEnded(pTouch, pEvent);
