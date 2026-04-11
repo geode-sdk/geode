@@ -92,7 +92,10 @@ namespace geode {
         T m_value;
         bool m_cancellation = false;
 
-        void applyChangesToSprite(cocos2d::CCFontSprite* spr, int index) override;
+        void applyChangesToSprite(cocos2d::CCFontSprite* spr, int index) override {
+            if (m_key->m_applyToSprite != NULL)
+                m_key->m_applyToSprite(m_value, spr, index);
+        }
 
         std::string getKey() const override {
             return m_key->getKey();
@@ -102,7 +105,11 @@ namespace geode {
             return m_cancellation;
         }
 
-        std::string runStrAddition() override;
+        std::string runStrAddition() override {
+            if (m_key->m_stringAddition != NULL)
+                return m_key->m_stringAddition(m_value);
+            return "";
+        }
 
         bool isButton() const override {
             return m_key->m_buttonFunctionallity != NULL;
@@ -180,7 +187,24 @@ namespace geode {
             m_applyToSprite(std::move(applyToSprite)),
             m_stringAddition(std::move(stringAddition)) {}
 
-        Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(std::string const& value, bool cancellation) override;
+        Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(std::string const& value, bool cancellation) override {
+            if (cancellation){
+                if (value == ""){
+                    return Ok(std::make_shared<RichTextKeyInstance<T>>(
+                        RichTextKeyInstance<T>(this, T(), true))
+                    );
+                }
+                else return Err("Cancellation tags cannot have values");
+            }
+
+            auto res = m_validCheck(value);
+
+            if (res.isErr()) return Err(res.unwrapErr());
+
+            return Ok(std::make_shared<RichTextKeyInstance<T>>(
+                RichTextKeyInstance<T>(this, res.unwrap(), false))
+            );
+        }
 
         std::string getKey() const override {
             return m_key;

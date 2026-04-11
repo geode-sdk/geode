@@ -683,39 +683,6 @@ void RichTextArea::RichImpl::processLinkClick(
     }
 }
 
-template <class T>
-void RichTextKeyInstance<T>::applyChangesToSprite(cocos2d::CCFontSprite* spr, int index) {
-    if (m_key->m_applyToSprite != NULL)
-        m_key->m_applyToSprite(m_value, spr, index);
-}
-
-template <class T>
-std::string RichTextKeyInstance<T>::runStrAddition() {
-    if (m_key->m_stringAddition != NULL)
-        return m_key->m_stringAddition(m_value);
-    return "";
-}
-
-template <class T>
-Result<std::shared_ptr<RichTextKeyInstanceBase>> RichTextKey<T>::createInstance(std::string const& value, bool cancellation) {
-    if (cancellation){
-        if (value == ""){
-            return Ok(std::make_shared<RichTextKeyInstance<T>>(
-                RichTextKeyInstance<T>(this, T(), true))
-            );
-        }
-        else return Err("Cancellation tags cannot have values");
-    }
-
-    auto res = m_validCheck(value);
-
-    if (res.isErr()) return Err(res.unwrapErr());
-
-    return Ok(std::make_shared<RichTextKeyInstance<T>>(
-        RichTextKeyInstance<T>(this, res.unwrap(), false))
-    );
-}
-
 void RichTextArea::setText(std::string text) {
     m_impl->m_text = std::move(text);
     castedImpl()->m_rawText = m_impl->m_text;
