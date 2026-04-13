@@ -567,8 +567,9 @@ CCScene* geode::cocos::switchToScene(CCLayer* layer) {
 static CreateLayerFunc LOADING_FINISHED_SCENE = nullptr;
 
 void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
+    // TODO V6 ? : make this take a scene?
     LOADING_FINISHED_SCENE = std::move(returnTo);
-    GameManager::get()->reloadAll(false, false, true);
+    GameManager::get()->reloadAll(false, false, false, false, true);
 }
 
 void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force) {
