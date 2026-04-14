@@ -25,7 +25,13 @@ asp::SharedPtr<arc::Runtime>& runtimePtr() {
 }
 
 arc::Runtime& runtime() {
-    return *runtimePtr();
+    auto& ptr = runtimePtr();
+
+    if (!ptr) {
+        utils::terminate("arc runtime has already been destroyed");
+    }
+
+    return *ptr;
 }
 
 }
