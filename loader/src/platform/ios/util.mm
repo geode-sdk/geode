@@ -596,10 +596,33 @@ PlatformDetails geode::utils::platform::getDetails() {
     details.minorVersion = version.minorVersion;
     details.patchVersion = version.patchVersion;
     details.arch = getCurrentArch();
+
+    bool isPatchless = geode::Loader::get()->isPatchless();
+    std::string launchMethod = "Unknown";
+    if (getenv("GAME")) {
+        if (getenv("TXM_JIT")) {
+            launchMethod = "JIT [TXM]";
+        } else {
+            if (isPatchless) {
+                launchMethod = "JIT";
+            } else {
+                launchMethod = "JIT-Less";
+            }
+        }
+    } else {
+        if (isPatchless) {
+            launchMethod = "Enterprise";
+        } else {
+            if (getenv("GEODEINJECT_LOADED")) {
+                launchMethod = "Jailbroken";
+            }
+        }
+    }
+    details.launchMethod = launchMethod;
     return details;
 }
 
 std::string geode::utils::platform::getString() {
     auto details = getDetails();
-    return fmt::format("iOS {} {}.{}.{}", details.arch, details.majorVersion, details.minorVersion, details.patchVersion);
+    return fmt::format("iOS {} {}.{}.{} ({})", details.arch, details.majorVersion, details.minorVersion, details.patchVersion, details.launchMethod);
 }
