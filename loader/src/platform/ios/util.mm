@@ -603,7 +603,7 @@ PlatformDetails geode::utils::platform::getDetails() {
         if (getenv("TXM_JIT")) {
             launchMethod = "JIT [TXM]";
         } else {
-            if (isPatchless) {
+            if (!isPatchless) {
                 launchMethod = "JIT";
             } else {
                 launchMethod = "JIT-Less";
