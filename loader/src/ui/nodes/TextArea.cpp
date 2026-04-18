@@ -759,6 +759,7 @@ RichTextArea::RichTextArea() : SimpleTextArea() {}
 
 RichTextArea::~RichTextArea() = default;
 
+
 inline std::unique_ptr<SimpleTextAreaImpl> RichTextArea::createImpl() {
     return std::make_unique<RichTextArea::RichImpl>(this);
 }
