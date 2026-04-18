@@ -251,6 +251,9 @@ namespace geode {
         void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
         void ccTouchCancelled(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
 
+        void onEnter() override;
+        void onExit() override;
+
         RichImpl* castedImpl();
     };
 }
