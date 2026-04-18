@@ -25,6 +25,12 @@ constexpr wchar_t GEODE_NOT_FOUND_ERROR[] = L"Could not find Geode.dll!\n"
 constexpr wchar_t BAD_EXE_FORMAT_ERROR[] = L"Your installation of Geode is corrupted.\n"
     "To fix this issue, please download the installer again and re-install Geode.\n\n"
     "Open the download page?";
+constexpr wchar_t SMART_APP_CONTROL_ERROR[] = L"Your installation of Geode is being blocked by Smart App Control.\n\n"
+    "Windows prevented Geode from loading because it is an unrecognized application. "
+    "This is a security feature in Windows that blocks applications "
+    "from small developers - including most Geometry Dash mods."
+    "\n\n"
+    "You can disable Smart App Control in Windows Security settings to make Geode load.";
 
 static HMODULE getXInput() {
     static auto xinput = []() -> HMODULE {
@@ -160,6 +166,8 @@ static DWORD errorThread(LPVOID param) {
         if(MessageBoxW(NULL, BAD_EXE_FORMAT_ERROR, L"Load failed (error code: 193)", MB_YESNO | MB_ICONWARNING) == IDYES) {
             openDownloadPage();
         }
+    } else if (error == 4551) {
+        MessageBoxW(NULL, SMART_APP_CONTROL_ERROR, L"Load failed (error code: 4551)", MB_OK | MB_ICONWARNING);
     } else {
         MessageBoxW(NULL, getErrorString(error).c_str(), L"Load failed" , MB_OK | MB_ICONWARNING);
     }

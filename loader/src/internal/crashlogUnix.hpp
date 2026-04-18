@@ -1,9 +1,15 @@
 #pragma once
+#include <Geode/utils/StringBuffer.hpp>
+#include <Geode/platform/cplatform.h>
+#include <crashlog.hpp>
 #include <string_view>
 #include <signal.h>
-#include <Geode/utils/StringBuffer.hpp>
-#include <crashlog.hpp>
 #include <cxxabi.h>
+#include <unistd.h>
+
+#ifdef GEODE_IS_ANDROID
+# include <sys/uio.h>
+#endif
 
 inline std::string_view getSignalCodeString(int signal, siginfo_t* siginfo) {
     switch(signal) {
@@ -44,11 +50,73 @@ inline bool hasSignalDetail(int signal) {
     return signal == SIGILL || signal == SIGFPE || signal == SIGSEGV || signal == SIGBUS || signal == SIGTRAP;
 }
 
+#ifdef GEODE_IS_ANDROID64
+inline ssize_t safeMemoryRead(void* buf, const void* src, size_t size) {
+    struct iovec local { buf, size };
+    struct iovec remote { const_cast<void*>(src), size };
+
+    return process_vm_readv(getpid(), &local, 1, &remote, 1, 0);
+}
+
+inline void describeInstructionBytes(crashlog::Buffer& stream, const uint8_t* bytes, size_t size, size_t instOffset) {
+    stream.append(" (bytes: ");
+    size_t instEnd = std::min(size, instOffset + 4);
+
+    // write in format
+    // 00 11 22 33 [44 55 66 77] 88 99 AA BB
+
+    for (size_t i = 0; i < size; i++) {
+        if (i == instOffset) {
+            stream.append('[');
+        }
+        stream.append("{:02X}", bytes[i]);
+        if (i == instEnd - 1) {
+            stream.append(']');
+        }
+        if (i != size - 1) {
+            stream.append(' ');
+        }
+    }
+
+    stream.append(')');
+}
+
+inline void tryWriteSigillInstruction(crashlog::Buffer& stream, void* address) {
+    uintptr_t addr = reinterpret_cast<uintptr_t>(address);
+    uint8_t buf[128];
+
+    // read a couple instructions before & after the target
+    size_t bytesBefore = 8;
+    size_t bytesAfter = 8;
+
+    while (true) {
+        uintptr_t readStart = (addr - bytesBefore) & ~0x3; // align to 4 bytes
+        size_t readSize = (addr - readStart) + 4 + bytesAfter;
+
+        auto result = safeMemoryRead(buf, reinterpret_cast<void*>(readStart), readSize);
+        if (result > 0) {
+            describeInstructionBytes(stream, buf, result, addr - readStart);
+            return;
+        }
+
+        __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Failed to read inst at %p with before=%zu after=%zu; err=%d", address, bytesBefore, bytesAfter, errno);
+
+        if (bytesBefore == 0) break; // give up
+
+        bytesBefore -= 4;
+        bytesAfter -= 4;
+    }
+}
+#endif
+
 inline void writeSignalDetail(crashlog::Buffer& stream, crashlog::CrashContext& ctx, int signal, siginfo_t* siginfo) {
     switch (signal) {
         case SIGILL: {
             stream.append("Illegal instruction was encountered at ");
             ctx.formatAddress(siginfo->si_addr, stream);
+#ifdef GEODE_IS_ANDROID64
+            tryWriteSigillInstruction(stream, siginfo->si_addr);
+#endif
         } break;
 
         case SIGFPE: {
