@@ -231,10 +231,12 @@ public:
         }
         auto node = m_queue.front();
         m_queue.pop();
-        for (auto sibling : CCArrayExt<CCNode*>(node->getParent()->getChildren())) {
-            if (!m_explored.contains(sibling)) {
-                m_explored.insert(sibling);
-                m_queue.push(sibling);
+        if (CCNode* parent = node->getParent()) {
+            for (auto sibling : CCArrayExt<CCNode*>(parent->getChildren())) {
+                if (!m_explored.contains(sibling)) {
+                    m_explored.insert(sibling);
+                    m_queue.push(sibling);
+                }
             }
         }
         for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
