@@ -398,8 +398,6 @@ RichTextArea* RichTextArea::create(std::string font, std::string text, float sca
 }
 
 bool RichTextArea::init(std::string font, std::string text, float scale, float width, bool artificialWidth) {
-    CCTouchDispatcher::get()->addTargetedDelegate(this, 0, true);
-
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
 
     registerRichTextKey(std::make_shared<RichTextKey<ccColor3B>>(
@@ -759,9 +757,8 @@ void RichTextArea::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
 
 RichTextArea::RichTextArea() : SimpleTextArea() {}
 
-RichTextArea::~RichTextArea() {
-    CCTouchDispatcher::get()->removeDelegate(this);
-}
+RichTextArea::~RichTextArea() = default;
+
 
 inline std::unique_ptr<SimpleTextAreaImpl> RichTextArea::createImpl() {
     return std::make_unique<RichTextArea::RichImpl>(this);
@@ -769,4 +766,14 @@ inline std::unique_ptr<SimpleTextAreaImpl> RichTextArea::createImpl() {
 
 RichTextArea::RichImpl* RichTextArea::castedImpl() {
     return static_cast<RichTextArea::RichImpl*>(m_impl.get());
+}
+
+void RichTextArea::onEnter(){
+    CCNode::onEnter();
+    CCTouchDispatcher::get()->addTargetedDelegate(this, 0, true);
+}
+
+void RichTextArea::onExit(){
+    CCTouchDispatcher::get()->removeDelegate(this);
+    CCNode::onExit();
 }
