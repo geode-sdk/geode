@@ -1,4 +1,6 @@
 #include <Geode/ui/TextArea.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/web.hpp>
 #include <regex>
 #include <fmt/chrono.h>
 
@@ -567,7 +569,7 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
         if (line->getChildren()->lastObject() != nullptr){
             for (const auto& [key, instancePtr] : appliedRichTextInstances) {
                 auto lastChar = static_cast<cocos2d::CCFontSprite*>(line->getChildren()->lastObject());
-                
+
                 instancePtr->applyChangesToSprite(lastChar, m_charIndexForInstance[instancePtr], index);
 
                 if (instancePtr->isButton()){
@@ -677,7 +679,7 @@ void RichTextArea::RichImpl::processLinkClick(
         {
             this->m_ogColorForLink.insert({
                 linkCharacter,
-                linkCharacter->getColor() == ccColor3B{255, 255, 255} ? 
+                linkCharacter->getColor() == ccColor3B{255, 255, 255} ?
                     ccColor3B{m_self->getColor().r, m_self->getColor().g, m_self->getColor().b} :
                     linkCharacter->getColor()
                 }
