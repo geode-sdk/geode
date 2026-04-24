@@ -35,7 +35,9 @@ bool EventCenterThreadLocal::send(BaseFilter const* filter, SendFuncType func, M
         if (auto newPort = std::invoke(migratePort, it->second.get())) {
             it->second.reset(newPort);
         }
-        return std::invoke(func, it->second.get());
+
+        auto port = it->second;
+        return std::invoke(func, port.get());
     }
     return false;
 }
