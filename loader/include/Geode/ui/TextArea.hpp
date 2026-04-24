@@ -40,7 +40,7 @@ namespace geode {
         cocos2d::CCTextAlignment getAlignment();
         void setWrappingMode(WrappingMode mode);
         WrappingMode getWrappingMode();
-        virtual void setText(std::string text);
+        void setText(std::string text);
         std::string getText();
         void setMaxLines(size_t maxLines);
         size_t getMaxLines();
@@ -230,7 +230,6 @@ namespace geode {
         static RichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.0f);
         static RichTextArea* create(std::string text, std::string font, float scale, float width);
 
-        void setText(std::string text) override;
         std::string getRawText();
 
         void registerRichTextKey(std::shared_ptr<RichTextKeyBase> key);
