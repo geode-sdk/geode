@@ -155,11 +155,17 @@ bool ModPopup::init(ModSource&& src) {
     // Lil padding
     auto devAndTitlePos = m_titleContainer->getContentHeight() + 5;
 
-    auto title = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
-    title->limitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .45f, .1f);
-    title->setAnchorPoint({ .0f, .5f });
-    title->setID("mod-name-label");
-    m_titleContainer->addChildAtPosition(title, Anchor::TopLeft, ccp(devAndTitlePos, -m_titleContainer->getContentHeight() * .25f));
+    StringBuffer title;
+    title.append("{:.40}", m_source.getMetadata().getName());
+    if (m_source.getMetadata().getName().size() > 40) {
+        title.append("...");
+    }
+
+    auto titleLabel = CCLabelBMFont::create(title.c_str(), "bigFont.fnt");
+    titleLabel->limitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .45f, .1f);
+    titleLabel->setAnchorPoint({ .0f, .5f });
+    titleLabel->setID("mod-name-label");
+    m_titleContainer->addChildAtPosition(titleLabel, Anchor::TopLeft, ccp(devAndTitlePos, -m_titleContainer->getContentHeight() * .25f));
 
     auto by = "By " + m_source.formatDevelopers();
     auto dev = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
