@@ -9,9 +9,6 @@
 #include <ui/mods/sources/ModListSource.hpp>
 
 static bool matchSearch(SettingNode* node, ZStringView query) {
-    if (typeinfo_cast<TitleSettingNode*>(node)) {
-        return true;
-    }
     bool addToList = false;
     auto setting = node->getSetting();
     double weighted = 0;
@@ -203,18 +200,27 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
         }
         if (auto asTitle = typeinfo_cast<TitleSettingNode*>(sett.data())) {
             lastTitle = asTitle;
+            // title visibility is dependent on if children are visible
+            sett->removeFromParent();
+            continue;
         }
         sett->removeFromParent();
-        if (
-            // Show if the setting is not a title and is not subject to a collapsed title
-            !(lastTitle && lastTitle != sett && lastTitle->isCollapsed()) &&
-            // Show if there's no search query or if the setting matches it
-            (!hasSearch || matchSearch(sett, search))
-        ) {
-            m_list->m_contentLayer->addChild(sett);
-            sett->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
-            bg = !bg;
-        }
+        // show if title not collapsed
+        if (!lastTitle || !lastTitle->isCollapsed()) {
+            // show if not searching or last title is highlighted in search or setting matches search
+            if (!hasSearch || (lastTitle && lastTitle->getParent() == m_list->m_contentLayer) || matchSearch(sett, search)) {
+                // try make title visible
+                if (lastTitle && lastTitle->getParent() != m_list->m_contentLayer) {
+                    m_list->m_contentLayer->addChild(lastTitle);
+                    lastTitle->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
+                    bg = !bg;
+                }
+
+                m_list->m_contentLayer->addChild(sett);
+                sett->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
+                bg = !bg;
+            }
+        }     
         // Avoid infinite loops
         if (sett == invoker) {
             continue;
