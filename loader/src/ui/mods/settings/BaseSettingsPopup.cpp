@@ -200,13 +200,19 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
         }
         if (auto asTitle = typeinfo_cast<TitleSettingNode*>(sett.data())) {
             lastTitle = asTitle;
-            // title visibility is dependent on if children are visible
-            sett->removeFromParent();
-            continue;
         }
         sett->removeFromParent();
-        // show if title not collapsed
-        if (!lastTitle || !lastTitle->isCollapsed()) {
+        // if title
+        if (lastTitle == sett) {
+            // make title visible if it matches search (otherwise titles will be made visible by their respective settings or just not show up if they dont have any)
+            if (hasSearch && matchSearch(sett, search)) {
+                m_list->m_contentLayer->addChild(sett);
+                sett->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
+                bg = !bg;
+            }
+        }
+        // show not title settings if title not collapsed
+        else if (!lastTitle || !lastTitle->isCollapsed()) {
             // show if not searching or last title is highlighted in search or setting matches search
             if (!hasSearch || (lastTitle && lastTitle->getParent() == m_list->m_contentLayer) || matchSearch(sett, search)) {
                 // try make title visible
