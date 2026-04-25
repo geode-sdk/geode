@@ -222,7 +222,7 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
                 lastTitleSearched = hasSearch;
             }
         }
-        // if not title
+        // if not title (these checks are prolly not necessary but im paranoid)
         else if (sett && !lastTitle || lastTitle != sett) {
             // show if not searching or last title is highlighted in search or setting matches search
             if (!hasSearch || lastTitleSearched || matchSearch(sett, search)) {
