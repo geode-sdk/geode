@@ -11,6 +11,7 @@
 using namespace geode::prelude;
 
 struct RawInputEvent {
+    void* physicalDevice = nullptr;
     double timestamp = 0.0;
     KeyboardModifier mods;
 
@@ -36,7 +37,7 @@ struct RawInputEvent {
     } type;
 
     static RawInputEvent makeKeyboard(
-        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardModifier mods
+        bool isDown, uint16_t vk, uint16_t scan, uint16_t flags, bool isRepeat, KeyboardModifier mods, void* device
     ) {
         RawInputEvent evt;
         evt.type = isDown ? Type::KeyDown : Type::KeyUp;
@@ -48,15 +49,17 @@ struct RawInputEvent {
         evt.keyboard.isE0 = (flags & RI_KEY_E0) != 0;
         evt.keyboard.isE1 = (flags & RI_KEY_E1) != 0;
         evt.keyboard.isRepeat = isRepeat;
+        evt.physicalDevice = device;
         return evt;
     }
 
-    static RawInputEvent makeMouse(uint16_t btnFlags, KeyboardModifier mods) {
+    static RawInputEvent makeMouse(uint16_t btnFlags, KeyboardModifier mods, void* device) {
         RawInputEvent evt;
         evt.type = Type::MouseButton;
         evt.timestamp = getInputTimestamp();
         evt.mods = mods;
         evt.mouse.flags = btnFlags;
+        evt.physicalDevice = device;
         return evt;
     }
 };
@@ -407,7 +410,8 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
             kb.MakeCode,
             kb.Flags,
             isRepeat,
-            KeyStateTracker::get().getMods()
+            KeyStateTracker::get().getMods(),
+            raw->header.hDevice
         ));
     } else if (raw->header.dwType == RIM_TYPEMOUSE) {
         auto const& mouse = raw->data.mouse;
@@ -417,7 +421,8 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 
         RawInputQueue::get().push(RawInputEvent::makeMouse(
             mouse.usButtonFlags,
-            KeyStateTracker::get().getMods()
+            KeyStateTracker::get().getMods(),
+            raw->header.hDevice
         ));
     }
 
@@ -484,7 +489,8 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
             isDown ? (evt.keyboard.isRepeat ? Repeat : Press) : Release,
             {evt.keyboard.vkey, evt.keyboard.scanCode},
             evt.timestamp,
-            mods
+            mods,
+            evt.physicalDevice
         );
 
         auto result = KeyboardInputEvent(keyCode).send(data);
@@ -558,7 +564,8 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                     b.btn,
                     isDown ? Press : Release,
                     evt.timestamp,
-                    evt.mods
+                    evt.mods,
+                    evt.physicalDevice
                 );
 
                 auto result = MouseInputEvent().send(data);
@@ -731,7 +738,8 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
                 isDown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
                 {},
                 timestamp,
-                KeyboardModifier::None
+                KeyboardModifier::None,
+                controller
             );
 
             if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Stop) {
@@ -771,7 +779,8 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
                 isADown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
                 {},
                 timestamp,
-                KeyboardModifier::None
+                KeyboardModifier::None,
+                controller
             );
 
             if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {
@@ -818,7 +827,8 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
                 isBackDown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
                 {},
                 timestamp,
-                KeyboardModifier::None
+                KeyboardModifier::None,
+                controller
             );
 
             if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {
