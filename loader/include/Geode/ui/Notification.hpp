@@ -4,6 +4,7 @@
 #include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
     constexpr auto NOTIFICATION_DEFAULT_TIME = 1.8f;
@@ -32,6 +33,7 @@ namespace geode {
 
         void showNextNotification();
         void waitThenHide();
+        void maybeSkipForQueuedNotification();
 
         NineSlice* getBG();
         cocos2d::CCLabelBMFont* getLabel();
@@ -65,6 +67,36 @@ namespace geode {
             ZStringView text,
             cocos2d::CCNode* icon,
             float time = NOTIFICATION_DEFAULT_TIME
+        );
+        /**
+         * Create a low-priority notification that is shown for at most
+         * maxTime seconds, but can be skipped early if another notification
+         * enters the queue.
+         * @param text Notification text
+         * @param icon Icon to show in the notification
+         * @param maxTime Maximum time to show the notification on screen
+         * @returns The new notification. Make sure to call show() to show the
+         * notification
+         */
+        static Notification* createSkippable(
+            ZStringView text,
+            NotificationIcon icon = NotificationIcon::None,
+            float maxTime = NOTIFICATION_DEFAULT_TIME
+        );
+        /**
+         * Create a low-priority notification with a custom icon that is shown
+         * for at most maxTime seconds, but can be skipped early if another
+         * notification enters the queue.
+         * @param text Notification text
+         * @param icon Icon to show in the notification
+         * @param maxTime Maximum time to show the notification on screen
+         * @returns The new notification. Make sure to call show() to show the
+         * notification
+         */
+        static Notification* createSkippable(
+            ZStringView text,
+            cocos2d::CCNode* icon,
+            float maxTime = NOTIFICATION_DEFAULT_TIME
         );
 
         void setString(ZStringView text);

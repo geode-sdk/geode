@@ -2,6 +2,7 @@
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/OverlayManager.hpp>
 #include <Geode/ui/Notification.hpp>
+#include <deque>
 
 using namespace geode::prelude;
 
@@ -18,6 +19,7 @@ public:
     CCNode* icon = nullptr;
     float time;
     bool showing = false;
+    bool skippableOnQueue = false;
 };
 
 Notification::Notification() : m_impl(std::make_unique<Impl>()) { }
@@ -75,10 +77,12 @@ void Notification::showNextNotification() {
     this->removeFromParent();
 
     // remove self from front of queue and show next popup if it exists
-    s_queue.pop_front();
+    if (!s_queue.empty()) {
+        s_queue.pop_front();
+    }
 
-    if (s_queue.size() != 0) {
-        s_queue.at(0)->show();
+    if (!s_queue.empty()) {
+        s_queue.front()->show();
     }
 }
 
@@ -124,6 +128,18 @@ Notification* Notification::create(ZStringView text, CCNode* icon, float time) {
     }
 
     delete ret;
+    return nullptr;
+}
+
+Notification* Notification::createSkippable(ZStringView text, NotificationIcon icon, float maxTime) {
+    return Notification::createSkippable(text, createIcon(icon), maxTime);
+}
+
+Notification* Notification::createSkippable(ZStringView text, CCNode* icon, float maxTime) {
+    if (auto ret = Notification::create(text, icon, maxTime)) {
+        ret->m_impl->skippableOnQueue = true;
+        return ret;
+    }
     return nullptr;
 }
 
@@ -186,8 +202,13 @@ void Notification::show() {
         s_queue.push_back(this);
     }
 
+    if (s_queue.empty()) return;
+
     // if we're not the current notification, return
-    if (s_queue.at(0) != this) {
+    if (s_queue.front() != this) {
+        if (auto current = s_queue.front().data()) {
+            current->maybeSkipForQueuedNotification();
+        }
         return;
     }
 
@@ -231,6 +252,12 @@ void Notification::waitThenHide() {
             CCCallFunc::create(this, callfunc_selector(Notification::hide)),
             nullptr
         ));
+    }
+}
+
+void Notification::maybeSkipForQueuedNotification() {
+    if (m_impl->showing && m_impl->skippableOnQueue) {
+        this->hide();
     }
 }
 
