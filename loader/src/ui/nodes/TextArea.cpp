@@ -37,6 +37,8 @@ public:
     void updateLinesCutoffWrap();
 
     void updateContainer();
+
+    virtual void setTextImpl(std::string text);
 };
 
 cocos2d::CCLabelBMFont* geode::SimpleTextAreaImpl::createLabel(char const* text, float top) {
@@ -204,6 +206,11 @@ void geode::SimpleTextAreaImpl::updateContainer() {
     }
 }
 
+void geode::SimpleTextAreaImpl::setTextImpl(std::string text){
+    m_text = std::move(text);
+    updateContainer();
+}
+
 geode::SimpleTextArea::SimpleTextArea() = default;
 geode::SimpleTextArea::~SimpleTextArea() = default;
 
@@ -288,8 +295,7 @@ geode::WrappingMode geode::SimpleTextArea::getWrappingMode() {
 }
 
 void geode::SimpleTextArea::setText(std::string text) {
-    m_impl->m_text = std::move(text);
-    m_impl->updateContainer();
+    m_impl->setTextImpl(std::move(text));
 }
 
 std::string geode::SimpleTextArea::getText() {
@@ -376,6 +382,8 @@ public:
         cocos2d::CCFontSprite* specificSpriteClicked,
         std::set<cocos2d::CCFontSprite*> const& wordClicked
     );
+
+    void setTextImpl(std::string text) override;
 };
 
 RichTextArea* RichTextArea::create(std::string text, std::string font, float scale) {
@@ -700,11 +708,11 @@ void RichTextArea::RichImpl::processLinkClick(
     }
 }
 
-void RichTextArea::setText(std::string text) {
-    m_impl->m_text = std::move(text);
-    castedImpl()->m_rawText = m_impl->m_text;
-    castedImpl()->formatRichText();
-    m_impl->updateContainer();
+void RichTextArea::RichImpl::setTextImpl(std::string text) {
+    m_text = std::move(text);
+    m_rawText = m_text;
+    formatRichText();
+    updateContainer();
 }
 
 void RichTextArea::registerRichTextKey(std::shared_ptr<RichTextKeyBase> key){
