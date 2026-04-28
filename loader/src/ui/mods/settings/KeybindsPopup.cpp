@@ -86,6 +86,24 @@ bool KeybindsPopup::shouldShow(SettingNode* node) const {
     if (m_tab == KeybindsPopupTab::All) {
         return true;
     }
+    if (auto title = typeinfo_cast<TitleSettingNodeV3*>(node)) {
+        // working with what geode has cuz i dont wanna make any big changes
+        auto it = std::ranges::find_if(m_settings, [node] (auto& ref) {
+            return ref == node;
+        });
+        // check if any of the titles settings match the category (this could be done in a far cleaner way but once again im working with what geode has)
+        while (it != m_settings.end()) {
+            auto ptr = (*it).data();
+            if (ptr != node && typeinfo_cast<TitleSettingNodeV3*>(ptr)) {
+                return false;
+            }
+            else if (auto sett = typeinfo_pointer_cast<KeybindSettingV3>(ptr->getSetting()); sett && sett->getCategory() == static_cast<KeybindCategory>(m_tab)) {
+                return true;
+            }
+            it++;
+        }
+        return false;
+    }
     if (auto sett = typeinfo_pointer_cast<KeybindSettingV3>(node->getSetting())) {
         return sett->getCategory() == static_cast<KeybindCategory>(m_tab);
     }
