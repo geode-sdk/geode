@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v5.7.1
+ * Revert fallthrough for keybind modifiers because some mods rely on that not happening (df9df11)
+
 ## v5.7.0
  * Add `RichTextArea` (#1654)
  * Make Geode load without requiring DLL overrides on Wine 11.6+ (6892c03)
