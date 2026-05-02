@@ -406,55 +406,32 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
                 });
             }
 
-            // build up all keybinds to look for, starting with the most specific to least specific
-            // this is for modifier fallthrough functionality
-            std::vector<Keybind> keybindsToCheck;
-            int baseMask = keybind.modifiers.value; 
-
-            for (int submask = baseMask; ; submask = (submask - 1) & baseMask) {
-                keybindsToCheck.push_back(Keybind(keybind.key, submask));
-                
-                if (submask == 0) {
-                    break; 
-                }
+            auto it = m_keybindSettings.find(keybind);
+            if (it == m_keybindSettings.end()) {
+                return ListenerResult::Propagate;
             }
 
-            std::ranges::sort(keybindsToCheck, [](const Keybind& a, const Keybind& b) {
-                return std::popcount(a.modifiers.value) > std::popcount(b.modifiers.value);
-            });
-
-            // now we run the code that already existed before the 
-            // modifier fallthrough functionality was added but we
-            // loop it through all modifier combinations we just found
             bool imeActive = CCIMEDispatcher::sharedDispatcher()->hasDelegate();
 
-            for(const auto& keybind : keybindsToCheck) {
-                auto it = m_keybindSettings.find(keybind);
-                if (it == m_keybindSettings.end()) {
-                    continue;
-                }
-
-                if (down) {
-                    for (auto& setting : it->second) {
-                        if (imeActive && !setting->getAllowInTextInputs()) {
-                            continue;
-                        }
-                        if (!repeat) m_activeKeybinds[setting.get()] = keybind;
-                        if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
-                            return ListenerResult::Stop;
-                        }
+            if (down) {
+                for (auto& setting : it->second) {
+                    if (imeActive && !setting->getAllowInTextInputs()) {
+                        continue;
                     }
-                } else {
-                    for (auto& setting : it->second) {
-                        auto it2 = m_activeKeybinds.find(setting.get());
-                        if (it2 != m_activeKeybinds.end() && it2->second.key == data.key) {
-                            KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
-                            m_activeKeybinds.erase(it2);
-                        }
+                    if (!repeat) m_activeKeybinds[setting.get()] = keybind;
+                    if (KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp)) {
+                        return ListenerResult::Stop;
+                    }
+                }
+            } else {
+                for (auto& setting : it->second) {
+                    auto it2 = m_activeKeybinds.find(setting.get());
+                    if (it2 != m_activeKeybinds.end() && it2->second.key == data.key) {
+                        KeybindSettingPressedEventV3(setting->getModID(), setting->getKey()).send(keybind, down, repeat, data.timestamp);
+                        m_activeKeybinds.erase(it2);
                     }
                 }
             }
-            
             return ListenerResult::Propagate;
         }).leak();
 
