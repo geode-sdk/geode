@@ -1,5 +1,17 @@
 # Geode Changelog
 
+## v5.7.0
+ * Add `RichTextArea` (#1654)
+ * Make Geode load without requiring DLL overrides on Wine 11.6+ (6892c03)
+ * Add fallthrough for keybind modifiers (#2000)
+ * Fix use-after-free when unregistering an event listener inside an event callback (2abbdba)
+ * Fix mod save data rarely getting corrupted on Windows (c1c2948)
+ * Fix rare loading screen crash (921e29f)
+ * Fix crash in `CCNode::querySelector` (#2051)
+ * Add launch method to the platform string on iOS (#2033)
+ * Add faulty instruction bytes to Android crashlogs caused by SIGILL (124567c, 155261f, e23493e)
+ * Update messages for load failures caused by Windows Smart App Control (25a99d3, ac7a1d3, 84952e1)
+
 ## v5.6.1
  * Revert TulipHook update to fix several jitless iOS crashes
 
