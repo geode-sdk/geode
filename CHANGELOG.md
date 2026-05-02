@@ -4,6 +4,7 @@
  * Add `RichTextArea` (#1654)
  * Make Geode load without requiring DLL overrides on Wine 11.6+ (6892c03)
  * Add fallthrough for keybind modifiers (#2000)
+ * Improve settings search (#2056)
  * Fix use-after-free when unregistering an event listener inside an event callback (2abbdba)
  * Fix mod save data rarely getting corrupted on Windows (c1c2948)
  * Fix rare loading screen crash (921e29f)
