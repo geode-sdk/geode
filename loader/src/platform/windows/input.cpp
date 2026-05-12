@@ -443,11 +443,13 @@ static void GLFWScrollCallback(GLFWwindow* window, double xoffset, double yoffse
     if (ScrollWheelEvent().send(xoffset, yoffset) == ListenerResult::Stop) {
         return;
     }
-    static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWMouseScrollCallback(window, xoffset, yoffset);
+    auto view = static_cast<DummyEGLView*>(CCEGLView::get());
+    if (view) view->onGLFWMouseScrollCallback(window, xoffset, yoffset);
 }
 
 static void GLFWCharCallback(GLFWwindow* window, unsigned int c) {
-    static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWCharCallback(window, c);
+    auto view = static_cast<DummyEGLView*>(CCEGLView::get());
+    if (view) view->onGLFWCharCallback(window, c);
 }
 
 static void GLFWFocusCallback(GLFWwindow* window, int focused);
@@ -684,6 +686,9 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
 
 static void GLFWFocusCallback(GLFWwindow* window, int focused) {
     auto view = CCEGLView::get();
+    // rarely might be null somehow
+    if (!view) return;
+
     static_cast<DummyEGLView*>(view)->onGLFWWindowFocus(window, focused);
     if (!focused) {
         // technically a race condition, but you have to be the most unlucky person alive for it to happen,
