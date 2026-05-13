@@ -60,3 +60,27 @@ struct GameExitHook : Modify<GameExitHook, CCDirector> {
 #endif
 
 }
+
+#ifdef GEODE_IS_WINDOWS
+$on_game(Exiting) {
+    // On Windows, the game creates an std::thread in CCEGLView::setupWindow and stores it in a static variable,
+    // but never joins it or calls detach on it. This leads to a call to std::terminate during static destruction,
+    // and that may have unexpected consequences, such as stalling the game on restart and making it terminate abnormally.
+    //
+    // This fix simply detaches the thread before the game has a chance to do things improperly.
+    // For people updating this to a newer GD version: look near the end of setupWindow:
+    //
+    // uVar4 = _beginthreadex(...);
+    // ...
+    // _DAT_1801a8530 = uVar4;  <-- this is the address we want!
+
+#if GEODE_COMP_GD_VERSION != 22081
+    #pragma message("Unsupported GD version!")
+    return;
+#endif
+
+    auto addr = reinterpret_cast<void*>(geode::base::getCocos() + 0x1a8530);
+    auto thread = reinterpret_cast<std::thread*>(addr);
+    if (thread->joinable()) thread->detach();
+}
+#endif
