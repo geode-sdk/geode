@@ -105,7 +105,7 @@ namespace geode {
 
     /**
      * Push a layer to the scene
-     * @param to Layer to push
+     * @param layer Layer to push
      */
     void pushSceneWithLayer(cocos2d::CCLayer* layer);
 
