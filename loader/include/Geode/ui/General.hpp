@@ -103,6 +103,12 @@ namespace geode {
         float getBottomPadding();
     };
 
+    /**
+     * Push a layer to the scene
+     * @param to Layer to push
+     */
+    void pushSceneWithLayer(cocos2d::CCLayer* layer);
+
     enum class BackButtonStyle {
         Green,
         Blue,
