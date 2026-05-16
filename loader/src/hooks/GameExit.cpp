@@ -61,6 +61,23 @@ struct GameExitHook : Modify<GameExitHook, CCDirector> {
 
 }
 
+// make sure the event only gets sent once to everybody by adding a listener,
+// we have to do this because it is sent in other files (see util.mm, util.cpp in src/platform)
+// this is never supposed to actually happen, but for certain people it rarely gets sent twice which breaks things
+$on_mod(Loaded) {
+    GameEvent(GameEventType::Exiting).listen([] {
+        static bool invoked = false;
+        if (invoked) {
+            log::error("ignoring duplicate exit event, this should never happen");
+            return ListenerResult::Stop;
+        }
+
+        invoked = true;
+        return ListenerResult::Propagate;
+    }, Priority::First).leak();
+}
+
+
 #ifdef GEODE_IS_WINDOWS
 $on_game(Exiting) {
     // On Windows, the game creates an std::thread in CCEGLView::setupWindow and stores it in a static variable,
