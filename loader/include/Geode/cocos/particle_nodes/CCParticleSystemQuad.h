@@ -233,7 +233,6 @@ public:
     void listenBackToForeground(CCObject *obj);
 
     static CCParticleSystemQuad * create();
-    static CCParticleSystemQuad * create(const char*, bool);
     static CCParticleSystemQuad * createWithTotalParticles(unsigned int numberOfParticles, bool);
 
 	GLubyte getOpacity() { return m_uOpacity; }
