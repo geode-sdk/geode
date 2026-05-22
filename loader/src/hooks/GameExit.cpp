@@ -59,8 +59,6 @@ struct GameExitHook : Modify<GameExitHook, CCDirector> {
 
 #endif
 
-}
-
 // make sure the event only gets sent once to everybody by adding a listener,
 // we have to do this because it is sent in other files (see util.mm, util.cpp in src/platform)
 // this is never supposed to actually happen, but for certain people it rarely gets sent twice which breaks things
@@ -101,3 +99,5 @@ $on_game(Exiting) {
     if (thread->joinable()) thread->detach();
 }
 #endif
+
+}
