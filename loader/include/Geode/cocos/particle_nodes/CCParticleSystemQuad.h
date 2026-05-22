@@ -177,7 +177,7 @@ public:
     /** creates an initializes a CCParticleSystemQuad from a plist file.
     This plist files can be created manually or with Particle Designer:
     */
-    static CCParticleSystemQuad * create(const char *plistFile);
+    static CCParticleSystemQuad * create(const char *plistFile, bool unk);
 
     /** initializes the indices for the vertices*/
     void initIndices();
