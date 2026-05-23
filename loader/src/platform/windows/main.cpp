@@ -9,6 +9,7 @@
 
 using namespace geode::prelude;
 
+static std::string s_earlyErrorMsg;
 void updateGeode() {
     const auto workingDir = dirs::getGameDir();
     const auto geodeDir = dirs::getGeodeDir();
@@ -169,6 +170,11 @@ bool cleanModeCheck() {
 }
 
 int WINAPI gdMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
+    if (!s_earlyErrorMsg.empty()) {
+        console::messageBox("Unable to Load Geode!", s_earlyErrorMsg);
+        return 1;
+    }
+
     // MessageBoxW(NULL, L"Hello from gdMainHook!", L"Hi", 0);
 
     updateGeode();
@@ -378,7 +384,9 @@ void earlyError(std::string message) {
     std::ofstream fout("_geode_early_error.txt");
     fout << message;
     fout.close();
-    console::messageBox("Unable to Load Geode!", message);
+
+    // don't show ui inside dllmain
+    s_earlyErrorMsg = message;
 }
 
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
