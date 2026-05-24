@@ -385,16 +385,12 @@ void earlyError(std::string message) {
     std::ofstream fout("_geode_early_error.txt");
     fout << message;
     fout.close();
-<<<<<<< Updated upstream
-    console::messageBox("Unable to Load Geode!", message);
-=======
 
     // show the error after dllmain returns and the loader lock releases
     CreateThread(
         nullptr, 0, earlyErrorThread,
         new std::string(message), 0, nullptr
     );
->>>>>>> Stashed changes
 }
 
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
