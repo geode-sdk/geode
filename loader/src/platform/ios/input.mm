@@ -170,6 +170,19 @@ static enumKeyCodes buttonToKeyCode(GCExtendedGamepad* pad, GCControllerButtonIn
     if (btn == pad.buttonOptions) return enumKeyCodes::CONTROLLER_Back;
     if (btn == pad.buttonMenu) return enumKeyCodes::CONTROLLER_Start;
 
+    if (btn == pad.leftThumbstick.up) return enumKeyCodes::CONTROLLER_LTHUMBSTICK_UP;
+    if (btn == pad.leftThumbstick.down) return enumKeyCodes::CONTROLLER_LTHUMBSTICK_DOWN;
+    if (btn == pad.leftThumbstick.left) return enumKeyCodes::CONTROLLER_LTHUMBSTICK_LEFT;
+    if (btn == pad.leftThumbstick.right) return enumKeyCodes::CONTROLLER_LTHUMBSTICK_RIGHT;
+
+    if (btn == pad.rightThumbstick.up) return enumKeyCodes::CONTROLLER_RTHUMBSTICK_UP;
+    if (btn == pad.rightThumbstick.down) return enumKeyCodes::CONTROLLER_RTHUMBSTICK_DOWN;
+    if (btn == pad.rightThumbstick.left) return enumKeyCodes::CONTROLLER_RTHUMBSTICK_LEFT;
+    if (btn == pad.rightThumbstick.right) return enumKeyCodes::CONTROLLER_RTHUMBSTICK_RIGHT;
+
+    if (btn == pad.leftThumbstickButton) return enumKeyCodes::CONTROLLER_L3;
+    if (btn == pad.rightThumbstickButton) return enumKeyCodes::CONTROLLER_R3;
+
     return enumKeyCodes::KEY_Unknown;
 }
 
