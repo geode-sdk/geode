@@ -177,7 +177,7 @@ typedef enum
     KEY_ArrowLeft = 0x11D,
     KEY_ArrowRight = 0x11E,
     CONTROLLER_A = 0x3E9,
-    CONTROLLER2_A = 0x3A,
+    CONTROLLER2_A = 0x3EA,
     CONTROLLER_B = 0x3EB,
     CONTROLLER2_B = 0x3EC,
     CONTROLLER_Y = 0x3ED,
