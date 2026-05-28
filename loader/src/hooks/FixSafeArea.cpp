@@ -1,5 +1,6 @@
-#ifdef GEODE_IS_IOS
 #include <Geode/Geode.hpp>
+
+#ifdef GEODE_IS_IOS
 #include <Geode/modify/AppDelegate.hpp>
 
 using namespace geode::prelude;
