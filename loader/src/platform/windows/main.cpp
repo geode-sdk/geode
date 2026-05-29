@@ -372,13 +372,25 @@ DWORD WINAPI upgradeThread(void*) {
     return 0;
 }
 
+DWORD WINAPI earlyErrorThread(void* param) {
+    auto* msg = reinterpret_cast<std::string*>(param);
+    console::messageBox("Unable to Load Geode!", *msg);
+    delete msg;
+    return 0;
+}
+
 void earlyError(std::string message) {
     // try to write a file and display a message box
     // wine might not display the message box but *should* write a file
     std::ofstream fout("_geode_early_error.txt");
     fout << message;
     fout.close();
-    console::messageBox("Unable to Load Geode!", message);
+
+    // show the error after dllmain returns and the loader lock releases
+    CreateThread(
+        nullptr, 0, earlyErrorThread,
+        new std::string(message), 0, nullptr
+    );
 }
 
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
@@ -394,7 +406,12 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     std::error_code error;
     bool oldBootstrapperExists = std::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
     if (error) {
-        earlyError("There was an error checking whether the old GeodeBootstrapper.dll exists: " + error.message());
+        // can't use a thread here, dll is about to unload
+        console::messageBox(
+            "Unable to Load Geode!",
+            "There was an error checking whether the old "
+            "GeodeBootstrapper.dll exists: " + error.message()
+        );
         return FALSE;
     }
     else if (oldBootstrapperExists)
