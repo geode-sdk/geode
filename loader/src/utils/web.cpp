@@ -193,18 +193,7 @@ public:
 };
 
 Result<> WebResponse::Impl::into(std::filesystem::path const& path) const {
-    // Test if there are no permission issues
-    std::error_code ec;
-    auto _ = std::filesystem::exists(path, ec);
-    if (ec) {
-        return Err(fmt::format("Couldn't write to file: {}", ec.category().message(ec.value())));
-    }
-
-    auto stream = std::ofstream(path, std::ios::out | std::ios::binary);
-    stream.write(reinterpret_cast<const char*>(m_data.data()), m_data.size());
-    stream.close();
-
-    return Ok();
+    return utils::file::writeBinary(path, m_data);
 }
 
 struct MultipartFile {
