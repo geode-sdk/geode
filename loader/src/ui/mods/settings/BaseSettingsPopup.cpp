@@ -9,19 +9,24 @@
 #include <ui/mods/sources/ModListSource.hpp>
 
 static bool matchSearch(SettingNode* node, ZStringView query) {
-    if (typeinfo_cast<TitleSettingNode*>(node)) {
-        return true;
-    }
     bool addToList = false;
-    auto setting = node->getSetting();
     double weighted = 0;
-    if (auto name = setting->getName()) {
-        addToList |= weightedFuzzyMatch(setting->getKey(), query, 0.5, weighted);
-        addToList |= weightedFuzzyMatch(*name, query, 1, weighted);
+    if (auto setting = node->getSetting()) {
+        if (auto name = setting->getName()) {
+            addToList |= weightedFuzzyMatch(setting->getKey(), query, 0.5, weighted);
+            addToList |= weightedFuzzyMatch(*name, query, 1, weighted);
+        }
+        // If there's no name, give full weight to key
+        else {
+            addToList |= weightedFuzzyMatch(setting->getKey(), query, 1, weighted);
+        }
     }
-    // If there's no name, give full weight to key
+    // keybinds popup titles dont have a setting theyre labels are js set to mod names
+    else if (auto asTitle = typeinfo_cast<TitleSettingNode*>(node); asTitle && asTitle->getNameLabel()) {
+        addToList |= weightedFuzzyMatch(asTitle->getNameLabel()->getString(), query, 1, weighted);
+    }
     else {
-        addToList |= weightedFuzzyMatch(setting->getKey(), query, 1, weighted);
+        return false;
     }
     if (weighted < 60.0 + 10.0 * query.size()) {
         addToList = false;
@@ -195,6 +200,7 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
     // Update search visibility + all settings with "enable-if" schemes +
     // checkerboard BG
     TitleSettingNode* lastTitle = nullptr;
+    bool lastTitleSearched = false;
     bool bg = false;
     for (auto& sett : m_settings) {
         if (!this->shouldShow(sett)) {
@@ -203,18 +209,38 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
         }
         if (auto asTitle = typeinfo_cast<TitleSettingNode*>(sett.data())) {
             lastTitle = asTitle;
+            lastTitleSearched = false;
         }
         sett->removeFromParent();
-        if (
-            // Show if the setting is not a title and is not subject to a collapsed title
-            !(lastTitle && lastTitle != sett && lastTitle->isCollapsed()) &&
-            // Show if there's no search query or if the setting matches it
-            (!hasSearch || matchSearch(sett, search))
-        ) {
-            m_list->m_contentLayer->addChild(sett);
-            sett->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
-            bg = !bg;
+        // if title
+        if (lastTitle && lastTitle == sett) {
+            // make title visible if it matches search
+            if (!hasSearch || matchSearch(sett, search)) {
+                m_list->m_contentLayer->addChild(sett);
+                sett->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
+                bg = !bg;
+                lastTitleSearched = hasSearch;
+            }
         }
+        // if not title (these checks are prolly not necessary but im paranoid)
+        else if (sett && !lastTitle || lastTitle != sett) {
+            // show if not searching or last title is highlighted in search or setting matches search
+            if (!hasSearch || lastTitleSearched || matchSearch(sett, search)) {
+                // try make title visible when searching
+                if (hasSearch && lastTitle && lastTitle->getParent() != m_list->m_contentLayer) {
+                    m_list->m_contentLayer->addChild(lastTitle);
+                    lastTitle->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
+                    bg = !bg;
+                }
+
+                // is collapsed check here instead of at the start so collapsed titles still show if one their settings show
+                if (!lastTitle || !lastTitle->isCollapsed()) {
+                    m_list->m_contentLayer->addChild(sett);
+                    sett->setDefaultBGColor(ccc4(0, 0, 0, bg ? 60 : 20));
+                    bg = !bg;
+                }
+            }
+        }     
         // Avoid infinite loops
         if (sett == invoker) {
             continue;

@@ -14,7 +14,11 @@ ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nตำแหน่งที
 
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nเวอร์ชั่น Geometry Dash ของคุณนั้นเก่าเกินไปสำหรับเวอร์ชั่นของ Geode!"
 
+${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
+
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "ตำแหน่งที่ตั้งไฟล์นี้มีม็อดอื่นได้ติดตั้งแล้ว!$\r$\nโดยจะถูกเขียนทับโดย Geode (the dll trademark)"
+
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Installing VS Runtime. Check the taskbar for any new open windows..."
 
 ; uninstaller
 

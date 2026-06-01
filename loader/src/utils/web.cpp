@@ -193,18 +193,7 @@ public:
 };
 
 Result<> WebResponse::Impl::into(std::filesystem::path const& path) const {
-    // Test if there are no permission issues
-    std::error_code ec;
-    auto _ = std::filesystem::exists(path, ec);
-    if (ec) {
-        return Err(fmt::format("Couldn't write to file: {}", ec.category().message(ec.value())));
-    }
-
-    auto stream = std::ofstream(path, std::ios::out | std::ios::binary);
-    stream.write(reinterpret_cast<const char*>(m_data.data()), m_data.size());
-    stream.close();
-
-    return Ok();
+    return utils::file::writeBinary(path, m_data);
 }
 
 struct MultipartFile {
@@ -448,10 +437,10 @@ public:
             : request(std::move(req)), mod(mod), id(id), onComplete(std::move(cb)) {}
 
         void complete(WebResponse res) {
-            onComplete(res);
-
             WebResponseEvent(mod->getID()).send(res);
             IDBasedWebResponseEvent(id).send(res);
+
+            onComplete(res);
         }
 
         void onError(int code, std::string_view msg) {
@@ -532,6 +521,10 @@ public:
         if (m_curlHeaders) {
             curl_slist_free_all(m_curlHeaders);
         }
+
+        // ensure that progress callbacks are destroyed in the main thread,
+        // because they may capture objects with non thread-safe destructors
+        geode::queueInMainThread([_ = std::move(m_progressCallbacks)] {});
     }
 
     WebResponse makeError(GeodeWebError code, std::string_view msg) {
@@ -600,6 +593,15 @@ public:
         }
 
         curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, unwrapHttpVersion(m_httpVersion));
+
+        // HTTP/3 provides very little benefit in general but it may help certain users with weird firewalls,
+        // don't use it by default but allow it to be enabled with a launch flag
+        auto useHttp3 = Loader::get()->getLaunchFlag("use-http3");
+        if (m_httpVersion == HttpVersion::DEFAULT && useHttp3) {
+            auto cachePath = pathToString(Mod::get()->getSaveDir() / "altsvc_cache.txt");
+            curl_easy_setopt(curl, CURLOPT_ALTSVC_CTRL, CURLALTSVC_H3);
+            curl_easy_setopt(curl, CURLOPT_ALTSVC, cachePath.c_str());
+        }
 
         // Set request method
         if (m_method != "GET") {
@@ -1791,7 +1793,7 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
             log::warn("Invalid custom DNS server(s): {}", custom);
         }
     }
-    
+
     auto override = Mod::get()->getSettingValue<std::string_view>("curl-dns3");
     if (override != "Auto") {
         log::debug("Using DNS server override: {}", override);
@@ -1816,4 +1818,26 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
     for (size_t i = 0; i < results.size(); i++) {
         log::debug("DNS server {}: score {:.3f}", candidates[i].name, results[i]);
     }
+}
+
+void utils::web::openLinkInBrowser(ZStringView url) {
+    // evil path check for windows
+    auto urlView = url.view();
+    if (urlView.contains("#:")) {
+        return;
+    }
+
+    auto schemeEnd = urlView.find_first_of(':');
+    if (schemeEnd == std::string_view::npos) {
+        return;
+    }
+
+    std::string scheme{urlView.substr(0, schemeEnd)};
+    utils::string::toLowerIP(scheme);
+
+    if (scheme != "https" && scheme != "http" && scheme != "mailto") {
+        return;
+    }
+
+    openLinkUnsafe(url);
 }

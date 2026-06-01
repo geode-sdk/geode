@@ -35,7 +35,9 @@ bool EventCenterThreadLocal::send(BaseFilter const* filter, SendFuncType func, M
         if (auto newPort = std::invoke(migratePort, it->second.get())) {
             it->second.reset(newPort);
         }
-        return std::invoke(func, it->second.get());
+
+        auto port = it->second;
+        return std::invoke(func, port.get());
     }
     return false;
 }
@@ -150,13 +152,15 @@ bool EventCenterGlobal::send(BaseFilter const* filter, SendFuncType func, Migrat
     auto lock = std::unique_lock<std::mutex>(m_impl->m_mutex);
     auto it = m_impl->m_ports.find(filter);
     auto const end = m_impl->m_ports.end();
-    lock.unlock();
 
     if (it != end) {
         if (auto newPort = std::invoke(migratePort, it->second.get())) {
             it->second.reset(newPort);
         }
-        return std::invoke(func, it->second.get());
+
+        auto port = it->second;
+        lock.unlock();
+        return std::invoke(func, port.get());
     }
     return false;
 }
@@ -193,13 +197,15 @@ size_t EventCenterGlobal::getReceiverCount(BaseFilter const* filter, SizeFuncTyp
     auto lock = std::unique_lock<std::mutex>(m_impl->m_mutex);
     auto it = m_impl->m_ports.find(filter);
     auto const end = m_impl->m_ports.end();
-    lock.unlock();
-    
+
     if (it != end) {
         if (auto newPort = std::invoke(migratePort, it->second.get())) {
             it->second.reset(newPort);
         }
-        return std::invoke(func, it->second.get());
+
+        auto port = it->second;
+        lock.unlock();
+        return std::invoke(func, port.get());
     }
     return 0;
 }

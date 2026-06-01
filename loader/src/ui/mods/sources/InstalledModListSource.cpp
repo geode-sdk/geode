@@ -108,7 +108,7 @@ bool InstalledModsQuery::preCheck(ModSource const& src) const {
 bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) const {
     bool addToList = true;
     if (enabledOnly) {
-        addToList = src.asMod()->isLoaded() == *enabledOnly;
+        addToList = src.asMod()->isOrWillBeEnabled() == *enabledOnly;
     }
     if (query) {
         addToList = modFuzzyMatch(src.asMod()->getMetadata(), *query, weighted);
@@ -121,7 +121,7 @@ bool InstalledModsQuery::queryCheck(ModSource const& src, double& weighted) cons
     if (addToList && src.asMod()->isPinned() && this->sort != InstalledModListSort::RecentlyUpdated) {
         weighted += 4;
     }
-    if (addToList && enabledFirst && src.asMod()->isLoaded()) {
+    if (addToList && enabledFirst && src.asMod()->isOrWillBeEnabled()) {
         weighted += 3;
     }
     // Sort recently updated mods by order of recent update

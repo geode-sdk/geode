@@ -9,7 +9,9 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Denna guide tar dig igenom avins
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nDen valda mappen innehåller ingen installation av Geometry Dash."
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nDin version av Geometry Dash är för gammal för denna version av Geode!"
+${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Den valda versionen av Geometry Dash har andra mod redan installerad!$\r$\nDom ska skrivs över av Geode. (the dll trademark)"
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Installing VS Runtime. Check the taskbar for any new open windows..."
 
 ; uninstaller
 

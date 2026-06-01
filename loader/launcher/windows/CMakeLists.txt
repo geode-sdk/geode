@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-add_library(ProxyLoader SHARED proxyLoader.cpp)
+add_library(ProxyLoader SHARED proxyLoader.cpp proxyLoader.rc)
 target_compile_features(ProxyLoader PUBLIC cxx_std_23)
 set_target_properties(ProxyLoader PROPERTIES
 	PREFIX ""
@@ -51,3 +51,6 @@ if (MSVC)
 	target_link_options(ProxyLoader PRIVATE /NOIMPLIB /DEBUG:NONE)
 	target_link_options(Updater PRIVATE /DEBUG:NONE)
 endif()
+
+target_link_libraries(ProxyLoader PRIVATE version)
+target_link_libraries(Updater PRIVATE urlmon)

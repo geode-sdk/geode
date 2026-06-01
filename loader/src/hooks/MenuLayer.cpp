@@ -15,6 +15,7 @@
 #include <loader/updater.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/modify/LevelSelectLayer.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 
 using namespace geode::prelude;
 
@@ -36,7 +37,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
     struct Fields {
         bool m_menuDisabled = false;
-        CCSprite* m_geodeButton = nullptr;
+        CCNode* m_geodeButton = nullptr;
         async::TaskHolder<Result<InstalledModsUpdateCheck, server::ServerError>> m_updateCheckTask;
     };
 
@@ -53,16 +54,45 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
         // add geode button
         if (!m_fields->m_menuDisabled) {
-            m_fields->m_geodeButton = CircleButtonSprite::createWithSpriteFrameName(
-                "geode-logo-outline-gold.png"_spr,
-                .95f,
-                CircleBaseColor::Green,
-                CircleBaseSize::MediumAlt
-            );
+            auto listener = NodeProvidingEvent("geode-button-sprite"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+                if (nodeOut) return; // someone overrode it already
+                CCSprite* geodeButton;
+                if (theme == "sapphire") {
+                    geodeButton = CircleButtonSprite::createWithSpriteFrameName(
+                        "sapphire-logo-outline-gold.png"_spr,
+                        .95f,
+                        CircleBaseColor::Green,
+                        CircleBaseSize::MediumAlt
+                    );
+                }
+                else {
+                    geodeButton = CircleButtonSprite::createWithSpriteFrameName(
+                        "geode-logo-outline-gold.png"_spr,
+                        .95f,
+                        CircleBaseColor::Green,
+                        CircleBaseSize::MediumAlt
+                    );
+                }
+
+                if (!geodeButton || geodeButton->isUsingFallback()) {
+                    nodeOut = nullptr;
+                }
+                else {
+                    nodeOut = geodeButton;
+                }
+            }, Priority::Last);
+
+            cocos2d::CCNode* geodeBtn = nullptr;
+            NodeProvidingEvent("geode-button-sprite"_spr).send(geodeBtn);
+
             auto geodeBtnSelector = &CustomMenuLayer::onGeode;
-            if (!m_fields->m_geodeButton) {
-                geodeBtnSelector = &CustomMenuLayer::onMissingTextures;
+            if (geodeBtn) {
+                m_fields->m_geodeButton = static_cast<CCSprite*>(geodeBtn);
+            }
+            else {
+                log::warn("No node provided for geode-button-sprite, using fallback instead");
                 m_fields->m_geodeButton = ButtonSprite::create("!!");
+                geodeBtnSelector = &CustomMenuLayer::onMissingTextures;
             }
 
             auto bottomMenu = static_cast<CCMenu*>(this->getChildByID("bottom-menu"));
@@ -110,9 +140,32 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             }
         }
 
+        // show in safe mode
+        auto isSafeMode = LoaderImpl::get()->isSafeMode();
+        if (isSafeMode) {
+            Loader::get()->queueInMainThread([] {
+                auto popup = createQuickPopup(
+                    "Safe Mode",
+                    "Geode is running in <cy>Safe Mode</c>.\n"
+                    "Mods are <cr>not loaded</c> in this mode.\n"
+                    "\n"
+                    "You can use this to <co>disable</c> or <co>update</c> mods "
+                    "causing issues but all mod features\n"
+                    "<cy>are not available</c>.",
+                    "OK",
+                    nullptr,
+                    [](auto, bool btn2) {},
+                    false
+                );
+
+                popup->m_noElasticity = true;
+                popup->show();
+            });
+        }
+
         // show if the user tried to be naughty and load arbitrary DLLs
         static bool shownTriedToLoadDlls = false;
-        if (!shownTriedToLoadDlls) {
+        if (!isSafeMode && !shownTriedToLoadDlls) {
             shownTriedToLoadDlls = true;
             if (LoaderImpl::get()->userTriedToLoadDLLs()) {
                 Loader::get()->queueInMainThread([] {
@@ -259,9 +312,17 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         }
     }
     void updateGeodeButtonMarkers() {
-        if (!m_fields->m_geodeButton) {
+        auto geodeButton = m_fields->m_geodeButton;
+        if (!geodeButton) {
             return;
         }
+
+        // clear all old markers first
+        geodeButton->removeChildByID("multiple-notifications");
+        geodeButton->removeChildByID("updates-deprecated");
+        geodeButton->removeChildByID("updates-available");
+        geodeButton->removeChildByID("errors-found");
+
         if (((FOUND_MOD_UPDATES > 0) + (FOUND_MOD_DEPRECATIONS > 0) + (FOUND_MOD_ERRORS > 0)) > 1) {
             this->addMarkerToGeodeButton(
                 "updates-multiple.png"_spr,
@@ -286,35 +347,35 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         auto socialMenu = static_cast<CCMenu*>(this->getChildByID("social-media-menu"));
         socialMenu->ignoreAnchorPointForPosition(false);
         socialMenu->setAnchorPoint({0.0f, 0.0f});
-        socialMenu->setPosition({13.f, 13.f});
+        socialMenu->setPosition({10.f, 13.75f});
 
         auto robtopButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("robtop-logo-button"));
         robtopButton->setPosition(robtopButton->getScaledContentSize() / 2);
 
-        float horizontalGap = 3.5f;
-        float verticalGap = 5.0f;
+        float horizontalGap = 3.6f;
+        float verticalGap = 6.25f;
         auto facebookButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("facebook-button"));
         facebookButton->setPosition({
-            facebookButton->getScaledContentSize().width / 2,
+            (facebookButton->getScaledContentSize().width / 2) - 0.6f,
             robtopButton->getScaledContentSize().height + verticalGap + facebookButton->getScaledContentSize().height / 2
         });
 
         auto twitterButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("twitter-button"));
         twitterButton->setPosition({
-            facebookButton->getScaledContentSize().width + horizontalGap + twitterButton->getScaledContentSize().width / 2,
-            robtopButton->getScaledContentSize().height + verticalGap + twitterButton->getScaledContentSize().height / 2
+            facebookButton->getPositionX() + facebookButton->getScaledContentSize().width / 2 + horizontalGap + twitterButton->getScaledContentSize().width / 2,
+            robtopButton->getScaledContentSize().height + verticalGap + facebookButton->getScaledContentSize().height / 2
         });
 
         auto youtubeButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("youtube-button"));
         youtubeButton->setPosition({
             twitterButton->getPositionX() + twitterButton->getScaledContentSize().width / 2 + horizontalGap + youtubeButton->getScaledContentSize().width / 2,
-            robtopButton->getScaledContentSize().height + verticalGap + youtubeButton->getScaledContentSize().height / 2
+            robtopButton->getScaledContentSize().height + verticalGap + facebookButton->getScaledContentSize().height / 2
         });
 
         auto twitchButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("twitch-button"));
         twitchButton->setPosition({
             youtubeButton->getPositionX() + youtubeButton->getScaledContentSize().width / 2 + horizontalGap + twitchButton->getScaledContentSize().width / 2,
-            robtopButton->getScaledContentSize().height + verticalGap + twitchButton->getScaledContentSize().height / 2
+            robtopButton->getScaledContentSize().height + verticalGap + facebookButton->getScaledContentSize().height / 2
         });
 
         auto discordButton = static_cast<CCMenuItemSpriteExtra*>(socialMenu->getChildByID("discord-button"));
@@ -353,9 +414,9 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             "and <cy>unzip its contents</c> into <cb>geode/update/resources/geode.loader</c>.\n"
             "Afterwards, <cg>restart the game</c>.\n"
             "You may also continue without installing resources, but be aware that "
-            "you won't be able to open <cr>the Geode menu</c>.",
-            "Dismiss", "Open Github",
-            [](auto, bool btn2) {
+            "the Geode menu won't render properly.",
+            "Continue Anyway", "Open Github",
+            [this](auto, bool btn2) {
                 if (btn2) {
                     web::openLinkInBrowser("https://github.com/geode-sdk/geode/releases/latest");
                     file::openFolder(dirs::getGeodeDir() / "update" / "resources");
@@ -369,6 +430,8 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
                         "<cb>Don't add any new folders to the destination!</c>",
                         "OK"
                     )->show();
+                } else {
+                    this->onGeode(nullptr);
                 }
             },
             true,
@@ -380,14 +443,18 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
         // dunno if we can auto-create target directory on mobile, nor if the
         // user has access to moving stuff there
 
-        FLAlertLayer::create(
+        createQuickPopup(
             "Missing Textures",
             "You appear to be missing textures, and the automatic texture fixer "
             "hasn't fixed the issue.\n"
             "**<cy>Report this bug to the Geode developers</c>**. It is very likely "
             "that your game <cr>will crash</c> until the issue is resolved.",
-            "OK"
-        )->show();
+            "OK",
+            nullptr,
+            [this](auto, bool btn2) {
+                this->onGeode(nullptr);
+            }
+        );
 
     #endif
     }

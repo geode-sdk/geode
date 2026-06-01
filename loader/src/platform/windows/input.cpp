@@ -390,7 +390,7 @@ LRESULT CALLBACK GeodeRawInputWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
     RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(buffer.data());
     if (raw->header.dwType == RIM_TYPEKEYBOARD) {
         auto const& kb = raw->data.keyboard;
-        bool isDown = !(kb.Flags & RI_KEY_BREAK);
+        bool isDown = !(kb.Flags & RI_KEY_BREAK || kb.Message == WM_KEYUP);
         bool isE0 = (kb.Flags & RI_KEY_E0) != 0;
 
         uint16_t actualVKey = getActualVKey(kb.VKey, kb.MakeCode, kb.Flags);
@@ -443,11 +443,13 @@ static void GLFWScrollCallback(GLFWwindow* window, double xoffset, double yoffse
     if (ScrollWheelEvent().send(xoffset, yoffset) == ListenerResult::Stop) {
         return;
     }
-    static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWMouseScrollCallback(window, xoffset, yoffset);
+    auto view = static_cast<DummyEGLView*>(CCEGLView::get());
+    if (view) view->onGLFWMouseScrollCallback(window, xoffset, yoffset);
 }
 
 static void GLFWCharCallback(GLFWwindow* window, unsigned int c) {
-    static_cast<DummyEGLView*>(CCEGLView::get())->onGLFWCharCallback(window, c);
+    auto view = static_cast<DummyEGLView*>(CCEGLView::get());
+    if (view) view->onGLFWCharCallback(window, c);
 }
 
 static void GLFWFocusCallback(GLFWwindow* window, int focused);
@@ -499,6 +501,10 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                 ime->dispatchDeleteBackward();
             } else if (keyCode == enumKeyCodes::KEY_Delete && isDown) {
                 ime->dispatchDeleteForward();
+            } else if (keyCode == enumKeyCodes::KEY_Left && isDown) {
+                ime->dispatchInsertText("a", 1, enumKeyCodes::KEY_Left);
+            } else if (keyCode == enumKeyCodes::KEY_Right && isDown) {
+                ime->dispatchInsertText("a", 1, enumKeyCodes::KEY_Right);
             }
 
             auto* keyboardDispatcher = CCKeyboardDispatcher::get();
@@ -549,7 +555,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         for (auto const& b : btns) {
             bool isDown = (evt.mouse.flags & b.down) != 0;
             bool isUp = (evt.mouse.flags & b.up) != 0;
-            if (isDown || isUp) {
+            if ((isDown && m_fMouseX >= 0.f && m_fMouseY >= 0.f) || isUp) {
                 MouseInputData data(
                     b.btn,
                     isDown ? Press : Release,
@@ -680,6 +686,9 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
 
 static void GLFWFocusCallback(GLFWwindow* window, int focused) {
     auto view = CCEGLView::get();
+    // rarely might be null somehow
+    if (!view) return;
+
     static_cast<DummyEGLView*>(view)->onGLFWWindowFocus(window, focused);
     if (!focused) {
         // technically a race condition, but you have to be the most unlucky person alive for it to happen,

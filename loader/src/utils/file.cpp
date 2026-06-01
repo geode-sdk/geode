@@ -111,7 +111,7 @@ static Result<> writeFileFrom(std::filesystem::path const& path, void* data, siz
         0,
         nullptr,
         CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
+        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH,
         nullptr
     );
 

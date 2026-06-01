@@ -11,7 +11,7 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
     this->setTitle(fmt::format("Uninstall {}", mod->getName()));
 
     auto text = TextArea::create(
-        fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()),
+        fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{:.100}</c>?", mod->getName()),
         "chatFont.fnt",
         1.f, m_size.width - 35,
         ccp(.5f, .5f), 20.f, false
@@ -53,14 +53,14 @@ void ConfirmUninstallPopup::onUninstall(CCObject*) {
     if (res) {
         FLAlertLayer::create(
             "Mod Uninstalled",
-            m_mod->getName() + " has been uninstalled!",
+            fmt::format("{:.400} has been uninstalled!", m_mod->getName()),
             "OK"
         )->show();
     }
     else {
         FLAlertLayer::create(
             "Error Uninstalling",
-            "Error uninstalling " + m_mod->getName() + ": " + res.unwrapErr(),
+            fmt::format("Error uninstalling {:.400}: {}", m_mod->getName(), res.unwrapErr()),
             "OK"
         )->show();
     }

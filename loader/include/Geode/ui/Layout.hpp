@@ -70,6 +70,36 @@ enum class AxisAlignment {
     Between,
 };
 
+/**
+ * Specifies the padding inside a layout
+ */
+struct Padding final {
+    float left = 0.f;
+    float top = 0.f;
+    float right = 0.f;
+    float bottom = 0.f;
+
+    constexpr Padding() = default;
+    constexpr Padding(float left, float top, float right, float bottom)
+        : left(left), top(top), right(right), bottom(bottom) {}
+
+    constexpr static Padding uniform(float padding) {
+        return { padding, padding, padding, padding };
+    }
+
+    constexpr static Padding symmetric(float horizontal, float vertical) {
+        return { horizontal, vertical, horizontal, vertical };
+    }
+
+    constexpr static Padding horizontal(float horizontal) {
+        return { horizontal, 0.f, horizontal, 0.f };
+    }
+
+    constexpr static Padding vertical(float vertical) {
+        return { 0.f, vertical, 0.f, vertical };
+    }
+};
+
 constexpr float AXISLAYOUT_DEFAULT_MIN_SCALE = 0.65f;
 constexpr int AXISLAYOUT_DEFAULT_PRIORITY = 0;
 
@@ -243,6 +273,7 @@ public:
     std::optional<float> getAutoGrowAxis() const;
     float getDefaultMinScale() const;
     float getDefaultMaxScale() const;
+    Padding getPadding() const;
 
     AxisLayout* setAxis(Axis axis);
     /**
@@ -305,6 +336,11 @@ public:
      */
     AxisLayout* ignoreInvisibleChildren(bool ignore = true);
     bool isIgnoreInvisibleChildren() const;
+    /**
+     * Sets the padding inside the layout, which is the empty space between the
+     * layout's border and its children. The default is set to 0 on all sides
+     */
+    AxisLayout* setPadding(Padding const& padding);
 };
 
 /**

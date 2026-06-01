@@ -16,7 +16,6 @@
         "homepage": "https://geode-sdk.org",
         "source": "https://github.com/geode-sdk/geode"
     },
-    "repository": "https://github.com/geode-sdk/geode",
     "resources": {
         "fonts": {
             "mdFont": {
@@ -45,6 +44,7 @@
             "swelve/*.png"
         ],
         "files": [
+            ".nomedia",
             "sounds/*.ogg",
             "about.md",
             "changelog.md",
@@ -69,10 +69,16 @@
     },
     "settings": {
         "geode-settings-info": {
-            "type": "custom:settings-info"
+            "type": "info",
+            "description": "These are settings for the <co>Geode Mod Loader</c>, NOT for mods. To edit settings for <cj>mods</c>, press <cy>View</c> on the mod and then the settings button in the <cg>bottom left</c> of the popup."
         },
-        "copy-mods": {
-            "type": "custom:copy-mods"
+        "action-buttons": {
+            "type": "button",
+            "buttons": {
+                "open-mods-folder": "Open Mods Folder",
+                "copy-mods-list": "Copy Mods List",
+                "install-from-file": "Install From File"
+            }
         },
         "auto-check-updates": {
             "type": "bool",
@@ -86,11 +92,17 @@
             "name": "Disable Crash Popup",
             "description": "Disables the popup at startup asking if you'd like to send a bug report; intended for developers"
         },
-        "enable-geode-theme": {
-            "type": "bool",
-            "default": true,
-            "name": "Enable Geode-Themed Colors",
-            "description": "When enabled, the Geode menu has a <ca>Geode-themed color scheme</c>. <cy>This does not affect any other menus!</c>"
+        "used-theme": {
+            "type": "string",
+            "name": "Used Theme",
+            "description": "The theme used for Geode menu. <cy>This does not affect any other menus!</c>",
+            "default": "Geode",
+            "one-of": [
+                "Geode",
+                "Geometry Dash",
+                "Rainbow",
+                "Sapphire"
+            ]
         },
         "infinite-local-mods-list": {
             "type": "bool",

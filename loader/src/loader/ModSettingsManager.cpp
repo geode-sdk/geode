@@ -23,12 +23,15 @@ namespace {
         };
     }
 }
+
 class SharedSettingTypesPool final {
 private:
     utils::StringMap<SettingGenerator> m_types;
 
     SharedSettingTypesPool() {
         m_types.emplace("title", changeToGenerator(TitleSettingV3::parse));
+        m_types.emplace("info", changeToGenerator(InfoSettingV3::parse));
+        m_types.emplace("button", changeToGenerator(ButtonSettingV3::parse));
         m_types.emplace("bool", changeToGenerator(BoolSettingV3::parse));
         m_types.emplace("int", changeToGenerator(IntSettingV3::parse));
         m_types.emplace("float", changeToGenerator(FloatSettingV3::parse));
@@ -64,6 +67,7 @@ public:
         m_types.emplace(std::move(full), std::move(generator));
         return Ok();
     }
+
     std::optional<SettingGeneratorRef> find(std::string_view modID, std::string_view fullType) {
         // Find custom settings via namespaced lookup
         if (fullType.starts_with("custom:")) {
@@ -204,6 +208,7 @@ public:
             return false;
         }
     }
+
     void saveSettingValueToSave(std::string const& key) {
         if (this->settings.contains(key)) {
             auto& sett = this->settings.at(key);
@@ -267,6 +272,7 @@ ModSettingsManager::ModSettingsManager(ModMetadata const& metadata)
     }
     m_impl->createSettings();
 }
+
 ModSettingsManager::~ModSettingsManager() {}
 ModSettingsManager::ModSettingsManager(ModSettingsManager&&) noexcept = default;
 
@@ -307,6 +313,7 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
     }
     return Ok();
 }
+
 matjson::Value ModSettingsManager::save() {
     for (auto& [key, _] : m_impl->settings) {
         m_impl->saveSettingValueToSave(key);
@@ -314,6 +321,7 @@ matjson::Value ModSettingsManager::save() {
     // Doing this since `ModSettingsManager` is expected to manage savedata fully
     return m_impl->savedata;
 }
+
 matjson::Value& ModSettingsManager::getSaveData() {
     return m_impl->savedata;
 }

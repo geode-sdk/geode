@@ -2,6 +2,7 @@
 
 #include <Geode/platform/platform.hpp>
 #include <fmt/format.h>
+#include <iterator>
 
 namespace geode::utils {
 

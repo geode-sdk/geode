@@ -10,6 +10,7 @@
 #include "../utils/JsonValidation.hpp"
 #include "../utils/Keyboard.hpp"
 #include "../utils/function.hpp"
+#include "../utils/StringMap.hpp"
 
 namespace geode {
     class ModSettingsManager;
@@ -350,6 +351,51 @@ namespace geode {
         void reset() override;
     };
 
+    class GEODE_DLL InfoSettingV3 final : public SettingV3 {
+    private:
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
+    public:
+        InfoSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<InfoSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        bool load(matjson::Value const& json) override;
+        bool save(matjson::Value& json) const override;
+        SettingNodeV3* createNode(float width) override;
+
+        std::optional<cocos2d::ccColor3B> getColor() const;
+
+        bool isDefaultValue() const override;
+        void reset() override;
+    };
+
+    class GEODE_DLL ButtonSettingV3 final : public SettingV3 {
+        class Impl;
+        std::shared_ptr<Impl> m_impl;
+
+    private:
+        class PrivateMarker {};
+        friend class SettingV3;
+
+    public:
+        ButtonSettingV3(PrivateMarker);
+        static Result<std::shared_ptr<ButtonSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
+
+        bool load(matjson::Value const& json) override;
+        bool save(matjson::Value& json) const override;
+        SettingNodeV3* createNode(float width) override;
+
+        utils::StringMap<std::string> getButtons();
+
+        bool isDefaultValue() const override;
+        void reset() override;
+    };
+
     class GEODE_DLL BoolSettingV3 final : public SettingBaseValueV3<bool> {
     private:
         class Impl;
@@ -518,7 +564,7 @@ namespace geode {
         /// Keybinds that work in the editor
         Editor = 2,
 
-        // If your keybind doesn't fit into these categories, it will just be 
+        // If your keybind doesn't fit into these categories, it will just be
         // listed under the mod
     };
 
@@ -553,6 +599,7 @@ namespace geode {
         std::optional<KeybindCategory> getCategory() const;
         std::optional<std::string> getMigrateFrom() const;
         int getPriority() const;
+        bool getAllowInTextInputs() const;
     };
 
     class GEODE_DLL SettingNodeV3 : public cocos2d::CCNode {
@@ -604,7 +651,7 @@ namespace geode {
         virtual bool hasUncommittedChanges() const = 0;
         virtual bool hasNonDefaultValue() const = 0;
 
-        // This is extremely silly and will be removed in v6 in favour of just 
+        // This is extremely silly and will be removed in v6 in favour of just
         // making `updateState` itself be public
         // todo in v6: make updateState public and remove this
         void updateState2(cocos2d::CCNode* invoker);
@@ -614,6 +661,7 @@ namespace geode {
         void setDefaultBGColor(cocos2d::ccColor4B color);
 
         cocos2d::CCLabelBMFont* getNameLabel() const;
+        CCMenuItemSpriteExtra* getDescriptionButton() const;
         cocos2d::CCLabelBMFont* getStatusLabel() const;
         cocos2d::CCMenu* getNameMenu() const;
         cocos2d::CCMenu* getButtonMenu() const;
@@ -621,7 +669,7 @@ namespace geode {
 
         // Useful if you're programmatically creating setting nodes
         void overrideDescription(std::optional<ZStringView> description);
-        
+
         void setContentSize(cocos2d::CCSize const& size) override;
 
         std::shared_ptr<SettingV3> getSetting() const;
@@ -716,6 +764,14 @@ namespace geode {
         // filter params modID, settingKey
         using GlobalEvent::GlobalEvent;
         GEODE_DLL KeybindSettingPressedEventV3(Mod* mod, std::string settingKey);
+    };
+
+    class ButtonSettingPressedEventV3 final : public GlobalEvent<ButtonSettingPressedEventV3, bool(std::string_view, std::string_view, std::string_view), bool(std::string_view), std::string, std::string> {
+    public:
+        // filter params modID, settingKey
+        // filter params buttonKey
+        using GlobalEvent::GlobalEvent;
+        GEODE_DLL ButtonSettingPressedEventV3(Mod* mod, std::string settingKey);
     };
 
     class SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*), bool(SettingNodeV3*), std::string, std::string> {

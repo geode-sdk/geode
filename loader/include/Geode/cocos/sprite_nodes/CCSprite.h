@@ -515,6 +515,12 @@ public:
         return m_obUnflippedOffsetPositionFromCenter;
     }
 
+    /**
+     * Gets if the sprite is using the fallback sprite
+     * @note Geode addition
+     */
+    GEODE_DLL bool isUsingFallback();
+
 
 protected:
     void updateColor(void);

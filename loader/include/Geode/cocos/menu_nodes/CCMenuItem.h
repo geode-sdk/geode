@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "../base_nodes/CCNode.h"
 #include "../include/CCProtocols.h"
 #include "../cocoa/CCArray.h"
+#include <Geode/ui/NodeEvent.hpp>
 
 NS_CC_BEGIN
 
@@ -111,6 +112,14 @@ public:
 
     /** set the target/selector of the menu item*/
     void setTarget(CCObject *rec, SEL_MenuHandler selector);
+
+    template <class Callback>
+    geode::comm::ListenerHandle* addActivateCallback(
+        Callback&& callback,
+        int priority = 0
+    ) {
+        return this->addEventListener("", geode::MenuItemActivatedEvent(this), std::forward<Callback>(callback), priority);
+    }
 
 public:
     CCObject*       m_pListener;

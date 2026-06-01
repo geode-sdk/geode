@@ -1,0 +1,26 @@
+#include <windows.h>
+
+// Executable version information
+VS_VERSION_INFO    VERSIONINFO
+FILEFLAGSMASK      VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+  FILEFLAGS        VS_FF_DEBUG | VS_FF_PRERELEASE
+#else
+  FILEFLAGS        0
+#endif
+FILEOS             VOS_NT_WINDOWS32
+FILETYPE           VFT_APP
+FILESUBTYPE        VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904b0"
+    BEGIN
+      VALUE "CompanyName", "Geode SDK"
+      VALUE "FileDescription", "Geode Proxy Loader"
+      VALUE "InternalName", "Geode Proxy Loader"
+      VALUE "OriginalFilename", "XInput1_4.dll"
+      VALUE "ProductName", "Geode Proxy Loader"
+    END
+  END
+END

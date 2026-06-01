@@ -4,6 +4,7 @@
 #include <matjson.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/general.hpp>
 
 namespace geode::updater {
     using UpdateFinished = std::monostate;
@@ -24,6 +25,7 @@ namespace geode::updater {
     };
 
     void updateSpecialFiles();
+    Result<> extractLoaderResources(ByteSpan data);
     void tryDownloadLoaderResources(std::string url, bool tryLatestOnError = true);
     void downloadLoaderResources(bool useLatestRelease = false);
     void downloadLatestLoaderResources();

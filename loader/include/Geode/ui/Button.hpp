@@ -67,6 +67,7 @@ namespace geode {
          * or if it even has an animation at all
          */
         void setAnimationType(AnimationType type);
+        AnimationType getAnimationType();
 
         /**
          * Set a click animation. This will override the AnimationType and set it

@@ -103,58 +103,6 @@ std::tuple<std::string_view, std::string_view, int32_t> BorrowedLog::truncateWit
     return { source, thread, nestCount };
 }
 
-// Parse overloads
-
-std::string geode::format_as(Mod* mod) {
-    if (mod) {
-        return fmt::format("{{ Mod, {} }}", mod->getName());
-    }
-    else {
-        return "{ Mod, null }";
-    }
-}
-
-std::string geode::format_as(CCObject const* obj) {
-    if (obj) {
-        return fmt::format("{{ {}, {} }}", getObjectName(obj), fmt::ptr(obj));
-    } else {
-        return "{ CCObject, null }";
-    }
-}
-
-std::string geode::format_as(CCNode* obj) {
-    if (obj) {
-        return fmt::format(
-            "{{ {}, {}, ({}) }}",
-            getObjectName(obj),
-            fmt::ptr(obj),
-            obj->boundingBox()
-        );
-    } else {
-        return "{ CCNode, null }";
-    }
-}
-
-std::string geode::format_as(CCArray* arr) {
-    if (arr && arr->count()) {
-        fmt::memory_buffer buffer;
-        buffer.push_back('[');
-
-        for (int i = 0; i < arr->count(); ++i) {
-            auto* obj = arr->objectAtIndex(i);
-            buffer.append(format_as(obj));
-            if (i + 1 < arr->count()) {
-                buffer.append(std::string_view(", "));
-            }
-        }
-
-        buffer.push_back(']');
-        return fmt::to_string(buffer);
-    } else {
-        return "[empty]";
-    }
-}
-
 // Log
 
 Log::Log(asp::SystemTime time, Severity severity, int32_t nestCount,

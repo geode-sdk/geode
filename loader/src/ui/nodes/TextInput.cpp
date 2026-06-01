@@ -227,7 +227,7 @@ void TextInput::focus() {
     m_impl->input->onClickTrackNode(true);
 }
 void TextInput::defocus() {
-    m_impl->input->detachWithIME();
+    m_impl->input->onClickTrackNode(false);
 }
 
 CCTextInputNode* TextInput::getInputNode() const {

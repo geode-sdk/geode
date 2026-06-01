@@ -22,6 +22,7 @@ enum {
     ID_BUTTON_COPY_CLIPBOARD = 104,
     ID_BUTTON_RESTART_GAME = 105,
     ID_SAFE_MODE_TIP_TEXT = 106,
+    ID_BUTTON_RESTART_SAFE_MODE = 107,
 };
 #define TO_HMENU(x) reinterpret_cast<HMENU>(static_cast<size_t>(x))
 
@@ -127,6 +128,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             hwnd, TO_HMENU(ID_BUTTON_RESTART_GAME), NULL, NULL
         );
         SendMessage(button, WM_SETFONT, WPARAM(guiFont), TRUE);
+
+        button = CreateWindowW(
+            L"BUTTON", L"Restart in safe mode",
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+            0, 0, layout::BUTTON_WIDTH, layout::BUTTON_HEIGHT,
+            hwnd, TO_HMENU(ID_BUTTON_RESTART_SAFE_MODE), NULL, NULL
+        );
+        SendMessage(button, WM_SETFONT, WPARAM(guiFont), TRUE);
     } break;
 
     case WM_SIZE: {
@@ -175,12 +184,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             0, 0,
             SWP_NOZORDER | SWP_NOSIZE
         );
+        SetWindowPos(
+            GetDlgItem(hwnd, ID_BUTTON_RESTART_SAFE_MODE), NULL,
+            clientRect.right - layout::BUTTON_WIDTH * 4 - layout::BUTTON_SPACING * 3 - layout::PADDING, buttonY,
+            0, 0,
+            SWP_NOZORDER | SWP_NOSIZE
+        );
 
         // force redraw buttons to fix weird artifacts
         RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_CLOSE), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
         RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_OPEN_FOLDER), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
         RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_COPY_CLIPBOARD), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
         RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_RESTART_GAME), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
+        RedrawWindow(GetDlgItem(hwnd, ID_BUTTON_RESTART_SAFE_MODE), NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME);
     } break;
 
     case WM_CTLCOLORSTATIC: {
@@ -211,6 +227,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                 geode::utils::game::restart(result == IDYES);
             } else {
                 geode::utils::game::restart(false);
+            }
+        } else if (id == ID_BUTTON_RESTART_SAFE_MODE) {
+            if (GetKeyState(VK_SHIFT) & 0x8000) {
+                auto result = MessageBoxW(
+                    hwnd,
+                    L"Do you want to save your game data before restarting?\n"
+                    "This might lead to a corrupted save file, choose on your own risk.",
+                    L"Save and Restart the Game",
+                    MB_ICONQUESTION | MB_YESNOCANCEL
+                );
+                if (result == IDCANCEL) break;
+                geode::utils::game::restart(result == IDYES, true);
+            } else {
+                geode::utils::game::restart(false, true);
             }
         }
     } break;

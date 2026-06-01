@@ -40,7 +40,13 @@ bool ModItem::init(ModSource&& source) {
     m_titleContainer->setID("title-container");
     m_titleContainer->setAnchorPoint({ .0f, .5f });
 
-    m_titleLabel = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
+    StringBuffer title;
+    title.append("{:.40}", m_source.getMetadata().getName());
+    if (m_source.getMetadata().getName().size() > 40) {
+        title.append("...");
+    }
+
+    m_titleLabel = CCLabelBMFont::create(title.c_str(), "bigFont.fnt");
     m_titleLabel->setID("title-label");
     m_titleContainer->addChild(m_titleLabel);
 
@@ -253,9 +259,9 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->updateLayout();
             }
             if (mod->getLoadProblem()) {
-                auto viewErrorSpr = createGeodeCircleButton(
-                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 1.f,
-                    CircleBaseSize::Small
+                auto viewErrorSpr = CircleButtonSprite::create(
+                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 
+                    CircleBaseColor::Red, CircleBaseSize::Small
                 );
                 auto viewErrorBtn = CCMenuItemSpriteExtra::create(
                     viewErrorSpr, this, menu_selector(ModItem::onViewError)
@@ -576,7 +582,7 @@ void ModItem::updateState() {
 
     auto titleSpace = m_display == ModListDisplay::Grid ?
         CCSize(m_obContentSize.width - 10, 35) :
-        CCSize(m_obContentSize.width / 1.75 - m_obContentSize.height, m_obContentSize.height - 5);
+        CCSize(m_obContentSize.width - 145, m_obContentSize.height - 5);
 
     // Divide by scale of info container since that actually determines the size
     // (Since the scale of m_titleContainer and m_developers is managed by its layout)
@@ -947,25 +953,12 @@ void ModItem::onViewError(CCObject*) {
                 case LoadProblem::Type::Outdated: title = "Outdated"; break;
                 case LoadProblem::Type::HasIncompatibilities: title = "Incompatibilities"; break;
             }
-            FLAlertLayer::create(title.c_str(), problem->message, "OK")->show();
+            MDPopup::create(title, problem->message, "OK")->show();
         }
     }
 }
 void ModItem::onEnable(CCObject*) {
-    if (auto mod = m_source.asMod()) {
-        // Toggle the mod state
-        auto res = mod->isOrWillBeEnabled() ? mod->disable() : mod->enable();
-        if (!res) {
-            FLAlertLayer::create(
-                "Error Toggling Mod",
-                res.unwrapErr(),
-                "OK"
-            )->show();
-        }
-    }
-
-    // Update state of the mod item
-    UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
+    m_source.requestEnable();
 }
 void ModItem::onPin(CCObject*) {
     if (auto mod = m_source.asMod()) {

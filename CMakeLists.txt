@@ -13,7 +13,6 @@ if (GEODE_BUILDING_DOCS)
 	set(GEODE_DONT_BUILD_TEST_MODS ON)
 endif()
 
-option(GEODE_USE_BREAKPAD "Enables the use of the Breakpad library for crash dumps." ON)
 option(GEODE_UNITY_BUILD "Enables unity builds" OFF)
 option(GEODE_SET_TARGET_AS_SYSTEM "Sets the target include directories for Geode as SYSTEM, silencing Geode related warning on mod build." OFF)
 option(GEODE_NO_PUGIXML_HEADER "Makes the pugixml.hpp and DS_Dictionary.h headers in Geode blank" OFF)
@@ -208,8 +207,8 @@ include(cmake/GeodeFile.cmake)
 # end GEODE_GD_VERSION
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.2081)
-	set(GEODE_COMP_GD_VERSION 22081)
+	set(GEODE_GD_VERSION 2.2081 CACHE INTERNAL "Geode GD Version")
+	set(GEODE_COMP_GD_VERSION 22081 CACHE INTERNAL "Geode Comparable GD Version")
 endif()
 
 target_compile_definitions(
@@ -266,7 +265,7 @@ CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
-	set(GEODE_ARC_VERSION "@1.5.4" CACHE STRING "")
+	set(GEODE_ARC_VERSION "@1.5.5" CACHE STRING "")
 endif()
 if (NOT DEFINED GEODE_ASP_VERSION)
 	set(GEODE_ASP_VERSION "#51d3773" CACHE STRING "")
@@ -296,6 +295,17 @@ if (GEODE_DISABLE_FMT_CONSTEVAL)
 	target_compile_definitions(fmt PUBLIC -DFMT_CONSTEVAL=)
 endif()
 
+# throw an error if the compiler is too old, for async we require Clang 19 and MSVC 19.44+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0")
+		message(FATAL_ERROR "Clang version is too old, 19.0 or higher required. Please update your LLVM installation.")
+	endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.44")
+		message(FATAL_ERROR "MSVC version is too old, 19.44 or higher required. Please update your Visual Studio installation or install Visual Studio 2026.")
+	endif()
+endif()
+
 # Tulip hook (hooking)
 if (PROJECT_IS_TOP_LEVEL AND NOT GEODE_BUILDING_DOCS)
 	set(TULIP_LINK_SOURCE ON)
@@ -314,7 +324,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.9")
+	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.11")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 

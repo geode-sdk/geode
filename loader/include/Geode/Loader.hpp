@@ -8,5 +8,6 @@
 #include "loader/ModEvent.hpp"
 #include "loader/Setting.hpp"
 #include "loader/Dirs.hpp"
+#include "loader/Priority.hpp"
 
 #include <Geode/DefaultInclude.hpp>

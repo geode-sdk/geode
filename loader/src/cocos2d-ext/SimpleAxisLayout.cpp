@@ -72,6 +72,8 @@ public:
     std::unordered_map<CCNode*, float> m_originalScalesPerNode;
     std::unordered_map<CCNode*, float> m_relativeScalesPerNode;
 
+    Padding m_padding = { 0.f, 0.f, 0.f, 0.f };
+
     Impl(Axis axis, SimpleAxisLayout* parent) : BaseAxisLayoutImpl(axis, 0.f), m_layout(parent) {
         switch (axis) {
             case Axis::Column:
@@ -165,6 +167,46 @@ public:
         }
     }
 
+    float axisPadding() const {
+        if (m_axis == Axis::Column) {
+            return m_padding.top + m_padding.bottom;
+        }
+        return m_padding.left + m_padding.right;
+    }
+
+    float crossPadding() const {
+        if (m_axis == Axis::Column) {
+            return m_padding.left + m_padding.right;
+        }
+        return m_padding.top + m_padding.bottom;
+    }
+
+    float axisStartPadding() const {
+        if (m_axis == Axis::Column) {
+            return m_padding.bottom;
+        }
+        return m_padding.left;
+    }
+
+    float crossStartPadding() const {
+        if (m_axis == Axis::Column) {
+            return m_padding.left;
+        }
+        return m_padding.bottom;
+    }
+
+    float getInnerContentWidth(CCNode* on) const {
+        return this->getContentWidth(on) - this->crossPadding();
+    }
+
+    float getInnerContentHeight(CCNode* on) const {
+        return this->getContentHeight(on) - this->axisPadding();
+    }
+
+    void setOuterContentWidth(CCNode* on, float width) {
+        this->setContentWidth(on, width + this->crossPadding());
+    }
+
     float getScale(CCNode* on) const {
         return on->getScale();
     }
@@ -210,7 +252,7 @@ public:
     // get the maximum allowed scale for the node
     // based on the layout's width and the node's width
     float getMaxCrossScale(CCNode* layout, CCNode* on) {
-        auto const layoutWidth = this->getContentWidth(layout);
+        auto const layoutWidth = this->getInnerContentWidth(layout);
         auto const width = this->getContentWidth(on) * this->getUncommittedScale(on);
         auto const maxAllowedScale = layoutWidth / width;
         auto const maxScale = this->getMaxScale(on);
@@ -223,7 +265,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateCrossScaling
     std::unordered_map<CCNode*, float> scales;
 
     auto maxWidth = std::numeric_limits<float>::min();
-    auto layoutWidth = this->getContentWidth(layout);
+    auto layoutWidth = this->getInnerContentWidth(layout);
 
     // get the limits we are working with
     for (auto node : nodes) {
@@ -235,9 +277,9 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateCrossScaling
 
     switch (m_crossAxisScaling) {
         case AxisScaling::Grow:
-            if (m_minCrossAxis == std::nullopt) m_minCrossAxis = layoutWidth;
+            if (m_minCrossAxis == std::nullopt) m_minCrossAxis = this->getContentWidth(layout);
             // grow the layout to fit the widest node
-            layoutWidth = std::max(m_minCrossAxis.value(), maxWidth);
+            layoutWidth = std::max(m_minCrossAxis.value() - this->crossPadding(), maxWidth);
             break;
         case AxisScaling::Fit:
             // fit the layout to the widest node
@@ -247,7 +289,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateCrossScaling
             break;
     }
 
-    this->setContentWidth(layout, layoutWidth);
+    this->setOuterContentWidth(layout, layoutWidth);
 
     // get the scales we need for current limits
     for (auto node : nodes) {
@@ -285,7 +327,8 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
     std::unordered_map<CCNode*, float> scales;
 
     auto totalHeight = totalGap;
-    auto layoutHeight = this->getContentHeight(layout);
+    auto layoutHeight = this->getInnerContentHeight(layout);
+    auto outerLayoutHeight = this->getContentHeight(layout);
 
     // get the limits we are working with
     for (auto node : nodes) {
@@ -295,13 +338,15 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
 
     switch (m_mainAxisScaling) {
         case AxisScaling::Grow:
-            if (m_minMainAxis == std::nullopt) m_minMainAxis = layoutHeight;
+            if (m_minMainAxis == std::nullopt) m_minMainAxis = outerLayoutHeight;
             // grow the layout to fit all the nodes
-            layoutHeight = std::max(m_minMainAxis.value(), totalHeight);
+            outerLayoutHeight = std::max(m_minMainAxis.value(), totalHeight + this->axisPadding());
+            layoutHeight = outerLayoutHeight - this->axisPadding();
             break;
         case AxisScaling::Fit:
             // fit the layout to all the nodes
             layoutHeight = totalHeight;
+            outerLayoutHeight = totalHeight + this->axisPadding();
             break;
         case AxisScaling::ScaleDownGaps:
             // remove gaps if needed to fit the layout
@@ -316,7 +361,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
             break;
     }
 
-    this->setContentHeight(layout, layoutHeight);
+    this->setContentHeight(layout, outerLayoutHeight);
 
     std::unordered_map<ScalingPriority, std::vector<CCNode*>> sortedNodes;
     std::unordered_map<ScalingPriority, float> reducedHeightPerPriority;
@@ -502,7 +547,7 @@ std::unordered_map<CCNode*, float> SimpleAxisLayout::Impl::calculateMainScaling(
 
 void SimpleAxisLayout::Impl::applyCrossPositioning(CCNode* layout, std::vector<CCNode*> const& nodes) {
     auto maxWidth = 0.f;
-    auto layoutWidth = this->getContentWidth(layout);
+    auto layoutWidth = this->getInnerContentWidth(layout);
     for (auto node : nodes) {
         auto const width = this->getContentWidth(node) * this->getScale(node);
         if (width > maxWidth) {
@@ -513,8 +558,8 @@ void SimpleAxisLayout::Impl::applyCrossPositioning(CCNode* layout, std::vector<C
     // reapply grow/fit since main scaling may have changed the max width
     switch (m_crossAxisScaling) {
         case AxisScaling::Grow:
-            if (m_minCrossAxis == std::nullopt) m_minCrossAxis = layoutWidth;
-            layoutWidth = std::max(m_minCrossAxis.value(), maxWidth);
+            if (m_minCrossAxis == std::nullopt) m_minCrossAxis = this->getContentWidth(layout);
+            layoutWidth = std::max(m_minCrossAxis.value() - this->crossPadding(), maxWidth);
             break;
         case AxisScaling::Fit:
             layoutWidth = maxWidth;
@@ -523,7 +568,8 @@ void SimpleAxisLayout::Impl::applyCrossPositioning(CCNode* layout, std::vector<C
             break;
     }
 
-    this->setContentWidth(layout, layoutWidth);
+    this->setOuterContentWidth(layout, layoutWidth);
+    layoutWidth = this->getInnerContentWidth(layout);
 
     // cross axis direction only exists to disambiguate the alignment
     CrossAxisAlignment alignment = m_crossAxisAlignment;
@@ -552,13 +598,13 @@ void SimpleAxisLayout::Impl::applyCrossPositioning(CCNode* layout, std::vector<C
             // remainingWidth is the space left after the node is placed
             // and width * .5 is added since the anchor point is in the middle
             case CrossAxisAlignment::Start:
-                this->setPositionX(node, width * 0.5f);
+                this->setPositionX(node, this->crossStartPadding() + width * 0.5f);
                 break;
             case CrossAxisAlignment::Center:
-                this->setPositionX(node, remainingWidth * 0.5f + width * 0.5f);
+                this->setPositionX(node, this->crossStartPadding() + remainingWidth * 0.5f + width * 0.5f);
                 break;
             case CrossAxisAlignment::End:
-                this->setPositionX(node, remainingWidth + width * 0.5f);
+                this->setPositionX(node, this->crossStartPadding() + remainingWidth + width * 0.5f);
                 break;
             default:
                 break;
@@ -572,7 +618,7 @@ void SimpleAxisLayout::Impl::applyMainPositioning(CCNode* layout, std::vector<CC
         auto const height = this->getContentHeight(node) * this->getScale(node);
         totalHeight += height;
     }
-    auto const layoutHeight = this->getContentHeight(layout);
+    auto const layoutHeight = this->getInnerContentHeight(layout);
 
     auto gapPercentage = 1.f;
     if (m_mainAxisScaling == AxisScaling::ScaleDownGaps) {
@@ -607,8 +653,8 @@ void SimpleAxisLayout::Impl::applyMainPositioning(CCNode* layout, std::vector<CC
             this->setScale(spacer, 1.f);
             auto const height = spacer->getGrow() * spacerGap;
             this->setContentHeight(spacer, height);
-            this->setContentWidth(spacer, this->getContentWidth(layout));
-            this->setPositionX(spacer, this->getContentWidth(layout) / 2);
+            this->setContentWidth(spacer, this->getInnerContentWidth(layout));
+            this->setPositionX(spacer, this->crossStartPadding() + this->getInnerContentWidth(layout) / 2);
         }
     }
     else {
@@ -679,13 +725,13 @@ void SimpleAxisLayout::Impl::applyMainPositioning(CCNode* layout, std::vector<CC
             // items are laid out from top to bottom
             // so the center is subtracted from the offset
             case AxisDirection::BackToFront:
-                this->setPositionY(node, offset - height / 2);
+                this->setPositionY(node, this->axisStartPadding() + offset - height / 2);
                 offset -= height + extraGap;
                 break;
             // items are laid out from bottom to top
             // so the center is added to the offset
             case AxisDirection::FrontToBack:
-                this->setPositionY(node, offset + height / 2);
+                this->setPositionY(node, this->axisStartPadding() + offset + height / 2);
                 offset += height + extraGap;
                 break;
         }
@@ -855,6 +901,11 @@ bool SimpleAxisLayout::isIgnoreInvisibleChildren() const {
     return m_impl->m_ignoreInvisibleChildren;
 }
 
+SimpleAxisLayout* SimpleAxisLayout::setPadding(Padding const& padding) {
+    m_impl->m_padding = padding;
+    return this;
+}
+
 Axis SimpleAxisLayout::getAxis() const {
     return m_impl->m_axis;
 }
@@ -893,6 +944,10 @@ std::optional<float> SimpleAxisLayout::getMinRelativeScale() const {
 
 std::optional<float> SimpleAxisLayout::getMaxRelativeScale() const {
     return m_impl->m_maxRelativeScale;
+}
+
+Padding SimpleAxisLayout::getPadding() const {
+    return m_impl->m_padding;
 }
 
 SimpleRowLayout::SimpleRowLayout() : SimpleAxisLayout(Axis::Row) {}

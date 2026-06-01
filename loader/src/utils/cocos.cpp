@@ -263,6 +263,7 @@ bool WeakRefController::isManaged() {
     return m_obj;
 }
 
+// TODO: this function is flawed and will break if other is not null and please remind me to rewrite the entirety of weakref in v6
 void WeakRefController::swap(CCObject* other) {
     WeakRefPool::get()->check(m_obj);
     m_obj = other;
@@ -566,8 +567,9 @@ CCScene* geode::cocos::switchToScene(CCLayer* layer) {
 static CreateLayerFunc LOADING_FINISHED_SCENE = nullptr;
 
 void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
+    // TODO V6 ? : make this take a scene?
     LOADING_FINISHED_SCENE = std::move(returnTo);
-    GameManager::get()->reloadAll(false, false, true);
+    GameManager::get()->reloadAll(false, false, false, false, true);
 }
 
 void GEODE_DLL geode::cocos::handleTouchPriorityWith(cocos2d::CCNode* node, int priority, bool force) {

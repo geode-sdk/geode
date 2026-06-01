@@ -58,6 +58,7 @@ protected:
     async::TaskHolder<server::ServerResult<InstalledModsUpdateCheck>> m_checkUpdatesListener;
     ModListDisplay m_display = ModListDisplay::SmallList;
     bool m_exiting = false;
+    bool m_hasDeprecations = false;
     std::atomic<size_t> m_searchInputThreads = 0;
 
     bool init(ModListSource* src, CCSize const& size, bool searchingDev);

@@ -104,6 +104,25 @@ namespace geode {
          */
         cocos2d::ccColor3B color3b(std::string_view id) const;
     };
+
+    class ThemeIDProvidingEvent final : public Event<ThemeIDProvidingEvent, bool(std::string& idOut)> {
+    public:
+        // listener params idOut
+        using Event::Event;
+    };
+
+    /**
+     * An event that gets posted for someone to request a node for a specific ID. This is
+     * used in Geode themes to provide custom nodes.
+     */
+    class NodeProvidingEvent final : public GlobalEvent<NodeProvidingEvent, bool(std::string_view id, cocos2d::CCNode*& nodeOut, std::string_view theme), bool(cocos2d::CCNode*& nodeOut, std::string_view theme), std::string> {
+    public:
+        // listener params node
+        // filter params id
+        using GlobalEvent::GlobalEvent;
+
+        bool send(cocos2d::CCNode*& nodeOut);
+    };
 }
 
 inline cocos2d::ccColor4B operator""_cc4b_gd(const char* str, size_t) {

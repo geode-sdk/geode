@@ -9,7 +9,9 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Эта программа уда
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nПо этому пути не установлен Geometry Dash!"
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nВаша версия Geometry Dash слишком старая для этой версии Geode!"
+${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "По этому пути уже установлены другие моды!$\r$\nОни будут перезаписаны Geode. (the dll trademark)"
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Installing VS Runtime. Check the taskbar for any new open windows..."
 
 ; uninstaller
 

@@ -29,6 +29,7 @@ colors = {
     "Gray": ["#DEDEE0", "#979997", "#CACCCA", "#747472"],
     "DarkPurple": ["#41384b", "#2f2937", "#393142", "#221e28"],
     "DarkAqua": ["#2a4559", "#1f3441", "#253d4e", "#17272f"],
+    "Red": ["#FF5A5A", "#CC1111", "#FF4444", "#990606"],
 }
 
 editor_sizes = [
@@ -40,7 +41,7 @@ editor_color_from = ["#C6F249", "#7ADE2D", "#49851B"]
 editor_colors = {
     "Cyan": ["#0effff", "#00d2f6", "#007d94"],
     "Blue": ["#82d6ff", "#80a1ff", "#4d60d2"],
-    "Teal": ["#3cfcbc", "#3cfcbc", "#0f7a68"],
+    "Teal": ["#3cfcbc", "#1accad", "#0f7a68"],
     "Magenta": ["#ffafff", "#f67fff", "#944cca"],
     "Pink": ["#ff93fd", "#ff6fab", "#d44266"],
     "Green": ["#a2f30e", "#58d000", "#347c00"],

@@ -137,18 +137,9 @@ bool ModPopup::init(ModSource&& src) {
             counter++;
             if (counter % 6 == 3) {
                 Mod::get()->setSavedValue("alternate-geode-style", true);
-                ColorProvider::get()->override("swelvy-bg-0"_spr, { 216, 132, 132, 255 });
-                ColorProvider::get()->override("swelvy-bg-1"_spr, { 210, 189, 119, 255 });
-                ColorProvider::get()->override("swelvy-bg-2"_spr, { 195, 212, 136, 255 });
-                ColorProvider::get()->override("swelvy-bg-3"_spr, { 95, 184, 134, 255 });
-                ColorProvider::get()->override("swelvy-bg-4"_spr, { 100, 174, 189, 255 });
-                ColorProvider::get()->override("swelvy-bg-5"_spr, { 118, 90, 148, 255 });
             }
             else if (counter % 6 == 0) {
                 Mod::get()->getSaveContainer().erase("alternate-geode-style");
-                for (int i = 0; i < 6; i++) {
-                    ColorProvider::get()->reset(fmt::format("swelvy-bg-{}"_spr, i));
-                }
             }
         });
         m_titleContainer->addChildAtPosition(
@@ -164,11 +155,17 @@ bool ModPopup::init(ModSource&& src) {
     // Lil padding
     auto devAndTitlePos = m_titleContainer->getContentHeight() + 5;
 
-    auto title = CCLabelBMFont::create(m_source.getMetadata().getName().c_str(), "bigFont.fnt");
-    title->limitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .45f, .1f);
-    title->setAnchorPoint({ .0f, .5f });
-    title->setID("mod-name-label");
-    m_titleContainer->addChildAtPosition(title, Anchor::TopLeft, ccp(devAndTitlePos, -m_titleContainer->getContentHeight() * .25f));
+    StringBuffer title;
+    title.append("{:.40}", m_source.getMetadata().getName());
+    if (m_source.getMetadata().getName().size() > 40) {
+        title.append("...");
+    }
+
+    auto titleLabel = CCLabelBMFont::create(title.c_str(), "bigFont.fnt");
+    titleLabel->limitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .45f, .1f);
+    titleLabel->setAnchorPoint({ .0f, .5f });
+    titleLabel->setID("mod-name-label");
+    m_titleContainer->addChildAtPosition(titleLabel, Anchor::TopLeft, ccp(devAndTitlePos, -m_titleContainer->getContentHeight() * .25f));
 
     auto by = "By " + m_source.formatDevelopers();
     auto dev = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
@@ -527,11 +524,35 @@ bool ModPopup::init(ModSource&& src) {
     // );
     // linksMenu->addChild(linksLabel);
 
+    auto useGithubIcon = m_source.getMetadata().getLinks().getSourceURL()
+        .transform([](auto const& url) {
+            // bad logic
+            auto hostBegin = url.find_first_of("://");
+            if (hostBegin == std::string::npos) {
+                return false;
+            }
+
+            hostBegin += 3;
+
+            auto hostEnd = url.find_first_of('/', hostBegin);
+            if (hostEnd == std::string::npos) {
+                hostEnd = url.size();
+            }
+
+            auto hostname = url.substr(hostBegin, hostEnd - hostBegin);
+            utils::string::toLowerIP(hostname);
+
+            // if you add a port or username to your source url, it's your fault and you have to fix the parsing
+
+            // accept www.github.com and github.com
+            return hostname == "github.com" || hostname == "www.github.com";
+        }).value_or(false);
+
     for (auto stat : std::initializer_list<std::tuple<
         const char*, const char*, std::optional<std::string>, SEL_MenuHandler
     >> {
         { "homepage", "homepage.png"_spr, m_source.getMetadata().getLinks().getHomepageURL(), nullptr },
-        { "github", "github.png"_spr, m_source.getMetadata().getLinks().getSourceURL(), nullptr },
+        { "github", useGithubIcon ? "github.png"_spr : "source_generic.png"_spr, m_source.getMetadata().getLinks().getSourceURL(), nullptr },
         { "discord", "gj_discordIcon_001.png", m_source.getMetadata().getLinks().getCommunityURL(), nullptr },
         { "support", "gift.png"_spr, m_source.getMetadata().getSupportInfo(), menu_selector(ModPopup::onSupport) },
     }) {
@@ -1126,17 +1147,7 @@ void ModPopup::onTab(CCObject* sender) {
 }
 
 void ModPopup::onEnable(CCObject*) {
-    if (auto mod = m_source.asMod()) {
-        // Toggle the mod state
-        auto res = mod->isOrWillBeEnabled() ? mod->disable() : mod->enable();
-        if (!res) {
-            FLAlertLayer::create("Error Toggling Mod", res.unwrapErr(), "OK")->show();
-        }
-    }
-    else {
-        FLAlertLayer::create("Error Toggling Mod", "This mod can not be toggled!", "OK")->show();
-    }
-    UpdateModListStateEvent().send(UpdateModState(m_source.getID()));
+    m_source.requestEnable();
 }
 
 void ModPopup::onInstall(CCObject*) {

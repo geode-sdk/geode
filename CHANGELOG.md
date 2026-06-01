@@ -1,5 +1,112 @@
 # Geode Changelog
 
+## v5.7.1
+ * Revert fallthrough for keybind modifiers because some mods rely on that not happening (df9df11)
+
+## v5.7.0
+ * Add `RichTextArea` (#1654)
+ * Make Geode load without requiring DLL overrides on Wine 11.6+ (6892c03)
+ * Add fallthrough for keybind modifiers (#2000)
+ * Improve settings search (#2056)
+ * Fix use-after-free when unregistering an event listener inside an event callback (2abbdba)
+ * Fix mod save data rarely getting corrupted on Windows (c1c2948)
+ * Fix rare loading screen crash (921e29f)
+ * Fix crash in `CCNode::querySelector` (#2051)
+ * Add launch method to the platform string on iOS (#2033)
+ * Add faulty instruction bytes to Android crashlogs caused by SIGILL (124567c, 155261f, e23493e)
+ * Update messages for load failures caused by Windows Smart App Control (25a99d3, ac7a1d3, 84952e1)
+
+## v5.6.1
+ * Revert TulipHook update to fix several jitless iOS crashes
+
+## v5.6.0
+ * Map joystick inputs to key inputs on Android (#2005)
+ * Add theming support (#2009)
+ * Add `NodeEvent` and `MenuItemActivatedEvent` (#1964)
+ * Add padding to `AxisLayout` and `SimpleAxisLayout` (#1999)
+ * Event port v3 with improved thread safety (#2003)
+ * Update TulipHook to fix several jitless iOS crashes (b8c36af)
+ * Add more descriptive errors for Geode load failures (2b3d10f)
+ * Add a notification when showing deprecations (98c210e)
+ * Add .nomedia directly to resources to help with Android resource updater issues (ba4dad3)
+ * Prompt vcredist update if it's out of date (56a677c)
+ * Change the `CCFileUtils` hooks to hook per-platform methods, fixing iOS hook (dcdd139, c3c817a, 24cf733, ad3f1aa)
+ * Make `modify_cast` more powerful (#1884)
+ * Fix disabled mods still loading their spritesheets (#1934)
+ * Fix Android not deleting the last crashed file (9f0284d)
+ * Fix `LazySprite` crash if the sprite is removed from within the load callback (4be3da0)
+ * Fix markdown indentation on newlines (#1987)
+ * Fix German translation for installer (#1986)
+ * Remove the counterproductive "Please share the whole crash log" line from crash logs (920a922)
+ * Translate English strings to Polish in the installer (#1995)
+ * Sapphire SDK can no longer be activated.
+
+## v5.5.3
+ * Use legacy messages for detecting isDown (5d0e824)
+ * Dont show unloaded mods in keybinds popup (f72a7cc)
+ * Fix MDTextArea culling (#1975)
+ * Enforce UTF-8 when calculating hashes (4cec228)
+
+## v5.5.2
+ * Fix transition breaking the Sapphire Popup
+
+## v5.5.1
+ * Fix JIT-less iOS bug
+
+## v5.5.0
+ * Add `allow-in-text-inputs` option for keybinds (d57cd23)
+ * Add `LogFormatEvent` to allow for registering custom object formatters (d1589cb)
+ * Add more default formatters and implement raw specifier (#1890)
+ * Add warning popup when disabling mod with dependencies (ec2f06d)
+ * Add check for GD version while building a mod (0d97b3f)
+ * Implement url checks to `openLinkInBrowser`, and then add `openLinkUnsafe` as an alternative (#1971)
+ * Allow setting Escape as a keybind (5d63661)
+ * Fix stuck inputs bug with modifier keys (c6bae4f)
+ * Fix mouse events being triggered when clicking the titlebar on Windows (ffd8b86)
+ * Fix CTRL key being stuck after zooming with the trackpad on specific hardware (ba1d352)
+ * Force web progress callbacks to be destroyed on main thread (80a912d)
+ * Fix a crash in the Android crash handler while including a check for crash handler crashes (85ef2bf)
+ * Fix data race in `EventCenterGlobal` which caused some event crashes (f7117da)
+ * Fix use-after-free with a null assignment to a `WeakRef` (bb849a6)
+ * Show generic source icon for mods not hosted on GitHub (ad76de8)
+ * Improvements to the crash handler on macOS and iOS (04e8eeb, 0bb8fca, 27fc7fd)
+
+## v5.4.1
+ * Revert `CCEGLView::get` change (9cdbf5c)
+ * Fix crash when entering Geode menu without resources (000c5a1, 5b4210e)
+
+## v5.4.0
+ * Crashlog rework/unification. Includes a removal of Breakpad on Android! (#1939)
+ * Integrated fallback sprites into Geode (#1819)
+ * Info/button setting types (#1903)
+ * Add `geode::SliderNode` (#1854)
+ * Add `CircleBaseColor::Red` (41f65f7)
+ * Enable signals, and then add `geode::Mod::settingReact` for those signals (17656a8)
+ * Add platform details under `geode::utils::platform` (#1941)
+ * Add `CCNode::getParentByType` (a86381d)
+ * Add `Button::getAnimationType` and `NineSlice::getScaleMultiplier` (#1938)
+ * Disable copying/move operators for fields (83e7a59)
+ * `CCEGLView::get` now uses the CCEGLView singleton (21f5567)
+ * Improvements to the missing dependencies popup (9fa3a79)
+ * Add restart in safe mode button to crash popup on Windows (#1940)
+ * Improve fallback behavior of Geode button when texture is missing (444fab8)
+ * Fix crash when exiting game on macOS (52e16a2)
+ * Fix additional enable/disable flips in setting errors (aae2fe3)
+ * Fix input timestamps on Android (fdb2f26)
+ * macOS text input improvements (9c2289e, 21461ec)
+ * Fix left/right arrow keys in text inputs on Windows (1b66527)
+ * Fix for thread_local crash on Android (08a89a4)
+ * Fix listener assignment leak (85fc0be)
+ * Call web intercept events before calling completion (ae55e2d)
+ * Improvements to loader resource downloading (04be0ba, c09ce5e)
+ * Improvements to mod error messaging on Windows (e74724e, 5646cb0, 2262a8e)
+ * Add Debian steam path to Linux install script (#1843)
+ * Rework and fix multiple sprites (#1896)
+ * Fix slider setting clamping when slider bypass is enabled (#1930)
+ * Several net_libs updates (91de7bf, 7b66058, 3bab07c)
+ * Update TulipHook
+   * This fixes a crash when hooking some functions on ARMv8 platforms (8e88b37)
+
 ## v5.3.0
  * Add `CCDrawNode` hook to fix an uninitialized member (cfe6542)
  * Add `geode::openKeybindsPopup` (#1880)

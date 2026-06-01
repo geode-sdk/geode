@@ -140,8 +140,30 @@ public:
     bool m_growCrossAxis = false;
     std::optional<float> m_autoGrowAxisMinLength;
     std::pair<float, float> m_defaultScaleLimits = { AXISLAYOUT_DEFAULT_MIN_SCALE, 1 };
+    Padding m_padding = { 0.f, 0.f, 0.f, 0.f };
 
     Impl(Axis axis) : BaseAxisLayoutImpl(axis, 5.f) {}
+
+    float axisPadding() const {
+        if (m_axis == Axis::Row) {
+            return m_padding.left + m_padding.right;
+        }
+        return m_padding.top + m_padding.bottom;
+    }
+
+    float crossPadding() const {
+        if (m_axis == Axis::Row) {
+            return m_padding.top + m_padding.bottom;
+        }
+        return m_padding.left + m_padding.right;
+    }
+
+    AxisPosition availableForLayout(CCNode* on) const {
+        auto available = nodeAxis(on, m_axis, 1.f / on->getScale());
+        available.axisLength = available.axisLength - this->axisPadding();
+        available.crossLength = available.crossLength - this->crossPadding();
+        return available;
+    }
 
     struct Row : public CCObject {
         float nextOverflowScaleDownFactor;
@@ -316,7 +338,7 @@ public:
         float crossLength;
         auto res = CCArray::create();
 
-        auto available = nodeAxis(on, m_axis, 1.f / on->getScale());
+        auto available = this->availableForLayout(on);
 
         auto fit = [&](CCArray* nodes) {
             nextAxisScalableLength = 0.f;
@@ -504,7 +526,7 @@ public:
             return;
         }
 
-        auto available = nodeAxis(on, m_axis, 1.f / on->getScale());
+        auto available = this->availableForLayout(on);
         if (available.axisLength <= 0.f) {
             return;
         }
@@ -562,14 +584,14 @@ public:
             available.crossLength = totalRowCrossLength;
             if (m_axis == Axis::Row) {
                 on->setContentSize({
-                    available.axisLength,
-                    totalRowCrossLength,
+                    available.axisLength + m_padding.left + m_padding.right,
+                    totalRowCrossLength + m_padding.top + m_padding.bottom,
                 });
             }
             else {
                 on->setContentSize({
-                    totalRowCrossLength,
-                    available.axisLength,
+                    totalRowCrossLength + m_padding.left + m_padding.right,
+                    available.axisLength + m_padding.top + m_padding.bottom,
                 });
             }
         }
@@ -718,10 +740,16 @@ public:
                     } break;
                 }
                 if (m_axis == Axis::Row) {
-                    node->setPosition(axisPos, rowCrossPos + crossOffset);
+                    node->setPosition(
+                        m_padding.left + axisPos,
+                        m_padding.bottom + rowCrossPos + crossOffset
+                    );
                 }
                 else {
-                    node->setPosition(rowCrossPos + crossOffset, axisPos);
+                    node->setPosition(
+                        m_padding.left + rowCrossPos + crossOffset,
+                        m_padding.bottom + axisPos
+                    );
                 }
                 prev = opts;
                 ix++;
@@ -793,14 +821,15 @@ void AxisLayout::apply(CCNode* on) {
     }
 
     if (m_impl->m_autoGrowAxisMinLength.has_value()) {
-        if (totalLength < m_impl->m_autoGrowAxisMinLength.value()) {
-            totalLength = m_impl->m_autoGrowAxisMinLength.value();
+        auto totalOuterLength = totalLength + m_impl->axisPadding();
+        if (totalOuterLength < m_impl->m_autoGrowAxisMinLength.value()) {
+            totalOuterLength = m_impl->m_autoGrowAxisMinLength.value();
         }
         if (m_impl->m_axis == Axis::Row) {
-            on->setContentSize({ totalLength, on->getContentSize().height });
+            on->setContentSize({ totalOuterLength, on->getContentSize().height });
         }
         else {
-            on->setContentSize({ on->getContentSize().width, totalLength });
+            on->setContentSize({ on->getContentSize().width, totalOuterLength });
         }
     }
 
@@ -815,25 +844,34 @@ void AxisLayout::apply(CCNode* on) {
 CCSize AxisLayout::getSizeHint(CCNode* on) const {
     // Ideal is single row / column with no scaling
     auto nodes = m_impl->getNodesToPosition(on);
-    float length = 0.f;
-    float cross = 0.f;
+    float innerLength = 0.f;
+    float innerCross = 0.f;
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
         auto axis = nodeAxis(node, m_impl->m_axis, 1.f);
-        length += axis.axisLength;
-        if (axis.crossLength > cross) {
-            axis.crossLength = cross;
+        innerLength += axis.axisLength;
+        if (axis.crossLength > innerCross) {
+            axis.crossLength = innerCross;
         }
     }
+
+    auto available = nodeAxis(on, m_impl->m_axis, 1.f);
+    auto axisPadding = m_impl->axisPadding();
+    auto crossPadding = m_impl->crossPadding();
+    auto availableInnerAxis = available.axisLength - axisPadding;
+
     if (auto l = m_impl->m_autoGrowAxisMinLength) {
-        length = std::max(length, *l);
+        innerLength = std::max(innerLength, *l - axisPadding);
     }
     // No overflow
     else {
-        length = std::min(length, nodeAxis(on, m_impl->m_axis, 1.f).axisLength);
+        innerLength = std::min(innerLength, availableInnerAxis);
     }
     if (!m_impl->m_allowCrossAxisOverflow) {
-        cross = nodeAxis(on, m_impl->m_axis, 1.f).crossLength;
+        innerCross = available.crossLength - crossPadding;
     }
+
+    auto length = innerLength + axisPadding;
+    auto cross = innerCross + crossPadding;
     if (m_impl->m_axis == Axis::Row) {
         return { length, cross };
     }
@@ -880,6 +918,10 @@ float AxisLayout::getDefaultMinScale() const {
 }
 float AxisLayout::getDefaultMaxScale() const {
     return m_impl->m_defaultScaleLimits.second;
+}
+
+Padding AxisLayout::getPadding() const {
+    return m_impl->m_padding;
 }
 
 AxisLayout* AxisLayout::setAxis(Axis axis) {
@@ -937,6 +979,11 @@ AxisLayout* AxisLayout::ignoreInvisibleChildren(bool ignore) {
 }
 bool AxisLayout::isIgnoreInvisibleChildren() const {
     return m_impl->m_ignoreInvisibleChildren;
+}
+
+AxisLayout* AxisLayout::setPadding(Padding const& padding) {
+    m_impl->m_padding = padding;
+    return this;
 }
 
 AxisLayout::AxisLayout(Axis axis) : m_impl(std::make_unique<Impl>(axis)) {}

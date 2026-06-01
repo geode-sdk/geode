@@ -66,13 +66,14 @@ $register_ids(MenuLayer) {
                 this, "profile-menu",
                 SimpleRowLayout::create()
                     ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->ignoreInvisibleChildren(false)
                     ->setGap(5.f),
                 pfp
             );
             profileMenu->setContentSize({ 150.f, 50.f });
             profileMenu->setPositionX(
                 profileMenu->getPositionX() + 150.f / 2 -
-                    pfp->getScaledContentSize().height / 2
+                    pfp->getScaledContentSize().width / 2
             );
             profileMenu->updateLayout();
         }
@@ -84,7 +85,7 @@ $register_ids(MenuLayer) {
         menu->setContentSize({ winSize.width - 140.f, 65.f });
         menu->setLayout(
             SimpleRowLayout::create()
-                ->setGap(18.f)
+                ->setGap(20.25f)
                 ->setCrossAxisScaling(AxisScaling::Grow)
         );
     }

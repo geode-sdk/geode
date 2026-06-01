@@ -71,7 +71,7 @@ find_gd_installation() {
     verbose_log "Searching for Geometry Dash..."
     local DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
-    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.var/app/com.valvesoftware.Steam/data/Steam" "$HOME/snap/steam/common/.steam/steam"; do
+    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.steam/debian-installation" "$HOME/.var/app/com.valvesoftware.Steam/data/Steam" "$HOME/snap/steam/common/.steam/steam"; do
         local PATH_TEST="$GD_IDX/steamapps/common/Geometry Dash"
         verbose_log "- Testing path ${YELLOW}$PATH_TEST${NC}"
 
@@ -159,6 +159,11 @@ install() {
 
     echo "Installing..."
     mv $TEMP_DIR/geode/* "$GD_PATH"
+
+    if [ -f "$GD_PATH/XINPUT1_4.dll" ]; then
+        echo "Deleting conflicting XINPUT1_4.dll..."
+        rm "$GD_PATH/XINPUT1_4.dll"
+    fi
 }
 
 check_dependencies

@@ -45,13 +45,13 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     }
 
     void setSmallText(ZStringView text) {
-        if (!m_fields->m_menuDisabled) {
+        if (!m_fields->m_menuDisabled && m_fields->m_smallLabel) {
             m_fields->m_smallLabel->setString(text.c_str());
         }
     }
 
     void setSmallText2(ZStringView text) {
-        if (!m_fields->m_menuDisabled) {
+        if (!m_fields->m_menuDisabled && m_fields->m_smallLabel2) {
             m_fields->m_smallLabel2->setString(text.c_str());
         }
     }

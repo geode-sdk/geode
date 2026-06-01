@@ -4,6 +4,8 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Scrollbar.hpp>
+#include <Geode/ui/Button.hpp>
+#include <Geode/binding/TextArea.hpp>
 #include "KeybindEditPopup.hpp"
 
 class SettingNodeV3::Impl final {
@@ -14,6 +16,7 @@ public:
     CCMenu* nameMenu;
     CCMenu* buttonMenu;
     CCMenuItemSpriteExtra* resetButton;
+    CCMenuItemSpriteExtra* descButton;
     CCLabelBMFont* statusLabel;
     ccColor4B bgColor = ccc4(0, 0, 0, 0);
     bool committed = false;
@@ -51,10 +54,10 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     if (setting && setting->getDescription()) {
         auto descSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
         descSpr->setScale(.5f);
-        auto descBtn = CCMenuItemSpriteExtra::create(
+        m_impl->descButton = CCMenuItemSpriteExtra::create(
             descSpr, this, menu_selector(SettingNodeV3::onDescription)
         );
-        m_impl->nameMenu->addChild(descBtn);
+        m_impl->nameMenu->addChild(m_impl->descButton);
     }
 
     auto resetSpr = CCSprite::createWithSpriteFrameName("reset-gold.png"_spr);
@@ -106,6 +109,7 @@ void SettingNodeV3::updateState(CCNode* invoker) {
     m_impl->nameMenu->setContentWidth(this->getContentWidth() - m_impl->buttonMenu->getContentWidth() - 25);
     m_impl->nameMenu->updateLayout();
 }
+
 void SettingNodeV3::updateState2(CCNode* invoker) {
     return this->updateState(invoker);
 }
@@ -119,6 +123,7 @@ void SettingNodeV3::onDescription(CCObject*) {
         "OK"
     )->show();
 }
+
 void SettingNodeV3::onReset(CCObject*) {
     createQuickPopup(
         "Reset",
@@ -147,6 +152,7 @@ void SettingNodeV3::markChanged(CCNode* invoker) {
         m_impl->setting ? m_impl->setting->getKey() : ""
     ).send(this, false);
 }
+
 void SettingNodeV3::commit() {
     if (!m_impl->setting) return;
     this->onCommit();
@@ -154,6 +160,7 @@ void SettingNodeV3::commit() {
     this->updateState(nullptr);
     SettingNodeValueChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this, true);
 }
+
 void SettingNodeV3::resetToDefault() {
     if (!m_impl->setting || m_impl->setting->isDefaultValue()) return;
     m_impl->setting->reset();
@@ -178,15 +185,23 @@ void SettingNodeV3::setContentSize(CCSize const& size) {
 CCLabelBMFont* SettingNodeV3::getNameLabel() const {
     return m_impl->nameLabel;
 }
+
+CCMenuItemSpriteExtra* SettingNodeV3::getDescriptionButton() const {
+    return m_impl->descButton;
+}
+
 CCLabelBMFont* SettingNodeV3::getStatusLabel() const {
     return m_impl->statusLabel;
 }
+
 CCMenu* SettingNodeV3::getNameMenu() const {
     return m_impl->nameMenu;
 }
+
 CCMenu* SettingNodeV3::getButtonMenu() const {
     return m_impl->buttonMenu;
 }
+
 CCLayerColor* SettingNodeV3::getBG() const {
     return m_impl->bg;
 }
@@ -240,6 +255,7 @@ void TitleSettingNodeV3::onCollapse(CCObject* sender) {
     // This triggers popup state to update due to SettingNodeValueChangeEventV3 being posted
     this->markChanged(static_cast<CCNode*>(sender));
 }
+
 void TitleSettingNodeV3::onCommit() {}
 
 bool TitleSettingNodeV3::isCollapsed() const {
@@ -254,9 +270,11 @@ void TitleSettingNodeV3::setCollapsed(bool collapsed) {
 bool TitleSettingNodeV3::hasUncommittedChanges() const {
     return false;
 }
+
 bool TitleSettingNodeV3::hasNonDefaultValue() const {
     return false;
 }
+
 void TitleSettingNodeV3::onResetToDefault() {}
 
 std::shared_ptr<TitleSettingV3> TitleSettingNodeV3::getSetting() const {
@@ -272,12 +290,166 @@ TitleSettingNodeV3* TitleSettingNodeV3::create(std::shared_ptr<TitleSettingV3> s
     delete ret;
     return nullptr;
 }
+
 TitleSettingNodeV3* TitleSettingNodeV3::create(ZStringView title, std::optional<ZStringView> description, float width) {
     auto ret = TitleSettingNodeV3::create(nullptr, width);
     ret->getNameLabel()->setString(title.c_str());
     ret->overrideDescription(description);
     ret->updateState(nullptr);
     return ret;
+}
+
+// InfoSettingNodeV3
+
+bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width) {
+    if (!SettingNodeV3::init(setting, width))
+        return false;
+
+    this->setContentHeight(22);
+    this->getNameLabel()->setVisible(false);
+    this->getDescriptionButton()->setVisible(false);
+
+    auto bg = NineSlice::create("white-square.png"_spr);
+    bg->setColor(setting->getColor().value_or(ccc3(255, 135, 88)));
+    bg->setOpacity(90);
+    bg->setContentWidth(width - 30);
+
+    this->addChildAtPosition(bg, Anchor::Center);
+
+    auto infoLabel = TextArea::create(
+        setting->getDescription().value_or(""),
+        "chatFont.fnt", .65f, bg->getContentWidth() - 45,
+        ccp(.4999f, .4999f), 12, false
+    );
+
+    this->setContentHeight(30 + infoLabel->getContentHeight());
+    bg->setContentHeight(this->getContentHeight() - 10);
+    bg->addChildAtPosition(infoLabel, Anchor::Center);
+
+    this->updateState(nullptr);
+
+    return true;
+}
+
+void InfoSettingNodeV3::onCommit() {}
+
+bool InfoSettingNodeV3::hasUncommittedChanges() const {
+    return false;
+}
+
+bool InfoSettingNodeV3::hasNonDefaultValue() const {
+    return false;
+}
+
+void InfoSettingNodeV3::onResetToDefault() {}
+
+InfoSettingNodeV3* InfoSettingNodeV3::create(std::shared_ptr<InfoSettingV3> setting, float width) {
+    auto ret = new InfoSettingNodeV3();
+    if (ret->init(setting, width)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+// ButtonSettingNodeV3
+
+bool ButtonSettingNodeV3::init(std::shared_ptr<ButtonSettingV3> setting, float width) {
+    if (!SettingNodeV3::init(setting, width))
+        return false;
+
+    this->getNameLabel()->setVisible(false);
+
+    for (const auto& [k, v] : setting->getButtons()) {
+        auto spr = createGeodeButton(v);
+        spr->setScale(.5f);
+        spr->setCascadeColorEnabled(true);
+        spr->setCascadeOpacityEnabled(true);
+        auto button = Button::createWithNode(
+            spr, [setting, k] (auto sender) {
+                ButtonSettingPressedEventV3(setting->getMod(), setting->getKey()).send(k);
+            }
+        );
+        button->setCascadeColorEnabled(true);
+        button->setCascadeOpacityEnabled(true);
+        button->setID(fmt::format("{}-button", k));
+        buttons.push_back(button);
+        this->getButtonMenu()->addChild(button);
+    }
+
+    this->getButtonMenu()->setAnchorPoint({ 0.f, .5f });
+    this->getButtonMenu()->setContentWidth(setting->getDescription() ? width - 45 : width - 20);
+
+    auto buttonLayout = RowLayout::create();
+    this->getButtonMenu()->setLayout(buttonLayout);
+
+    if (!buttons.empty() && buttons[0]->getScale() < 0.8f) {
+        buttonLayout->setGrowCrossAxis(true);
+        this->getButtonMenu()->updateLayout();
+    }
+
+    this->updateState(nullptr);
+    this->setContentHeight(this->getButtonMenu()->getContentHeight() + 20);
+    this->getButtonMenu()->setPosition({10, getContentHeight() / 2});
+
+    this->getNameMenu()->setAnchorPoint({1.f, .5f});
+    this->getNameMenu()->setContentHeight(getContentHeight());
+    this->getNameMenu()->setPositionX(width - 10);
+
+    auto nameLayout = static_cast<AxisLayout*>(this->getNameMenu()->getLayout());
+    nameLayout->setAxisAlignment(AxisAlignment::Center);
+
+    this->getStatusLabel()->setAnchorPoint({0.5f, 0.f});
+
+    return true;
+}
+
+void ButtonSettingNodeV3::enableButtons(bool enabled) {
+    for (const auto& button : buttons) {
+        button->setEnabled(enabled);
+        button->setOpacity(enabled ? 255 : 175);
+        button->setColor(enabled ? ccc3(255, 255, 255) : ccc3(166, 166, 166));
+    }
+}
+
+void ButtonSettingNodeV3::updateState(CCNode* invoker) {
+    SettingNodeV3::updateState(invoker);
+    this->getStatusLabel()->setPosition({10 + this->getButtonMenu()->getContentWidth() / 2, 1.5f});
+    this->getNameMenu()->setContentWidth(20);
+
+    bool loaded = getSetting()->getMod()->isLoaded();
+
+    enableButtons(loaded && getSetting()->shouldEnable());
+
+    if (!loaded) {
+        this->getStatusLabel()->setString("Enable the mod to use these buttons");
+        this->getStatusLabel()->setVisible(true);
+    }
+
+    this->getNameMenu()->updateLayout();
+}
+
+void ButtonSettingNodeV3::onCommit() {}
+
+bool ButtonSettingNodeV3::hasUncommittedChanges() const {
+    return false;
+}
+
+bool ButtonSettingNodeV3::hasNonDefaultValue() const {
+    return false;
+}
+
+void ButtonSettingNodeV3::onResetToDefault() {}
+
+ButtonSettingNodeV3* ButtonSettingNodeV3::create(std::shared_ptr<ButtonSettingV3> setting, float width) {
+    auto ret = new ButtonSettingNodeV3();
+    if (ret->init(setting, width)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
 }
 
 // BoolSettingNodeV3
@@ -795,9 +967,11 @@ void UnresolvedCustomSettingNodeV3::onCommit() {}
 bool UnresolvedCustomSettingNodeV3::hasUncommittedChanges() const {
     return false;
 }
+
 bool UnresolvedCustomSettingNodeV3::hasNonDefaultValue() const {
     return false;
 }
+
 void UnresolvedCustomSettingNodeV3::onResetToDefault() {}
 
 UnresolvedCustomSettingNodeV3* UnresolvedCustomSettingNodeV3::create(std::string_view key, Mod* mod, float width) {

@@ -41,6 +41,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/ZStringView.hpp>
+#include <Geode/ui/NodeEvent.hpp>
 
 namespace geode {
     class Layout;
@@ -1152,6 +1153,46 @@ public:
     GEODE_DLL geode::comm::ListenerHandle* getEventListener(std::string_view id);
     GEODE_DLL size_t getEventListenerCount();
 
+    template <class Callback>
+    geode::comm::ListenerHandle* addOnEnterCallback(
+        Callback&& callback,
+        int priority = 0
+    ) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnEnter), std::forward<Callback>(callback), priority);
+    }
+
+    template <class Callback>
+    geode::comm::ListenerHandle* addOnEnterTransitionDidFinishCallback(
+        Callback&& callback,
+        int priority = 0
+    ) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnEnterTransitionDidFinish), std::forward<Callback>(callback), priority);
+    }
+
+    template <class Callback>
+    geode::comm::ListenerHandle* addOnExitCallback(
+        Callback&& callback,
+        int priority = 0
+    ) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnExit), std::forward<Callback>(callback), priority);
+    }
+
+    template <class Callback>
+    geode::comm::ListenerHandle* addOnExitTransitionDidStartCallback(
+        Callback&& callback,
+        int priority = 0
+    ) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnExitTransitionDidStart), std::forward<Callback>(callback), priority);
+    }
+
+    template <class Callback>
+    geode::comm::ListenerHandle* addCleanupCallback(
+        Callback&& callback,
+        int priority = 0
+    ) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnCleanup), std::forward<Callback>(callback), priority);
+    }
+
     /**
      * Get child at index. Checks bounds. A negative
      * index will get the child starting from the end
@@ -1204,6 +1245,49 @@ public:
             }
         }
 
+        return nullptr;
+    }
+
+    /**
+     * Gets the parent of the specified type.
+     * @param node The node to get the parent of.
+     * @param index The index of the parent to get.
+     * @return The parent of the specified type, or nullptr if not found.
+     */
+    template <class InpT = cocos2d::CCNode*, class T = std::remove_pointer_t<InpT>>
+    T* getParentByType(int index = 0) {
+        auto parent = this->getParent();
+        int indexCounter = 0;
+
+        if(index < 0) {
+            // start from end for negative index
+            index = -index - 1;
+            std::vector<cocos2d::CCNode*> parents;
+            while(parent) {
+                parents.push_back(parent);
+                parent = parent->getParent();
+            }
+            for (auto it = parents.rbegin(); it != parents.rend(); ++it) {
+                if(auto casted = geode::cast::typeinfo_cast<T*>(*it)) {
+                    if (indexCounter == index) {
+                        return casted;
+                    }
+                    ++indexCounter;
+                }
+            }
+
+            return nullptr;
+        }
+
+        while(parent) {
+            if(auto casted = geode::cast::typeinfo_cast<T*>(parent)) {
+                if (indexCounter == index) {
+                    return casted;
+                }
+                ++indexCounter;
+            }
+            parent = parent->getParent();
+        }
         return nullptr;
     }
 

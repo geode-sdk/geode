@@ -1,58 +1,466 @@
-#include <Geode/utils/string.hpp>
+// this is mostly copied from macos
 #include <crashlog.hpp>
+#include <crashlogUnix.hpp>
 
-static bool s_lastLaunchCrashed = false;
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/ZStringView.hpp>
+#include <tulip/TulipHook.hpp>
+#include <thread>
+#include <dlfcn.h>
+#include <cxxabi.h>
 
-#ifdef GEODE_USE_BREAKPAD
+#include <sys/ucontext.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <link.h>
+#include <unwind.h>
+#include <unwindstack/Maps.h>
+#include <unwindstack/RegsArm64.h>
+#include <unwindstack/RegsArm.h>
+#include <unwindstack/Unwinder.h>
 
-#include <memory>
-#include <fmt/chrono.h>
+using namespace geode::prelude;
+using namespace crashlog;
+using namespace unwindstack;
 
-#include <asp/time/SystemTime.hpp>
+static constexpr auto crashIndicatorFilename = "last-crashed";
 
-#include <client/linux/handler/exception_handler.h>
-#include <client/linux/handler/minidump_descriptor.h>
+static int s_signal = 0;
+static std::atomic<int> s_reentrancy{0};
+static std::atomic<bool> s_skipSymbols{false};
+static siginfo_t* s_siginfo = nullptr;
+static ucontext_t* s_context = nullptr;
+static struct sigaction s_oldAbort;
+static crashlog::CrashContext g_context;
+static std::unique_ptr<Maps> g_maps;
+static std::shared_ptr<Memory> g_memory;
+static int s_pipe[2];
 
-namespace {
-    // this object must be kept alive
-    auto s_exceptionHandler = std::unique_ptr<google_breakpad::ExceptionHandler>(nullptr);
-    constexpr auto crashIndicatorFilename = "lastSessionDidCrash";
+static std::string nameForMap(MapInfo& map) {
+    auto elf = map.GetElf(g_memory, Regs::CurrentArch());
 
-    bool crashCallback(
-        google_breakpad::MinidumpDescriptor const& descriptor, void* /* context */, bool succeeded
-    ) {
-        // jumping into unsafe territory :fish:
-        // create a file that indicates a crash did happen (which is then cleared on next launch)
-        auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
-        auto indicatorString = geode::utils::string::pathToString(crashIndicatorPath);
+    std::string name = map.name();
+    if (elf) {
+        auto soname = elf->GetSoname();
+        if (!soname.empty()) {
+            name = soname;
+        }
+    }
+    return name;
+}
 
-        sys_open(indicatorString.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0);
+std::vector<Image> CrashContext::getImages() {
+    std::vector<Image> images;
+    images.reserve(256); // on my device it was around 200, with mods it can be much higher
 
-        // another memory allocation!
-        geode::log::error("Geode crashed! Crash dump saved to {}", descriptor.path());
+    if (!g_maps || s_skipSymbols.load()) return images;
 
-        return succeeded;
+    Image current{};
+    std::string currentName;
+    auto commit = [&] {
+        if (current.address != 0) {
+            images.push_back(std::move(current));
+            current = Image{};
+            currentName.clear();
+        }
+    };
+
+    for (auto& map : *g_maps) {
+        std::string_view n = map->name();
+
+        // ignore very uninteresting ones
+        if (
+            n.empty()
+            || n == "[page size compat]"
+            || n.starts_with("/dev/mali")
+            || n.starts_with("/mali")
+            || n.starts_with("[anon:")
+            || n.starts_with("/dev/__properties__")
+            || n.starts_with("/dev/ashmem")
+            || n.starts_with("/metadata")
+            || n.starts_with("/system/fonts")
+            || n.starts_with("/system/usr")
+            || n.starts_with("/dmabuf")
+            || n.starts_with("/data/user_de/0/com.geode.launcher/cache")
+        ) {
+            continue;
+        }
+
+        if (map->name() != currentName) {
+            // new image, commit the previous one
+            commit();
+            currentName = map->name();
+        }
+
+        // get the human name, base and size if applicable
+        // note that current.name is NOT what we have in currentName,
+        // currentName will be raw name in maps e.g. split_config.apk,
+        // while the current.name() will be the soname if available
+        if (current.name_.empty()) {
+            current.name_ = nameForMap(*map);
+        }
+
+        if (current.address == 0) {
+            current.address = map->start();
+        }
+
+        current.size = std::max<size_t>(current.size, map->end() - current.address);
     }
 
-    std::string crashdumpName() {
-        auto timeEpoch = std::chrono::system_clock::to_time_t(
-            std::chrono::system_clock::now());
-        auto localtime = asp::localtime(timeEpoch);
+    commit();
 
-        return fmt::format("Crash {:%F %H.%M.%S}.dmp", localtime);
+    // __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Images: %zu", images.size());
+    // for (auto& img : images) {
+    //     __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Image: %s at %p (size 0x%zx)", img.name().data(), (void*)img.address, img.size);
+    // }
+
+    return images;
+}
+
+class GeodeUnwinder : public Unwinder {
+public:
+    GeodeUnwinder(Maps* maps, Regs* regs, std::shared_ptr<Memory> process_memory)
+        : Unwinder(CrashContext::MAX_FRAMES, maps, regs, process_memory) {}
+
+    bool Step(Elf* elf, uint64_t rel_pc, Regs* regs_, Memory* memory, bool* finished, bool* is_signal_frame) override {
+        // check if it's a tulip function
+        auto tinfo = tulip::hook::getFunctionInformation((void*)regs_->pc());
+        if (!tinfo) {
+            return elf->Step(rel_pc, regs_, memory, finished, is_signal_frame);
+        }
+
+#ifdef GEODE_IS_ANDROID64
+        auto regs = static_cast<RegsArm64*>(regs_);
+
+        uint64_t sp = regs->sp();
+
+        // Compute CFA
+        uint64_t cfa = sp + 0xc0;
+
+        // Read saved registers from stack
+        uint64_t new_fp, new_pc;
+        memory->Read64(cfa - 16, &new_fp); // X29
+        memory->Read64(cfa - 8, &new_pc);  // X30
+
+        // Apply unwind
+        regs->set_sp(cfa);
+        regs->set_pc(new_pc);
+        (*regs)[29] = new_fp;
+#else
+        auto regs = static_cast<RegsArm*>(regs_);
+        uint32_t sp = regs->sp();
+        uint32_t cfa = sp + 0x80;
+
+        uint32_t new_fp, new_pc;
+        memory->Read32(cfa - 4, &new_fp);
+        memory->Read32(cfa - 8, &new_pc);
+
+        // Thumb fix
+        new_pc |= 1;
+
+        // Apply unwind
+        regs->set_sp(cfa);
+        regs->set_pc(new_pc);
+        (*regs)[11] = new_fp;  // R11
+#endif
+
+        return true;
+    }
+};
+
+std::vector<StackFrame> CrashContext::getStacktrace() {
+    std::vector<StackFrame> frames;
+
+    auto jit = CreateJitDebug(Regs::CurrentArch(), g_memory);
+    auto dex = CreateDexFiles(Regs::CurrentArch(), g_memory);
+
+    GeodeUnwinder unwinder(
+        g_maps.get(),
+        Regs::CreateFromUcontext(Regs::CurrentArch(), s_context),
+        g_memory
+    );
+    unwinder.SetArch(Regs::CurrentArch());
+    unwinder.SetResolveNames(!s_skipSymbols);
+
+    unwinder.SetJitDebug(jit.get());
+    unwinder.SetDexFiles(dex.get());
+    unwinder.Unwind();
+
+    for (int i = 0; i < unwinder.NumFrames(); ++i) {
+        __android_log_print(ANDROID_LOG_DEBUG, "Geode", "Unwinder frame %d: %s", i, unwinder.FormatFrame(i).c_str());
+
+        auto& frame = unwinder.frames()[i];
+        std::string symbol;
+        uintptr_t offset = 0;
+
+        if (!frame.function_name.empty()) {
+            offset = frame.function_offset;
+
+            int status;
+            auto demangle = abi::__cxa_demangle(frame.function_name.c_str(), 0, 0, &status);
+            if (status == 0) {
+                symbol = demangle;
+            } else {
+                symbol = frame.function_name;
+            }
+            free(demangle);
+        }
+
+        StackFrame sframe {
+            .address = (uintptr_t)frame.pc,
+            .symbol = std::move(symbol),
+            .offset = offset
+        };
+
+        if (frame.map_info) {
+            // try to find the image using map info, more reliable
+            std::string name = nameForMap(*frame.map_info);
+
+            if (!s_skipSymbols.load()) {
+                auto it = std::find_if(g_context.images.begin(), g_context.images.end(), [&name](const Image& img) {
+                    return img.name() == name;
+                });
+                if (it != g_context.images.end()) {
+                    sframe.image = &*it;
+                }
+            } else {
+                // if skip symbols is set to true, we have no images in g_context, so mark the image name as description
+                uintptr_t offset = sframe.address - frame.map_info->start();
+                sframe.description = fmt::format("{} + 0x{:x}", name, offset);
+            }
+
+            // if there is no map info, it is likely a hook handler and will be handled by the common handler
+        }
+
+        frames.push_back(std::move(sframe));
+    }
+
+    return frames;
+}
+
+std::vector<Register> CrashContext::getRegisters() {
+    std::vector<Register> registers;
+    auto& ss = s_context->uc_mcontext;
+
+#ifdef GEODE_IS_ANDROID64
+    registers.push_back({ "x0", ss.regs[0] });
+    registers.push_back({ "x1", ss.regs[1] });
+    registers.push_back({ "x2", ss.regs[2] });
+    registers.push_back({ "x3", ss.regs[3] });
+    registers.push_back({ "x4", ss.regs[4] });
+    registers.push_back({ "x5", ss.regs[5] });
+    registers.push_back({ "x6", ss.regs[6] });
+    registers.push_back({ "x7", ss.regs[7] });
+    registers.push_back({ "x8", ss.regs[8] });
+    registers.push_back({ "x9", ss.regs[9] });
+    registers.push_back({ "x10", ss.regs[10] });
+    registers.push_back({ "x11", ss.regs[11] });
+    registers.push_back({ "x12", ss.regs[12] });
+    registers.push_back({ "x13", ss.regs[13] });
+    registers.push_back({ "x14", ss.regs[14] });
+    registers.push_back({ "x15", ss.regs[15] });
+    registers.push_back({ "x16", ss.regs[16] });
+    registers.push_back({ "x17", ss.regs[17] });
+    registers.push_back({ "x18", ss.regs[18] });
+    registers.push_back({ "x19", ss.regs[19] });
+    registers.push_back({ "x20", ss.regs[20] });
+    registers.push_back({ "x21", ss.regs[21] });
+    registers.push_back({ "x22", ss.regs[22] });
+    registers.push_back({ "x23", ss.regs[23] });
+    registers.push_back({ "x24", ss.regs[24] });
+    registers.push_back({ "x25", ss.regs[25] });
+    registers.push_back({ "x26", ss.regs[26] });
+    registers.push_back({ "x27", ss.regs[27] });
+    registers.push_back({ "x28", ss.regs[28] });
+    registers.push_back({ "fp", ss.regs[29] });
+    registers.push_back({ "lr", ss.regs[30] });
+    registers.push_back({ "sp", ss.sp });
+    registers.push_back({ "pc", ss.pc });
+    registers.push_back({ "cpsr", ss.pstate });
+#else
+    registers.push_back({ "r0", ss.arm_r0 });
+    registers.push_back({ "r1", ss.arm_r1 });
+    registers.push_back({ "r2", ss.arm_r2 });
+    registers.push_back({ "r3", ss.arm_r3 });
+    registers.push_back({ "r4", ss.arm_r4 });
+    registers.push_back({ "r5", ss.arm_r5 });
+    registers.push_back({ "r6", ss.arm_r6 });
+    registers.push_back({ "r7", ss.arm_r7 });
+    registers.push_back({ "r8", ss.arm_r8 });
+    registers.push_back({ "r9", ss.arm_r9 });
+    registers.push_back({ "r10", ss.arm_r10 });
+    registers.push_back({ "r11", ss.arm_fp });
+    registers.push_back({ "r12", ss.arm_ip });
+    registers.push_back({ "sp", ss.arm_sp });
+    registers.push_back({ "lr", ss.arm_lr });
+    registers.push_back({ "pc", ss.arm_pc });
+    registers.push_back({ "cpsr", ss.arm_cpsr });
+#endif
+    return registers;
+}
+
+std::string_view CrashContext::getGeodeBinaryName() {
+    return "Geode.so";
+}
+
+/// Source: https://cs.android.com/android/platform/superproject/main/+/main:bionic/libc/bionic/android_set_abort_message.cpp
+struct abort_message_t {
+    uint64_t magic1;
+    uint64_t magic2;
+    size_t size;
+    char msg[0];
+};
+
+static std::string getAbortMessage() {
+    if (s_signal != SIGABRT) {
+        return "";
+    }
+
+    for (size_t i = 0; i < g_maps->Total(); i++) {
+        auto map = g_maps->Get(i);
+
+        if (map->name() != "[anon:abort message]") continue;
+
+        auto start = (abort_message_t const*)map->start();
+
+        if (start->magic1 != 0xb18e40886ac388f0ULL || start->magic2 != 0xc6dfba755a1de0b5ULL) {
+            continue;
+        }
+
+        return std::string(start->msg);
+    }
+
+    return "";
+}
+
+void CrashContext::writeInfo(Buffer& stream) {
+    auto image = this->imageFromAddress(crashAddr);
+
+    stream.append("Faulty Lib: {}\n", image ? image->name() : "<Unknown>");
+    stream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
+    stream.append("Instruction Address: ");
+    this->formatAddress(crashAddr, infoStream);
+
+    stream.append("\nSignal: {}, code {} ({})\n", s_siginfo->si_signo, s_siginfo->si_code, getSignalCodeString(s_signal, s_siginfo));
+
+    if (hasSignalDetail(s_signal)) {
+        stream.append("Signal Detail: ");
+        writeSignalDetail(stream, g_context, s_signal, s_siginfo);
+        stream.append('\n');
+    }
+
+    auto abortMsg = getAbortMessage();
+    if (!abortMsg.empty()) {
+        stream.append("Abort message: {}\n", abortMsg);
+    }
+
+    int reentrancy = s_reentrancy.load();
+    if (reentrancy > 1) {
+        stream.append("Note: The crash handler crashed while processing the real crash, so this log does not cover the real crash.\n"
+            "Please report this to the Geode Team. (reentrancy: {})\n",
+            reentrancy
+        );
     }
 }
 
+extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
+    __android_log_print(ANDROID_LOG_ERROR, "Geode", "Signal handler called with signal %d", signal);
+
+    int reentrancy = s_reentrancy.fetch_add(1) + 1;
+    if (reentrancy > 3) {
+        // crash handler crashed 3 times, give up and die
+        __android_log_print(ANDROID_LOG_ERROR, "Geode", "Signal handler reentrancy level %d, giving up", reentrancy);
+        std::_Exit(EXIT_FAILURE);
+    }
+
+    // if the crash handler itself has already crashed processing its own crash, skip extra processing to try and avoid another crash
+    s_skipSymbols = reentrancy > 2;
+
+    s_signal = signal;
+    s_siginfo = signalInfo;
+    s_context = reinterpret_cast<ucontext_t*>(vcontext);
+
+    write(s_pipe[1], "1", 1);
+
+    // wait for the death to come
+    while (true) {
+        usleep(100000);
+    }
+}
+
+static void handlerThread() {
+    // no more mutex deadlocker
+    char buf;
+    while (read(s_pipe[0], &buf, 1) != 0) {
+#ifdef GEODE_IS_ANDROID64
+        auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext.pc);
+#else
+        auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext.arm_pc);
+#endif
+        int signal = s_signal;
+        __android_log_print(ANDROID_LOG_ERROR, "Geode", "Picked up signal %d at %p", signal, signalAddress);
+
+        // initialize maps & memory early
+        g_memory = Memory::CreateProcessMemoryCached(getpid());
+        g_maps = std::make_unique<LocalMaps>();
+        if (!g_maps->Parse()) {
+            __android_log_print(ANDROID_LOG_ERROR, "Geode", "Failed to parse memory maps");
+        }
+
+        g_context.initialize(signalAddress);
+        g_maps.reset();
+        g_memory.reset();
+
+        crashlog::writeCrashlog(g_context);
+
+        // if this was an abort, call the previous handler, otherwise just exit immediately
+        // this means that if other interceptors are active (like hwasan), they will get to handle the crash as well
+        // if none are active, the game will simply exit
+        if (signal == SIGABRT && (s_oldAbort.sa_sigaction || s_oldAbort.sa_handler)) {
+            // unblock the signal just in case
+            sigset_t set;
+            sigemptyset(&set);
+            sigaddset(&set, SIGABRT);
+            pthread_sigmask(SIG_UNBLOCK, &set, nullptr);
+
+            sigaction(SIGABRT, &s_oldAbort, nullptr);
+            raise(SIGABRT);
+        } else {
+            std::_Exit(EXIT_FAILURE);
+        }
+    }
+}
+
+static bool s_lastLaunchCrashed;
+
 bool crashlog::setupPlatformHandler() {
-    auto logDirectory = crashlog::getCrashLogDirectory();
+    // for whatever reason, i can't just do int*
+    if (pipe(s_pipe) != 0) return false;
+    fcntl(s_pipe[0], F_SETFD, FD_CLOEXEC);
+    fcntl(s_pipe[1], F_SETFD, FD_CLOEXEC);
+    struct sigaction action;
+    action.sa_sigaction = &signalHandler;
+    action.sa_flags = SA_SIGINFO;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGSEGV, &action, nullptr);
+    // I'd rather not track interrupt lol
+    // sigaction(SIGINT, &action, nullptr);
+    sigaction(SIGFPE, &action, nullptr);
+    sigaction(SIGILL, &action, nullptr);
+    sigaction(SIGTERM, &action, nullptr);
+    sigaction(SIGABRT, &action, &s_oldAbort);
+    sigaction(SIGBUS, &action, nullptr);
+    sigaction(SIGTRAP, &action, nullptr);
 
-    (void)geode::utils::file::createDirectoryAll(logDirectory);
 
-    google_breakpad::MinidumpDescriptor descriptor(geode::utils::string::pathToString(logDirectory), crashdumpName());
+    // spawn multiple to handle reentrant crashes, cases where one handler thread died
+    for (size_t i = 0; i < 3; i++) {
+        std::thread(&handlerThread).detach();
+    }
 
-    s_exceptionHandler = std::make_unique<google_breakpad::ExceptionHandler>(
-        descriptor, nullptr, crashCallback, nullptr, true, -1
-    );
+    std::filesystem::remove(crashlog::getCrashLogDirectory() / "lastSessionDidCrash");
+    std::filesystem::remove(crashlog::getCrashLogDirectory() / "last-pid");
 
     auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
     if (std::filesystem::exists(crashIndicatorPath)) {
@@ -63,325 +471,12 @@ bool crashlog::setupPlatformHandler() {
     return true;
 }
 
-void crashlog::setupPlatformHandlerPost() { }
-
-#else
-
-using namespace geode::prelude;
-
-#include <Geode/utils/string.hpp>
-#include <array>
-#include <thread>
-#include <filesystem>
-#include <execinfo.h>
-#include <dlfcn.h>
-#include <cxxabi.h>
-#include <algorithm>
-#include <link.h>
-#include <unwind.h>
-
-
-#include <jni.h>
-#include <Geode/cocos/platform/android/jni/JniHelper.h>
-
-#include "backtrace/execinfo.hpp"
-
-static constexpr size_t FRAME_SIZE = 64;
-static std::mutex s_mutex;
-static std::condition_variable s_cv;
-static int s_signal = 0;
-static siginfo_t* s_siginfo = nullptr;
-static ucontext_t* s_context = nullptr;
-static size_t s_backtraceSize = 0;
-static std::array<void*, FRAME_SIZE> s_backtrace;
-
-static std::string_view getSignalCodeString() {
-    switch(s_signal) {
-        case SIGSEGV: return "SIGSEGV: Segmentation Fault";
-        case SIGINT: return "SIGINT: Interactive attention signal, (usually ctrl+c)";
-        case SIGFPE:
-            switch(s_siginfo->si_code) {
-                case FPE_INTDIV: return "SIGFPE: (integer divide by zero)";
-                case FPE_INTOVF: return "SIGFPE: (integer overflow)";
-                case FPE_FLTDIV: return "SIGFPE: (floating-point divide by zero)";
-                case FPE_FLTOVF: return "SIGFPE: (floating-point overflow)";
-                case FPE_FLTUND: return "SIGFPE: (floating-point underflow)";
-                case FPE_FLTRES: return "SIGFPE: (floating-point inexact result)";
-                case FPE_FLTINV: return "SIGFPE: (floating-point invalid operation)";
-                case FPE_FLTSUB: return "SIGFPE: (subscript out of range)";
-                default: return "SIGFPE: Arithmetic Exception";
-            }
-        case SIGILL:
-            switch(s_siginfo->si_code) {
-                case ILL_ILLOPC: return "SIGILL: (illegal opcode)";
-                case ILL_ILLOPN: return "SIGILL: (illegal operand)";
-                case ILL_ILLADR: return "SIGILL: (illegal addressing mode)";
-                case ILL_ILLTRP: return "SIGILL: (illegal trap)";
-                case ILL_PRVOPC: return "SIGILL: (privileged opcode)";
-                case ILL_PRVREG: return "SIGILL: (privileged register)";
-                case ILL_COPROC: return "SIGILL: (coprocessor error)";
-                case ILL_BADSTK: return "SIGILL: (internal stack error)";
-                default: return "SIGILL: Illegal Instruction";
-            }
-        case SIGTERM: return "SIGTERM: a termination request was sent to the program";
-        case SIGABRT: return "SIGABRT: usually caused by an abort() or assert()";
-        case SIGBUS: return "SIGBUS: Bus error (bad memory access)";
-        default: return "Unknown signal code";
-    }
-}
-
-static std::string getImageName(void const* image) {
-    if (image == nullptr) {
-        return "<Unknown>";
-    }
-    std::string imageName;// = image->imageFilePath;
-    if (imageName.empty()) {
-        imageName = "<Unknown>";
-    }
-    return imageName;
-}
-
-static void const* imageFromAddress(void const* addr) {
-    if (addr == nullptr) {
-        return nullptr;
-    }
-    return nullptr;
-}
-
-static Mod* modFromAddress(void const* addr) {
-    if (addr == nullptr) {
-        return nullptr;
-    }
-    return nullptr;
-}
-
-static std::string getInfo(void* address, Mod* faultyMod) {
-    StringBuffer<> stream;
-    stream.append("Faulty Lib: {}\n", getImageName(imageFromAddress(address)));
-    stream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
-    stream.append("Instruction Address: {}\n", address);
-    stream.append("Signal Code: {:x} ({})\n", s_signal, getSignalCodeString());
-    return stream.str();
-}
-
-static struct sigaction oldActionSEGV;
-static struct sigaction oldActionBUS;
-static struct sigaction oldActionILL;
-
-extern "C" void signalHandler(int signal, siginfo_t* signalInfo, void* vcontext) {
-    auto context = reinterpret_cast<ucontext_t*>(vcontext);
-    s_backtraceSize = 0;
-    // s_backtraceSize = backtrace(s_backtrace.data(), FRAME_SIZE);
-
-    // for some reason this is needed, dont ask me why
-    // s_backtrace[1] = reinterpret_cast<void*>(context->uc_mcontext.fault_address);
-    // if (s_backtraceSize < FRAME_SIZE) {
-    //     s_backtrace[s_backtraceSize] = nullptr;
-    // }
-
-    {
-        std::unique_lock<std::mutex> lock(s_mutex);
-        s_signal = signal;
-        s_siginfo = signalInfo;
-        s_context = context;
-    }
-
-    s_cv.notify_all();
-    std::unique_lock<std::mutex> lock(s_mutex);
-    s_cv.wait(lock, [] { return s_signal == 0; });
-    // std::_Exit(EXIT_FAILURE);
-
-    switch (signal) {
-        case SIGSEGV:
-            sigaction(signal, &oldActionSEGV, nullptr);
-            oldActionSEGV.sa_sigaction(signal, signalInfo, vcontext);
-            break;
-        case SIGBUS:
-            sigaction(signal, &oldActionBUS, nullptr);
-            oldActionBUS.sa_sigaction(signal, signalInfo, vcontext);
-            break;
-        case SIGILL:
-            sigaction(signal, &oldActionILL, nullptr);
-            oldActionILL.sa_sigaction(signal, signalInfo, vcontext);
-            break;
-    }
-}
-
-static std::string getStacktrace() {
-    StringBuffer<> stacktrace;
-
-    if (s_backtraceSize == 0) {
-        return stacktrace.str();
-    }
-
-    auto messages = backtrace_symbols(s_backtrace.data(), s_backtraceSize);
-    if (s_backtraceSize < FRAME_SIZE) {
-        messages[s_backtraceSize] = nullptr;
-    }
-
-
-    for (int i = 1; i < s_backtraceSize; ++i) {
-        auto message = std::string_view(messages[i]);
-
-        // TODO: parse the message
-        stacktrace.append(message);
-        stacktrace.append('\n');
-    }
-
-    free(messages);
-
-    return stacktrace.str();
-}
-
-static std::string getRegisters() {
-    return {};
-}
-
-static void handlerThread() {
-    std::unique_lock<std::mutex> lock(s_mutex);
-    s_cv.wait(lock, [] { return s_signal != 0; });
-
-    auto signalAddress = reinterpret_cast<void*>(s_context->uc_mcontext.fault_address);
-    Mod* faultyMod = modFromAddress(signalAddress);
-
-    auto text = crashlog::writeCrashlog(faultyMod, getInfo(signalAddress, faultyMod), getStacktrace(), getRegisters());
-
-    log::error("Geode crashed!\n{}", text);
-
-    s_signal = 0;
-    s_cv.notify_all();
-
-    log::debug("Notified");
-}
-
-int writeAndGetPid() {
-    auto pidFile = crashlog::getCrashLogDirectory() / "last-pid";
-
-    int lastPid = 0;
-
-    if (std::filesystem::exists(pidFile)) {
-
-        auto res = file::readString(pidFile);
-        if (!res) {
-            log::warn("Failed to read last-pid file: {}", res.unwrapErr());
-        }
-        else {
-            auto res2 = numFromString<int>(res.unwrap());
-            if (!res) {
-                log::warn("Failed to parse last-pid file: {}", res2.unwrapErr());
-            }
-            else lastPid = res2.unwrap();
-        }
-
-        std::error_code ec;
-        std::filesystem::remove(pidFile, ec);
-
-        if (ec) {
-            log::warn("Failed to remove last-pid file: {}", ec.message());
-        }
-    }
-
-    auto res = file::writeString(pidFile, std::to_string(getpid()));
-    if (!res) {
-        log::warn("Failed to write last-pid file: {}", res.unwrapErr());
-    }
-
-    return lastPid;
-}
-
-void printModsAndroid(crashlog::Buffer& stream) {
-    auto mods = Loader::get()->getAllMods();
-    if (mods.empty()) {
-        stream.append("<None>\n");
-        return;
-    }
-
-    using namespace std::string_view_literals;
-    for (auto& mod : mods) {
-        stream.append("{} | [{}] {}\n",
-            mod->shouldLoad() ? "x"sv : " "sv,
-            mod->getVersion().toVString(), mod->getID()
-        );
-    }
-}
-
-void printMemoryMappings(crashlog::Buffer& stream) {
-    std::ifstream processMappings("/proc/self/maps");
-
-    std::string mapping;
-    while (std::getline(processMappings, mapping)) {
-        stream.append(mapping);
-        stream.append('\n');
-    }
-}
-
-static std::string s_result;
-bool crashlog::setupPlatformHandler() {
-    (void)utils::file::createDirectoryAll(crashlog::getCrashLogDirectory());
-
-    JniMethodInfo t;
-
-    if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getLogcatCrashBuffer", "()Ljava/lang/String;")) {
-        jstring stringResult = (jstring)t.env->CallStaticObjectMethod(t.classID, t.methodID);
-
-        s_result = JniHelper::jstring2string(stringResult);
-
-        t.env->DeleteLocalRef(stringResult);
-        t.env->DeleteLocalRef(t.classID);
-
-        if (s_result.empty()) {
-            return false;
-        }
-    }
-    else return false;
-
-    auto lastPid = writeAndGetPid();
-
-    auto index = s_result.rfind(fmt::format("pid {}", lastPid));
-    if (index != std::string::npos) {
-        auto begin = s_result.substr(0, index).rfind("F/libc");
-        if (begin != std::string::npos) {
-            s_result = s_result.substr(begin);
-        }
-        s_lastLaunchCrashed = true;
-    }
-    return true;
-}
-
-void crashlog::setupPlatformHandlerPost() {
-    if (s_result.empty()) return;
-
-    Buffer ss;
-    ss.append(
-        "Geode crashed!\n"
-        "Please submit this crash report to the developer of the mod that caused it.\n"
-        "\n== Geode Information ==\n"
-    );
-    crashlog::printGeodeInfo(ss);
-
-    ss.append("\n== Installed Mods ==\n");
-    printModsAndroid(ss);
-
-    ss.append("\n== Crash Report (Logcat) ==\n");
-    ss.append(s_result);
-
-    ss.append("\n== Process Mapping ==\n");
-    printMemoryMappings(ss);
-
-    std::ofstream actualFile;
-    actualFile.open(
-        crashlog::getCrashLogDirectory() / (crashlog::getDateString(true) + ".log"), std::ios::app
-    );
-    actualFile << ss.view() << std::flush;
-    actualFile.close();
-}
-
-#endif
-
-std::filesystem::path crashlog::getCrashLogDirectory() {
-    return geode::dirs::getGeodeDir() / "crashlogs";
-}
+void crashlog::setupPlatformHandlerPost() {}
 
 bool crashlog::didLastLaunchCrash() {
     return s_lastLaunchCrashed;
+}
+
+std::filesystem::path crashlog::getCrashLogDirectory() {
+    return dirs::getGeodeDir() / "crashlogs";
 }

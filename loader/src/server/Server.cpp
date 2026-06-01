@@ -872,6 +872,7 @@ ServerFuture<ServerModUpdateAllCheck> server::checkAllUpdates(bool useCache) {
         Loader::get()->getAllMods(),
         [](auto mod) { return mod->getID(); }
     );
+    ranges::remove(modIDs, "geode.loader");
 
     // if there's no mods, the request would just be empty anyways
     if (modIDs.empty()) {

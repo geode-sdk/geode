@@ -45,6 +45,23 @@ namespace geode::addresser {
         &Class::m_fields;
     };
 
+    template <class Class>
+    inline Class* cachedInstance() requires (HasZeroConstructor<Class>) {
+        static auto ret = new Class(ZeroConstructor);
+        return ret;
+    }
+
+    template <class Class>
+    inline Class* cachedInstance() requires (!HasZeroConstructor<Class> && HasModifyFields<Class>) {
+        static auto ret = new Class();
+        return ret;
+    }
+
+    template <class Class>
+    inline Class* cachedInstance() requires (!HasZeroConstructor<Class> && !HasModifyFields<Class>) {
+        return nullptr;
+    }
+
     class GEODE_DLL Addresser final {
         template <char C>
         struct SingleInheritance {
@@ -79,23 +96,6 @@ namespace geode::addresser {
             // arm
             if (thunk & 1) thunk >>= 1;
             return thunk;
-        }
-
-        template <class Class>
-        static Class* cachedInstance() requires (HasZeroConstructor<Class>) {
-            static auto ret = new Class(ZeroConstructor);
-            return ret;
-        }
-
-        template <class Class>
-        static Class* cachedInstance() requires (!HasZeroConstructor<Class> && HasModifyFields<Class>) {
-            static auto ret = new Class();
-            return ret;
-        }
-
-        template <class Class>
-        static Class* cachedInstance() requires (!HasZeroConstructor<Class> && !HasModifyFields<Class>) {
-            return nullptr;
         }
 
         /**
