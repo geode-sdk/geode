@@ -116,14 +116,15 @@ public:
 
 private:
     asp::Mutex<CacheMap<CacheKey, Value>> m_cache;
+    asp::Mutex<std::vector<std::pair<CacheKey, std::shared_ptr<arc::Semaphore>>>> m_syncMap;
 
 public:
     FunCache() = default;
     FunCache(FunCache const&) = delete;
     FunCache(FunCache&&) = delete;
 
-    template <class... Args>
-    arc::Future<Result<Value, ServerError>> get(Args&&... args) {
+    template <bool Sync, class... Args>
+    arc::Future<Result<Value, ServerError>> getInner(Args&&... args) {
         ARC_FRAME();
         auto key = Extract::key(args...);
 
@@ -133,15 +134,60 @@ public:
         }
         cache.unlock();
 
+        std::shared_ptr<arc::Semaphore> notify;
+        if constexpr (Sync) {
+            auto sm = m_syncMap.lock();
+            auto it = std::find_if(sm->begin(), sm->end(), [&key](auto const& q) {
+                return q.first == key;
+            });
+
+            if (it != sm->end()) {
+                // another task is already fetching this resource, synchronize with it
+                auto n = it->second;
+                sm.unlock();
+
+                co_await n->acquire(1);
+
+                // check cache again
+                auto cache = m_cache.lock();
+                if (auto v = cache->get(key)) {
+                    co_return Ok(std::move(*v));
+                }
+            } else {
+                // we are the first to fetch this resource, tell all future fetchers to wait
+                notify = std::make_shared<arc::Semaphore>(0);
+                sm->emplace_back(key, notify);
+            }
+        }
+
         auto f = ARC_CO_UNWRAP(co_await Extract::invoke(F, std::forward<Args>(args)...));
 
         cache.relock();
-        if (cache->has(key)) {
-            co_return Ok(std::move(f)); // don't save to cache if someone beat us
-        }
-        cache->add(std::move(key), Value{f});
 
-        co_return Ok(f);
+        // only save to cache if no one beat us
+        if (!cache->has(key)) {
+            cache->add(std::move(key), Value{f});
+        }
+        cache.unlock();
+
+        // notify all waiters
+        if (notify) {
+            notify->release(1'000'000'000);
+            auto sm = m_syncMap.lock();
+            ranges::remove(*sm, [&](auto const& q) { return q.second.get() == notify.get(); });
+        }
+
+        co_return Ok(std::move(f));
+    }
+
+    template <class... Args>
+    arc::Future<Result<Value, ServerError>> getSynchronized(Args&&... args) {
+        return this->getInner<true>(std::forward<Args>(args)...);
+    }
+
+    template <class... Args>
+    arc::Future<Result<Value, ServerError>> get(Args&&... args) {
+        return this->getInner<false>(std::forward<Args>(args)...);
     }
 
     template <class... Args>
@@ -685,7 +731,7 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
 ServerFuture<ServerModMetadata> server::getMod(std::string id, bool useCache) {
     ARC_FRAME();
     if (useCache) {
-        co_return co_await getCache<getMod>().get(std::move(id));
+        co_return co_await getCache<getMod>().getSynchronized(std::move(id));
     }
 
     auto req = web::WebRequest();
