@@ -127,6 +127,23 @@ ask_gd_path() {
     done
 }
 
+update_wine_overrides() {
+    local STEAMAPPS_DIR="${GD_PATH%/common/*}"
+    
+    local PREFIX="$STEAMAPPS_DIR/compatdata/322170/pfx"
+
+    if [ -d "$PREFIX" ]; then
+        echo "Updating registry..."
+       
+        WINEPREFIX="$PREFIX" wine reg add 'HKEY_CURRENT_USER\Software\Wine\DllOverrides' /v "XInput1_4" /d "native,builtin" /f
+        
+        echo -e "${BLUE}Registry updated successfully${NC}"
+    else
+        echo -e "${RED}Error${NC}: Proton prefix not found at $PREFIX."
+        echo "Please launch Geometry Dash at least once via Steam."
+    fi
+}
+
 install() {
     if [ ! -d "$GD_PATH" ]; then
         echo -e "${RED}Error:${NC} Geometry Dash path is not set." >&2
@@ -164,6 +181,8 @@ install() {
         echo "Deleting conflicting XINPUT1_4.dll..."
         rm "$GD_PATH/XINPUT1_4.dll"
     fi
+
+    update_wine_overrides
 }
 
 check_dependencies
@@ -176,6 +195,7 @@ cat << "EOF"
  ..@@@@@@...@@.@@@@@@@@@@@@.. 
  .@@@@...@@@......@@@@@@@@@@. 
 ..@@@..@@@..@@@@@@..@@@..@@@..
+..@@@..@@.@@@@@@@@@..@@..@@@..
 ..@@@..@@.@@@@@@@@@..@@..@@@..
 ..@@@@..@@@@@@@@@@@.@@..@@@@..
 ..@@@@..@@@@@@@@@@..@@.@@@@@..
@@ -228,8 +248,5 @@ fi
 install
 
 echo -e "Geode has been installed successfully at ${YELLOW}$GD_PATH${NC}!"
-echo -e "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-echo -e "┃ Make sure to set \"${YELLOW}WINEDLLOVERRIDES=\"xinput1_4=n,b\" %command%${NC}\" as your ${YELLOW}launch options${NC} for Geometry Dash inside ${BLUE}Steam${NC}. ┃"
-echo -e "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
 echo "Have fun modding!"
 echo ""
