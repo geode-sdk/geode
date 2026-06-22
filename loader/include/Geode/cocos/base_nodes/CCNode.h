@@ -1120,7 +1120,7 @@ public:
     // @note Geode addition
     GEODE_DLL void setContentWidth(float width);
     // @note Geode addition
-    GEODE_DLL void setContentHeight(float width);
+    GEODE_DLL void setContentHeight(float height);
     // @note Geode addition
     GEODE_DLL float getContentWidth() const;
     // @note Geode addition
