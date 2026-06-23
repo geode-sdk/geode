@@ -6,6 +6,7 @@
 #include <optional>
 #include <string_view>
 #include <server/Server.hpp>
+#include "../ui/mods/sources/ModSource.hpp"
 
 using namespace geode::prelude;
 
@@ -304,4 +305,22 @@ bool Mod::isPinned() const {
 
 void Mod::setPinned(bool pinned) {
     m_impl->setPinned(pinned);
+}
+
+arc::Future<bool> geode::downloadMod(std::string id) {
+    if (Loader::get()->isModLoaded(id)) co_return false;
+
+    server::ServerResult<server::ServerModMetadata> result = co_await server::getMod(id);
+
+    if (result.isOk()) {
+        ModSource(std::move(result).unwrap()).startInstall();
+
+        co_return true;
+    } else {
+        auto err = std::move(result).unwrapErr();
+
+        log::error("Error fetching mod {}: {} (code {})", id, err.details, err.code);
+
+        co_return false;
+    }
 }
