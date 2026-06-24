@@ -40,8 +40,8 @@ public:
     void blockClosingFor(const asp::time::Duration& dur);
 
     // Makes it impossible to accidentally close the popup (via esc or back button)
-    // for a given period of time (in ms) after it is shown.
-    void blockClosingFor(int durMillis);
+    // for a given period of time (in seconds) after it is shown.
+    void blockClosingFor(float dur);
 
     // Shows the popup to the user immediately, does nothing if already shown.
     void showInstant();
