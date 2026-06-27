@@ -79,9 +79,10 @@ namespace geode {
         cocos2d::enumKeyCodes key;
         Action action;
         KeyboardModifier modifiers = KeyboardModifier::None;
+        void* physicalDevice = nullptr;
 
-        KeyboardInputData(cocos2d::enumKeyCodes key, Action action, Native native, double timestamp, KeyboardModifier mods) noexcept
-            : native(native), timestamp(timestamp), key(key), action(action), modifiers(mods) {}
+        KeyboardInputData(cocos2d::enumKeyCodes key, Action action, Native native, double timestamp, KeyboardModifier mods, void* device) noexcept
+            : native(native), timestamp(timestamp), key(key), action(action), modifiers(mods), physicalDevice(device) {}
     };
 
     struct KeyboardInputEvent final : GlobalEvent<KeyboardInputEvent, bool(KeyboardInputData&), cocos2d::enumKeyCodes> {
@@ -106,6 +107,7 @@ namespace geode {
         Action action;
         double timestamp;
         KeyboardModifier modifiers = KeyboardModifier::None;
+        void* physicalDevice = nullptr;
 
         // having this here is incredibly silly but oh well
         inline static cocos2d::enumKeyCodes buttonToKeyCode(Button button) {
@@ -121,8 +123,8 @@ namespace geode {
             }
         }
 
-        MouseInputData(Button button, Action action, double timestamp, KeyboardModifier mods) noexcept
-            : timestamp(timestamp), button(button), action(action), modifiers(mods) {}
+        MouseInputData(Button button, Action action, double timestamp, KeyboardModifier mods, void* device) noexcept
+            : timestamp(timestamp), button(button), action(action), modifiers(mods), physicalDevice(device) {}
     };
 
     struct MouseInputEvent final : Event<MouseInputEvent, bool(MouseInputData&)> {
