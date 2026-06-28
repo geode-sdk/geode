@@ -530,13 +530,6 @@ namespace geode {
 
         friend class ModImpl;
     };
-
-    /**
-     * Downloads the given mod ID and requests downloading the dependencies if applicable
-     * @param id The mod ID to download
-     * @returns The future with the result. True if successfully downloaded. False if already installed or failing to download.
-     */
-    GEODE_DLL arc::Future<bool> downloadMod(std::string id);
 }
 
 #ifdef GEODE_MOD_ID
