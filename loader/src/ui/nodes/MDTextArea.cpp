@@ -89,12 +89,14 @@ public:
         // so that's why based MDContentLayer expects itself
         // to have a CCMenu :-)
         if (m_content) {
+            const float minY = -this->getPositionY();
+            const float maxY = minY + (m_pParent ? m_pParent->getContentHeight() : 0);
+
             for (auto child : CCArrayExt<CCNode*>(m_content->getChildren())) {
-                auto y = this->getPositionY() + child->getPositionY();
-                child->setVisible(
-                    !((m_content->getContentSize().height < y) ||
-                      (y < -child->getContentSize().height))
-                );
+                const float bottomY = m_content->getPositionY() + child->getPositionY();
+                const float topY = bottomY + child->getScaledContentHeight() * (1 - child->getAnchorPoint().y);
+
+                child->setVisible(minY <= topY && maxY >= bottomY);
             }
         }
     }
