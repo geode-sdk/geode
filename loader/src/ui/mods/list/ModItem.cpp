@@ -231,7 +231,10 @@ bool ModItem::init(ModSource&& source) {
                 m_enableToggle->m_notClickable = true;
                 m_viewMenu->addChild(m_enableToggle);
                 m_viewMenu->updateLayout();
+            }
 
+            // Add a pin button if the mod is in a list and enablable
+            if (!typeinfo_cast<AnyModItem*>(m_pParent) && !mod->isInternal()) {
                 auto pinOff = CCSprite::createWithSpriteFrameName("pin.png"_spr);
                 pinOff->setOpacity(105);
                 auto pinOn = CCSprite::createWithSpriteFrameName("pin.png"_spr);
@@ -258,6 +261,7 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->addChild(m_pinToggle);
                 m_viewMenu->updateLayout();
             }
+
             if (mod->getLoadProblem()) {
                 auto viewErrorSpr = CircleButtonSprite::create(
                     CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 
