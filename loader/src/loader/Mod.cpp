@@ -6,7 +6,6 @@
 #include <optional>
 #include <string_view>
 #include <server/Server.hpp>
-#include "../ui/mods/sources/ModSource.hpp"
 
 using namespace geode::prelude;
 
