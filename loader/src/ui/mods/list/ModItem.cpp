@@ -20,7 +20,7 @@
 #include <ui/mods/sources/ModListSource.hpp>
 #include "../ModsLayer.hpp"
 
-bool ModItem::init(ModSource&& source) {
+bool ModItem::init(ModSource&& source, bool listItem) {
     if (!ModListItem::init())
         return false;
 
@@ -215,7 +215,7 @@ bool ModItem::init(ModSource&& source) {
 
     // Handle source-specific stuff
     m_source.visit(makeVisitor {
-        [this](Mod* mod) {
+        [this, listItem](Mod* mod) {
             // Add an enable button if the mod is enablable
             if (!mod->isInternal()) {
                 m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
@@ -234,7 +234,7 @@ bool ModItem::init(ModSource&& source) {
             }
 
             // Add a pin button if the mod is in a list and enablable
-            if (!typeinfo_cast<AnyModItem*>(m_pParent) && !mod->isInternal()) {
+            if (listItem && !mod->isInternal()) {
                 auto pinOff = CCSprite::createWithSpriteFrameName("pin.png"_spr);
                 pinOff->setOpacity(105);
                 auto pinOn = CCSprite::createWithSpriteFrameName("pin.png"_spr);
@@ -979,9 +979,9 @@ void ModItem::onDevelopers(CCObject*) {
     DevListPopup::create(m_source)->show();
 }
 
-ModItem* ModItem::create(ModSource&& source) {
+ModItem* ModItem::create(ModSource&& source, bool listItem) {
     auto ret = new ModItem();
-    if (ret->init(std::move(source))) {
+    if (ret->init(std::move(source), listItem)) {
         ret->autorelease();
         return ret;
     }
@@ -1037,7 +1037,7 @@ bool AnyModItem::init(ZStringView modID) {
     return true;
 }
 void AnyModItem::gotSrc(ModSource&& src) {
-    m_item = ModItem::create(std::move(src));
+    m_item = ModItem::create(std::move(src), false);
     m_item->updateDisplay(m_targetWidth, m_display);
     this->addChildAtPosition(m_item, Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
     m_bg->setVisible(false);

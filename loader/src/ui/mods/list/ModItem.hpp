@@ -83,7 +83,7 @@ protected:
      * @warning Make sure `getMetadata` and `createModLogo` are callable
      * before calling `init`!
     */
-    bool init(ModSource&& source);
+    bool init(ModSource&& source, bool listItem);
 
     void updateState();
 
@@ -97,7 +97,7 @@ protected:
     void onDevelopers(CCObject*);
 
 public:
-    static ModItem* create(ModSource&& source);
+    static ModItem* create(ModSource&& source, bool listItem = true);
 
     ModSource& getSource() &;
 };
