@@ -331,6 +331,9 @@ bool ModItem::init(ModSource&& source, bool listItem) {
             if (metadata.tags.contains("api")) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-api.png"_spr));
             }
+            if (metadata.tags.contains("gdps")) {
+                m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-gdps.png"_spr));
+            }
 
             for (auto [ year, winner ] : std::initializer_list<std::tuple<const char*, std::optional<const char*>>> {
                 { "24", "rainixgd.geome3dash" },
