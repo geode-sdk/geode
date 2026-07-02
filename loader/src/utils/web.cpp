@@ -2,7 +2,7 @@
 #include <Geode/Result.hpp>
 #include <Geode/utils/general.hpp>
 #include <filesystem>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <fstream>
 #include <matjson.hpp>
 #include <system_error>

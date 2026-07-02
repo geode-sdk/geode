@@ -10,7 +10,7 @@
 #include <string_view>
 #include <matjson.hpp>
 #include <type_traits>
-#include <fmt/core.h>
+#include <fmt/format.h>
 // for formatting std::vector and such
 #include <fmt/ranges.h>
 // for std::optional
@@ -154,7 +154,7 @@ namespace geode::format {
 
     template <class Type>
     struct LogFormatEvent : public ThreadSafeEvent<LogFormatEventMarker, bool(std::string& output, cocos2d::CCObject* obj, std::string_view specifier)> {
-        using ThreadSafeEvent::ThreadSafeEvent;        
+        using ThreadSafeEvent::ThreadSafeEvent;
 
         template<class Callable>
         ListenerHandle listen(cocos2d::CCObject* priorityFinder, Callable listener, int priority = 0) const noexcept {
@@ -170,7 +170,7 @@ namespace geode::format {
                     }
                     else {
                         static_assert(
-                            false, 
+                            false,
                             "LogFormatEvent listener must be invocable with (std::string&, Type*, std::string_view) or (std::string&, Type*)"
                         );
                     }
@@ -191,7 +191,7 @@ namespace geode::format {
                     }
                     else {
                         static_assert(
-                            false, 
+                            false,
                             "LogFormatEvent listener must be invocable with (std::string&, Type*, std::string_view) or (std::string&, Type*)"
                         );
                     }
@@ -200,9 +200,9 @@ namespace geode::format {
             }, LogFormatEventMarker::getNextReversePriority());
         }
     };
-    
+
     template <class T>
-    concept CocosPtr =     
+    concept CocosPtr =
         std::is_pointer_v<std::decay_t<T>> &&
         std::is_base_of_v<
             cocos2d::CCObject,
@@ -235,7 +235,7 @@ struct fmt::formatter<geode::format::Wrapper> {
     std::string specifier;
 
     template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx) noexcept { 
+    constexpr auto parse(ParseContext& ctx) noexcept {
         auto begin = ctx.begin();
         auto end = ctx.end();
 

@@ -2,7 +2,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <chrono>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
 #include <arc/sync/Mutex.hpp>

@@ -15,7 +15,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <ccTypes.h>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include "ui/mods/list/ModDeveloperItem.hpp"
 #include "../UpdateModListState.hpp"
 

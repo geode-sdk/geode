@@ -1,5 +1,5 @@
 #include "crashlog.hpp"
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include "about.hpp"
 #include "../loader/ModImpl.hpp"
 #include <Geode/Utils.hpp>

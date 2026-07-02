@@ -16,7 +16,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include "ehdata_structs.hpp"
 
 #include <tlhelp32.h>
