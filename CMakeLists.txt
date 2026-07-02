@@ -287,6 +287,9 @@ if (TARGET qsox)
 endif()
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
+# TODO v6: since fmt 12.2.0 <fmt/core.h> no longer includes fmt/format.h which is a breaking change,
+# temporarily add this macro as a fix, but we should remove it in next major version because fmt eventually might remove this workaround
+target_compile_definitions(${PROJECT_NAME} INTERFACE FMT_DEPRECATED_HEAVY_CORE)
 
 # this is needed for cross compilation on linux,
 # since fmtlib will fail to compile otherwise
