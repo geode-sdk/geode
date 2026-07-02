@@ -261,7 +261,7 @@ set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.4.1")
 CPMAddPackage("gh:geode-sdk/json@3.3.0")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
-CPMAddPackage("gh:fmtlib/fmt#12.2.0")
+CPMAddPackage("gh:fmtlib/fmt#5ac44cd") # commit between 12.1.0 and 12.2.0 that fixes nodiscard warning
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
@@ -287,9 +287,6 @@ if (TARGET qsox)
 endif()
 
 target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
-# TODO v6: since fmt 12.2.0 <fmt/core.h> no longer includes fmt/format.h which is a breaking change,
-# temporarily add this macro as a fix, but we should remove it in next major version because fmt eventually might remove this workaround
-target_compile_definitions(${PROJECT_NAME} INTERFACE FMT_DEPRECATED_HEAVY_CORE)
 
 # this is needed for cross compilation on linux,
 # since fmtlib will fail to compile otherwise
