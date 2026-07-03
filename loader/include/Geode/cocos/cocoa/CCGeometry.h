@@ -325,10 +325,6 @@ public:
     /**
      * @lua NA
      */
-    inline constexpr CCSize(const CCPoint& point) : width(point.x), height(point.y) {}
-    /**
-     * @lua NA
-     */
     inline constexpr CCSize& operator= (const CCSize& other) {
         setSize(other.width, other.height);
         return *this;
