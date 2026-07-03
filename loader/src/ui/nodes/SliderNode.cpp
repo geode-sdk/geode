@@ -114,8 +114,8 @@ bool SliderNode::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice*
 }
 
 bool SliderNode::initStandard(SliderCallback callback, bool alt) {
-    auto thumb = CCSprite::create("sliderthumb.png");
-    auto thumbSel = CCSprite::create("sliderthumbsel.png");
+    auto thumb = CCSprite::create("sliderthumb.png"_spr);
+    auto thumbSel = CCSprite::create("sliderthumbsel.png"_spr);
     
     if (alt) {
         auto groove = geode::NineSlice::create("slider-groove-2.png"_spr);
