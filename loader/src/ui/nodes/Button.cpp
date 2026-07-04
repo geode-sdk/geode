@@ -157,6 +157,17 @@ CCNode* Button::getDisplayNode() {
     return m_impl->m_displayNode;
 }
 
+void Button::setDisplayNode(CCNode* node) {
+    m_impl->m_displayNode->removeFromParent();
+
+    m_impl->m_displayNode = node;
+
+    setContentSize(m_impl->m_displayNode->getScaledContentSize());
+    m_impl->m_displayNode->setPosition(getContentSize() * m_impl->m_displayNode->getAnchorPoint());
+
+    addChild(m_impl->m_displayNode);
+}
+
 CCActionInterval* Button::clickActionForType() {
     switch (m_impl->m_animationType) {
         case AnimationType::None: {
@@ -232,8 +243,6 @@ void Button::setDefaults() {
 
     m_impl->m_defaults->setContentSize(getContentSize());
 
-    m_impl->m_defaults->setZOrder(getZOrder());
-
     m_impl->m_defaults->setOpacity(getOpacity());
     m_impl->m_defaults->setColor(getColor());
 }
@@ -260,8 +269,6 @@ void Button::resetDefaults() {
     setPositionY(m_impl->m_defaults->getPositionY());
 
     setContentSize(m_impl->m_defaults->getContentSize());
-
-    setZOrder(m_impl->m_defaults->getZOrder());
 
     setOpacity(m_impl->m_defaults->getOpacity());
     setColor(m_impl->m_defaults->getColor());

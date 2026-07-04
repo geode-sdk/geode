@@ -63,6 +63,11 @@ namespace geode {
         cocos2d::CCNode* getDisplayNode();
 
         /**
+         * Set the Display Node, will change the current one to this
+         */
+        void setDisplayNode(CCNode* node);
+
+        /**
          * Set an animation type, which dictates how the button moves or scales
          * or if it even has an animation at all
          */
