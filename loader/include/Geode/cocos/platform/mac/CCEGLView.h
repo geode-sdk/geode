@@ -59,15 +59,17 @@ public:
     virtual void setIMEKeyboardState(bool bOpen);
 	virtual void setMultiTouchMask(bool mask);
 
+	void showCursor(bool state);
+
 private:
     static CCEGLView* s_sharedView;
 
     // @note RobTop Addition
-    bool m_idk1;
+    bool m_bShouldHideCursor;
     // @note RobTop Addition
-    bool m_idk2;
+    bool m_bCursorOnscreen;
     // @note RobTop Addition
-    bool m_idk3;
+    bool m_bCursorHidden;
 
     CCEGLView(void);
 };
