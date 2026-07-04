@@ -798,9 +798,9 @@ public:
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, requestData);
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, (+[](char* buffer, size_t size, size_t nitems, void* ptr) {
             auto& headers = static_cast<ResponseData*>(ptr)->response.m_impl->m_headers;
-            std::string line;
-            std::stringstream ss(std::string(buffer, size * nitems));
-            while (std::getline(ss, line)) {
+
+            auto hdrs = std::string_view(buffer, size * nitems);
+            for (auto line : asp::iter::lines(hdrs)) {
                 auto colon = line.find(':');
                 if (colon == std::string::npos) continue;
 
