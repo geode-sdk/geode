@@ -86,7 +86,14 @@ Result<> Hook::Impl::disable() {
     tulip::hook::removeHook(handler, m_handle);
     m_enabled = false;
     GEODE_UNWRAP(LoaderImpl::get()->removeHandlerIfNeeded(m_address));
-    log::debug("Disabled {} hook", m_displayName);
+
+    if (m_owner) {
+        log::debug("Disabled {} hook for {}", m_displayName, m_owner->getID());
+    }
+    else {
+        log::debug("Disabled {} hook", m_displayName);
+    }
+
     return Ok();
 }
 
