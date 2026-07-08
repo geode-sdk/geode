@@ -65,12 +65,12 @@ Color::operator ccColor4B() const {
 }
 
 Color::operator HSV() const {
+    const double red = r / 255.0;
+    const double green = g / 255.0;
+    const double blue = b / 255.0;
+    const double max = std::max({ red, green, blue });
+    const double delta = max - std::min({ red, green, blue });
     HSV hsv;
-    double red = r / 255.0;
-    double green = g / 255.0;
-    double blue = b / 255.0;
-    double max = std::max({ red, green, blue });
-    double delta = max - std::min({ red, green, blue });
 
     if (delta == 0) {
         hsv.h = 0;
