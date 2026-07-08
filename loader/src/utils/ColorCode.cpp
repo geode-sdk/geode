@@ -16,7 +16,7 @@ ColorCode::operator ccColor4B() const {
 
 ColorCode::ColorCode(GLubyte a) : m_r(0x00), m_g(0x00), m_b(0x00), m_a(a) { }
 
-ColorCode::ColorCode(std::string_view hex) : m_r(0x00), m_g(0x00), m_b(0x00), m_a(0xFF) {
+ColorCode::ColorCode(std::string_view hex) : m_r(0x00), m_g(0x00), m_b(0x00), m_a(0x00) {
     this->extractChannels(hex);
 }
 
