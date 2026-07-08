@@ -23,14 +23,14 @@ namespace geode {
         GLubyte m_b;
         GLubyte m_a;
 
-        /// @returns The equivelant of #000000{a}
+        /// @returns The equivalent of #000000{a}
         ColorCode(GLubyte a = 0);
         /// Parses the given hex string using one of the following formats:
         /// #R/G/B, #RR/GG/BB, #RGB, #RGBA, #RRGGBB or #RRGGBBAA
         /// Where the # prefix is optional and / means it's 1 byte/nibble representing all channels
         /// @returns The parsed hex string
         ColorCode(std::string_view hex);
-        /// @returns The equivelant of #{r}{g}{b}{a}
+        /// @returns The equivalent of #{r}{g}{b}{a}
         ColorCode(GLubyte r, const GLubyte g, const GLubyte b, const GLubyte a = 255);
 
         GLubyte getR() const;
