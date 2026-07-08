@@ -101,20 +101,26 @@ Color::Color(const ccColor3B& color, GLubyte alpha): r(color.r), g(color.g), b(c
 Color::Color(const ccColor4B& color): r(color.r), g(color.g), b(color.b), a(color.a) { }
 
 Color::Color(const HSV& hsv, GLubyte alpha): a(alpha) {
-    double c = hsv.v * hsv.s;
-    double x = c * (1 - std::abs(std::fmod(hsv.h / 60, 2) - 1));
-    double m = hsv.v - c;
+    double correctedHue = std::fmod(hsv.h, 360);
+
+    if (correctedHue < 0) {
+        correctedHue += 360;
+    }
+
+    const double c = hsv.v * hsv.s;
+    const double x = c * (1 - std::abs(std::fmod(correctedHue / 60, 2) - 1));
+    const double m = hsv.v - c;
     double rp, gp, bp;
 
-    if (hsv.h < 60) {
+    if (correctedHue < 60) {
         rp = c; gp = x; bp = 0;
-    } else if (hsv.h < 120) {
+    } else if (correctedHue < 120) {
         rp = x; gp = c; bp = 0;
-    } else if (hsv.h < 180) {
+    } else if (correctedHue < 180) {
         rp = 0; gp = c; bp = x;
-    } else if (hsv.h < 240) {
+    } else if (correctedHue < 240) {
         rp = 0; gp = x; bp = c;
-    } else if (hsv.h < 300) {
+    } else if (correctedHue < 300) {
         rp = x; gp = 0; bp = c;
     } else {
         rp = c; gp = 0; bp = x;
@@ -158,16 +164,19 @@ void Color::applyBrightness(double brightness) {
 }
 
 void Color::applyHSV(const HSV& hsv) {
-    HSV currentHSV = this->toHSV();
+    HSV currentHSV = *this;
 
-    currentHSV.h = std::fmod(currentHSV.h + std::fmod(hsv.h, 360) + 360, 360);
-    currentHSV.s = std::clamp<float>(currentHSV.s * hsv.s, 0, 1);
-    currentHSV.v = std::clamp<float>(currentHSV.v * hsv.v, 0, 1);
+    currentHSV.h = std::fmod(currentHSV.h + hsv.h, 360);
+
+    if (currentHSV.h < 0) {
+        currentHSV.h += 360;
+    }
+
+    currentHSV.s = std::clamp<double>(currentHSV.s * hsv.s, 0, 1);
+    currentHSV.v = std::clamp<double>(currentHSV.v * hsv.v, 0, 1);
 
     *this = currentHSV;
 }
-
-
 
 void Color::setR(GLubyte red) {
     r = red;
