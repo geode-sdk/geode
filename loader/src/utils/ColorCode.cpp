@@ -196,7 +196,7 @@ bool Color::isInvisible() const {
     return a == 0x00;
 }
 
-bool Color::isTransparent() const {
+bool Color::isTranslucent() const {
     return a > 0x00 && a < 0xFF;
 }
 

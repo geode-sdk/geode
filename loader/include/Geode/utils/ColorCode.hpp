@@ -62,7 +62,7 @@ namespace geode {
         /// @returns True if alpha is 0
         bool isInvisible() const;
         /// @returns True if alpha is bigger than 0 and smaller than 255
-        bool isTransparent() const;
+        bool isTranslucent() const;
         /// @returns True if alpha is 255
         bool isOpaque() const;
         template<typename T> requires (CanSetColor3B<T> || CanSetColor4B<T> || CanSetColor4F<T>)
