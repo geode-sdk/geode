@@ -3,23 +3,18 @@
 using namespace geode::prelude;
 
 Result<Color> Color::parse(std::string_view hex) {
-    const bool isPrefixed = hex.starts_with("#");
-
-    if (hex.size() == isPrefixed) {
-        return Err("Empty color string");
+    if (hex.starts_with("#")) {
+        hex.remove_prefix(1);
     }
 
-    const std::string_view hexStr = hex.substr(isPrefixed);
-    const size_t size = hexStr.size();
+    const size_t size = hex.size();
 
-    // If the string is not hex and the size is not an exact size of 1, 2, 3, 4, 6 or 8
-    if (hexStr.find_first_not_of("0123456789ABCDEFabcdef") != std::string_view::npos) {
-        return Err("Non base16 characters");
-    } else if (size > 4 && size != 6 && size != 8) {
+    // If the string is an exact size of 1, 2, 3, 4, 6 or 8
+    if (!size || (size > 4 && size != 6 && size != 8)) {
         return Err("Unsupported size");
     }
 
-    GEODE_UNWRAP_INTO(const uint32_t colorNum, utils::numFromString<uint32_t>(hexStr, 16));
+    GEODE_UNWRAP_INTO(const uint32_t colorNum, utils::numFromString<uint32_t>(hex, 16));
     ccColor4B color;
 
     if (size <= 2) {
@@ -45,16 +40,13 @@ Result<Color> Color::parse(std::string_view hex) {
 }
 
 GLubyte Color::getByte(uint32_t colorNum, size_t index, bool isShort) {
-    const GLubyte byte = colorNum >> (isShort ? 4 : 8) * index & 0xFF;
+    const uint32_t shiftSize = (isShort ? 4 : 8) * index;
+    const GLubyte byte = (colorNum >> shiftSize) & 0xFF;
 
     // If it's short, mirror the nibble
     return isShort ? (byte << 4) | byte : byte;
 }
 
-
-Color::operator float() const {
-    return a;
-}
 
 Color::operator ccColor3B() const {
     return { r, g, b };
@@ -65,7 +57,7 @@ Color::operator ccColor4B() const {
 }
 
 Color::operator ccColor4F() const {
-    return { static_cast<GLfloat>(r / 255.0), static_cast<GLfloat>(g / 255.0), static_cast<GLfloat>(b / 255.0), static_cast<GLfloat>(a / 255.0) };
+    return { r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
 }
 
 Color::operator HSV() const {

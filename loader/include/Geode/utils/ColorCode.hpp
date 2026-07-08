@@ -1,15 +1,19 @@
 #pragma once
 
+#include <string_view>
 #include <ccTypes.h>
+#include <Geode/Result.hpp>
 
 namespace geode {
     template<typename T>
-    concept has_4b = requires(T object) { object.setColor(cocos2d::ccColor4B()); };
-    template<typename T>
-    concept has_3b = requires(T object) {
+    concept CanSetColor3B = requires(T object) {
         object.setColor(cocos2d::ccColor3B());
         object.setOpacity(GLubyte());
     };
+    template<typename T>
+    concept CanSetColor4B = requires(T object) { object.setColor(cocos2d::ccColor4B()); };
+    template<typename T>
+    concept CanSetColor4F = requires(T object) { object.setColor(cocos2d::ccColor4F()); };
 
     struct GEODE_DLL Color final {
         /// Parses the given hex string using one of the following formats:
@@ -18,24 +22,22 @@ namespace geode {
         /// @returns The parsed result
         static Result<Color> parse(std::string_view hex);
     private:
-        inline static GLubyte getByte(uint32_t colorNum, size_t index, bool isShort);
+        static GLubyte getByte(uint32_t colorNum, size_t index, bool isShort);
     public:
-        /// @returns The current alpha value
-        operator float() const;
         operator cocos2d::ccColor3B() const;
         operator cocos2d::ccColor4B() const;
         operator cocos2d::ccColor4F() const;
         operator cocos2d::extension::HSV() const;
-        Color& operator=(Color&& other) = default;
-        Color& operator=(const Color& other) = default;
+        Color& operator=(Color&& other) noexcept = default;
+        Color& operator=(const Color& other) noexcept = default;
 
         GLubyte r;
         GLubyte g;
         GLubyte b;
         GLubyte a;
 
-        Color(Color&& other) = default;
-        Color(const Color& other) = default;
+        Color(Color&& other) noexcept = default;
+        Color(const Color& other) noexcept = default;
         /// @returns The equivalent of #000000{a}
         Color(GLubyte alpha = 0);
         Color(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha = 0xFF);
@@ -79,13 +81,15 @@ namespace geode {
         bool isTransparent() const;
         /// @returns True if alpha is 255
         bool isOpaque() const;
-        template<typename T> requires (has_4b<T> || has_3b<T>)
+        template<typename T> requires (CanSetColor3B<T> || CanSetColor4B<T> || CanSetColor4F<T>)
         inline void applyTo(T* node) const {
-            if constexpr (has_4b<T>) {
-                node->setColor(this->to4B());
-            } else {
+            if constexpr (CanSetColor3B<T>) {
                 node->setColor(this->to3B());
                 node->setOpacity(this->getA());
+            } else if constexpr (CanSetColor4B<T>) {
+                node->setColor(this->to4B());
+            } else {
+                node->setColor(this->to4F());
             }
         }
     };
