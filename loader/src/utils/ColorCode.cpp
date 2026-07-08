@@ -78,7 +78,7 @@ bool ColorCode::isOpaque() const {
 void ColorCode::extractChannels(std::string_view hex) {
     const bool isPrefixed = hex.starts_with("#");
 
-    if (hex.size() < 1 + isPrefixed) return;
+    if (hex.size() == isPrefixed) return;
 
     const std::string_view hexStr = hex.substr(isPrefixed);
     const size_t size = hexStr.size();
@@ -97,7 +97,7 @@ void ColorCode::extractChannels(std::string_view hex) {
         m_g = extractChannel(hexStr, 1, isShort);
         m_b = extractChannel(hexStr, 2, isShort);
 
-        // If a 4th byte or nibble exists, extract the alpha channel, otherwise default to full opacity
+        // If a 4th byte or nibble exists, extract the alpha channel, otherwise default to full alpha
         if (size % 4 == 0) {
             m_a = extractChannel(hexStr, 3, isShort);
         } else {
