@@ -10,7 +10,7 @@ namespace geode {
      * An event that gets posted whenever `ColorProvider` provides a color
      * for a specific id.
      */
-    class ColorProvidedEvent final : public Event<ColorProvidedEvent, bool(cocos2d::ccColor4B), std::string> {
+    class GEODE_DLL ColorProvidedEvent final : public Event<ColorProvidedEvent, bool(cocos2d::ccColor4B), std::string> {
     public:
         // listener params color
         // filter params id
@@ -105,7 +105,7 @@ namespace geode {
         cocos2d::ccColor3B color3b(std::string_view id) const;
     };
 
-    class ThemeIDProvidingEvent final : public Event<ThemeIDProvidingEvent, bool(std::string& idOut)> {
+    class GEODE_DLL ThemeIDProvidingEvent final : public Event<ThemeIDProvidingEvent, bool(std::string& idOut)> {
     public:
         // listener params idOut
         using Event::Event;
@@ -115,7 +115,7 @@ namespace geode {
      * An event that gets posted for someone to request a node for a specific ID. This is
      * used in Geode themes to provide custom nodes.
      */
-    class NodeProvidingEvent final : public GlobalEvent<NodeProvidingEvent, bool(std::string_view id, cocos2d::CCNode*& nodeOut, std::string_view theme), bool(cocos2d::CCNode*& nodeOut, std::string_view theme), std::string> {
+    class GEODE_DLL NodeProvidingEvent final : public GlobalEvent<NodeProvidingEvent, bool(std::string_view id, cocos2d::CCNode*& nodeOut, std::string_view theme), bool(cocos2d::CCNode*& nodeOut, std::string_view theme), std::string> {
     public:
         // listener params node
         // filter params id
