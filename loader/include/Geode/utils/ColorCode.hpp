@@ -55,22 +55,6 @@ namespace geode {
         void applyB(double brightness);
         void applyBrightness(double brightness);
         void applyHSV(const cocos2d::extension::HSV& hsv);
-        void setR(GLubyte red);
-        GLubyte getR() const;
-        void setRed(GLubyte red);
-        GLubyte getRed() const;
-        void setG(GLubyte green);
-        GLubyte getG() const;
-        void setGreen(GLubyte green);
-        GLubyte getGreen() const;
-        void setB(GLubyte blue);
-        GLubyte getB() const;
-        void setBlue(GLubyte blue);
-        GLubyte getBlue() const;
-        void setA(GLubyte alpha);
-        GLubyte getA() const;
-        void setAlpha(GLubyte alpha);
-        GLubyte getAlpha() const;
         cocos2d::ccColor3B to3B() const;
         cocos2d::ccColor4B to4B() const;
         cocos2d::ccColor4F to4F() const;
@@ -85,7 +69,7 @@ namespace geode {
         inline void applyTo(T* node) const {
             if constexpr (CanSetColor3B<T>) {
                 node->setColor(this->to3B());
-                node->setOpacity(this->getA());
+                node->setOpacity(a);
             } else if constexpr (CanSetColor4B<T>) {
                 node->setColor(this->to4B());
             } else {
