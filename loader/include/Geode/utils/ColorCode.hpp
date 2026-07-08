@@ -24,6 +24,7 @@ namespace geode {
         operator float() const;
         operator cocos2d::ccColor3B() const;
         operator cocos2d::ccColor4B() const;
+        operator cocos2d::ccColor4F() const;
         operator cocos2d::extension::HSV() const;
         Color& operator=(Color&& other) = default;
         Color& operator=(const Color& other) = default;

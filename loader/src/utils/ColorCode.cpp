@@ -64,6 +64,10 @@ Color::operator ccColor4B() const {
     return { r, g, b, a };
 }
 
+Color::operator ccColor4F() const {
+    return { static_cast<GLfloat>(r / 255.0), static_cast<GLfloat>(g / 255.0), static_cast<GLfloat>(b / 255.0), static_cast<GLfloat>(a / 255.0) };
+}
+
 Color::operator HSV() const {
     const double red = r / 255.0;
     const double green = g / 255.0;
