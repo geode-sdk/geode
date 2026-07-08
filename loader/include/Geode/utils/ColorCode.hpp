@@ -71,6 +71,7 @@ namespace geode {
         GLubyte getAlpha() const;
         cocos2d::ccColor3B to3B() const;
         cocos2d::ccColor4B to4B() const;
+        cocos2d::ccColor4F to4F() const;
         cocos2d::extension::HSV toHSV() const;
         /// @returns True if alpha is 0
         bool isInvisible() const;

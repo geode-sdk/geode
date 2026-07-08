@@ -256,6 +256,10 @@ ccColor4B Color::to4B() const {
     return *this;
 }
 
+ccColor4F Color::to4F() const {
+    return *this;
+}
+
 HSV Color::toHSV() const {
     return *this;
 }
