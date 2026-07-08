@@ -41,6 +41,7 @@ namespace geode {
         Color(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha = 0xFF);
         Color(const cocos2d::ccColor3B& color, GLubyte alpha = 0xFF);
         Color(const cocos2d::ccColor4B& color);
+        Color(const cocos2d::ccColor4F& color);
         Color(const cocos2d::extension::HSV& hsv, GLubyte alpha = 0xFF);
 
         void applyH(double hue);

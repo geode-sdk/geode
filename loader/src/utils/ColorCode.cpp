@@ -104,6 +104,8 @@ Color::Color(const ccColor3B& color, GLubyte alpha): r(color.r), g(color.g), b(c
 
 Color::Color(const ccColor4B& color): r(color.r), g(color.g), b(color.b), a(color.a) { }
 
+Color::Color(const ccColor4F& color): r(std::round(color.r * 255)), g(std::round(color.g * 255)), b(std::round(color.b * 255)), a(std::round(color.a * 255)) { }
+
 Color::Color(const HSV& hsv, GLubyte alpha): a(alpha) {
     double correctedHue = std::fmod(hsv.h, 360);
 
@@ -130,9 +132,9 @@ Color::Color(const HSV& hsv, GLubyte alpha): a(alpha) {
         rp = c; gp = 0; bp = x;
     }
 
-    r = std::round((rp + m) * 255.0);
-    g = std::round((gp + m) * 255.0);
-    b = std::round((bp + m) * 255.0);
+    r = std::round((rp + m) * 255);
+    g = std::round((gp + m) * 255);
+    b = std::round((bp + m) * 255);
 }
 
 void Color::applyH(double hue) {
