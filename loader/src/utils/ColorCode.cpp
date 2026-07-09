@@ -7,28 +7,28 @@ Result<Color> Color::parse(std::string_view hex) {
         hex.remove_prefix(1);
     }
 
-    const size_t size = hex.size();
+    size_t size = hex.size();
 
     // If the string is an exact size of 1, 2, 3, 4, 6 or 8
     if (!size || (size > 4 && size != 6 && size != 8)) {
         return Err("Unsupported size");
     }
 
-    GEODE_UNWRAP_INTO(const uint32_t colorNum, utils::numFromString<uint32_t>(hex, 16));
+    GEODE_UNWRAP_INTO(uint32_t colorNum, utils::numFromString<uint32_t>(hex, 16));
     ccColor4B color;
 
     if (size <= 2) {
         color.r = color.g = color.b = Color::getByte(colorNum, 0, size == 1);
         color.a = 0xFF;
     } else if (size % 3 == 0) {
-        const bool isShort = size == 3;
+        bool isShort = size == 3;
 
         color.r = Color::getByte(colorNum, 2, isShort);
         color.g = Color::getByte(colorNum, 1, isShort);
         color.b = Color::getByte(colorNum, 0, isShort);
         color.a = 0xFF;
     } else {
-        const bool isShort = size == 4;
+        bool isShort = size == 4;
 
         color.r = Color::getByte(colorNum, 3, isShort);
         color.g = Color::getByte(colorNum, 2, isShort);
@@ -40,32 +40,20 @@ Result<Color> Color::parse(std::string_view hex) {
 }
 
 GLubyte Color::getByte(uint32_t colorNum, size_t index, bool isShort) {
-    const uint32_t shiftSize = (isShort ? 4 : 8) * index;
-    const GLubyte byte = (colorNum >> shiftSize) & 0xFF;
+    uint32_t shiftSize = (isShort ? 4 : 8) * index;
+    GLubyte byte = (colorNum >> shiftSize) & 0xFF;
 
     // If it's short, mirror the nibble
     return isShort ? (byte << 4) | byte : byte;
 }
 
 
-Color::operator ccColor3B() const {
-    return { r, g, b };
-}
-
-Color::operator ccColor4B() const {
-    return { r, g, b, a };
-}
-
-Color::operator ccColor4F() const {
-    return { r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
-}
-
 Color::operator HSV() const {
-    const double red = r / 255.0;
-    const double green = g / 255.0;
-    const double blue = b / 255.0;
-    const double max = std::max({ red, green, blue });
-    const double delta = max - std::min({ red, green, blue });
+    double red = r / 255.0;
+    double green = g / 255.0;
+    double blue = b / 255.0;
+    double max = std::max({ red, green, blue });
+    double delta = max - std::min({ red, green, blue });
     HSV hsv;
 
     if (delta == 0) {
@@ -88,16 +76,6 @@ Color::operator HSV() const {
     return hsv;
 }
 
-Color::Color(GLubyte alpha): r(0x00), g(0x00), b(0x00), a(alpha) { }
-
-Color::Color(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha): r(red), g(green), b(blue), a(alpha) { }
-
-Color::Color(const ccColor3B& color, GLubyte alpha): r(color.r), g(color.g), b(color.b), a(alpha) { }
-
-Color::Color(const ccColor4B& color): r(color.r), g(color.g), b(color.b), a(color.a) { }
-
-Color::Color(const ccColor4F& color): r(std::round(color.r * 255)), g(std::round(color.g * 255)), b(std::round(color.b * 255)), a(std::round(color.a * 255)) { }
-
 Color::Color(const HSV& hsv, GLubyte alpha): a(alpha) {
     double correctedHue = std::fmod(hsv.h, 360);
 
@@ -105,9 +83,9 @@ Color::Color(const HSV& hsv, GLubyte alpha): a(alpha) {
         correctedHue += 360;
     }
 
-    const double c = hsv.v * hsv.s;
-    const double x = c * (1 - std::abs(std::fmod(correctedHue / 60, 2) - 1));
-    const double m = hsv.v - c;
+    double c = hsv.v * hsv.s;
+    double x = c * (1 - std::abs(std::fmod(correctedHue / 60, 2) - 1));
+    double m = hsv.v - c;
     double rp, gp, bp;
 
     if (correctedHue < 60) {
@@ -129,38 +107,6 @@ Color::Color(const HSV& hsv, GLubyte alpha): a(alpha) {
     b = std::round((bp + m) * 255);
 }
 
-void Color::applyH(double hue) {
-    this->applyHSV({ hue, 1, 1 });
-}
-
-void Color::applyHue(double hue) {
-    this->applyHSV({ hue, 1, 1 });
-}
-
-void Color::applyS(double saturation) {
-    this->applyHSV({ 0, saturation, 1 });
-}
-
-void Color::applySaturation(double saturation) {
-    this->applyHSV({ 0, saturation, 1 });
-}
-
-void Color::applyV(double value) {
-    this->applyHSV({ 0, 1, value });
-}
-
-void Color::applyValue(double value) {
-    this->applyHSV({ 0, 1, value });
-}
-
-void Color::applyB(double brightness) {
-    this->applyHSV({ 0, 1, brightness });
-}
-
-void Color::applyBrightness(double brightness) {
-    this->applyHSV({ 0, 1, brightness });
-}
-
 void Color::applyHSV(const HSV& hsv) {
     HSV currentHSV = *this;
 
@@ -174,32 +120,4 @@ void Color::applyHSV(const HSV& hsv) {
     currentHSV.v = std::clamp<double>(currentHSV.v * hsv.v, 0, 1);
 
     *this = currentHSV;
-}
-
-ccColor3B Color::to3B() const {
-    return *this;
-}
-
-ccColor4B Color::to4B() const {
-    return *this;
-}
-
-ccColor4F Color::to4F() const {
-    return *this;
-}
-
-HSV Color::toHSV() const {
-    return *this;
-}
-
-bool Color::isInvisible() const {
-    return a == 0x00;
-}
-
-bool Color::isTranslucent() const {
-    return a > 0x00 && a < 0xFF;
-}
-
-bool Color::isOpaque() const {
-    return a == 0xFF;
 }
