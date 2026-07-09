@@ -169,6 +169,16 @@ namespace geode::utils::random {
         shuffle(begin(cont), end(cont));
     }
 
+    /// Returns a reference to a random element in the given collection.
+    /// Undefined behavior if the collection is empty.
+    template <typename Cont>
+    auto& choice(Cont& cont) {
+        using std::begin, std::end;
+        auto it = begin(cont);
+        std::advance(it, generate<size_t>(0, std::distance(begin(cont), end(cont))));
+        return *it;
+    }
+
     /// Returns a boolean with a specified probability of being true, in the range [0.0, 1.0]
     inline bool chance(double probability) {
         return generate<double>() < probability;
