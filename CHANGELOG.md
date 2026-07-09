@@ -1,5 +1,24 @@
 # Geode Changelog
 
+## v5.8.0
+ * Add `PopupManager` for queueing popups & various other popup utilities (#2106)
+ * Add `geode::Color` for convenient handling of colors (#2117)
+ * Add `geode::pushSceneWithLayer` (#2076)
+ * Add `geode::Button::setDisplayNode`, fix `Button` Z order issues (#2114)
+ * Add `geode::utils::random::choice` (8ba0aca)
+ * Add 2nd player controller keys (#2087)
+ * Update SliderNode to not use the ugly GD slider thumbs (#2066)
+ * Fix `fmt` deprecation warning (418422a, dd04a9f, 1088bbe, 6d99c25)
+ * Fix duplicate web requests in the mod list (78ef124)
+ * Fix `utils::random::Generator` not being well seeded (f6fa836)
+ * Fix game bug causing a hang on game exit (2ecda5b)
+ * Fix pin button appearing outside of mod lists, fix `MDTextArea` culling (#2104)
+ * Fix rare crash due to GL callbacks after window destruction (d9fe02b)
+ * Fix profile button disappearing after logging in (e00d00a)
+ * Fix Safe Areas not working on iOS (#2075)
+ * Fix `GameEventType::Exiting` being sent more than once (5e96dba)
+ * Fix alignment of nodes in MenuLayer (fd0fc2d)
+
 ## v5.7.1
  * Revert fallthrough for keybind modifiers because some mods rely on that not happening (df9df11)
 
