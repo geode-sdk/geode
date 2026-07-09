@@ -78,8 +78,8 @@ Color::operator HSV() const {
 
 Color::Color(const HSV& hsv, GLubyte alpha): a(alpha) {
     double correctedHue = std::fmod(hsv.h, 360);
-    double correctedSaturation = std::clamp(hsv.s, 0.0, 0.1);
-    double correctedValue = std::clamp(hsv.v, 0.0, 0.1);
+    double correctedSaturation = std::clamp(hsv.s, 0.0, 1.0);
+    double correctedValue = std::clamp(hsv.v, 0.0, 1.0);
 
     if (correctedHue < 0) {
         correctedHue += 360;
