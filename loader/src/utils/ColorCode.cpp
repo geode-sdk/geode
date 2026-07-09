@@ -78,14 +78,16 @@ Color::operator HSV() const {
 
 Color::Color(const HSV& hsv, GLubyte alpha): a(alpha) {
     double correctedHue = std::fmod(hsv.h, 360);
+    double correctedSaturation = std::clamp(hsv.s, 0.0, 0.1);
+    double correctedValue = std::clamp(hsv.v, 0.0, 0.1);
 
     if (correctedHue < 0) {
         correctedHue += 360;
     }
 
-    double c = hsv.v * hsv.s;
+    double c = correctedValue * correctedSaturation;
     double x = c * (1 - std::abs(std::fmod(correctedHue / 60, 2) - 1));
-    double m = hsv.v - c;
+    double m = correctedValue - c;
     double rp, gp, bp;
 
     if (correctedHue < 60) {

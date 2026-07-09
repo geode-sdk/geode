@@ -56,7 +56,11 @@ namespace geode {
 
         constexpr Color(const cocos2d::ccColor4B& color): r(color.r), g(color.g), b(color.b), a(color.a) { }
 
-        constexpr Color(const cocos2d::ccColor4F& color): r(std::round(color.r * 255)), g(std::round(color.g * 255)), b(std::round(color.b * 255)), a(std::round(color.a * 255)) { }
+        Color(const cocos2d::ccColor4F& color):
+            r(std::round(std::clamp(color.r, 0.0f, 1.0f) * 255)),
+            g(std::round(std::clamp(color.g, 0.0f, 1.0f) * 255)),
+            b(std::round(std::clamp(color.b, 0.0f, 1.0f) * 255)),
+            a(std::round(std::clamp(color.a, 0.0f, 1.0f) * 255)) { }
 
         Color(const cocos2d::extension::HSV& hsv, GLubyte alpha = 0xFF);
 
