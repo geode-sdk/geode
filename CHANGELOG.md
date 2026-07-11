@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v5.8.2
+ * Potentially fix several TulipHook crashes (there is a chance this breaks everything) (c2e155f)
+
 ## v5.8.1
  * Fix safe area offsetting being incorrectly enabled on some iOS devices (#2121)
 
