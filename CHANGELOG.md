@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v5.8.1
+ * Fix safe area offsetting being incorrectly enabled on some iOS devices (#2121)
+
 ## v5.8.0
  * Add `PopupManager` for queueing popups & various other popup utilities (#2106)
  * Add `geode::Color` for convenient handling of colors (#2117)
