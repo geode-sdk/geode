@@ -548,7 +548,20 @@ public:
         using ResponseData = WebRequestsManager::RequestData;
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, requestData);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](char* data, size_t size, size_t nmemb, void* ptr) {
-            auto& target = static_cast<ResponseData*>(ptr)->response.m_impl->m_data;
+            auto* rd = static_cast<ResponseData*>(ptr);
+            auto& target = rd->response.m_impl->m_data;
+
+            // pre-allocate space to avoid reallocations
+            // cap at 512MB so a bad content-length header doesn't cause an instant oom
+            auto total = std::min<size_t>(
+                rd->request->m_downloadTotal.load(std::memory_order::relaxed),
+                1024ULL * 1024 * 512
+            );
+
+            if (total > target.capacity()) {
+                target.reserve(total);
+            }
+
             target.insert(target.end(), data, data + size * nmemb);
             return size * nmemb;
         });
@@ -699,6 +712,10 @@ public:
 
         // always set connection timeout to avoid hanging indefinitely (2.5 seconds)
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2500L);
+
+        // Set a larger buffer size to try and help reduce read/write, default is 16kb but we bump it up to 256kb
+        // This buffer will be shared across all connections, so a larger number is ok
+        curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 256 * 1024L);
 
         // Set range
         if (m_range) {
