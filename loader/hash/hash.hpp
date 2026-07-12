@@ -13,3 +13,4 @@ std::string calculateSHA256Text(std::filesystem::path const& path);
  * used for verifying mods.
  */
 std::string calculateHash(std::span<const uint8_t> data);
+std::string calculateHash(std::string_view data);
