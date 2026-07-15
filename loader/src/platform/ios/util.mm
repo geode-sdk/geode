@@ -600,14 +600,14 @@ PlatformDetails geode::utils::platform::getDetails() {
     bool isPatchless = geode::Loader::get()->isPatchless();
     std::string launchMethod = "Unknown";
     if (getenv("GAME")) {
-        if (getenv("TXM_JIT")) {
-            launchMethod = "JIT [TXM]";
-        } else {
-            if (!isPatchless) {
-                launchMethod = "JIT";
+        if (!isPatchless) {
+            if (getenv("TXM_JIT")) {
+                launchMethod = "JIT [TXM]";
             } else {
-                launchMethod = "JIT-Less";
+                launchMethod = "JIT";
             }
+        } else {
+            launchMethod = "JIT-Less";
         }
     } else {
         if (isPatchless) {
