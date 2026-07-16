@@ -488,6 +488,13 @@ namespace geode::utils::web {
         utils::StringMap<std::string> const& getUrlParams() const;
 
         /**
+         * Gets the post body stream reference
+         *
+         * @return std::optional<ByteVector> const&
+         */
+        std::optional<ByteVector> const& data() const;
+
+        /**
          * Gets the post body stream
          *
          * @return std::optional<ByteVector>

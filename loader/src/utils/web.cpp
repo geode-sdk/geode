@@ -1090,6 +1090,10 @@ utils::StringMap<std::string> const& WebRequest::getUrlParams() const {
     return m_impl->m_urlParameters;
 }
 
+std::optional<ByteVector> const& WebRequest::data() const {
+    return m_impl->m_body;
+}
+
 std::optional<ByteVector> WebRequest::getBody() const {
     return m_impl->m_body;
 }
