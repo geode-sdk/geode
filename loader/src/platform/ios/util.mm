@@ -28,11 +28,20 @@ using namespace geode::prelude;
 using geode::utils::permission::Permission;
 
 bool utils::clipboard::write(ZStringView data) {
-    [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
+    NSString* str = [[NSString alloc] initWithBytes:data.data()
+                                              length:data.size()
+                                            encoding:NSUTF8StringEncoding];
+    if (!str) return false;
+    [UIPasteboard generalPasteboard].string = str;
     return true;
 }
+
 std::string utils::clipboard::read() {
-    return std::string([[UIPasteboard generalPasteboard].string UTF8String]);
+    NSString* str = [UIPasteboard generalPasteboard].string;
+    if (!str) return "";
+    NSData* data = [str dataUsingEncoding:NSUTF8StringEncoding];
+    if (!data) return "";
+    return std::string(static_cast<const char*>(data.bytes), data.length);
 }
 
 void utils::web::openLinkUnsafe(ZStringView url) {
