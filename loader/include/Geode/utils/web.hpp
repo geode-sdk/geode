@@ -490,9 +490,9 @@ namespace geode::utils::web {
         /**
          * Gets the post body stream reference
          *
-         * @return std::optional<ByteVector> const&
+         * @return std::optional<std::span<const uint8_t>>
          */
-        std::optional<ByteVector> const& data() const;
+        std::optional<std::span<const uint8_t>> getBodyRef() const;
 
         /**
          * Gets the post body stream
