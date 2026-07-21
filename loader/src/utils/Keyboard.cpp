@@ -164,27 +164,49 @@ StringMap<enumKeyCodes> keyNameToCode = {
     { "ArrowLeft", KEY_ArrowLeft },
     { "ArrowRight", KEY_ArrowRight },
     { "Controller_A", CONTROLLER_A },
+    { "Controller2_A", CONTROLLER2_A },
     { "Controller_B", CONTROLLER_B },
+    { "Controller2_B", CONTROLLER2_B },
     { "Controller_Y", CONTROLLER_Y },
+    { "Controller2_Y", CONTROLLER2_Y },
     { "Controller_X", CONTROLLER_X },
+    { "Controller2_X", CONTROLLER2_X },
     { "Controller_Start", CONTROLLER_Start },
+    { "Controller2_Start", CONTROLLER2_Start },
     { "Controller_Back", CONTROLLER_Back },
+    { "Controller2_Back", CONTROLLER2_Back },
     { "Controller_RB", CONTROLLER_RB },
+    { "Controller2_RB", CONTROLLER2_RB },
     { "Controller_LB", CONTROLLER_LB },
+    { "Controller2_LB", CONTROLLER2_LB },
     { "Controller_RT", CONTROLLER_RT },
+    { "Controller2_RT", CONTROLLER2_RT },
     { "Controller_LT", CONTROLLER_LT },
+    { "Controller2_LT", CONTROLLER2_LT },
     { "Controller_Up", CONTROLLER_Up },
+    { "Controller2_Up", CONTROLLER2_Up },
     { "Controller_Down", CONTROLLER_Down },
+    { "Controller2_Down", CONTROLLER2_Down },
     { "Controller_Left", CONTROLLER_Left },
+    { "Controller2_Left", CONTROLLER2_Left },
     { "Controller_Right", CONTROLLER_Right },
+    { "Controller2_Right", CONTROLLER2_Right },
     { "Controller_LTHUMBSTICK_UP", CONTROLLER_LTHUMBSTICK_UP },
+    { "Controller2_LTHUMBSTICK_UP", CONTROLLER2_LTHUMBSTICK_UP },
     { "Controller_LTHUMBSTICK_DOWN", CONTROLLER_LTHUMBSTICK_DOWN },
+    { "Controller2_LTHUMBSTICK_DOWN", CONTROLLER2_LTHUMBSTICK_DOWN },
     { "Controller_LTHUMBSTICK_LEFT", CONTROLLER_LTHUMBSTICK_LEFT },
+    { "Controller2_LTHUMBSTICK_LEFT", CONTROLLER2_LTHUMBSTICK_LEFT },
     { "Controller_LTHUMBSTICK_RIGHT", CONTROLLER_LTHUMBSTICK_RIGHT },
+    { "Controller2_LTHUMBSTICK_RIGHT", CONTROLLER2_LTHUMBSTICK_RIGHT },
     { "Controller_RTHUMBSTICK_UP", CONTROLLER_RTHUMBSTICK_UP },
+    { "Controller2_RTHUMBSTICK_UP", CONTROLLER2_RTHUMBSTICK_UP },
     { "Controller_RTHUMBSTICK_DOWN", CONTROLLER_RTHUMBSTICK_DOWN },
+    { "Controller2_RTHUMBSTICK_DOWN", CONTROLLER2_RTHUMBSTICK_DOWN },
     { "Controller_RTHUMBSTICK_LEFT", CONTROLLER_RTHUMBSTICK_LEFT },
+    { "Controller2_RTHUMBSTICK_LEFT", CONTROLLER2_RTHUMBSTICK_LEFT },
     { "Controller_RTHUMBSTICK_RIGHT", CONTROLLER_RTHUMBSTICK_RIGHT },
+    { "Controller2_RTHUMBSTICK_RIGHT", CONTROLLER2_RTHUMBSTICK_RIGHT },
     { "`", KEY_GraveAccent },
     { "=", KEY_OEMEqual },
     { "[", KEY_LeftBracket },
@@ -201,6 +223,10 @@ StringMap<enumKeyCodes> keyNameToCode = {
     { "Mouse 6", MOUSE_6 },
     { "Mouse 7", MOUSE_7 },
     { "Mouse 8", MOUSE_8 },
+    { "Controller_L3", CONTROLLER_L3 },
+    { "Controller2_L3", CONTROLLER2_L3 },
+    { "Controller_R3", CONTROLLER_R3 },
+    { "Controller2_R3", CONTROLLER2_R3 },
     { "None", KEY_None },
     { "Unknown", KEY_Unknown }
 };
@@ -279,12 +305,17 @@ std::string Keybind::toString() const {
 
 cocos2d::CCNode* Keybind::createNode() const {
     // If this is not a controller bind, just return a label with the key name
-    if (key < CONTROLLER_A || key > CONTROLLER_RTHUMBSTICK_RIGHT) {
+    if ((key < CONTROLLER_A || key > CONTROLLER2_RTHUMBSTICK_RIGHT) && (key < CONTROLLER_L3 || key > CONTROLLER2_R3)) {
         return CCLabelBMFont::create(this->toString().c_str(), "bigFont.fnt");
     }
 
+    auto isController2 = (key & 0x1) == 0x0;
+    auto virtualKey = isController2
+        ? static_cast<cocos2d::enumKeyCodes>(static_cast<int>(key) - 1)
+        : key;
+
     const char* sprite;
-    switch (key) {
+    switch (virtualKey) {
         case CONTROLLER_A: sprite = "controllerBtn_A_001.png"; break;
         case CONTROLLER_B: sprite = "controllerBtn_B_001.png"; break;
         case CONTROLLER_X: sprite = "controllerBtn_X_001.png"; break;
@@ -307,6 +338,8 @@ cocos2d::CCNode* Keybind::createNode() const {
         case CONTROLLER_RTHUMBSTICK_DOWN: sprite = "controllerBtn_RThumb_001.png"; break;
         case CONTROLLER_RTHUMBSTICK_LEFT: sprite = "controllerBtn_RThumb_001.png"; break;
         case CONTROLLER_RTHUMBSTICK_UP: sprite = "controllerBtn_RThumb_001.png"; break;
+        case CONTROLLER_L3: sprite = "controllerBtn_L3.png"_spr; break;
+        case CONTROLLER_R3: sprite = "controllerBtn_R3.png"_spr; break;
         default: sprite = nullptr;
     }
     if (!sprite) {
@@ -314,7 +347,7 @@ cocos2d::CCNode* Keybind::createNode() const {
     }
 
     auto spr = CCSprite::createWithSpriteFrameName(sprite);
-    switch (key) {
+    switch (virtualKey) {
         case CONTROLLER_LTHUMBSTICK_DOWN:
         case CONTROLLER_RTHUMBSTICK_DOWN: {
             auto arrow = CCSprite::createWithSpriteFrameName("PBtn_Arrow_001.png");
@@ -354,6 +387,17 @@ cocos2d::CCNode* Keybind::createNode() const {
             break;
         }
     }
+
+    if (isController2) {
+        auto indicator = CCLabelBMFont::create("(2)", "bigFont.fnt");
+        indicator->setPosition(ccp(31.f, 31.f));
+        indicator->setScale(0.4f);
+        indicator->setOpacity(127);
+        spr->addChild(indicator);
+
+        spr->setContentSize(spr->getContentSize() + cocos2d::CCSize { 10.0f, 10.0f });
+    }
+
     return spr;
 }
 

@@ -11,6 +11,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/ui/PopupManager.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SetTextPopup.hpp>
 #include <Geode/binding/SetIDPopup.hpp>
@@ -465,7 +466,7 @@ bool ModsLayer::init() {
 
     auto topListener = NodeProvidingEvent("geode-mods-list-top"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
         if (nodeOut) return; // someone overrode it already
-        
+
         if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-sapphire.png"_spr);
         else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-gd.png"_spr);
         else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top.png"_spr);
@@ -674,14 +675,13 @@ bool ModsLayer::init() {
         label->setScale(0.55f);
         this->addChild(label);
         static int _ = [this] {
-            auto* alert = FLAlertLayer::create(
+            auto alert = PopupManager::get().alert(
                 "Safe Mode Enabled",
                 "Safe Mode has been enabled. This means no mods will be loaded to prevent crashes. Feel free to manage any problematic mods.",
                 "OK"
             );
-            alert->m_scene = this;
             alert->m_noElasticity = true;
-            alert->show();
+            alert.showQueue();
             return 0;
         }();
     }

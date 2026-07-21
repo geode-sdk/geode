@@ -200,6 +200,8 @@ bool Scrollbar::Impl::init(CCScrollLayerExt* target) {
     m_self->addChild(m_thumb);
 
     m_self->setTouchEnabled(true);
+    // Make sure the size is accurate in the first frame
+    m_self->draw();
 
     return true;
 }

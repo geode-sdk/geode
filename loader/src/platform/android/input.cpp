@@ -115,7 +115,10 @@ namespace {
         {AKEYCODE_NUMPAD_SUBTRACT, cocos2d::KEY_Subtract},
         {AKEYCODE_NUMPAD_ADD, cocos2d::KEY_Add},
         {AKEYCODE_NUMPAD_ENTER, cocos2d::KEY_NumEnter},
-        {AKEYCODE_NUMPAD_EQUALS, cocos2d::KEY_Equal}
+        {AKEYCODE_NUMPAD_EQUALS, cocos2d::KEY_Equal},
+
+        {AKEYCODE_BUTTON_THUMBL, cocos2d::CONTROLLER_L3},
+        {AKEYCODE_BUTTON_THUMBR, cocos2d::CONTROLLER_R3}
     };
 
     cocos2d::enumKeyCodes translateAndroidKeyCodeToWindows(int keyCode, bool isController) {

@@ -382,9 +382,7 @@ DWORD WINAPI earlyErrorThread(void* param) {
 void earlyError(std::string message) {
     // try to write a file and display a message box
     // wine might not display the message box but *should* write a file
-    std::ofstream fout("_geode_early_error.txt");
-    fout << message;
-    fout.close();
+    (void) utils::file::writeString("_geode_early_error.txt", message);
 
     // show the error after dllmain returns and the loader lock releases
     CreateThread(

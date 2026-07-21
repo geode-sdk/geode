@@ -2,7 +2,7 @@
 #include <Geode/Result.hpp>
 #include <Geode/utils/general.hpp>
 #include <filesystem>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <fstream>
 #include <matjson.hpp>
 #include <system_error>
@@ -193,18 +193,7 @@ public:
 };
 
 Result<> WebResponse::Impl::into(std::filesystem::path const& path) const {
-    // Test if there are no permission issues
-    std::error_code ec;
-    auto _ = std::filesystem::exists(path, ec);
-    if (ec) {
-        return Err(fmt::format("Couldn't write to file: {}", ec.category().message(ec.value())));
-    }
-
-    auto stream = std::ofstream(path, std::ios::out | std::ios::binary);
-    stream.write(reinterpret_cast<const char*>(m_data.data()), m_data.size());
-    stream.close();
-
-    return Ok();
+    return utils::file::writeBinary(path, m_data);
 }
 
 struct MultipartFile {
@@ -559,7 +548,20 @@ public:
         using ResponseData = WebRequestsManager::RequestData;
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, requestData);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](char* data, size_t size, size_t nmemb, void* ptr) {
-            auto& target = static_cast<ResponseData*>(ptr)->response.m_impl->m_data;
+            auto* rd = static_cast<ResponseData*>(ptr);
+            auto& target = rd->response.m_impl->m_data;
+
+            // pre-allocate space to avoid reallocations
+            // cap at 512MB so a bad content-length header doesn't cause an instant oom
+            auto total = std::min<size_t>(
+                rd->request->m_downloadTotal.load(std::memory_order::relaxed),
+                1024ULL * 1024 * 512
+            );
+
+            if (total > target.capacity()) {
+                target.reserve(total);
+            }
+
             target.insert(target.end(), data, data + size * nmemb);
             return size * nmemb;
         });
@@ -711,6 +713,10 @@ public:
         // always set connection timeout to avoid hanging indefinitely (2.5 seconds)
         curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2500L);
 
+        // Set a larger buffer size to try and help reduce read/write, default is 16kb but we bump it up to 256kb
+        // This buffer will be shared across all connections, so a larger number is ok
+        curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 256 * 1024L);
+
         // Set range
         if (m_range) {
             curl_easy_setopt(curl, CURLOPT_RANGE, fmt::format("{}-{}", m_range->first, m_range->second).c_str());
@@ -809,9 +815,9 @@ public:
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, requestData);
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, (+[](char* buffer, size_t size, size_t nitems, void* ptr) {
             auto& headers = static_cast<ResponseData*>(ptr)->response.m_impl->m_headers;
-            std::string line;
-            std::stringstream ss(std::string(buffer, size * nitems));
-            while (std::getline(ss, line)) {
+
+            auto hdrs = std::string_view(buffer, size * nitems);
+            for (auto line : asp::iter::lines(hdrs)) {
                 auto colon = line.find(':');
                 if (colon == std::string::npos) continue;
 
@@ -1099,6 +1105,10 @@ utils::StringMap<std::vector<std::string>> const& WebRequest::getHeaders() const
 
 utils::StringMap<std::string> const& WebRequest::getUrlParams() const {
     return m_impl->m_urlParameters;
+}
+
+std::optional<std::span<const uint8_t>> WebRequest::getBodyRef() const {
+    return m_impl->m_body;
 }
 
 std::optional<ByteVector> WebRequest::getBody() const {

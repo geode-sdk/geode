@@ -66,6 +66,7 @@ $register_ids(MenuLayer) {
                 this, "profile-menu",
                 SimpleRowLayout::create()
                     ->setMainAxisAlignment(MainAxisAlignment::Start)
+                    ->ignoreInvisibleChildren(false)
                     ->setGap(5.f),
                 pfp
             );
