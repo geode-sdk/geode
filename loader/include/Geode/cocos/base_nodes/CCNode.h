@@ -1969,7 +1969,7 @@ public:
 
     // 2.2 additions
     bool m_bUseChildIndex;
-    bool m_bUnkBool2;
+    bool m_bDisableScheduling;
 };
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
