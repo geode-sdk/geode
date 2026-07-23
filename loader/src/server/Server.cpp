@@ -12,6 +12,9 @@
 
 using namespace server;
 
+static constexpr size_t MAX_UPDATE_BATCH_SIZE = 200u; // this affects 0.03% of users
+// also make sure to update the server limit if this is increased for some reason
+
 #define GEODE_GD_VERSION_STR GEODE_STR(GEODE_GD_VERSION)
 
 template <class K, class V>
@@ -928,15 +931,14 @@ ServerFuture<ServerModUpdateAllCheck> server::checkAllUpdates(bool useCache) {
 
     std::vector<std::vector<std::string>> modBatches;
     auto modCount = modIDs.size();
-    std::size_t maxMods = 200u; // this affects 0.03% of users
 
-    if (modCount <= maxMods) {
+    if (modCount <= MAX_UPDATE_BATCH_SIZE) {
         // no tricks needed
         co_return co_await batchedCheckUpdates(modIDs);
     }
 
     // even out the mod count, so a request with 230 mods sends two 115 mod requests
-    auto batchCount = modCount / maxMods + 1;
+    auto batchCount = modCount / MAX_UPDATE_BATCH_SIZE + 1;
     auto maxBatchSize = modCount / batchCount + 1;
 
     for (std::size_t i = 0u; i < modCount; i += maxBatchSize) {
