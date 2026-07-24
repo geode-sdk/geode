@@ -239,7 +239,7 @@ public:
     /**
      * Changes the scale factor on X axis of this node
      *
-     * The deafult value is 1.0 if you haven't changed it before
+     * The default value is 1.0 if you haven't changed it before
      *
      * @param fScaleX   The scale factor on X axis.
      */
@@ -257,7 +257,7 @@ public:
     /**
      * Changes the scale factor on Y axis of this node
      *
-     * The Default value is 1.0 if you haven't changed it before.
+     * The default value is 1.0 if you haven't changed it before.
      *
      * @param fScaleY   The scale factor on Y axis.
      */
