@@ -163,12 +163,13 @@ public:
             }
         }
 
-        auto f = ARC_CO_UNWRAP(co_await Extract::invoke(F, std::forward<Args>(args)...));
+        auto fResult = co_await Extract::invoke(F, std::forward<Args>(args)...);
+        auto f = ARC_CO_UNWRAP(fResult);
 
         cache.relock();
 
         // only save to cache if no one beat us
-        if (!cache->has(key)) {
+        if (fResult.isOk() && !cache->has(key)) {
             cache->add(std::move(key), Value{f});
         }
         cache.unlock();
@@ -761,20 +762,7 @@ ServerFuture<ServerModMetadata> server::getMod(std::string id, bool useCache) {
 ServerFuture<ServerModVersion> server::getModVersion(std::string id, ModVersion version, bool useCache) {
     ARC_FRAME();
     if (useCache) {
-        auto& cache = getCache<getModVersion>();
-
-        auto cachedRequest = co_await cache.get(std::move(id), std::move(version));
-        co_return cachedRequest;
-
-        // TODO v5: is this needed
-
-        // // if mod installation was cancelled, remove it from cache and fetch again
-        // if (cachedRequest.isCancelled()) {
-        //     cache.remove(id, version);
-        //     return cache.get(id, version);
-        // } else {
-        //     return cachedRequest;
-        // }
+        co_return co_await getCache<getModVersion>().get(id, std::move(version));
     }
 
     auto req = web::WebRequest();
