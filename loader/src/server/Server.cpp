@@ -163,6 +163,16 @@ public:
             }
         }
 
+        // notify all waiters once the scope is over, this is a bit messy but done this way
+        // because we want to run this upon all three outcomes: success, error or cancellation
+        auto _scope = arc::scopeDtor([&] {
+            if (notify) {
+                notify->release(1'000'000'000);
+                auto sm = m_syncMap.lock();
+                ranges::remove(*sm, [&](auto const& q) { return q.second.get() == notify.get(); });
+            }
+        });
+
         auto f = ARC_CO_UNWRAP(co_await Extract::invoke(F, std::forward<Args>(args)...));
 
         cache.relock();
@@ -172,13 +182,6 @@ public:
             cache->add(std::move(key), Value{f});
         }
         cache.unlock();
-
-        // notify all waiters
-        if (notify) {
-            notify->release(1'000'000'000);
-            auto sm = m_syncMap.lock();
-            ranges::remove(*sm, [&](auto const& q) { return q.second.get() == notify.get(); });
-        }
 
         co_return Ok(std::move(f));
     }
