@@ -164,12 +164,13 @@ public:
         }
 
         auto fResult = co_await Extract::invoke(F, std::forward<Args>(args)...);
-        auto f = ARC_CO_UNWRAP(fResult);
+        auto canCache = fResult.isOk();
+        auto f = ARC_CO_UNWRAP(std::move(fResult));
 
         cache.relock();
 
         // only save to cache if no one beat us
-        if (fResult.isOk() && !cache->has(key)) {
+        if (canCache && !cache->has(key)) {
             cache->add(std::move(key), Value{f});
         }
         cache.unlock();
