@@ -58,8 +58,30 @@ target_link_libraries(${PROJECT_NAME} ca-bundle)
 
 if (WIN32)
 	set(ZLIB_LIBRARY "${net_libs_bin_SOURCE_DIR}/zs.lib")
+	set(ZSTD_LIBRARY "${net_libs_bin_SOURCE_DIR}/zstd_static.lib")
 else()
 	set(ZLIB_LIBRARY "${net_libs_bin_SOURCE_DIR}/libz.a")
+	set(ZSTD_LIBRARY "${net_libs_bin_SOURCE_DIR}/libzstd.a")
 endif()
 
 set(ZLIB_INCLUDE_DIR "${net_libs_bin_SOURCE_DIR}/include")
+set(ZSTD_INCLUDE_DIR "${net_libs_bin_SOURCE_DIR}/include")
+
+# libraries needed for minizip
+if (NOT TARGET zstd::libzstd_static)
+	add_library(zstd::libzstd_static STATIC IMPORTED)
+    set_target_properties(zstd::libzstd_static PROPERTIES
+        IMPORTED_LOCATION "${ZSTD_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZSTD_INCLUDE_DIR}"
+    )
+endif()
+if (NOT TARGET ZLIB::ZLIB)
+    add_library(ZLIB::ZLIB STATIC IMPORTED)
+    set_target_properties(ZLIB::ZLIB PROPERTIES
+        IMPORTED_LOCATION "${ZLIB_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${ZLIB_INCLUDE_DIR}"
+    )
+endif()
+
+set(ZSTD_FOUND TRUE)
+set(ZLIB_FOUND TRUE)
