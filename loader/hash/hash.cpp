@@ -8,6 +8,7 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/file.hpp>
 
 using namespace geode::prelude;
 
@@ -89,13 +90,13 @@ std::string calculateSHA256(std::filesystem::path const& path) {
 }
 
 std::string calculateSHA256Text(std::filesystem::path const& path) {
+    std::string input = utils::file::readString(path).unwrapOrDefault();
+    StringBuffer<> buf;
+
     // remove all newlines
-    std::ifstream file(path);
-    std::string text;
-    std::string line;
-    while (std::getline(file, line)) {
-        text += line;
+    for (auto line : asp::iter::lines(input)) {
+        buf.append(line);
     }
 
-    return calculateHash(text);
+    return calculateHash(buf.str());
 }
