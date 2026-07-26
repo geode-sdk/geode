@@ -74,6 +74,14 @@ if (NOT TARGET zstd::libzstd_static)
         IMPORTED_LOCATION "${ZSTD_LIBRARY}"
         INTERFACE_INCLUDE_DIRECTORIES "${ZSTD_INCLUDE_DIR}"
     )
+
+	if (NOT TARGET zstd::libzstd_shared)
+		add_library(zstd::libzstd_shared ALIAS zstd::libzstd_static)
+	endif()
+	if (NOT TARGET zstd::libzstd)
+		add_library(zstd::libzstd ALIAS zstd::libzstd_static)
+	endif()
+	set(ZSTD_FOUND TRUE CACHE BOOL "" FORCE)
 endif()
 if (NOT TARGET ZLIB::ZLIB)
     add_library(ZLIB::ZLIB STATIC IMPORTED)
@@ -81,7 +89,5 @@ if (NOT TARGET ZLIB::ZLIB)
         IMPORTED_LOCATION "${ZLIB_LIBRARY}"
         INTERFACE_INCLUDE_DIRECTORIES "${ZLIB_INCLUDE_DIR}"
     )
+	set(ZLIB_FOUND TRUE CACHE BOOL "" FORCE)
 endif()
-
-set(ZSTD_FOUND TRUE)
-set(ZLIB_FOUND TRUE)
