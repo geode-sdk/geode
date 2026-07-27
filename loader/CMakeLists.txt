@@ -233,18 +233,19 @@ if (NOT GEODE_BUILDING_DOCS)
 	CPMAddPackage("gh:mity/md4c#release-0.5.2")
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
+	set(MZ_ZSTD ON CACHE INTERNAL "")
 	set(MZ_LZMA OFF CACHE INTERNAL "")
-	set(MZ_ZSTD OFF CACHE INTERNAL "")
 	set(MZ_BZIP2 OFF CACHE INTERNAL "")
 	set(MZ_OPENSSL OFF CACHE INTERNAL "")
 	set(MZ_LIBBSD OFF CACHE INTERNAL "")
 	set(MZ_FETCH_LIBS ON CACHE INTERNAL "" FORCE)
+	set(MZ_ZLIB_FLAVOR "zlib" CACHE INTERNAL "")
 	set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
 	set(MZ_FORCE_FETCH_LIBS OFF CACHE INTERNAL "" FORCE)
 	# sets ZLIB_LIBRARY and ZLIB_INCLUDE_DIR
 	include(DownloadNetLibs.cmake)
 	
-	CPMAddPackage("gh:geode-sdk/minizip-ng#e9dda96")
+	CPMAddPackage("gh:geode-sdk/minizip-ng#86663d7")
 
 	# Silence warnings from dependencies
 	include(CheckCXXCompilerFlag)
