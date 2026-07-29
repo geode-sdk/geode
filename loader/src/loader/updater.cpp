@@ -213,7 +213,7 @@ bool updater::verifyLoaderResources() {
         }
         // verify hash
         // if we hash anything other than text, change this
-        auto hash = calculateSHA256Text(file.path());
+        auto hash = sha256Text(file.path()).toString();
         const auto& expected = LOADER_RESOURCE_HASHES.at(name);
         if (hash != expected) {
             log::debug("Resource hash mismatch: {} ({}, {})", name, hash.substr(0, 7), expected.substr(0, 7));

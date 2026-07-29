@@ -104,7 +104,7 @@ public:
             return;
         }
 
-        auto actualHash = ::calculateHash(response.data());
+        auto actualHash = geode::sha256(response.data()).toString();
         if (actualHash != version.hash) {
             log::error("Failed to download {}, hash mismatch ({} != {})", m_id, actualHash, version.hash);
             m_status = DownloadStatusError {
