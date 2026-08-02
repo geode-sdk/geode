@@ -129,6 +129,13 @@ Result<> Loader::Impl::setup() {
         log::info("Crash handler setup skipped");
     }
 
+    LoaderUpdateModResourcesEvent().listen([this](std::vector<Mod*> mods) {
+        for (auto mod : mods) {
+            this->updateModResources(mod);
+        }
+        return ListenerResult::Stop;
+    }).leak();
+
     log::info("Loading hooks");
     if (log::NestScope nest; !this->loadHooks()) {
         return Err("There were errors loading some hooks, see console for details");
@@ -162,13 +169,24 @@ void Loader::Impl::addSearchPaths() {
 
 void Loader::Impl::updateResources(bool forceReload) {
     log::debug("Adding resources");
+
     log::NestScope nest;
+    std::vector<Mod*> mods;
     for (auto const& [_, mod] : m_mods) {
         if (!forceReload && ModImpl::getImpl(mod)->m_resourcesLoaded)
             continue;
-        this->updateModResources(mod);
+        mods.push_back(mod);
+    }
+
+    // allow mods to override the process of loading resources, since some mods may
+    // have a much more efficient way than our simple single threaded loop
+    // by default this will just end up calling `updateModResources` on each mod
+    LoaderUpdateModResourcesEvent().send(mods);
+
+    for (auto mod : mods) {
         ModImpl::getImpl(mod)->m_resourcesLoaded = true;
     }
+
     // deduplicate mod resource paths, since they added in both updateModResources and Mod::Impl::setup
     // we have to call it in both places since setup is only called once ever, but updateResources is called
     // on every texture reload
@@ -254,7 +272,7 @@ Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
 void Loader::Impl::updateModResources(Mod* mod) {
     // skip disabled mods
     if (!mod->isOrWillBeEnabled()) return;
-    
+
     if (!mod->isInternal()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
