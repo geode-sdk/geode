@@ -710,6 +710,8 @@ struct Label::Impl {
                         }
                     }
 
+                    char32_t upper = (ch >= U'a' && ch <= U'z') ? (ch - U'a' + U'A') : ch; // backwards compat with CCLabelBMFont
+
                     BitmapFont::CharDef const* def = nullptr;
                     uint8_t fontIndex = 0;
                     for (uint8_t j = 0; j < m_fonts.size(); ++j) {
@@ -719,6 +721,16 @@ struct Label::Impl {
                             def = &it->second;
                             fontIndex = j;
                             break;
+                        }
+
+                        if (ch != upper) {
+                            auto it2 = chars.find(upper);
+                            if (it2 != chars.end()) {
+                                def = &it2->second;
+                                ch = upper;
+                                fontIndex = j;
+                                break;
+                            }
                         }
                     }
 
@@ -1075,6 +1087,7 @@ struct Label::Impl {
                     if (extraPerGap != 0.f && item.kind == ShapedItem::Kind::Space) {
                         x += extraPerGap;
                     }
+                    lineMaxX = std::max(lineMaxX, x);
                 }
             }
 
