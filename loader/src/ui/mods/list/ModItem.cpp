@@ -111,6 +111,18 @@ bool ModItem::init(ModSource&& source, bool listItem) {
 
     m_infoContainer->addChildAtPosition(m_description, Anchor::Left);
 
+    m_modLabelsContainer = CCNode::create();
+    m_modLabelsContainer->setID("labels-container");
+    m_modLabelsContainer->setLayout(
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisScaling(AxisScaling::Grow)
+            ->setCrossAxisScaling(AxisScaling::Grow)
+            ->setCrossAxisAlignment(CrossAxisAlignment::End)
+            ->setGap(5.f)
+    );
+    m_infoContainer->addChildAtPosition(m_modLabelsContainer, Anchor::Left);
+
     m_restartRequiredLabel = createTagLabel(
         "Restart Required",
         {
@@ -120,7 +132,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     );
     m_restartRequiredLabel->setID("restart-required-label");
     m_restartRequiredLabel->setScale(.75f);
-    m_infoContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Left);
+    m_modLabelsContainer->addChild(m_restartRequiredLabel);
 
     m_outdatedLabel = createTagLabel(
         "Outdated",
@@ -131,7 +143,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     );
     m_outdatedLabel->setID("outdated-label");
     m_outdatedLabel->setScale(.75f);
-    m_infoContainer->addChildAtPosition(m_outdatedLabel, Anchor::Left);
+    m_modLabelsContainer->addChild(m_outdatedLabel);
 
     m_deprecatedLabel = createTagLabel(
         "Deprecated",
@@ -142,7 +154,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     );
     m_deprecatedLabel->setID("deprecated-label");
     m_deprecatedLabel->setScale(.75f);
-    m_infoContainer->addChildAtPosition(m_deprecatedLabel, Anchor::Left);
+    m_modLabelsContainer->addChild(m_deprecatedLabel);
 
     m_downloadBarContainer = CCNode::create();
     m_downloadBarContainer->setID("download-bar-container");
@@ -766,9 +778,7 @@ void ModItem::updateState() {
             limitNodeWidth(m_titleLabel, m_titleContainer->getContentWidth(), .8f, .1f);
             m_titleContainer->updateAnchoredPosition(Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
             m_developers->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
-            m_restartRequiredLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
-            m_outdatedLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
-            m_deprecatedLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
+            m_modLabelsContainer->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_downloadWaiting->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
 
@@ -788,9 +798,7 @@ void ModItem::updateState() {
                 );
             // m_description is hidden
             m_developers->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_restartRequiredLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_outdatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_deprecatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
+            m_modLabelsContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
 
@@ -810,8 +818,7 @@ void ModItem::updateState() {
             m_developers->updateAnchoredPosition(Anchor::Left, ccp(0, 0), ccp(0, .5f));
 
             m_description->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
-            m_restartRequiredLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
-            m_outdatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
+            m_modLabelsContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
             m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
 
@@ -826,6 +833,7 @@ void ModItem::updateState() {
 
     m_titleContainer->updateLayout();
     m_viewMenu->updateLayout();
+    m_modLabelsContainer->updateLayout();
 
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {

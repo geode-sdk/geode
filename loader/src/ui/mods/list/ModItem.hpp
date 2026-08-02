@@ -63,6 +63,7 @@ protected:
     ButtonSprite* m_restartRequiredLabel;
     ButtonSprite* m_outdatedLabel;
     ButtonSprite* m_deprecatedLabel;
+    CCNode* m_modLabelsContainer;
     CCNode* m_downloadWaiting;
     CCNode* m_downloadBarContainer;
     Slider* m_downloadBar;
