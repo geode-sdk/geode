@@ -274,9 +274,9 @@ bool ModItem::init(ModSource&& source, bool listItem) {
                 m_viewMenu->updateLayout();
             }
 
-            if (mod->getLoadProblem()) {
+            if (mod->getLoadProblem() || m_source.hasUpdates().deprecation.has_value()) {
                 auto viewErrorSpr = CircleButtonSprite::create(
-                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 
+                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
                     CircleBaseColor::Red, CircleBaseSize::Small
                 );
                 auto viewErrorBtn = CCMenuItemSpriteExtra::create(
