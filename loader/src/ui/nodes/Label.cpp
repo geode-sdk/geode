@@ -4,6 +4,7 @@
 #include <Geode/utils/StringMap.hpp>
 #include <Geode/utils/file.hpp>
 #include <asp/collections/SmallVec.hpp>
+#include <simdutf/implementation.h>
 
 #include <ranges>
 
@@ -541,6 +542,11 @@ struct LineSpan {
     uint32_t whitespaceCount;
 };
 
+struct StyleSpan {
+    uint32_t start, end;
+    std::optional<ccColor3B> color;
+};
+
 struct Label::Impl {
     std::string m_text;
     asp::SmallVec<BitmapFont const*, 2> m_fonts;
@@ -555,6 +561,8 @@ struct Label::Impl {
     std::vector<ShapedItem> m_shaped;
     asp::SmallVec<WordSpan, 3> m_words;
     asp::SmallVec<LineSpan, 1> m_lines;
+
+    std::vector<StyleSpan> m_styles;
 
     float m_spaceWidth = 0.f;
     float m_maxLineWidth = 0.f;
@@ -579,6 +587,8 @@ struct Label::Impl {
     bool m_emojisUseColors = false;
     bool m_customNodesColors = false;
 
+    bool m_useRichText = false;
+
     bool m_textDirty = true;
     bool m_layoutDirty = true;
     bool m_quadsDirty = true;
@@ -595,17 +605,21 @@ struct Label::Impl {
         return baseHeight / fallbackHeight;
     }
 
-    ccColor4B getEffectiveColor() const {
+    ccColor4B getEffectiveColor(ccColor3B color) const {
         if (m_isOpacityModifyRGB) {
             return {
-                static_cast<GLubyte>(m_color.r * m_opacity / 255),
-                static_cast<GLubyte>(m_color.g * m_opacity / 255),
-                static_cast<GLubyte>(m_color.b * m_opacity / 255),
+                static_cast<GLubyte>(color.r * m_opacity / 255),
+                static_cast<GLubyte>(color.g * m_opacity / 255),
+                static_cast<GLubyte>(color.b * m_opacity / 255),
                 static_cast<GLubyte>(m_opacity)
             };
         }
 
-        return { m_color.r, m_color.g, m_color.b, m_opacity };
+        return { color.r, color.g, color.b, m_opacity };
+    }
+
+    ccColor4B getEffectiveColor() const {
+        return this->getEffectiveColor(m_color);
     }
 
     ccColor4B getEmojiColor() const {
@@ -626,6 +640,281 @@ struct Label::Impl {
         return static_cast<uint8_t>(m_emojiBatches.size() - 1);
     }
 
+    bool tryMatchEmojiOrNode(std::u32string_view str, size_t& index) {
+        if (!m_emojiRegistry) return false;
+
+        auto entry = m_emojiRegistry->match(str, index);
+        if (!entry) return false;
+
+        float baseHeight = m_fonts.data()[0]->getCommonHeightScaled();
+
+        std::visit([&]<typename T>(T& e) {
+            if constexpr (std::is_same_v<T, EmojiRegistry::EmojiEntry>) {
+                auto frame = e.getFrame();
+                auto size = frame->getRect().size;
+                auto batchIndex = this->getOrCreateBatch(frame->getTexture());
+
+                m_shaped.push_back(ShapedItem{
+                    .kind = ShapedItem::Kind::Emoji,
+                    .fontIndex = batchIndex,
+                    .advance = size.width * (baseHeight / size.height),
+                    .frame = frame,
+                });
+            } else if constexpr (std::is_same_v<T, EmojiRegistry::NodeFactory>) {
+                auto node = e();
+                auto size = node->getContentSize();
+
+                m_shaped.push_back(ShapedItem{
+                    .kind = ShapedItem::Kind::Node,
+                    .fontIndex = 0,
+                    .advance = size.width * (baseHeight / size.height),
+                    .node = node,
+                });
+
+                m_label->addChild(node);
+                m_embeddedNodes.push_back(node);
+            }
+        }, *entry);
+
+        return true;
+    }
+
+    std::tuple<BitmapFont::CharDef const*, uint8_t> findGlyphDef(char32_t& ch) {
+        char32_t upper = (ch >= U'a' && ch <= U'z') ? (ch - U'a' + U'A') : ch; // backwards compat with CCLabelBMFont
+
+        for (uint8_t j = 0; j < m_fonts.size(); ++j) {
+            auto const& chars = m_fonts[j]->getCharDefs();
+            auto it = chars.find(ch);
+            if (it != chars.end()) {
+                return { &it->second, j };
+            }
+
+            if (ch != upper) {
+                auto it2 = chars.find(upper);
+                if (it2 != chars.end()) {
+                    ch = upper;
+                    return {&it2->second, j};
+                }
+            }
+        }
+
+        return {nullptr, 0};
+    }
+
+    void appendGlyphItem(
+        char32_t ch,
+        BitmapFont::CharDef const* def,
+        uint8_t fontIndex,
+        uint32_t& prevCp,
+        uint8_t& prevFontIndex
+    ) {
+        float fontScale = this->getFontScale(fontIndex);
+
+        float advance = def->xAdvanceScaled * fontScale;
+        if (prevCp != 0 && prevFontIndex == fontIndex) {
+            float kerning = m_fonts[fontIndex]->getKerning(prevCp, ch) * fontScale;
+            if (kerning != 0.f && !m_shaped.empty()) {
+                m_shaped.back().advance += kerning;
+            }
+        }
+        advance += m_extraKerning;
+
+        m_shaped.push_back(ShapedItem{
+            .kind = ShapedItem::Kind::Glyph,
+            .fontIndex = fontIndex,
+            .advance = advance,
+            .def = def
+        });
+
+        prevCp = ch;
+        prevFontIndex = fontIndex;
+    }
+
+    static constexpr int parseHexDigit(char32_t ch) {
+        if (ch >= U'0' && ch <= U'9') return ch - U'0';
+        if (ch >= U'a' && ch <= U'f') return ch - U'a' + 10;
+        if (ch >= U'A' && ch <= U'F') return ch - U'A' + 10;
+        return -1;
+    }
+
+    static std::optional<ccColor3B> parseHexColor(std::u32string_view str) {
+        if (str.size() == 3) {
+            int r = parseHexDigit(str[0]);
+            int g = parseHexDigit(str[1]);
+            int b = parseHexDigit(str[2]);
+
+            if (r < 0 || g < 0 || b < 0) return std::nullopt;
+
+            return ccColor3B{
+                static_cast<GLubyte>(r * 17),
+                static_cast<GLubyte>(g * 17),
+                static_cast<GLubyte>(b * 17)
+            };
+        }
+
+        if (str.size() == 6) {
+            int r1 = parseHexDigit(str[0]);
+            int r2 = parseHexDigit(str[1]);
+            int g1 = parseHexDigit(str[2]);
+            int g2 = parseHexDigit(str[3]);
+            int b1 = parseHexDigit(str[4]);
+            int b2 = parseHexDigit(str[5]);
+
+            if (r1 < 0 || r2 < 0 || g1 < 0 || g2 < 0 || b1 < 0 || b2 < 0) return std::nullopt;
+
+            return ccColor3B{
+                static_cast<GLubyte>((r1 << 4) | r2),
+                static_cast<GLubyte>((g1 << 4) | g2),
+                static_cast<GLubyte>((b2 << 4) | b2),
+            };
+        }
+
+        return std::nullopt;
+    }
+
+    static bool tryParseRichTags(std::u32string_view str, size_t& i, std::vector<ccColor3B>& colorStack) {
+        if (str[i] != U'<') return false;
+
+        size_t closePos = str.find(U'>', i);
+        if (closePos == std::string::npos) return false;
+
+        auto tag = str.substr(i + 1, closePos - i - 1);
+        if (tag.empty()) return false;
+
+        if (tag == U"/c") {
+            if (colorStack.empty()) return false;
+
+            colorStack.pop_back();
+            i = closePos;
+            return true;
+        }
+
+        if (tag[0] == U'c') {
+            ccColor3B color{255, 0, 0};
+
+            if (tag.size() == 2) {
+                switch (tag[1]) {
+                    case U'b': color = {74, 82, 225}; break;
+                    case U'g': color = {64, 227, 72}; break;
+                    case U'l': color = {96, 171, 239}; break;
+                    case U'j': color = {50, 200, 255}; break;
+                    case U'y': color = {255, 255, 0}; break;
+                    case U'o': color = {255, 90, 75}; break;
+                    case U'r': color = {255, 90, 90}; break;
+                    case U'p': color = {255, 0, 255}; break;
+                    case U'a': color = {149, 50, 255}; break;
+                    case U'd': color = {255, 150, 255}; break;
+                    case U'c': color = {255, 255, 150}; break;
+                    case U'f': color = {150, 255, 255}; break;
+                    case U's': color = {255, 220, 65}; break;
+                    default: break;
+                }
+            } else if (tag.size() > 2 && tag[1] == U'-') {
+                auto hex = tag.substr(2);
+                if (auto parsed = parseHexColor(hex)) {
+                    color = parsed.value();
+                }
+            }
+
+            colorStack.push_back(color);
+            i = closePos;
+            return true;
+        }
+
+        return false;
+    }
+
+    void reshapeRich(std::u32string_view str) {
+        uint32_t prevCp = 0;
+        uint8_t prevFontIndex = 0;
+
+        std::vector<ccColor3B> colorStack;
+
+        auto currentColor = [&]() -> std::optional<ccColor3B> {
+            return colorStack.empty() ? std::nullopt : std::optional(colorStack.back());
+        };
+
+        auto openSpan = [&](uint32_t start) {
+            auto color = currentColor();
+
+            if (!m_styles.empty() && m_styles.back().end == start && m_styles.back().color == color) {
+                m_styles.back().end = std::numeric_limits<uint32_t>::max();
+                return;
+            }
+
+            m_styles.push_back(StyleSpan{
+                .start = start,
+                .end = std::numeric_limits<uint32_t>::max(),
+                .color = currentColor()
+            });
+        };
+
+        auto closeSpan = [&](uint32_t end) {
+            if (!m_styles.empty() && m_styles.back().end == std::numeric_limits<uint32_t>::max()) {
+                if (m_styles.back().start == end) {
+                    m_styles.pop_back();
+                } else {
+                    m_styles.back().end = end;
+                }
+            }
+        };
+
+        openSpan(0);
+
+        for (size_t i = 0; i < str.length(); i++) {
+            char32_t ch = str[i];
+            switch (ch) {
+                case '\n': {
+                    m_shaped.push_back(ShapedItem{
+                        .kind = ShapedItem::Kind::Newline,
+                        .fontIndex = 0,
+                        .advance = 0.f,
+                        .def = nullptr
+                    });
+                    prevCp = 0;
+                    break;
+                }
+                case ' ':
+                case '\t': {
+                    float advance = m_spaceWidth + m_extraKerning;
+                    if (ch == '\t') advance *= 4.f;
+
+                    m_shaped.push_back(ShapedItem{
+                        .kind = ShapedItem::Kind::Space,
+                        .fontIndex = 0,
+                        .advance = advance,
+                        .def = nullptr
+                    });
+
+                    prevCp = ch;
+                    prevFontIndex = 0;
+                    break;
+                }
+                default: {
+                    if (this->tryMatchEmojiOrNode(str, i)) {
+                        prevCp = 0;
+                        continue;
+                    }
+
+                    if (this->tryParseRichTags(str, i, colorStack)) {
+                        auto idx = m_shaped.size();
+                        closeSpan(idx);
+                        openSpan(idx);
+                        continue;
+                    }
+
+                    auto [def, fontIndex] = this->findGlyphDef(ch);
+                    if (!def) break;
+
+                    this->appendGlyphItem(ch, def, fontIndex, prevCp, prevFontIndex);
+                    break;
+                }
+            }
+        }
+
+        closeSpan(m_shaped.size());
+    }
+
     void reshape() {
         for (auto& node : m_embeddedNodes) {
             node->removeFromParent();
@@ -633,12 +922,21 @@ struct Label::Impl {
 
         m_embeddedNodes.clear();
         m_shaped.clear();
+        m_styles.clear();
 
-        auto res = string::utf8ToUtf32(m_text);
-        if (!res) return;
+        fmt::basic_memory_buffer<char32_t> buffer;
+        buffer.resize(simdutf::utf32_length_from_utf8(m_text));
+        if (simdutf::convert_utf8_to_utf32(m_text.data(), m_text.size(), buffer.data()) == 0) {
+            return;
+        }
 
-        std::u32string str = std::move(res).unwrap();
+        auto str = std::u32string_view(buffer.data(), buffer.size());
         m_shaped.reserve(str.size());
+
+        if (m_useRichText) {
+            this->reshapeRich(str);
+            return;
+        }
 
         uint32_t prevCp = 0;
         uint8_t prevFontIndex = 0;
@@ -673,91 +971,15 @@ struct Label::Impl {
                     break;
                 }
                 default: {
-                    if (m_emojiRegistry) {
-                        float baseHeight = m_fonts.data()[0]->getCommonHeightScaled();
-
-                        if (auto entry = m_emojiRegistry->match(str, i)) {
-                            std::visit([&]<typename T>(T& e) {
-                                if constexpr (std::is_same_v<T, EmojiRegistry::EmojiEntry>) {
-                                    auto frame = e.getFrame();
-                                    auto size = frame->getRect().size;
-                                    auto batchIndex = this->getOrCreateBatch(frame->getTexture());
-
-                                    m_shaped.push_back(ShapedItem{
-                                        .kind = ShapedItem::Kind::Emoji,
-                                        .fontIndex = batchIndex,
-                                        .advance = size.width * (baseHeight / size.height),
-                                        .frame = frame,
-                                    });
-                                } else if constexpr (std::is_same_v<T, EmojiRegistry::NodeFactory>) {
-                                    auto node = e();
-                                    auto size = node->getContentSize();
-
-                                    m_shaped.push_back(ShapedItem{
-                                        .kind = ShapedItem::Kind::Node,
-                                        .fontIndex = 0,
-                                        .advance = size.width * (baseHeight / size.height),
-                                        .node = node,
-                                    });
-
-                                    m_label->addChild(node);
-                                    m_embeddedNodes.push_back(node);
-                                }
-                            }, *entry);
-
-                            prevCp = 0;
-                            continue;
-                        }
+                    if (this->tryMatchEmojiOrNode(str, i)) {
+                        prevCp = 0;
+                        continue;
                     }
 
-                    char32_t upper = (ch >= U'a' && ch <= U'z') ? (ch - U'a' + U'A') : ch; // backwards compat with CCLabelBMFont
+                    auto [def, fontIndex] = this->findGlyphDef(ch);
+                    if (!def) break;
 
-                    BitmapFont::CharDef const* def = nullptr;
-                    uint8_t fontIndex = 0;
-                    for (uint8_t j = 0; j < m_fonts.size(); ++j) {
-                        auto const& chars = m_fonts[j]->getCharDefs();
-                        auto it = chars.find(ch);
-                        if (it != chars.end()) {
-                            def = &it->second;
-                            fontIndex = j;
-                            break;
-                        }
-
-                        if (ch != upper) {
-                            auto it2 = chars.find(upper);
-                            if (it2 != chars.end()) {
-                                def = &it2->second;
-                                ch = upper;
-                                fontIndex = j;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!def) {
-                        break;
-                    }
-
-                    float fontScale = this->getFontScale(fontIndex);
-
-                    float advance = def->xAdvanceScaled * fontScale;
-                    if (prevCp != 0 && prevFontIndex == fontIndex) {
-                        float kerning = m_fonts[fontIndex]->getKerning(prevCp, ch) * fontScale;
-                        if (kerning != 0.f && !m_shaped.empty()) {
-                            m_shaped.back().advance += kerning;
-                        }
-                    }
-                    advance += m_extraKerning;
-
-                    m_shaped.push_back(ShapedItem{
-                        .kind = ShapedItem::Kind::Glyph,
-                        .fontIndex = fontIndex,
-                        .advance = advance,
-                        .def = def
-                    });
-
-                    prevCp = ch;
-                    prevFontIndex = fontIndex;
+                    this->appendGlyphItem(ch, def, fontIndex, prevCp, prevFontIndex);
                     break;
                 }
             }
@@ -955,6 +1177,21 @@ struct Label::Impl {
         float totalHeight = lineHeight * m_lines.size();
         float y = totalHeight;
 
+        size_t styleIdx = 0;
+        auto getColor = [&](uint32_t i) -> ccColor4B {
+            if (!m_useRichText) return color;
+
+            while (styleIdx + 1 < m_styles.size() && i >= m_styles[styleIdx].end) {
+                ++styleIdx;
+            }
+
+            if (styleIdx < m_styles.size() && m_styles[styleIdx].color) {
+                return this->getEffectiveColor(*m_styles[styleIdx].color);
+            }
+
+            return color;
+        };
+
         for (uint32_t li = 0; li < m_lines.size(); ++li) {
             auto const& line = m_lines[li];
             bool isLastLine = li == m_lines.size() - 1;
@@ -1001,11 +1238,13 @@ struct Label::Impl {
 
                             lineMaxX = std::max(lineMaxX, qx + w);
 
+                            auto newColor = getColor(ii);
+
                             batch.quads.push_back({
-                                .bl = { .vertices = { qx, qy - h }, .colors = color, .texCoords = { def.uv.origin.x, def.uv.size.height } },
-                                .br = { .vertices = { qx + w, qy - h }, .colors = color, .texCoords = { def.uv.size.width, def.uv.size.height } },
-                                .tl = { .vertices = { qx, qy }, .colors = color, .texCoords = { def.uv.origin.x, def.uv.origin.y } },
-                                .tr = { .vertices = { qx + w, qy }, .colors = color, .texCoords = { def.uv.size.width, def.uv.origin.y } },
+                                .bl = { .vertices = { qx, qy - h }, .colors = newColor, .texCoords = { def.uv.origin.x, def.uv.size.height } },
+                                .br = { .vertices = { qx + w, qy - h }, .colors = newColor, .texCoords = { def.uv.size.width, def.uv.size.height } },
+                                .tl = { .vertices = { qx, qy }, .colors = newColor, .texCoords = { def.uv.origin.x, def.uv.origin.y } },
+                                .tr = { .vertices = { qx + w, qy }, .colors = newColor, .texCoords = { def.uv.size.width, def.uv.origin.y } },
                             });
 
                             m_chars.push_back({
@@ -1101,14 +1340,43 @@ struct Label::Impl {
     void updateQuads() {
         auto color = this->getEffectiveColor();
 
-        for (auto& batch : m_batches) {
-            for (auto& quad : batch.quads) {
-                quad.bl.colors = color;
-                quad.br.colors = color;
-                quad.tl.colors = color;
-                quad.tr.colors = color;
+        if (!m_useRichText || m_styles.empty()) {
+            for (auto& batch : m_batches) {
+                for (auto& quad : batch.quads) {
+                    quad.bl.colors = color;
+                    quad.br.colors = color;
+                    quad.tl.colors = color;
+                    quad.tr.colors = color;
+                }
+                batch.isDirty = true;
             }
-            batch.isDirty = true;
+        } else {
+            size_t charIdx = 0;
+            size_t styleIdx = 0;
+
+            for (uint32_t ii = 0; ii < m_shaped.size(); ++ii) {
+                if (m_shaped[ii].kind != ShapedItem::Kind::Glyph) continue;
+
+                while (styleIdx + 1 < m_styles.size() && ii >= m_styles[styleIdx].end) {
+                    ++styleIdx;
+                }
+
+                auto const& ref = m_chars[charIdx++];
+                auto& quad = m_batches[ref.batchIndex].quads[ref.charIndex];
+
+                auto quadColor = styleIdx < m_styles.size() && m_styles[styleIdx].color
+                    ? this->getEffectiveColor(*m_styles[styleIdx].color)
+                    : color;
+
+                quad.bl.colors = quadColor;
+                quad.br.colors = quadColor;
+                quad.tl.colors = quadColor;
+                quad.tr.colors = quadColor;
+            }
+
+            for (auto& batch : m_batches) {
+                batch.isDirty = true;
+            }
         }
 
         auto emojiColor = this->getEmojiColor();
@@ -1323,7 +1591,7 @@ Label* Label::create(ZStringView font) {
 
 Label* Label::create(std::string text, BitmapFont* font) {
     auto ret = new Label();
-    if (ret->initWithStringAndFont(std::move(text), font)) {
+    if (ret->initWithString(std::move(text), font)) {
         ret->autorelease();
         return ret;
     }
@@ -1334,6 +1602,26 @@ Label* Label::create(std::string text, BitmapFont* font) {
 Label* Label::create(std::string text, ZStringView font) {
     auto ret = new Label();
     if (ret->initWithString(std::move(text), font)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+Label* Label::createRich(std::string text, BitmapFont* font) {
+    auto ret = new Label();
+    if (ret->initWithRichText(std::move(text), font)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+Label* Label::createRich(std::string text, ZStringView font) {
+    auto ret = new Label();
+    if (ret->initWithRichText(std::move(text), font)) {
         ret->autorelease();
         return ret;
     }
@@ -1651,10 +1939,21 @@ void Label::setText(std::string text) noexcept {
 
     m_impl->m_text = std::move(text);
     m_impl->m_textDirty = true;
+    m_impl->m_useRichText = false;
 }
 
 ZStringView Label::getText() noexcept {
     return m_impl->m_text;
+}
+
+void Label::setRichText(std::string text) {
+    if (m_impl->m_text == text) {
+        return;
+    }
+
+    m_impl->m_text = std::move(text);
+    m_impl->m_textDirty = true;
+    m_impl->m_useRichText = true;
 }
 
 void Label::setString(char const* label) {
@@ -1664,6 +1963,7 @@ void Label::setString(char const* label) {
 
     m_impl->m_text = label;
     m_impl->m_textDirty = true;
+    m_impl->m_useRichText = false;
 }
 
 char const* Label::getString() {
@@ -1714,7 +2014,7 @@ bool Label::initWithFontFile(ZStringView fntFile) {
     return this->initWithFont(BitmapFont::load(fntFile));
 }
 
-bool Label::initWithStringAndFont(std::string text, BitmapFont* font) {
+bool Label::initWithString(std::string text, BitmapFont* font) {
     if (!this->initWithFont(font)) {
         return false;
     }
@@ -1725,11 +2025,19 @@ bool Label::initWithStringAndFont(std::string text, BitmapFont* font) {
 }
 
 bool Label::initWithString(std::string text, ZStringView fntFile) {
-    if (!this->initWithFontFile(fntFile)) {
+    return this->initWithString(std::move(text), BitmapFont::load(fntFile));
+}
+
+bool Label::initWithRichText(std::string text, BitmapFont* font) {
+    if (!this->initWithString(std::move(text), font)) {
         return false;
     }
 
-    m_impl->m_text = std::move(text);
+    m_impl->m_useRichText = true;
 
     return true;
+}
+
+bool Label::initWithRichText(std::string text, ZStringView fntFile) {
+    return this->initWithRichText(std::move(text), BitmapFont::load(fntFile));
 }

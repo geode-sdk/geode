@@ -4,9 +4,7 @@
 #include <Geode/utils/cocos.hpp>
 
 namespace geode {
-    /**
-     * A bitmap font cache that acts similarly to cocos2d::CCBMFontConfiguration, but is more performant.
-     */
+    /// A bitmap font cache that acts similarly to cocos2d::CCBMFontConfiguration, but is more performant.
     class GEODE_DLL BitmapFont final {
     public:
         BitmapFont();
@@ -192,6 +190,16 @@ namespace geode {
         /// @param font The font file to use (e.g. "bigFont.fnt")
         static Label* create(std::string text, ZStringView font);
 
+        /// Create a Label with the specified rich-text and font.
+        /// @param text Rich text that may contain color tags
+        /// @param font The font to use
+        static Label* createRich(std::string text, BitmapFont* font);
+
+        /// Create a Label with the specified rich-text and font file.
+        /// @param text Rich text that may contain color tags
+        /// @param font The font file to use (e.g. "bigFont.fnt")
+        static Label* createRich(std::string text, ZStringView font);
+
         /// Forces a relayout/redraw of internal quads based on currently active dirty flags.
         /// Runs automatically every frame before rendering or when fetching content size.
         void validate();
@@ -218,6 +226,8 @@ namespace geode {
         /// Sets the text of the label.
         void setText(std::string text) noexcept;
         ZStringView getText() noexcept;
+
+        void setRichText(std::string text);
 
         /// Sets the label string. Provided by CCLabelProtocol.
         /// @note Prefer using Label::setText to avoid a string copy.
@@ -322,8 +332,10 @@ namespace geode {
     protected:
         bool initWithFont(BitmapFont* font);
         bool initWithFontFile(ZStringView fntFile);
-        bool initWithStringAndFont(std::string text, BitmapFont* font);
+        bool initWithString(std::string text, BitmapFont* font);
         bool initWithString(std::string text, ZStringView fntFile);
+        bool initWithRichText(std::string text, BitmapFont* font);
+        bool initWithRichText(std::string text, ZStringView fntFile);
 
     private:
         struct Impl;
