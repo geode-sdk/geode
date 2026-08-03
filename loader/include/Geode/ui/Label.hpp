@@ -112,6 +112,7 @@ namespace geode {
     class GEODE_DLL EmojiRegistry {
     public:
         using NodeFactory = Function<cocos2d::CCNode*()>;
+        using NodeFactoryParams = Function<cocos2d::CCNode*(std::u32string_view str, size_t& index)>;
 
         struct EmojiEntry {
             ZStringView frameName;
@@ -125,7 +126,7 @@ namespace geode {
             mutable cocos2d::CCSpriteFrame* cachedFrame = nullptr;
         };
 
-        using Entry = std::variant<EmojiEntry, NodeFactory>;
+        using Entry = std::variant<EmojiEntry, NodeFactory, NodeFactoryParams>;
 
         EmojiRegistry();
         ~EmojiRegistry();
@@ -140,6 +141,12 @@ namespace geode {
         /// @param factory Function that returns a newly created node.
         /// @note The sequence view is expected to point to static memory and never be freed.
         void insert(std::u32string_view sequence, NodeFactory factory);
+
+        /// Inserts a new replacement mapping to the registry.
+        /// @param sequence A UTF-32 view to a sequence that's going to be replaced by a custom node.
+        /// @param factory Function that returns a newly created node.
+        /// @note The sequence view is expected to point to static memory and never be freed.
+        void insert(std::u32string_view sequence, NodeFactoryParams factory);
 
         /// Inserts a new replacement mapping to the registry.
         /// @param sequence A UTF-32 view to a sequence that's going to be replaced by a sprite.

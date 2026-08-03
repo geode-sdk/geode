@@ -651,6 +651,8 @@ struct Label::Impl {
         std::visit([&]<typename T>(T& e) {
             if constexpr (std::is_same_v<T, EmojiRegistry::EmojiEntry>) {
                 auto frame = e.getFrame();
+                if (!frame) return;
+
                 auto size = frame->getRect().size;
                 auto batchIndex = this->getOrCreateBatch(frame->getTexture());
 
@@ -662,6 +664,23 @@ struct Label::Impl {
                 });
             } else if constexpr (std::is_same_v<T, EmojiRegistry::NodeFactory>) {
                 auto node = e();
+                if (!node) return;
+
+                auto size = node->getContentSize();
+
+                m_shaped.push_back(ShapedItem{
+                    .kind = ShapedItem::Kind::Node,
+                    .fontIndex = 0,
+                    .advance = size.width * (baseHeight / size.height),
+                    .node = node,
+                });
+
+                m_label->addChild(node);
+                m_embeddedNodes.push_back(node);
+            } else if constexpr (std::is_same_v<T, EmojiRegistry::NodeFactoryParams>) {
+                auto node = e(str, index);
+                if (!node) return;
+
                 auto size = node->getContentSize();
 
                 m_shaped.push_back(ShapedItem{
@@ -1552,6 +1571,10 @@ EmojiRegistry& EmojiRegistry::operator=(EmojiRegistry const&) = default;
 EmojiRegistry& EmojiRegistry::operator=(EmojiRegistry&&) noexcept = default;
 
 void EmojiRegistry::insert(std::u32string_view sequence, NodeFactory factory) {
+    m_impl->insert(sequence, std::move(factory));
+}
+
+void EmojiRegistry::insert(std::u32string_view sequence, NodeFactoryParams factory) {
     m_impl->insert(sequence, std::move(factory));
 }
 
