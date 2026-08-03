@@ -784,7 +784,7 @@ struct Label::Impl {
             return ccColor3B{
                 static_cast<GLubyte>((r1 << 4) | r2),
                 static_cast<GLubyte>((g1 << 4) | g2),
-                static_cast<GLubyte>((b2 << 4) | b2),
+                static_cast<GLubyte>((b1 << 4) | b2),
             };
         }
 
