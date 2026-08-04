@@ -20,8 +20,8 @@ char const* getUsefulError(DWORD code) {
             return "ERROR_MOD_NOT_FOUND;\n\nThe mod is either missing the DLL "
                    "file or some of its dependencies. Make sure to list all "
                    "other mods you depend on under dependencies in mod.json  "
-                   "and that the mod is not built in Debug. "
-                   "\n\nIf you are not the developer of this mod, report this error "
+                   "and that the mod is not built in Debug.\n\n"
+                   "If you are not the developer of this mod, report this error "
                    "to them as it is likely not your fault. Also try [updating "
                    "Microsoft Visual C++ Redistributable 2026 (64-bit).](https://aka.ms/vc14/vc_redist.x64.exe)";
 
@@ -41,18 +41,18 @@ char const* getUsefulError(DWORD code) {
                    "to them as it is likely not your fault.";
 
         case 4551:
-            return "Blocked by Windows Smart App Control (4551);\n\nWindows prevented"
+            return "Blocked by Windows Smart App Control (4551);\n\nWindows prevented "
                     "the mod from loading because it is an unrecognized application. "
                     "This is a security feature in Windows that blocks applications "
                     "from small developers - including most Geometry Dash mods.\n\n"
-                    "You can disable Smart App Control in Windows Security settings to make the mod load."
+                    "You can disable Smart App Control in Windows Security settings to make the mod load. "
                     "[Click here to learn more about Smart App Control](https://learn.microsoft.com/en-us/windows/apps/develop/smart-app-control/overview).";
         case 0xc0e90002:
-            return "Blocked by Windows Smart App Control (0xc0e90002);\n\nWindows prevented"
+            return "Blocked by Windows Smart App Control (0xc0e90002);\n\nWindows prevented "
                     "the mod from loading because it is an unrecognized application. "
                     "This is a security feature in Windows that blocks applications "
                     "from small developers - including most Geometry Dash mods.\n\n"
-                    "You can disable Smart App Control in Windows Security settings to make the mod load."
+                    "You can disable Smart App Control in Windows Security settings to make the mod load. "
                     "[Click here to learn more about Smart App Control](https://learn.microsoft.com/en-us/windows/apps/develop/smart-app-control/overview).";
 
         default: break;
