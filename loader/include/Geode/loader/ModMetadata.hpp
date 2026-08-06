@@ -241,6 +241,11 @@ namespace geode {
         [[nodiscard]] int getLoadPriority() const;
 
         /**
+         * Checks if mod can be installed on the current platform.
+         * Returns Ok() if it can, Err explaining why not otherwise.
+        */
+        Result<> checkPlatformSupported() const;
+        /**
          * Checks if mod can be installed on the current GD version.
          * Returns Ok() if it can, Err explaining why not otherwise.
         */

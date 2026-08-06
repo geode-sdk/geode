@@ -717,10 +717,17 @@ void ModItem::updateState() {
             m_outdatedLabel->setVisible(true);
             elementToReplaceWithOtherAbnormalElement->setVisible(false);
             if (m_display == ModListDisplay::Grid) {
-                m_outdatedLabel->setString("Outdated");
+                if (!m_source.getMetadata().checkPlatformSupported()) {
+                    m_outdatedLabel->setString("Unsupported");
+                } else {
+                    m_outdatedLabel->setString("Outdated");
+                }
             }
             else {
-                if (!m_source.getMetadata().checkGameVersion()) {
+                if (!m_source.getMetadata().checkPlatformSupported()) {
+                    m_outdatedLabel->setString("Unsupported Platform");
+                }
+                else if (!m_source.getMetadata().checkGameVersion()) {
                     m_outdatedLabel->setString(fmt::format(
                         "Outdated (GD {})", *m_source.getMetadata().getGameVersion()
                     ).c_str());
