@@ -215,11 +215,18 @@ Result<> Mod::Impl::loadData() {
     // Check if settings exist
     auto settingPath = m_saveDirPath / "settings.json";
     if (std::filesystem::exists(settingPath)) {
-        GEODE_UNWRAP_INTO(auto json, utils::file::readJson(settingPath));
-        auto load = m_settings->load(json);
-        if (!load) {
-            log::warn("Unable to load settings: {}", load.unwrapErr());
+        if(auto json = utils::file::readJson(settingPath)) {
+            auto load = m_settings->load(json.unwrap());
+            if (!load) {
+                log::warn("Unable to load settings: {}", load.unwrapErr());
+            }
+        } else {
+            // this used to early return but skipping saved values is not great behavior here imo
+            m_settings->markDirty();
+            log::warn("Unable to load settings: {}", json.unwrapErr());
         }
+    } else {
+        m_settings->markDirty();
     }
 
     // Saved values
