@@ -165,6 +165,12 @@ VersionInfo Mod::Impl::getVersion() const {
 }
 
 matjson::Value& Mod::Impl::getSaveContainer() {
+    m_savedDirty = true;
+
+    return m_saved;
+}
+
+matjson::Value const& Mod::Impl::getSaveContainerConst() const {
     return m_saved;
 }
 
@@ -252,9 +258,16 @@ Result<> Mod::Impl::saveData() {
     if (!res) {
         log::error("Unable to save settings: {}", res.unwrapErr());
     }
-    auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
-    if (!res2) {
-        log::error("Unable to save values: {}", res2.unwrapErr());
+
+    if(m_savedDirty) {
+        log::debug("Saving values for mod {}", m_metadata.getID());
+
+        auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
+        if (!res2) {
+            log::error("Unable to save values: {}", res2.unwrapErr());
+        }
+
+        // dirty flag shouldn't be reset because container can be retained by caller mod
     }
 
     return Ok();

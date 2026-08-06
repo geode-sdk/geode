@@ -242,6 +242,7 @@ namespace geode {
         }
 
         matjson::Value& getSaveContainer();
+        matjson::Value const& getSaveContainerConst() const;
         matjson::Value& getSavedSettingsData();
 
         /**
@@ -286,7 +287,7 @@ namespace geode {
 
         template <class T>
         T getSavedValue(std::string_view key) {
-            auto& saved = this->getSaveContainer();
+            auto& saved = this->getSaveContainerConst();
             if (auto res = saved.get(key).andThen([](auto&& v) {
                 return v.template as<T>();
             }); res.isOk()) {
@@ -297,13 +298,15 @@ namespace geode {
 
         template <class T>
         T getSavedValue(std::string_view key, T const& defaultValue) {
-            auto& saved = this->getSaveContainer();
+            auto& saved = this->getSaveContainerConst();
             if (auto res = saved.get(key).andThen([](auto&& v) {
                 return v.template as<T>();
             }); res.isOk()) {
                 return res.unwrap();
             }
-            saved[key] = matjson::Value(defaultValue);
+
+            auto savedMutable = this->getSaveContainer();
+            savedMutable[key] = matjson::Value(defaultValue);
             return defaultValue;
         }
 
@@ -316,8 +319,22 @@ namespace geode {
          */
         template <class T>
         T setSavedValue(std::string_view key, T const& value) {
-            auto& saved = this->getSaveContainer();
             auto old = this->getSavedValue<T>(key);
+
+            // optimization: if the value is the same, don't write to the save container
+            // constexpr checks needed to avoid compile errors for types that don't support operator==
+            if constexpr (std::ranges::range<T>) {
+                using Elem = std::ranges::range_value_t<T>;
+                if constexpr (requires(Elem const& a, Elem const& b) { { a == b } -> std::convertible_to<bool>; }) {
+                    if (old == value) return old;
+                }
+            } 
+            else if constexpr (requires(T const& a, T const& b) { { a == b } -> std::convertible_to<bool>; }) {
+                if (old == value) return old;
+            }
+
+            // value changed, write to save container
+            auto& saved = this->getSaveContainer();
             saved[key] = value;
             return old;
         }
