@@ -24,6 +24,7 @@
 #include <system_error>
 #include <vector>
 #include <string_view>
+#include <asp/fs.hpp>
 
 using namespace geode::prelude;
 
@@ -248,13 +249,33 @@ Result<> Mod::Impl::saveData() {
     // saveData is expected to be synchronous, and always called from GD thread
     ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
 
-    auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
-    if (!res) {
-        log::error("Unable to save settings: {}", res.unwrapErr());
+    // TODO: better check if its empty?
+    auto dump = json.dump();
+    if(!dump.starts_with("{}")) {
+        auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", dump);
+        if (!res) {
+            log::error("Unable to save settings: {}", res.unwrapErr());
+        }
     }
-    auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
-    if (!res2) {
-        log::error("Unable to save values: {}", res2.unwrapErr());
+    else {
+        auto res = asp::fs::remove(m_saveDirPath / "settings.json");
+        if (!res) {
+            log::error("Unable to remove settings.json: {}", res.unwrapErr().message());
+        }
+    }
+
+    dump = m_saved.dump();
+    if (!dump.starts_with("{}")) {
+        auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
+        if (!res2) {
+            log::error("Unable to save values: {}", res2.unwrapErr());
+        }
+    }
+    else {
+        auto res2 = asp::fs::remove(m_saveDirPath / "saved.json");
+        if (!res2) {
+            log::error("Unable to remove saved.json: {}", res2.unwrapErr().message());
+        }
     }
 
     return Ok();
