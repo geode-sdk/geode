@@ -189,6 +189,7 @@ public:
     matjson::Value savedata;
     bool restartRequired = false;
     bool dirty = false;
+    bool taken = false;
 
     bool loadSettingValueFromSave(std::string const& key) {
         if (this->savedata.contains(key) && this->settings.contains(key)) {
@@ -350,6 +351,8 @@ matjson::Value ModSettingsManager::save() {
 }
 
 matjson::Value& ModSettingsManager::getSaveData() {
+    m_impl->taken = true;
+
     return m_impl->savedata;
 }
 

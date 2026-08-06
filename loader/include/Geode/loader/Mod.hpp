@@ -242,6 +242,8 @@ namespace geode {
         }
 
         matjson::Value& getSaveContainer();
+        matjson::Value& getSaveContainerTemp();
+        matjson::Value& getSaveContainerDirty();
         matjson::Value const& getSaveContainerConst() const;
         matjson::Value& getSavedSettingsData();
 
@@ -305,7 +307,7 @@ namespace geode {
                 return res.unwrap();
             }
 
-            auto savedMutable = this->getSaveContainer();
+            auto savedMutable = this->getSaveContainerTemp();
             savedMutable[key] = matjson::Value(defaultValue);
             return defaultValue;
         }

@@ -50,6 +50,7 @@ namespace geode {
          */
         matjson::Value m_saved = matjson::Value();
         bool m_savedDirty = false;
+        bool m_savedTaken = false;
         /**
          * Setting values. This is behind unique_ptr for interior mutability
          */
@@ -106,6 +107,7 @@ namespace geode {
         bool isEphemeral() const;
 
         matjson::Value& getSaveContainer();
+        matjson::Value& getSaveContainerTemp();
         matjson::Value const& getSaveContainerConst() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
