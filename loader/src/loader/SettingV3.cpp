@@ -578,6 +578,9 @@ void SettingV3::markChanged() {
     if (m_impl->requiresRestart) {
         manager->markRestartRequired();
     }
+    if(manager) {
+        manager->markDirty();
+    }
     SettingChangedEventV3(this->getModID(), this->getKey()).send(shared_from_this());
 }
 class TitleSettingV3::Impl final {

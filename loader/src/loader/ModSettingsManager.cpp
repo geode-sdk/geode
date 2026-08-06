@@ -188,6 +188,7 @@ public:
     // update this by calling saveSettingValueToSave
     matjson::Value savedata;
     bool restartRequired = false;
+    bool dirty = false;
 
     bool loadSettingValueFromSave(std::string const& key) {
         if (this->savedata.contains(key) && this->settings.contains(key)) {
@@ -278,6 +279,18 @@ ModSettingsManager::ModSettingsManager(ModSettingsManager&&) noexcept = default;
 
 void ModSettingsManager::markRestartRequired() {
     m_impl->restartRequired = true;
+}
+
+void ModSettingsManager::markDirty() {
+    m_impl->dirty = true;
+}
+
+void ModSettingsManager::unmarkDirty() {
+    m_impl->dirty = false;
+}
+
+bool ModSettingsManager::dirty() const {
+    return m_impl->dirty;
 }
 
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {

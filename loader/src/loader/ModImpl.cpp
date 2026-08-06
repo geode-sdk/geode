@@ -249,14 +249,23 @@ Result<> Mod::Impl::saveData() {
     }
 
     // ModSettingsManager keeps track of the whole savedata
-    matjson::Value json = m_settings->save();
+    if(m_settings->dirty()) {
+        log::debug("Saving settings for mod {}", m_metadata.getID());
 
-    // saveData is expected to be synchronous, and always called from GD thread
-    ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
+        matjson::Value json = m_settings->save();
 
-    auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
-    if (!res) {
-        log::error("Unable to save settings: {}", res.unwrapErr());
+        // saveData is expected to be synchronous, and always called from GD thread
+        ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
+
+        auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
+        if (!res) {
+            log::error("Unable to save settings: {}", res.unwrapErr());
+        } else {
+            m_settings->unmarkDirty();
+        }
+    } else {
+        // duplicated line to retain old expectations of saveData being called after json dump but before file write
+        ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
     }
 
     if(m_savedDirty) {

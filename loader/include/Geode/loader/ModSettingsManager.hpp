@@ -16,6 +16,8 @@ namespace geode {
         friend class ::geode::Mod;
 
         void markRestartRequired();
+        void markDirty();
+        void unmarkDirty();
 
     public:
         static ModSettingsManager* from(Mod* mod);
@@ -67,5 +69,7 @@ namespace geode {
          * for this mod, they are also reloaded for the dependant mods
          */
         void addDependant(Mod* mod);
+
+        bool dirty() const;
     };
 }
