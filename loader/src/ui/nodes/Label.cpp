@@ -1860,6 +1860,7 @@ void Label::setCharColor(uint32_t index, ccColor4B color) {
 }
 
 size_t Label::getCharCount() noexcept {
+    this->validate();
     return m_impl->m_chars.size();
 }
 
