@@ -268,6 +268,23 @@ std::string crashlog::writeCrashlog(
     // this could also be done by saving a loader setting or smth but eh.
     (void)utils::file::writeBinary(crashlog::getCrashLogDirectory() / "last-crashed", {});
 
+    auto newInfo = std::string(info);
+    auto newStack = std::string(stacktrace);
+
+    #if defined(GEODE_IS_WINDOWS) || defined(GEODE_IS_MACOS)
+    if (Mod::get()->getSettingValue<bool>("hide-user-in-crashlogs")) {
+        const char* user = std::getenv("USER");
+        std::string newUser = "<user>";
+        
+        // so we only replace file paths
+        newInfo = utils::string::replace(newInfo, fmt::format("\\{}\\", user), fmt::format("\\{}\\", newUser));
+        newInfo = utils::string::replace(newInfo, fmt::format("/{}/", user), fmt::format("/{}/", newUser));
+
+        newStack = utils::string::replace(newStack, fmt::format("\\{}\\", user), fmt::format("\\{}\\", newUser));
+        newStack = utils::string::replace(newStack, fmt::format("/{}/", user), fmt::format("/{}/", newUser));
+    }
+    #endif
+
     Buffer file;
 
     file.append(getDateString(false));
@@ -288,11 +305,11 @@ std::string crashlog::writeCrashlog(
 
     // exception info
     file.append("\n== Exception Information ==\n");
-    file.append(info);
+    file.append(newInfo);
 
     // stack trace
     file.append("\n== Stack Trace (the most important part) ==\n");
-    file.append(stacktrace);
+    file.append(newStack);
 
     // registers
     file.append("\n== Register States ==\n");
