@@ -38,7 +38,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
     struct Fields {
         bool m_menuDisabled = false;
-        CCNode* m_geodeButton = nullptr;
+        Ref<CCNode> m_geodeButton = nullptr;
         async::TaskHolder<Result<InstalledModsUpdateCheck, server::ServerError>> m_updateCheckTask;
     };
 
