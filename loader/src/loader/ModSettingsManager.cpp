@@ -207,7 +207,7 @@ public:
             return true;
         }
         else {
-            if(!this->savedata.contains(key)) {
+            if (!this->savedata.contains(key)) {
                 log::error("Unable to load setting '{}' for mod {} (not found in savedata)", key, this->modID);
                 dirty = true;
             }
@@ -332,7 +332,7 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
         }
 
         for (auto const& [key, _] : m_impl->settings) {
-            if(!json.contains(key)) {
+            if (!json.contains(key)) {
                 log::error("Unable to load setting '{}' for mod {} (not found in savedata)", key, m_impl->modID);
                 m_impl->dirty = true;
                 break;

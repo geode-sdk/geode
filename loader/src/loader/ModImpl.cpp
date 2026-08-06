@@ -192,7 +192,7 @@ bool Mod::Impl::needsEarlyLoad(std::vector<Mod*>& checked) const {
     checked.push_back(m_self);
     if (this->getMetadata().needsEarlyLoad()) return true;
     for (auto& dep : m_dependants) {
-        if(std::find(checked.begin(), checked.end(), dep) != checked.end()) continue;
+        if (std::find(checked.begin(), checked.end(), dep) != checked.end()) continue;
         if (dep->m_impl->needsEarlyLoad(checked)) return true;
     }
     return false;
@@ -221,7 +221,7 @@ Result<> Mod::Impl::loadData() {
     // Check if settings exist
     auto settingPath = m_saveDirPath / "settings.json";
     if (std::filesystem::exists(settingPath)) {
-        if(auto json = utils::file::readJson(settingPath)) {
+        if (auto json = utils::file::readJson(settingPath)) {
             auto load = m_settings->load(json.unwrap());
             if (!load) {
                 log::warn("Unable to load settings: {}", load.unwrapErr());
@@ -262,7 +262,7 @@ Result<> Mod::Impl::saveData() {
     }
 
     // ModSettingsManager keeps track of the whole savedata
-    if(m_settings->dirty()) {
+    if (m_settings->dirty()) {
         log::debug("Saving settings for mod {}", m_metadata.getID());
 
         matjson::Value json = m_settings->save();
@@ -281,7 +281,7 @@ Result<> Mod::Impl::saveData() {
         ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
     }
 
-    if(m_savedTaken || m_savedDirty) {
+    if (m_savedTaken || m_savedDirty) {
         log::debug("Saving values for mod {}", m_metadata.getID());
 
         auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
