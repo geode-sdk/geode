@@ -82,6 +82,8 @@ namespace geode {
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
         void settingReact(geode::Function<void()> fn);
+        
+        matjson::Value& getSaveContainerTemp();
     public:
         // no copying
         Mod(Mod const&) = delete;
@@ -242,7 +244,6 @@ namespace geode {
         }
 
         matjson::Value& getSaveContainer();
-        matjson::Value& getSaveContainerTemp();
         matjson::Value const& getSaveContainerConst() const;
         matjson::Value& getSavedSettingsData();
 
