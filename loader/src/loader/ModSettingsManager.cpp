@@ -297,7 +297,7 @@ void ModSettingsManager::unmarkDirty() {
 }
 
 bool ModSettingsManager::dirty() const {
-    return m_impl->dirty;
+    return m_impl->dirty || m_impl->taken;
 }
 
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
