@@ -6,6 +6,7 @@
 #include <asp/collections/SmallVec.hpp>
 #include <simdutf/implementation.h>
 
+#include <numeric>
 #include <ranges>
 
 using namespace geode::prelude;
@@ -357,6 +358,48 @@ struct EmojiRegistry::Impl {
         } else {
             m_keys.insert(it, sequence);
             m_entries.insert(m_entries.begin() + index, std::move(entry));
+        }
+    }
+
+    void insert(std::span<std::tuple<std::u32string_view, Entry>> entries) {
+        if (entries.empty()) return;
+
+        size_t newSize = m_keys.size() + entries.size();
+        m_keys.reserve(newSize);
+        m_entries.reserve(newSize);
+
+        for (auto& item : entries) {
+            m_keys.push_back(std::get<0>(item));
+            m_entries.push_back(std::move(std::get<1>(item)));
+        }
+
+        std::vector<size_t> indices(m_keys.size());
+        std::ranges::iota(indices, 0);
+
+        std::ranges::sort(indices, [this](size_t a, size_t b) {
+            return m_keys[a] < m_keys[b];
+        });
+
+        std::vector<std::u32string_view> sortedKeys;
+        std::vector<Entry> sortedEntries;
+        sortedKeys.reserve(m_keys.size());
+        sortedEntries.reserve(m_entries.size());
+
+        for (size_t idx : indices) {
+            sortedKeys.push_back(m_keys[idx]);
+            sortedEntries.push_back(std::move(m_entries[idx]));
+        }
+
+        m_keys = std::move(sortedKeys);
+        m_entries = std::move(sortedEntries);
+    }
+
+    void erase(std::u32string_view sequence) {
+        auto it = std::ranges::lower_bound(m_keys, sequence);
+        auto index = std::distance(m_keys.begin(), it);
+        if (it != m_keys.end() && *it == sequence) {
+            m_entries.erase(m_entries.begin() + index);
+            m_keys.erase(it);
         }
     }
 };
@@ -1548,7 +1591,7 @@ struct Label::Impl {
     }
 };
 
-EmojiRegistry::EmojiEntry::EmojiEntry(ZStringView frameName) : frameName(frameName) {}
+EmojiRegistry::EmojiEntry::EmojiEntry(ZStringView frameName) noexcept : frameName(frameName) {}
 
 CCSpriteFrame* EmojiRegistry::EmojiEntry::getFrame() const {
     if (!cachedFrame) {
@@ -1580,6 +1623,14 @@ void EmojiRegistry::insert(std::u32string_view sequence, NodeFactoryParams facto
 
 void EmojiRegistry::insert(std::u32string_view sequence, ZStringView frameName) {
     m_impl->insert(sequence, EmojiEntry(frameName));
+}
+
+void EmojiRegistry::insert(std::span<std::tuple<std::u32string_view, Entry>> entries) {
+    m_impl->insert(entries);
+}
+
+void EmojiRegistry::erase(std::u32string_view sequence) {
+    m_impl->erase(sequence);
 }
 
 EmojiRegistry::Entry* EmojiRegistry::match(std::u32string_view str, size_t& index) {

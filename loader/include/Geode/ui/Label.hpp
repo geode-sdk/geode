@@ -114,10 +114,10 @@ namespace geode {
         using NodeFactory = Function<cocos2d::CCNode*()>;
         using NodeFactoryParams = Function<cocos2d::CCNode*(std::u32string_view str, size_t& index)>;
 
-        struct EmojiEntry {
+        struct EmojiEntry final {
             ZStringView frameName;
 
-            EmojiEntry(ZStringView frameName);
+            EmojiEntry(ZStringView frameName) noexcept;
 
             cocos2d::CCSpriteFrame* getFrame() const;
             void invalidate() noexcept;
@@ -153,6 +153,13 @@ namespace geode {
         /// @param frameName Frame name for the provided emoji.
         /// @note The sequence view is expected to point to static memory and never be freed.
         void insert(std::u32string_view sequence, ZStringView frameName);
+
+        /// Inserts a sequence of mappings to the registry.
+        /// @note All sequence views are expected to point to static memory and never be freed.
+        void insert(std::span<std::tuple<std::u32string_view, Entry>> entries);
+
+        /// Removes an entry from the registry by provided sequence.
+        void erase(std::u32string_view sequence);
 
         Entry* match(std::u32string_view str, size_t& index);
 
