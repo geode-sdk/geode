@@ -8,6 +8,12 @@
 #include <Geode/loader/Signal.hpp>
 
 namespace geode {
+    enum class SaveRequestState {
+        Clean,
+        SaveOnce,
+        SaveUntilExit,
+    };
+
     class Mod::Impl {
     public:
         Mod* m_self;
@@ -53,12 +59,7 @@ namespace geode {
          * Whether the saved values need to be saved to disk one time
          * (container dirty)
          */
-        bool m_savedDirty = false;
-        /**
-         * Whether the saved values need to be always re-saved until game exit
-         * (container taken by a mod)
-         */
-        bool m_savedTaken = false;
+        SaveRequestState m_saveRequestState = SaveRequestState::Clean;
         /**
          * Setting values. This is behind unique_ptr for interior mutability
          */

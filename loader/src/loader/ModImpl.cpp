@@ -167,7 +167,7 @@ VersionInfo Mod::Impl::getVersion() const {
 matjson::Value& Mod::Impl::getSaveContainer() {
     // saved value taken, so we need to save it every time
     // since we dont know what the caller will do with the container
-    m_savedTaken = true;
+    m_saveRequestState = SaveRequestState::SaveUntilExit;
 
     return m_saved;
 }
@@ -175,7 +175,9 @@ matjson::Value& Mod::Impl::getSaveContainer() {
 matjson::Value& Mod::Impl::getSaveContainerTemp() {
     // saved value dirty - caller promises to get rid
     // of its ref before next save
-    m_savedDirty = true;
+    if(m_saveRequestState == SaveRequestState::Clean) {
+        m_saveRequestState = SaveRequestState::SaveOnce;
+    }
 
     return m_saved;
 }
@@ -232,11 +234,11 @@ Result<> Mod::Impl::loadData() {
             }
         } else {
             // this used to early return but skipping saved values is not great behavior here imo
-            m_settings->markDirty();
+            m_settings->queueSave();
             log::warn("Unable to load settings: {}", json.unwrapErr());
         }
     } else {
-        m_settings->markDirty();
+        m_settings->queueSave();
     }
 
     // Saved values
@@ -266,7 +268,7 @@ Result<> Mod::Impl::saveData() {
     }
 
     // ModSettingsManager keeps track of the whole savedata
-    if (m_settings->dirty()) {
+    if (m_settings->shouldSave()) {
         log::debug("Saving settings for mod {}", m_metadata.getID());
 
         matjson::Value json = m_settings->save();
@@ -278,14 +280,14 @@ Result<> Mod::Impl::saveData() {
         if (!res) {
             log::error("Unable to save settings: {}", res.unwrapErr());
         } else {
-            m_settings->unmarkDirty();
+            m_settings->saveFinished();
         }
     } else {
         // duplicated line to retain old expectations of saveData being called after json dump but before file write
         ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
     }
 
-    if (m_savedTaken || m_savedDirty) {
+    if (m_saveRequestState != SaveRequestState::Clean) {
         log::debug("Saving values for mod {}", m_metadata.getID());
 
         auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
@@ -293,7 +295,9 @@ Result<> Mod::Impl::saveData() {
             log::error("Unable to save values: {}", res2.unwrapErr());
         }
 
-        m_savedDirty = false;
+        if(m_saveRequestState == SaveRequestState::SaveOnce) {
+            m_saveRequestState = SaveRequestState::Clean;
+        }
     }
 
     return Ok();

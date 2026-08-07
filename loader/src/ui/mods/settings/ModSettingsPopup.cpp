@@ -71,7 +71,7 @@ void ModSettingsPopup::updateState(SettingNode* invoker) {
 
     // frame delay for debounce (avoids repeating save for every changed setting)
     Loader::get()->queueInMainThread([mod = m_mod, manager] {
-        if (manager->dirty()) {
+        if (manager->shouldSave()) {
             (void) mod->saveData();
         }
     });

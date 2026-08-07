@@ -579,7 +579,7 @@ void SettingV3::markChanged() {
         if (m_impl->requiresRestart) {
             manager->markRestartRequired();
         }
-        manager->markDirty();
+        manager->queueSave();
     }
     SettingChangedEventV3(this->getModID(), this->getKey()).send(shared_from_this());
 }

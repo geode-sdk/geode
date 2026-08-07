@@ -188,8 +188,7 @@ public:
     // update this by calling saveSettingValueToSave
     matjson::Value savedata;
     bool restartRequired = false;
-    bool dirty = false;
-    bool taken = false;
+    SaveRequestState saveRequestState = SaveRequestState::Clean;
 
     bool loadSettingValueFromSave(std::string const& key) {
         if (this->savedata.contains(key) && this->settings.contains(key)) {
@@ -209,7 +208,9 @@ public:
         else {
             if (!this->savedata.contains(key)) {
                 log::error("Unable to load setting '{}' for mod {} (not found in savedata)", key, this->modID);
-                dirty = true;
+                if(saveRequestState == SaveRequestState::Clean) {
+                    saveRequestState = SaveRequestState::SaveOnce;
+                }
             }
             return false;
         }
@@ -288,16 +289,20 @@ void ModSettingsManager::markRestartRequired() {
     m_impl->restartRequired = true;
 }
 
-void ModSettingsManager::markDirty() {
-    m_impl->dirty = true;
+void ModSettingsManager::queueSave() {
+    if(m_impl->saveRequestState == SaveRequestState::Clean) {
+        m_impl->saveRequestState = SaveRequestState::SaveOnce;
+    }
 }
 
-void ModSettingsManager::unmarkDirty() {
-    m_impl->dirty = false;
+void ModSettingsManager::saveFinished() {
+    if(m_impl->saveRequestState == SaveRequestState::SaveOnce) {
+        m_impl->saveRequestState = SaveRequestState::Clean;
+    }
 }
 
-bool ModSettingsManager::dirty() const {
-    return m_impl->dirty || m_impl->taken;
+bool ModSettingsManager::shouldSave() const {
+    return m_impl->saveRequestState != SaveRequestState::Clean;
 }
 
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
@@ -334,7 +339,7 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
         for (auto const& [key, _] : m_impl->settings) {
             if (!json.contains(key)) {
                 log::error("Unable to load setting '{}' for mod {} (not found in savedata)", key, m_impl->modID);
-                m_impl->dirty = true;
+                this->queueSave();
                 break;
             }
         }
@@ -351,7 +356,7 @@ matjson::Value ModSettingsManager::save() {
 }
 
 matjson::Value& ModSettingsManager::getSaveData() {
-    m_impl->taken = true;
+    m_impl->saveRequestState = SaveRequestState::SaveUntilExit;
 
     return m_impl->savedata;
 }

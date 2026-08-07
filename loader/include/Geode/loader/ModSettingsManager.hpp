@@ -16,8 +16,8 @@ namespace geode {
         friend class ::geode::Mod;
 
         void markRestartRequired();
-        void markDirty();
-        void unmarkDirty();
+        void queueSave();
+        void saveFinished();
 
     public:
         static ModSettingsManager* from(Mod* mod);
@@ -70,6 +70,6 @@ namespace geode {
          */
         void addDependant(Mod* mod);
 
-        bool dirty() const;
+        bool shouldSave() const;
     };
 }
