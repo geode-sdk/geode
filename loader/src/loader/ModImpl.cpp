@@ -165,12 +165,16 @@ VersionInfo Mod::Impl::getVersion() const {
 }
 
 matjson::Value& Mod::Impl::getSaveContainer() {
+    // saved value taken, so we need to save it every time
+    // since we dont know what the caller will do with the container
     m_savedTaken = true;
 
     return m_saved;
 }
 
 matjson::Value& Mod::Impl::getSaveContainerTemp() {
+    // saved value dirty - caller promises to get rid
+    // of its ref before next save
     m_savedDirty = true;
 
     return m_saved;
