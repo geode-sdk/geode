@@ -49,7 +49,15 @@ namespace geode {
          * Saved values
          */
         matjson::Value m_saved = matjson::Value();
+        /**
+         * Whether the saved values need to be saved to disk one time
+         * (container dirty)
+         */
         bool m_savedDirty = false;
+        /**
+         * Whether the saved values need to be always re-saved until game exit
+         * (container taken by a mod)
+         */
         bool m_savedTaken = false;
         /**
          * Setting values. This is behind unique_ptr for interior mutability
