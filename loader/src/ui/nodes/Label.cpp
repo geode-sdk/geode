@@ -374,7 +374,9 @@ struct EmojiRegistry::Impl {
         }
 
         std::vector<size_t> indices(m_keys.size());
-        std::ranges::iota(indices, 0);
+        for (size_t i = 0; i < indices.size(); ++i) {
+            indices[i] = i;
+        }
 
         std::ranges::sort(indices, [this](size_t a, size_t b) {
             return m_keys[a] < m_keys[b];
