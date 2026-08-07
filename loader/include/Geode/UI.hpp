@@ -10,6 +10,7 @@
 #include "ui/General.hpp"
 #include "ui/GeodeUI.hpp"
 #include "ui/IconButtonSprite.hpp"
+#include "ui/Label.hpp"
 #include "ui/Layout.hpp"
 #include "ui/LazySprite.hpp"
 #include "ui/ListView.hpp"
