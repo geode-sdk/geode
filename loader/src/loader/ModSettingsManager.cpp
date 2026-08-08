@@ -188,6 +188,7 @@ public:
     // update this by calling saveSettingValueToSave
     matjson::Value savedata;
     bool restartRequired = false;
+    SaveRequestState saveRequestState = SaveRequestState::Clean;
 
     bool loadSettingValueFromSave(std::string const& key) {
         if (this->savedata.contains(key) && this->settings.contains(key)) {
@@ -205,6 +206,12 @@ public:
             return true;
         }
         else {
+            if (!this->savedata.contains(key)) {
+                log::error("Unable to load setting '{}' for mod {} (not found in savedata)", key, this->modID);
+                if(saveRequestState == SaveRequestState::Clean) {
+                    saveRequestState = SaveRequestState::SaveOnce;
+                }
+            }
             return false;
         }
     }
@@ -237,7 +244,9 @@ public:
             }
             if (auto v3 = (*gen)(key, modID, setting.json)) {
                 setting.v3 = v3.unwrap();
-                this->loadSettingValueFromSave(key);
+
+                // the loading is unnecessary, m_saveData is not initialized yet
+                // this->loadSettingValueFromSave(key);
             }
             else {
                 log::error(
@@ -280,6 +289,22 @@ void ModSettingsManager::markRestartRequired() {
     m_impl->restartRequired = true;
 }
 
+void ModSettingsManager::queueSave() {
+    if(m_impl->saveRequestState == SaveRequestState::Clean) {
+        m_impl->saveRequestState = SaveRequestState::SaveOnce;
+    }
+}
+
+void ModSettingsManager::saveFinished() {
+    if(m_impl->saveRequestState == SaveRequestState::SaveOnce) {
+        m_impl->saveRequestState = SaveRequestState::Clean;
+    }
+}
+
+bool ModSettingsManager::shouldSave() const {
+    return m_impl->saveRequestState != SaveRequestState::Clean;
+}
+
 Result<> ModSettingsManager::registerCustomSettingType(std::string_view type, SettingGenerator generator) {
     GEODE_UNWRAP(SharedSettingTypesPool::get().add(m_impl->modID, type, std::move(generator)));
     m_impl->createSettings();
@@ -310,6 +335,14 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
                 }
             }
         }
+
+        for (auto const& [key, _] : m_impl->settings) {
+            if (!json.contains(key)) {
+                log::error("Unable to load setting '{}' for mod {} (not found in savedata)", key, m_impl->modID);
+                this->queueSave();
+                break;
+            }
+        }
     }
     return Ok();
 }
@@ -323,6 +356,8 @@ matjson::Value ModSettingsManager::save() {
 }
 
 matjson::Value& ModSettingsManager::getSaveData() {
+    m_impl->saveRequestState = SaveRequestState::SaveUntilExit;
+
     return m_impl->savedata;
 }
 

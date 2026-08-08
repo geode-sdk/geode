@@ -575,8 +575,11 @@ Mod* SettingV3::getMod() const {
 
 void SettingV3::markChanged() {
     auto manager = ModSettingsManager::from(this->getMod());
-    if (m_impl->requiresRestart) {
-        manager->markRestartRequired();
+    if (manager) {
+        if (m_impl->requiresRestart) {
+            manager->markRestartRequired();
+        }
+        manager->queueSave();
     }
     SettingChangedEventV3(this->getModID(), this->getKey()).send(shared_from_this());
 }
