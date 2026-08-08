@@ -1,16 +1,20 @@
 #pragma once
 
+#include <Geode/utils/hash.hpp>
+#include <Geode/utils/file.hpp>
+#include <Geode/utils/StringBuffer.hpp>
+#include <asp/iter.hpp>
 #include <string>
 #include <filesystem>
-#include <span>
 
-std::string calculateSHA256(std::filesystem::path const& path);
+inline geode::Sha256 sha256Text(std::filesystem::path const& path) {
+    std::string input = geode::utils::file::readString(path).unwrapOrDefault();
+    geode::utils::StringBuffer<> buf;
 
-std::string calculateSHA256Text(std::filesystem::path const& path);
+    // remove all newlines
+    for (auto line : asp::iter::lines(input)) {
+        buf.append(line);
+    }
 
-/**
- * Calculates the SHA256 hash of the given data,
- * used for verifying mods.
- */
-std::string calculateHash(std::span<const uint8_t> data);
-std::string calculateHash(std::string_view data);
+    return geode::sha256(buf.view());
+}
