@@ -407,10 +407,22 @@ void geode::utils::permission::requestPermission(Permission permission, geode::F
 
 #include "../../utils/thread.hpp"
 
+static std::optional<std::string> getNameFromOs() {
+    char buf[64];
+    int result = pthread_getname_np(buf, sizeof(buf));
+    if (result != 0 || buf[0] == '\0') return std::nullopt;
+
+    return buf;
+}
+
 std::string geode::utils::thread::getDefaultName() {
+    // try to request name from the OS first, fallback to a simple format if fails
+    if (auto name = getNameFromOs()) {
+        return *name;
+    }
+
     uint64_t tid = 0ul;
     pthread_threadid_np(nullptr, &tid);
-
     return fmt::format("Thread #{}", tid);
 }
 
