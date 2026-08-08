@@ -259,7 +259,7 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.4.1")
-CPMAddPackage("gh:geode-sdk/json@3.3.0")
+CPMAddPackage("gh:geode-sdk/json@3.3.1")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
 CPMAddPackage("gh:fmtlib/fmt#5ac44cd") # commit between 12.1.0 and 12.2.0 that fixes nodiscard warning
 
