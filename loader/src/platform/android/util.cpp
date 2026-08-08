@@ -419,7 +419,26 @@ void geode::utils::permission::requestPermission(Permission permission, geode::F
 #include "../../utils/thread.hpp"
 #include <unistd.h>
 
+static std::optional<std::string> getNameFromOs() {
+    using pthread_getname_np_func = int (*)(pthread_t, char*, size_t);
+
+    auto ptr = reinterpret_cast<pthread_getname_np_func>(dlsym(RTLD_DEFAULT, "pthread_getname_np"));
+    if (!ptr) return std::nullopt;
+
+    // linux limits to 16 characters but let's be future proof!
+    char buf[64];
+    int result = ptr(pthread_self(), buf, sizeof(buf));
+    if (result != 0 || buf[0] == '\0') return std::nullopt;
+
+    return buf;
+}
+
 std::string geode::utils::thread::getDefaultName() {
+    // try to request name from the OS first, fallback to a simple format if fails
+    if (auto name = getNameFromOs()) {
+        return *name;
+    }
+
     return fmt::format("Thread #{}", gettid());
 }
 
@@ -499,7 +518,7 @@ bool geode::utils::platform::isWine() {
 
 // we had a 15 minute argument on lead dev chat about whether we should "hardcode" the current architecture or
 // get it somewhere. i give up i am tired as hell. i do not like hardcoding this like this but
-// god it is such a pain to not do it this way. if anyone wants to use this code in v6 arm or x86 or mips or 
+// god it is such a pain to not do it this way. if anyone wants to use this code in v6 arm or x86 or mips or
 // whatever please tell alk so she can bicker dank about how hardcoding it was a bad idea and now they need
 // to change this function 6 years later down the line, thanks
 const char* currentArchName() {
@@ -537,6 +556,6 @@ PlatformDetails geode::utils::platform::getDetails() {
 std::string geode::utils::platform::getString() {
     auto details = getDetails();
     auto hostStr = details.hostArch != details.arch ? fmt::format(", {} CPU", details.hostArch) : "";
-    return fmt::format("Android {} {} (SDK {}{})", 
+    return fmt::format("Android {} {} (SDK {}{})",
         details.releaseVersion, details.arch, details.sdkVersion, hostStr);
 }
