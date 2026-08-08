@@ -265,10 +265,10 @@ CPMAddPackage("gh:fmtlib/fmt#5ac44cd") # commit between 12.1.0 and 12.2.0 that f
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
-	set(GEODE_ARC_VERSION "@1.5.6" CACHE STRING "")
+	set(GEODE_ARC_VERSION "@1.5.7" CACHE STRING "")
 endif()
 if (NOT DEFINED GEODE_ASP_VERSION)
-	set(GEODE_ASP_VERSION "#87c2105" CACHE STRING "")
+	set(GEODE_ASP_VERSION "#b0053a5" CACHE STRING "")
 endif()
 
 CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")
