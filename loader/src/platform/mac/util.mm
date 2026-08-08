@@ -396,7 +396,7 @@ void geode::utils::permission::requestPermission(Permission permission, geode::F
 
 static std::optional<std::string> getNameFromOs() {
     char buf[64];
-    int result = pthread_getname_np(buf, sizeof(buf));
+    int result = pthread_getname_np(pthread_self(), buf, sizeof(buf));
     if (result != 0 || buf[0] == '\0') return std::nullopt;
 
     return buf;
