@@ -1,5 +1,28 @@
 # Geode Changelog
 
+## v5.9.0
+ * Add SHA256 hashing utils (#2139)
+ * Add `WebRequest::getBodyRef()` for accessing the body without copying (#2123)
+ * Add `LoaderUpdateModResourcesEvent` for overriding mod resource loading (#2134)
+ * Add Zstd support to `file::Unzip` (#2135)
+ * Make `CCNode::getChildByType` have a default index of 0 (600804a)
+ * Use a faster SHA256 hash implementation (cd30080, 154c0d4)
+ * Small improvements to file downloads (3432431)
+ * Fix game bug caused by `CCConfiguration` holding a dangling pointer to GL extensions (#2142)
+ * Fix getting the thread name on Android, macOS and iOS (2464d9a, d97de37)
+ * Fix launch method detection on iOS (5104368)
+ * Fix clipboard::read/write crash on empty strings on iOS (#2122)
+ * Fix file unzipper path sanitization (4b32831)
+ * Fix node potentially being destroyed on non-main thread in `geode::openInfoPopup` (37eeb0b)
+ * Fix server request cancellation causing competing requests to hang (cd878d9)
+ * Fix mod labels (e.g. "Deprecated", "Restart Required") getting overlapped (70e0fd6)
+ * Fix "Show" button being misaligned when there are deprecated mods (20be177)
+ * Fix "(!)" button not appearing for deprecated mods (8a2935a)
+ * Fix typos in error messages and about (b610e6d, 464a129)
+ * Fix crash when mods remove the Geode menu button (5e40a5f)
+ * Fix `fmt` linking to system library on macOS on some systems (757cf95)
+ * Improve error message for mods that don't support current platform (5cfb0f3)
+
 ## v5.8.2
  * Potentially fix several TulipHook crashes (there is a chance this breaks everything) (c2e155f)
 
