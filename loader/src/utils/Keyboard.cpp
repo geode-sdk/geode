@@ -118,6 +118,8 @@ StringMap<enumKeyCodes> keyNameToCode = {
     { "RightControl", KEY_RightControl },
     { "LeftMenu", KEY_LeftMenu },
     { "RightMenu", KEY_RightMenu },
+    { "LeftAlt", KEY_LeftMenu }, //duplicate definition to match toString() output
+    { "RightAlt", KEY_RightMenu }, //duplicate definition to match toString() output
     { "BrowserBack", KEY_BrowserBack },
     { "BrowserForward", KEY_BrowserForward },
     { "BrowserRefresh", KEY_BrowserRefresh },
