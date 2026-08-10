@@ -5,6 +5,7 @@
  * Add `WebRequest::getBodyRef()` for accessing the body without copying (#2123)
  * Add `LoaderUpdateModResourcesEvent` for overriding mod resource loading (#2134)
  * Add Zstd support to `file::Unzip` (#2135)
+ * Add Left/RightAlt as a valid alias to Left/RightMenu for keybind defaults (22a7a30)
  * Make `CCNode::getChildByType` have a default index of 0 (600804a)
  * Use a faster SHA256 hash implementation (cd30080, 154c0d4)
  * Small improvements to file downloads (3432431)
