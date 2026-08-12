@@ -620,6 +620,14 @@ Result<ServerModsList> ServerModsList::parse(matjson::Value raw) {
     return payload.ok(std::move(list));
 }
 
+Result<ServerLoaderDownload> ServerLoaderDownload::parse(matjson::Value json) {
+    auto root = checkJson(std::move(json), "ServerLoaderDownload");
+    auto res = ServerLoaderDownload();
+    root.needs("url").into(res.url);
+    root.needs("hash").into(res.hash);
+    return root.ok(std::move(res));
+}
+
 Result<ServerLoaderVersion> ServerLoaderVersion::parse(matjson::Value raw) {
     auto root = checkJson(std::move(raw), "ServerLoaderVersion");
 
@@ -630,6 +638,13 @@ Result<ServerLoaderVersion> ServerLoaderVersion::parse(matjson::Value raw) {
 
     auto gd_obj = root.needs("gd");
     gd_obj.needs(GEODE_PLATFORM_SHORT_IDENTIFIER).into(res.gameVersion);
+
+    auto downloads = root.needs("downloads");
+
+    auto dlobj = downloads.needs(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH);
+    auto rsobj = downloads.needs("resources");
+    res.download = GEODE_UNWRAP(ServerLoaderDownload::parse(dlobj.takeJson()));
+    res.resources = GEODE_UNWRAP(ServerLoaderDownload::parse(rsobj.takeJson()));
 
     return root.ok(std::move(res));
 }

@@ -5,6 +5,7 @@
 #include <Geode/loader/Event.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/utils/web.hpp>
 
 namespace geode::updater {
     using UpdateFinished = std::monostate;
@@ -25,11 +26,12 @@ namespace geode::updater {
     };
 
     void updateSpecialFiles();
-    Result<> extractLoaderResources(ByteSpan data);
-    void tryDownloadLoaderResources(std::string url, bool tryLatestOnError = true);
+    Result<> extractLoaderResources(ByteSpan data, std::string_view hash);
+    void tryDownloadLoaderResources(std::string url, std::string hash, bool tryLatestOnError = true);
     void downloadLoaderResources(bool useLatestRelease = false);
     void downloadLatestLoaderResources();
-    void downloadLoaderUpdate(std::string url);
+    void downloadLoaderUpdate(std::string url, std::string hash);
+    Result<> installLoaderUpdate(utils::web::WebResponse response, std::string_view expectedHash);
 
     bool verifyLoaderResources();
     void checkForLoaderUpdates();
