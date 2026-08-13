@@ -1709,7 +1709,7 @@ void Label::draw() {
     if (!m_pShaderProgram) return;
 
     this->validate();
-    if (m_impl->m_chars.empty()) return;
+    if (m_impl->m_shaped.empty()) return;
 
     ccGLEnable(m_eGLServerState);
     m_pShaderProgram->use();
