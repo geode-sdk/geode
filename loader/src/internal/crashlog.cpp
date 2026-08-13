@@ -130,6 +130,7 @@ void crashlog::CrashContext::initialize(void const* crashAddr) {
     }
 
     // gather info
+    infoStream = {};
     this->writeInfo(infoStream);
 }
 
