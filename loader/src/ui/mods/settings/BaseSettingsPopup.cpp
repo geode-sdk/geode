@@ -9,26 +9,27 @@
 #include <ui/mods/sources/ModListSource.hpp>
 
 static bool matchSearch(SettingNode* node, ZStringView query) {
+    auto trimmedQuery = string::trim(query);
     bool addToList = false;
     double weighted = 0;
     if (auto setting = node->getSetting()) {
         if (auto name = setting->getName()) {
-            addToList |= weightedFuzzyMatch(setting->getKey(), query, 0.5, weighted);
-            addToList |= weightedFuzzyMatch(*name, query, 1, weighted);
+            addToList |= weightedFuzzyMatch(setting->getKey(), trimmedQuery, 0.5, weighted);
+            addToList |= weightedFuzzyMatch(*name, trimmedQuery, 1, weighted);
         }
         // If there's no name, give full weight to key
         else {
-            addToList |= weightedFuzzyMatch(setting->getKey(), query, 1, weighted);
+            addToList |= weightedFuzzyMatch(setting->getKey(), trimmedQuery, 1, weighted);
         }
     }
     // keybinds popup titles dont have a setting theyre labels are js set to mod names
     else if (auto asTitle = typeinfo_cast<TitleSettingNode*>(node); asTitle && asTitle->getNameLabel()) {
-        addToList |= weightedFuzzyMatch(asTitle->getNameLabel()->getString(), query, 1, weighted);
+        addToList |= weightedFuzzyMatch(asTitle->getNameLabel()->getString(), trimmedQuery, 1, weighted);
     }
     else {
         return false;
     }
-    if (weighted < 60.0 + 10.0 * query.size()) {
+    if (weighted < 60.0 + 10.0 * trimmedQuery.size()) {
         addToList = false;
     }
     return addToList;

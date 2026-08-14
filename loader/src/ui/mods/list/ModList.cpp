@@ -229,7 +229,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         CCSequence* seq = CCSequence::create(
             CCDelayTime::create(bufferTime),
             CallFuncExt::create([this] {
-                m_source->search(m_searchInput->getString());
+                m_source->search(string::trim(m_searchInput->getString()));
             }),
             nullptr
         );
