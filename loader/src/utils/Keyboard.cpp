@@ -261,6 +261,28 @@ Result<Keybind> Keybind::fromString(std::string_view str) {
     if (it == keyNameToCode.end()) {
         return Err(fmt::format("Invalid key '{}'", str));
     }
+
+    switch(it->second) {
+        case KEY_LeftShift:
+        case KEY_RightShift:
+            mods |= KeyboardModifier::Shift;
+            break;
+        case KEY_LeftControl:
+        case KEY_RightControl:
+            mods |= KeyboardModifier::Control;
+            break;
+        case KEY_LeftMenu:
+        case KEY_RightMenu:
+            mods |= KeyboardModifier::Alt;
+            break;
+        case KEY_LeftWindowsKey:
+        case KEY_RightWindowsKey:
+            mods |= KeyboardModifier::Super;
+            break;
+        default:
+            break;
+    }
+
     return Ok(Keybind(it->second, mods));
 }
 
