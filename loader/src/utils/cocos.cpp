@@ -564,10 +564,30 @@ CCScene* geode::cocos::switchToScene(CCLayer* layer) {
     return scene;
 }
 
-static CreateLayerFunc LOADING_FINISHED_SCENE = nullptr;
+static CreateLayerFunc LOADING_FINISHED_LAYER = nullptr;
+static CreateSceneFunc LOADING_FINISHED_SCENE = nullptr;
 
 void geode::cocos::reloadTextures(CreateLayerFunc returnTo) {
-    // TODO V6 ? : make this take a scene?
+    LOADING_FINISHED_LAYER = std::move(returnTo);
+    LOADING_FINISHED_SCENE = []() -> cocos2d::CCScene* {
+        if (!LOADING_FINISHED_LAYER) {
+            return nullptr;
+        }
+
+        auto layer = LOADING_FINISHED_LAYER();
+        if (!layer) {
+            return nullptr;
+        }
+        LOADING_FINISHED_LAYER = nullptr;
+
+        auto scene = CCScene::create();
+        scene->addChild(layer);
+        return scene;
+    };
+    GameManager::get()->reloadAll(false, false, false, false, true);
+}
+
+void geode::cocos::reloadTextures(CreateSceneFunc returnTo) {
     LOADING_FINISHED_SCENE = std::move(returnTo);
     GameManager::get()->reloadAll(false, false, false, false, true);
 }
@@ -621,13 +641,11 @@ struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
             return LoadingLayer::loadAssets();
         }
         // Create custom layer
-        auto layer = LOADING_FINISHED_SCENE();
+        auto scene = LOADING_FINISHED_SCENE();
         // If failed, default behaviour
-        if (!layer) {
+        if (!scene) {
             return LoadingLayer::loadAssets();
         }
-        auto scene = CCScene::create();
-        scene->addChild(layer);
         // TODO: readd this
         // AppDelegate::get()->m_runningScene = scene;
         CCDirector::get()->replaceScene(scene);

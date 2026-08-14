@@ -711,6 +711,7 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer);
 
     using CreateLayerFunc = geode::Function<cocos2d::CCLayer*()>;
+    using CreateSceneFunc = geode::Function<cocos2d::CCScene*()>;
 
     /**
      * Reload textures, overwriting the scene to return to after the loading
@@ -719,7 +720,16 @@ namespace geode::cocos {
      * finished, the game switches to the given layer instead of MenuLayer.
      * Leave nullptr to enable default behaviour
      */
-    GEODE_DLL void reloadTextures(CreateLayerFunc returnTo = nullptr);
+    GEODE_DLL void reloadTextures(CreateLayerFunc returnTo);
+
+    /**
+     * Reload textures, overwriting the scene to return to after the loading
+     * screen is finished
+     * @param returnTo A function that returns a new scene. After loading is
+     * finished, the game switches to the given scene instead of MenuLayer.
+     * Leave nullptr to enable default behaviour
+     */
+    GEODE_DLL void reloadTextures(CreateSceneFunc returnTo = nullptr);
 
     /**
      * Rescale node to fit inside given size
