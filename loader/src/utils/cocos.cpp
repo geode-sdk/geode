@@ -564,6 +564,11 @@ CCScene* geode::cocos::switchToScene(CCLayer* layer) {
     return scene;
 }
 
+CCScene* geode::cocos::switchToScene(CCScene* scene) {
+    CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, scene));
+    return scene;
+}
+
 static CreateLayerFunc LOADING_FINISHED_LAYER = nullptr;
 static CreateSceneFunc LOADING_FINISHED_SCENE = nullptr;
 
