@@ -151,22 +151,56 @@ namespace geode {
          */
         template <std::integral Num>
         std::string numToAbbreviatedString(Num num) {
-            // it's a mess... i'm sorry...
-            constexpr auto numToFixedTrunc = [](float num) {
+            bool negative = false;
+            using Unsigned = std::make_unsigned_t<std::common_type_t<Num, int64_t>>;
+            Unsigned abs = 0;
 
-                // calculate the number of digits we keep from the decimal
-                auto remaining = std::max(3 - static_cast<int>(std::log10(num)) - 1, 0);
+            if constexpr (std::is_signed_v<Num>) {
+                if (num < 0) {
+                    negative = true;
+                    abs = static_cast<Unsigned>(0) - static_cast<Unsigned>(num);
+                }
+                else {
+                    abs = static_cast<Unsigned>(num);
+                }
+            }
+            else {
+                abs = static_cast<Unsigned>(num);
+            }
 
-                auto factor = std::pow(10, remaining);
-                auto trunc = std::trunc(num * factor) / factor;
-
-                // doing this dynamic format thing lets the .0 show when needed
-                return fmt::format("{:0.{}f}", trunc, static_cast<int>(remaining));
+            struct Scale {
+                Unsigned threshold;
+                std::string_view suffix;
             };
 
-            if (num >= 1'000'000'000) return fmt::format("{}B", numToFixedTrunc(num / 1'000'000'000.f));
-            if (num >= 1'000'000) return fmt::format("{}M", numToFixedTrunc(num / 1'000'000.f));
-            if (num >= 1'000) return fmt::format("{}K", numToFixedTrunc(num / 1'000.f));
+            constexpr Scale scales[] = {
+                {1'000'000'000'000'000ull, "Q"},
+                {1'000'000'000'000ull, "T"},
+                {1'000'000'000ull, "B"},
+                {1'000'000ull, "M"},
+                {1'000ull, "K"},
+            };
+
+            for (auto const& [threshold, suffix] : scales) {
+                if (abs < threshold) {
+                    continue;
+                }
+                Unsigned whole = abs / threshold;
+                Unsigned rem = abs % threshold;
+                std::string result;
+                if (whole >= 100) {
+                    result = fmt::format("{}{}", whole, suffix);
+                }
+                else if (whole >= 10) {
+                    Unsigned frac = rem / (threshold / 10);
+                    result = fmt::format("{}.{}{}", whole, frac, suffix);
+                }
+                else {
+                    Unsigned frac = rem / (threshold / 100);
+                    result = fmt::format("{}.{:02d}{}", whole, frac, suffix);
+                }
+                return negative ? "-" + result : result;
+            }
             return numToString(num);
         }
 
