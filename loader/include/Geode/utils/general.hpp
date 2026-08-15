@@ -149,7 +149,7 @@ namespace geode {
          * @param num Number to convert to string
          * @returns Number as string
          */
-        template <std::integral Num>
+        template <std::integral Num> requires (!std::same_as<std::remove_cv_t<Num>, bool>)
         std::string numToAbbreviatedString(Num num) {
             bool negative = false;
             using Unsigned = std::make_unsigned_t<std::common_type_t<Num, int64_t>>;
