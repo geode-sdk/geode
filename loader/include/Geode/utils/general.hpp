@@ -152,24 +152,23 @@ namespace geode {
         template <std::integral Num> requires (!std::same_as<std::remove_cv_t<Num>, bool>)
         std::string numToAbbreviatedString(Num num) {
             bool negative = false;
-            using Unsigned = std::make_unsigned_t<std::common_type_t<Num, int64_t>>;
-            Unsigned abs = 0;
+            uint64_t abs = 0;
 
             if constexpr (std::is_signed_v<Num>) {
                 if (num < 0) {
                     negative = true;
-                    abs = static_cast<Unsigned>(0) - static_cast<Unsigned>(num);
+                    abs = static_cast<uint64_t>(0) - static_cast<uint64_t>(num);
                 }
                 else {
-                    abs = static_cast<Unsigned>(num);
+                    abs = static_cast<uint64_t>(num);
                 }
             }
             else {
-                abs = static_cast<Unsigned>(num);
+                abs = static_cast<uint64_t>(num);
             }
 
             struct Scale {
-                Unsigned threshold;
+                uint64_t threshold;
                 std::string_view suffix;
             };
 
@@ -185,18 +184,18 @@ namespace geode {
                 if (abs < threshold) {
                     continue;
                 }
-                Unsigned whole = abs / threshold;
-                Unsigned rem = abs % threshold;
+                uint64_t whole = abs / threshold;
+                uint64_t rem = abs % threshold;
                 std::string result;
                 if (whole >= 100) {
                     result = fmt::format("{}{}", whole, suffix);
                 }
                 else if (whole >= 10) {
-                    Unsigned frac = rem / (threshold / 10);
+                    uint64_t frac = rem / (threshold / 10);
                     result = fmt::format("{}.{}{}", whole, frac, suffix);
                 }
                 else {
-                    Unsigned frac = rem / (threshold / 100);
+                    uint64_t frac = rem / (threshold / 100);
                     result = fmt::format("{}.{:02d}{}", whole, frac, suffix);
                 }
                 return negative ? "-" + result : result;
