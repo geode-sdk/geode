@@ -594,7 +594,7 @@ struct StyleSpan {
 
 struct Label::Impl {
     std::string m_text;
-    asp::SmallVec<BitmapFont const*, 2> m_fonts;
+    asp::SmallVec<BitmapFont*, 2> m_fonts;
     asp::SmallVec<LabelFontBatch, 2> m_batches;
     std::vector<CharQuadRef> m_chars;
 
@@ -622,6 +622,10 @@ struct Label::Impl {
     ccBlendFunc m_blendFunc = {CC_BLEND_SRC, CC_BLEND_DST};
     ccColor3B m_color = {255, 255, 255};
     GLubyte m_opacity = 255;
+    ccColor3B m_displayedColor = {255, 255, 255};
+    GLubyte m_displayedOpacity = 255;
+    bool m_cascadeColorEnabled = false;
+    bool m_cascadeOpacityEnabled = false;
 
     CCSize m_limitSize{};
     float m_defaultScale = 1.f;
@@ -653,25 +657,25 @@ struct Label::Impl {
     ccColor4B getEffectiveColor(ccColor3B color) const {
         if (m_isOpacityModifyRGB) {
             return {
-                static_cast<GLubyte>(color.r * m_opacity / 255),
-                static_cast<GLubyte>(color.g * m_opacity / 255),
-                static_cast<GLubyte>(color.b * m_opacity / 255),
-                static_cast<GLubyte>(m_opacity)
+                static_cast<GLubyte>(color.r * m_displayedOpacity / 255),
+                static_cast<GLubyte>(color.g * m_displayedOpacity / 255),
+                static_cast<GLubyte>(color.b * m_displayedOpacity / 255),
+                static_cast<GLubyte>(m_displayedOpacity)
             };
         }
 
-        return { color.r, color.g, color.b, m_opacity };
+        return { color.r, color.g, color.b, m_displayedOpacity };
     }
 
     ccColor4B getEffectiveColor() const {
-        return this->getEffectiveColor(m_color);
+        return this->getEffectiveColor(m_displayedColor);
     }
 
     ccColor4B getEmojiColor() const {
         if (m_emojisUseColors) {
-            return { m_color.r, m_color.g, m_color.b, m_opacity };
+            return { m_displayedColor.r, m_displayedColor.g, m_displayedColor.b, m_displayedOpacity };
         }
-        return { 255, 255, 255, m_opacity };
+        return { 255, 255, 255, m_displayedOpacity };
     }
 
     uint8_t getOrCreateBatch(CCTexture2D* texture) {
@@ -1705,6 +1709,14 @@ Label* Label::createRich(std::string text, ZStringView font) {
     return nullptr;
 }
 
+void Label::visit() {
+    if (m_bVisible) {
+        this->validate();
+    }
+
+    CCNode::visit();
+}
+
 void Label::draw() {
     if (!m_pShaderProgram) return;
 
@@ -1775,6 +1787,10 @@ bool Label::isQuadsDirty() noexcept {
 bool Label::registerFont(BitmapFont* font) {
     if (!font) return false;
 
+    for (auto const& f : m_impl->m_fonts) {
+        if (f == font) return true;
+    }
+
     auto texture = CCTextureCache::get()->addImage(font->getAtlasName().c_str(), false);
     if (!texture) return false;
 
@@ -1792,6 +1808,70 @@ bool Label::registerFont(BitmapFont* font) {
     m_impl->m_textDirty = true;
 
     return true;
+}
+
+bool Label::removeFont(size_t index) {
+    if (index >= m_impl->m_fonts.size()) return false;
+
+    m_impl->m_fonts.erase(m_impl->m_fonts.begin() + index);
+    m_impl->m_batches.erase(m_impl->m_batches.begin() + index);
+
+    if (index == 0) {
+        m_impl->m_spaceWidth = 0.f;
+        if (!m_impl->m_fonts.empty()) {
+            auto const& chars = m_impl->m_fonts[0]->getCharDefs();
+            auto it = chars.find(U' ');
+            if (it != chars.end()) {
+                m_impl->m_spaceWidth = it->second.xAdvanceScaled;
+            }
+        }
+    }
+
+    m_impl->m_textDirty = true;
+
+    return true;
+}
+
+bool Label::removeFont(ZStringView font) {
+    for (size_t i = 0; i < m_impl->m_fonts.size(); ++i) {
+        if (m_impl->m_fonts[i]->getAtlasName() == font) {
+            return this->removeFont(i);
+        }
+    }
+    return false;
+}
+
+bool Label::setFont(BitmapFont* font, size_t index) {
+    if (!font || index >= m_impl->m_fonts.size()) return false;
+    if (m_impl->m_fonts[index] == font) return true;
+
+    auto texture = CCTextureCache::get()->addImage(font->getAtlasName().c_str(), false);
+    if (!texture) return false;
+
+    m_impl->m_fonts[index] = font;
+    m_impl->m_batches[index] = LabelFontBatch(texture);
+
+    if (index == 0) {
+        m_impl->m_spaceWidth = 0.f;
+        auto const& chars = font->getCharDefs();
+        auto it = chars.find(U' ');
+        if (it != chars.end()) {
+            m_impl->m_spaceWidth = it->second.xAdvanceScaled;
+        }
+    }
+
+    m_impl->m_textDirty = true;
+
+    return true;
+}
+
+bool Label::setFont(ZStringView font, size_t index) {
+    return this->setFont(BitmapFont::load(font), index);
+}
+
+BitmapFont* Label::getFont(size_t index) noexcept {
+    if (index >= m_impl->m_fonts.size()) return nullptr;
+    return m_impl->m_fonts[index];
 }
 
 bool Label::registerFont(ZStringView font) {
@@ -1931,7 +2011,18 @@ void Label::setColor(ccColor3B const& color) {
     }
 
     m_impl->m_color = color;
-    m_impl->m_quadsDirty = true;
+    m_impl->m_displayedColor = color;
+
+    if (m_impl->m_cascadeColorEnabled) {
+        ccColor3B parentColor = {255, 255, 255};
+        auto parentRGBA = typeinfo_cast<CCRGBAProtocol*>(m_pParent);
+        if (parentRGBA && parentRGBA->isCascadeColorEnabled()) {
+            parentColor = parentRGBA->getDisplayedColor();
+        }
+        this->updateDisplayedColor(parentColor);
+    } else {
+        m_impl->m_quadsDirty = true;
+    }
 }
 
 ccColor3B const& Label::getColor() {
@@ -1939,7 +2030,7 @@ ccColor3B const& Label::getColor() {
 }
 
 ccColor3B const& Label::getDisplayedColor() {
-    return m_impl->m_color;
+    return m_impl->m_displayedColor;
 }
 
 void Label::setOpacity(GLubyte opacity) {
@@ -1948,7 +2039,18 @@ void Label::setOpacity(GLubyte opacity) {
     }
 
     m_impl->m_opacity = opacity;
-    m_impl->m_quadsDirty = true;
+    m_impl->m_displayedOpacity = opacity;
+
+    if (m_impl->m_cascadeOpacityEnabled) {
+        GLubyte parentOpacity = 255;
+        auto parentRGBA = typeinfo_cast<CCRGBAProtocol*>(m_pParent);
+        if (parentRGBA && parentRGBA->isCascadeOpacityEnabled()) {
+            parentOpacity = parentRGBA->getDisplayedOpacity();
+        }
+        this->updateDisplayedOpacity(parentOpacity);
+    } else {
+        m_impl->m_quadsDirty = true;
+    }
 }
 
 GLubyte Label::getOpacity() {
@@ -1956,7 +2058,7 @@ GLubyte Label::getOpacity() {
 }
 
 GLubyte Label::getDisplayedOpacity() {
-    return m_impl->m_opacity;
+    return m_impl->m_displayedOpacity;
 }
 
 void Label::setUseColoredEmojis(bool value) noexcept {
@@ -2002,12 +2104,51 @@ bool Label::isOpacityModifyRGB() {
     return m_impl->m_isOpacityModifyRGB;
 }
 
-void Label::setCascadeColorEnabled(bool cascadeColorEnabled) {}
-bool Label::isCascadeColorEnabled() { return false; }
-void Label::updateDisplayedColor(ccColor3B const& color) {}
-void Label::updateDisplayedOpacity(GLubyte opacity) {}
-void Label::setCascadeOpacityEnabled(bool cascadeOpacityEnabled) {}
-bool Label::isCascadeOpacityEnabled() { return false; }
+void Label::setCascadeColorEnabled(bool cascadeColorEnabled) {
+    m_impl->m_cascadeColorEnabled = cascadeColorEnabled;
+}
+
+bool Label::isCascadeColorEnabled() {
+    return m_impl->m_cascadeColorEnabled;
+}
+
+void Label::updateDisplayedColor(ccColor3B const& color) {
+    m_impl->m_displayedColor.r = static_cast<GLubyte>(m_impl->m_color.r * color.r / 255.0f);
+    m_impl->m_displayedColor.g = static_cast<GLubyte>(m_impl->m_color.g * color.g / 255.0f);
+    m_impl->m_displayedColor.b = static_cast<GLubyte>(m_impl->m_color.b * color.b / 255.0f);
+
+    m_impl->m_quadsDirty = true;
+
+    if (m_impl->m_cascadeColorEnabled) {
+        for (auto child : this->getChildrenExt()) {
+            if (auto* rgba = typeinfo_cast<CCRGBAProtocol*>(child)) {
+                rgba->updateDisplayedColor(m_impl->m_displayedColor);
+            }
+        }
+    }
+}
+
+void Label::updateDisplayedOpacity(GLubyte opacity) {
+    m_impl->m_displayedOpacity = static_cast<GLubyte>(m_impl->m_opacity * opacity / 255.0f);
+
+    m_impl->m_quadsDirty = true;
+
+    if (m_impl->m_cascadeOpacityEnabled) {
+        for (auto child : this->getChildrenExt()) {
+            if (auto* rgba = typeinfo_cast<CCRGBAProtocol*>(child)) {
+                rgba->updateDisplayedOpacity(m_impl->m_displayedOpacity);
+            }
+        }
+    }
+}
+
+void Label::setCascadeOpacityEnabled(bool cascadeOpacityEnabled) {
+    m_impl->m_cascadeOpacityEnabled = cascadeOpacityEnabled;
+}
+
+bool Label::isCascadeOpacityEnabled() {
+    return m_impl->m_cascadeOpacityEnabled;
+}
 
 void Label::setText(std::string text) noexcept {
     if (m_impl->m_text == text) {

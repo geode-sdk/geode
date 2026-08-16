@@ -237,10 +237,19 @@ namespace geode {
         bool registerFont(ZStringView font);
         bool registerFont(BitmapFont* font);
 
+        bool removeFont(size_t index = 0);
+        bool removeFont(ZStringView font);
+
+        bool setFont(BitmapFont* font, size_t index = 0);
+        bool setFont(ZStringView font, size_t index = 0);
+
+        BitmapFont* getFont(size_t index = 0) noexcept;
+
         /// Sets the text of the label.
         void setText(std::string text) noexcept;
         ZStringView getText() noexcept;
 
+        /// Sets the rich text of the label. Rich text may contain color tags (e.g. <cr>Red</c> or <c-123abc>Hex</c>).
         void setRichText(std::string text);
 
         /// Sets the label string. Provided by CCLabelProtocol.
@@ -341,6 +350,7 @@ namespace geode {
         cocos2d::CCSize const& getContentSize() const override;
         cocos2d::CCSize getScaledContentSize() override;
 
+        void visit() override;
         void draw() override;
 
     protected:
