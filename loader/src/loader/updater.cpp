@@ -77,7 +77,15 @@ Result<> updater::extractLoaderResources(ByteSpan data) {
     // this might fail due to fuse on certain devices? might have to do with sd card usage too
     // society if we could just access /data/media/0/ directly...
     if(!asp::fs::rename(tempDir, resourcesDir)) {
-        GEODE_UNWRAP(asp::fs::copy(tempDir, resourcesDir).mapErr([](auto ec) {
+        // removing once again because it's possible the rename results in a partial failure allegedly?
+        GEODE_UNWRAP(asp::fs::removeAll(resourcesDir).mapErr([](auto ec) {
+            return "Unable to clear stale resources directory before copy: " + ec.message();
+        }));
+
+        GEODE_UNWRAP(asp::fs::copy(
+            tempDir, resourcesDir,
+            std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing
+        ).mapErr([](auto ec) {
             return "Unable to copy new resources directory: " + ec.message();
         }));
 
