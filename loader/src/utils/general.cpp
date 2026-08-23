@@ -18,7 +18,7 @@ static Result<T> toParseResult(T* value, fast_float::from_chars_result res, std:
     if (ec == std::errc::result_out_of_range) return Err("Number is out of range for target type");
     if (ec != std::errc()) return Err(std::make_error_code(ec).message());
 
-    if (ptr != str.data() + str.size()) return Err("String contains trailing extra data");
+    if (ptr != str.data() + str.size()) return Err("String contains trailing data");
 
     return Ok(*value);
 }
