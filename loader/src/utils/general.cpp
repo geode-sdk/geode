@@ -13,13 +13,15 @@ float geode::utils::getDisplayFactor() {
 template <typename T>
 static Result<T> toParseResult(T* value, fast_float::from_chars_result res, std::string_view str) {
     auto [ptr, ec] = res;
-    if (ec == std::errc()) return Ok(*value);
-    else if (ptr != str.data() + str.size()) return Err("String contains trailing extra data");
-    else if (ec == std::errc::invalid_argument) return Err("String is not a number");
-    else if (ec == std::errc::result_out_of_range) return Err("Number is out of range for target type");
-    else return Err("Unknown error");
-}
 
+    if (ec == std::errc::invalid_argument) return Err("String is not a number");
+    if (ec == std::errc::result_out_of_range) return Err("Number is out of range for target type");
+    if (ec != std::errc()) return Err("Unknown error");
+
+    if (ptr != str.data() + str.size()) return Err("String contains trailing extra data");
+
+    return Ok(*value);
+}
 template <typename T>
 static Result<T> parseFloat(std::string_view str) {
     T result;
