@@ -541,6 +541,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
     auto loadFunction = [this, node, early]() {
         if (node->shouldLoad()) {
+            node->m_impl->loadNativeModBinaries();
             log::debug("Loading binary");
             auto res = node->m_impl->loadBinary();
             if (!res) {

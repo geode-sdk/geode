@@ -80,15 +80,6 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
     return triedToLoadDLLs;
 }
 
-void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
-    // https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-adddlldirectory#remarks
-    static auto runOnce = [] {
-        SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
-        return 0;
-    }();
-    AddDllDirectory(path.c_str());
-}
-
 bool Loader::Impl::supportsLaunchArguments() const {
     return true;
 }

@@ -79,16 +79,6 @@ Result<> Mod::Impl::setup() {
             CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
         });
 
-        // binaries on macos are merged, so make the platform binaries merged as well
-        auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
-
-        auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
-
-        std::error_code code;
-        if (std::filesystem::exists(binariesDir, code) && !code) {
-            LoaderImpl::get()->addNativeBinariesPath(binariesDir);
-        }
-
         m_resourcesLoaded = true;
     }
 
@@ -716,6 +706,21 @@ bool Mod::Impl::isPinned() const {
 
 void Mod::Impl::setPinned(bool pinned) {
     Mod::get()->setSavedValue<bool>("is-pinned-" + m_metadata.getID(), pinned);
+}
+
+void Mod::Impl::loadNativeModBinaries() {
+    auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
+
+    // binaries on macos are merged, so make the platform binaries merged as well
+    auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
+
+    auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
+
+    std::error_code code;
+    if (std::filesystem::exists(binariesDir, code) && !code) {
+        geode::log::info("Loaded binaries from path {}", binariesDir);
+        ModImpl::get()->addNativeBinariesPath(binariesDir);
+    }
 }
 
 static Result<ModMetadata> getModImplInfo() {
