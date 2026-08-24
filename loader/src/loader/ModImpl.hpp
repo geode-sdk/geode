@@ -168,6 +168,10 @@ namespace geode {
 
         bool isPinned() const;
         void setPinned(bool pinned);
+
+        // native binary loading
+        void addNativeBinariesPath(std::filesystem::path const& path);
+        void loadNativeModBinaries();
     };
 
     class ModImpl : public Mod::Impl {

@@ -39,3 +39,7 @@ Result<> Mod::Impl::loadPlatformBinary() {
     std::string err = (char const*)dlerror();
     return Err("Unable to load the DYLIB: dlerror returned (" + err + ")");
 }
+
+void Mod::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
+    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path);
+}

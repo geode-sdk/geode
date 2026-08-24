@@ -91,10 +91,6 @@ std::string Loader::Impl::getLaunchCommand() const {
     return (getenv("LAUNCHARGS")) ? getenv("LAUNCHARGS") : std::string();
 }
 
-void Loader::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
-    log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path);
-}
-
 std::string Loader::Impl::getGameVersion() {
     NSBundle* mainBundle = [NSBundle mainBundle];
     NSDictionary* infoDictionary = [mainBundle infoDictionary];
