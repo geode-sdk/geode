@@ -74,24 +74,23 @@ $on_mod(Loaded) {
 // Coroutines
 #include <Geode/utils/coro.hpp>
 auto advanceFrame() {
-    auto [task, finish, progress, cancelled] = Task<void>::spawn();
-    queueInMainThread([finish = std::move(finish)] mutable {
-        finish(true);
+    return async::spawn([] -> arc::Future<void> {
+        co_await waitForMainThread([] {
+            return;
+        });
     });
-
-    return task;
 }
 
 $on_mod(Loaded) {
     $async() {
+        auto time = asp::Instant::now();
+
         auto start = std::chrono::steady_clock::now();
         log::info("Waiting for 10 frames...");
         for (int i = 0; i < 10; ++i)
             co_await advanceFrame();
 
-        log::info("Finished waiting! Took {} seconds", std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::steady_clock::now() - start
-        ).count());
+        log::info("Finished waiting! Took {}", time.elapsed());
     };
 
     auto output = $try<VersionInfo> {
