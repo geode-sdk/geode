@@ -9,7 +9,6 @@ using namespace geode::prelude;
 #include <Geode/binding/GameManager.hpp>
 #include <objc/runtime.h>
 #include <Geode/utils/web.hpp>
-#include <Geode/utils/Task.hpp>
 #include <string.h>
 #include <arc/sync/oneshot.hpp>
 #include <mach-o/utils.h>

@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/permission.hpp>
-#include <Geode/utils/Task.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/binding/AppDelegate.hpp>
 #include <Geode/loader/Log.hpp>
