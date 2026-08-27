@@ -641,6 +641,7 @@ struct Label::Impl {
     bool m_textDirty = true;
     bool m_layoutDirty = true;
     bool m_quadsDirty = true;
+    bool m_sizeDirty = true;
 
     Impl(Label* label) : m_label(label) {}
 
@@ -1403,6 +1404,7 @@ struct Label::Impl {
         }
 
         m_label->setContentSize({ maxLineWidth, lineHeight * m_lines.size() });
+        m_sizeDirty = true;
     }
 
     void updateQuads() {
@@ -1468,9 +1470,11 @@ struct Label::Impl {
     }
 
     void applyLimitScale() {
-        if (m_fitLabelSize || m_limitSize.width <= 0.f && m_limitSize.height <= 0.f) {
+        if (!m_sizeDirty || m_fitLabelSize || m_limitSize.width <= 0.f && m_limitSize.height <= 0.f) {
             return;
         }
+
+        m_sizeDirty = false;
 
         auto size = m_label->CCNode::getContentSize();
         if (size.width <= 0.f || size.height <= 0.f) {
@@ -2204,6 +2208,21 @@ CCSize const& Label::getContentSize() const {
 CCSize Label::getScaledContentSize() {
     this->validate();
     return CCNode::getScaledContentSize();
+}
+
+float Label::getScale() {
+    this->validate();
+    return CCNode::getScale();
+}
+
+float Label::getScaleX() {
+    this->validate();
+    return CCNode::getScaleX();
+}
+
+float Label::getScaleY() {
+    this->validate();
+    return CCNode::getScaleY();
 }
 
 bool Label::initWithFont(BitmapFont* font) {
