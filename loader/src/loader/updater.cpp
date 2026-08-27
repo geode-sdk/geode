@@ -17,16 +17,6 @@ static StringMap<async::TaskHolder<web::WebResponse>> RUNNING_REQUESTS {};
 
 bool s_isNewUpdateDownloaded = false;
 
-namespace {
-    inline std::string formatDownloadUrl(std::string_view tag) {
-        return fmt::format("https://github.com/geode-sdk/geode/releases/download/{0}/geode-{0}-{1}.zip", tag, GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH);
-    }
-
-    inline std::string formatResourcesUrl(std::string_view tag) {
-        return fmt::format("https://github.com/geode-sdk/geode/releases/download/{}/resources.zip", tag);
-    }
-}
-
 void updater::downloadLatestLoaderResources() {
     log::debug("Downloading latest resources");
 
@@ -36,10 +26,7 @@ void updater::downloadLatestLoaderResources() {
             if (res.ok()) {
                 auto& release = res.unwrap();
 
-                updater::tryDownloadLoaderResources(
-                    formatResourcesUrl(release.tag),
-                    false
-                );
+                updater::tryDownloadLoaderResources(release.resources.url, release.resources.hash, false);
             } else {
                 ResourceDownloadEvent().send(
                     UpdateFailed("Unable to download resources: " + res.unwrapErr().details)
@@ -49,7 +36,17 @@ void updater::downloadLatestLoaderResources() {
     );
 }
 
-Result<> updater::extractLoaderResources(ByteSpan data) {
+Result<> updater::extractLoaderResources(ByteSpan data, std::string_view expectedHash) {
+    if (expectedHash.empty()) {
+        log::debug("Skipping hash validation for resources");
+    } else {
+        auto actualHash = geode::sha256(data).toString();
+        if (actualHash != expectedHash) {
+            log::error("Hash mismatch in downloaded resources: expected {} but got {}", expectedHash, actualHash);
+            return Err("Hash mismatch in downloaded resources");
+        }
+    }
+
     auto tempDir = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp", Mod::get()->getID());
     auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
 
@@ -98,7 +95,7 @@ Result<> updater::extractLoaderResources(ByteSpan data) {
     return Ok();
 }
 
-void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError) {
+void updater::tryDownloadLoaderResources(std::string url, std::string hash, bool tryLatestOnError) {
     if (RUNNING_REQUESTS.contains(url)) return;
 
     auto progress = [](const web::WebProgress& prog) {
@@ -114,10 +111,10 @@ void updater::tryDownloadLoaderResources(std::string url, bool tryLatestOnError)
     holder.spawn(
         "Geode resources download",
         web::WebRequest{}.onProgress(std::move(progress)).get(url),
-        [url](auto response) {
+        [url, hash = std::move(hash)](auto response) {
             if (response.ok()) {
                 auto data = std::move(response).data();
-                if (GEODE_UNWRAP_IF_ERR(e, updater::extractLoaderResources(data))) {
+                if (GEODE_UNWRAP_IF_ERR(e, updater::extractLoaderResources(data, hash))) {
                     ResourceDownloadEvent().send(UpdateFailed(e));
                 } else {
                     ResourceDownloadEvent().send(UpdateFinished());
@@ -159,9 +156,7 @@ void updater::downloadLoaderResources(bool useLatestRelease) {
             if (res.ok()) {
                 auto& release = res.unwrap();
 
-                updater::tryDownloadLoaderResources(
-                    formatResourcesUrl(release.tag), false
-                );
+                updater::tryDownloadLoaderResources(release.resources.url, release.resources.hash, false);
 
                 DOWNLOADING_LOADER_RESOURCES = false;
                 return;
@@ -241,7 +236,7 @@ bool updater::verifyLoaderResources() {
     return true;
 }
 
-void updater::downloadLoaderUpdate(std::string url) {
+void updater::downloadLoaderUpdate(std::string url, std::string hash) {
     if (RUNNING_REQUESTS.contains("@downloadLoaderUpdate")) return;
 
     auto req = web::WebRequest();
@@ -257,47 +252,55 @@ void updater::downloadLoaderUpdate(std::string url) {
     auto& holder = RUNNING_REQUESTS["@downloadLoaderUpdate"];
     holder.spawn(
         req.get(std::move(url)),
-        [](web::WebResponse response) {
+        [hash = std::move(hash)](web::WebResponse response) {
             RUNNING_REQUESTS.erase("@downloadLoaderUpdate");
 
-            auto updateZip = dirs::getTempDir() / "loader-update.zip";
-            auto targetDir = dirs::getGeodeDir() / "update";
-
-            if (response.ok()) {
-                // unzip resources zip
-                auto data = std::move(response).data();
-                auto unzip = file::Unzip::create(data);
-                if (unzip) {
-                    auto ok = unzip.unwrap().extractAllTo(targetDir);
-                    if (ok) {
-                        s_isNewUpdateDownloaded = true;
-                        LoaderUpdateEvent().send(UpdateFinished());
-                    }
-                    else {
-                        LoaderUpdateEvent().send(
-                            UpdateFailed("Unable to unzip update: " + ok.unwrapErr())
-                        );
-                        Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
-                    }
-                }
-                else {
-                    LoaderUpdateEvent().send(
-                        UpdateFailed("Unable to unzip update: " + unzip.unwrapErr())
-                    );
-                    Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
-                }
-            }
-            else {
-                auto info = response.string().unwrapOr("Unknown error");
-                log::error("Failed to download latest update {}", info);
+            auto result = installLoaderUpdate(std::move(response), hash);
+            if (!result) {
+                log::error("Failed to install latest update: {}", result.unwrapErr());
                 LoaderUpdateEvent().send(
-                    UpdateFailed("Unable to download update: " + info)
+                    UpdateFailed(fmt::format("Unable to install loader update: {}", result.unwrapErr()))
                 );
-
                 Mod::get()->setSavedValue("last-modified-auto-update-check", std::string());
             }
         }
     );
+}
+
+Result<> updater::installLoaderUpdate(utils::web::WebResponse response, std::string_view expectedHash) {
+    auto targetDir = dirs::getGeodeDir() / "update";
+
+    if (!response.ok()) {
+        auto info = response.string().unwrapOr("Unknown error");
+        return Err("Download failed: {}", info);
+    }
+
+    // validate hash
+    auto data = std::move(response).data();
+    if (expectedHash.empty()) {
+        log::debug("Skipping hash validation for loader update");
+    } else {
+        auto actualHash = geode::sha256(data).toString();
+        if (actualHash != expectedHash) {
+            log::error("Hash mismatch in downloaded loader update, we expected {}, but got {}", expectedHash, actualHash);
+            return Err("Hash mismatch in downloaded loader update");
+        }
+    }
+
+    // unzip resources zip
+    auto unzip = file::Unzip::create(data);
+    if (!unzip) {
+        return Err("Unable to unzip update: {}", unzip.unwrapErr());
+    }
+
+    auto ok = unzip.unwrap().extractAllTo(targetDir);
+    if (!ok) {
+        return Err("Unable to extract update: {}", ok.unwrapErr());
+    }
+
+    s_isNewUpdateDownloaded = true;
+    LoaderUpdateEvent().send(UpdateFinished());
+    return Ok();
 }
 
 void updater::checkForLoaderUpdates() {
@@ -322,8 +325,7 @@ void updater::checkForLoaderUpdates() {
                     return;
                 }
 
-                // find release asset
-                updater::downloadLoaderUpdate(formatDownloadUrl(release.tag));
+                updater::downloadLoaderUpdate(release.download.url, release.download.hash);
             } else {
                 auto info = res.unwrapErr().details;
                 log::error("Failed to fetch updates {}", info);
