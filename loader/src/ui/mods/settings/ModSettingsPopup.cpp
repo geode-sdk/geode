@@ -65,7 +65,16 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
 
 void ModSettingsPopup::updateState(SettingNode* invoker) {
     BaseSettingsPopup::updateState(invoker);
-    m_restartBtn->setVisible(ModSettingsManager::from(m_mod)->restartRequired());
+
+    auto manager = ModSettingsManager::from(m_mod);
+    m_restartBtn->setVisible(manager->restartRequired());
+
+    // frame delay for debounce (avoids repeating save for every changed setting)
+    Loader::get()->queueInMainThread([mod = m_mod, manager] {
+        if (manager->shouldSave()) {
+            (void) mod->saveData();
+        }
+    });
 }
 
 void ModSettingsPopup::onOpenSaveDirectory(CCObject*) {
