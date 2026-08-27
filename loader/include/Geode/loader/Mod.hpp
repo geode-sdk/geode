@@ -307,7 +307,7 @@ namespace geode {
                 return res.unwrap();
             }
 
-            auto savedMutable = this->getSaveContainerTemp();
+            auto& savedMutable = this->getSaveContainerTemp();
             savedMutable[key] = matjson::Value(defaultValue);
             return defaultValue;
         }
