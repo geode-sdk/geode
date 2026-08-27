@@ -37,10 +37,14 @@ void updater::downloadLatestLoaderResources() {
 }
 
 Result<> updater::extractLoaderResources(ByteSpan data, std::string_view expectedHash) {
-    auto actualHash = geode::sha256(data).toString();
-    if (actualHash != expectedHash) {
-        log::error("Hash mismatch in downloaded resources: expected {} but got {}", expectedHash, actualHash);
-        return Err("Hash mismatch in downloaded resources");
+    if (expectedHash.empty()) {
+        log::debug("Skipping hash validation for resources");
+    } else {
+        auto actualHash = geode::sha256(data).toString();
+        if (actualHash != expectedHash) {
+            log::error("Hash mismatch in downloaded resources: expected {} but got {}", expectedHash, actualHash);
+            return Err("Hash mismatch in downloaded resources");
+        }
     }
 
     auto tempDir = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp", Mod::get()->getID());
@@ -265,10 +269,14 @@ Result<> updater::installLoaderUpdate(utils::web::WebResponse response, std::str
 
     // validate hash
     auto data = std::move(response).data();
-    auto actualHash = geode::sha256(data).toString();
-    if (actualHash != expectedHash) {
-        log::error("Hash mismatch in downloaded loader update, we expected {}, but got {}", expectedHash, actualHash);
-        return Err("Hash mismatch in downloaded loader update");
+    if (expectedHash.empty()) {
+        log::debug("Skipping hash validation for loader update");
+    } else {
+        auto actualHash = geode::sha256(data).toString();
+        if (actualHash != expectedHash) {
+            log::error("Hash mismatch in downloaded loader update, we expected {}, but got {}", expectedHash, actualHash);
+            return Err("Hash mismatch in downloaded loader update");
+        }
     }
 
     // unzip resources zip

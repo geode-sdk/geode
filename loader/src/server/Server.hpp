@@ -114,7 +114,7 @@ namespace server {
 
     struct ServerLoaderDownload final {
         std::string url;
-        std::string hash;
+        std::string hash; // may be empty
 
         static Result<ServerLoaderDownload> parse(matjson::Value json);
     };

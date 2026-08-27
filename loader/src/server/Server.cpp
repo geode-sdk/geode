@@ -624,7 +624,7 @@ Result<ServerLoaderDownload> ServerLoaderDownload::parse(matjson::Value json) {
     auto root = checkJson(std::move(json), "ServerLoaderDownload");
     auto res = ServerLoaderDownload();
     root.needs("url").into(res.url);
-    root.needs("hash").into(res.hash);
+    root.hasNullable("hash").into(res.hash);
     return root.ok(std::move(res));
 }
 
