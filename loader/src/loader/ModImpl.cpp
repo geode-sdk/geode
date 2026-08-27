@@ -230,6 +230,7 @@ Result<> Mod::Impl::loadData() {
         if (auto json = utils::file::readJson(settingPath)) {
             auto load = m_settings->load(json.unwrap());
             if (!load) {
+                m_settings->queueSave();
                 log::warn("Unable to load settings: {}", load.unwrapErr());
             }
         } else {
