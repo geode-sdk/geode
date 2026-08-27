@@ -290,9 +290,9 @@ Result<> Mod::Impl::saveData() {
     if (m_saveRequestState != SaveRequestState::Clean) {
         log::debug("Saving values for mod {}", m_metadata.getID());
 
-        auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
-        if (!res2) {
-            log::error("Unable to save values: {}", res2.unwrapErr());
+        auto res = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
+        if (!res) {
+            log::error("Unable to save values: {}", res.unwrapErr());
         }
 
         if(m_saveRequestState == SaveRequestState::SaveOnce) {
