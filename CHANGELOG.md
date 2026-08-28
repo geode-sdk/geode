@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v5.10.1
+ * Update `arc` to v1.5.9, improving performance of blocking tasks
+
 ## v5.10.0
  * Use CDN for downloading updates & resources (#2155)
  * Add CMake option `GEODE_PACKAGE_ZSTD` to produce Zstd compressed `.geode` files (#2156)
