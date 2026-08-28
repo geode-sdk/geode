@@ -1,5 +1,19 @@
 # Geode Changelog
 
+## v5.10.0
+ * Use CDN for downloading updates & resources (#2155)
+ * Add CMake option `GEODE_PACKAGE_ZSTD` to produce Zstd compressed `.geode` files (#2156)
+ * Optimize setting / saved values to not save when no changes were made (#2152)
+ * Add `CCScene` overloads to `switchToScene` and `reloadTextures` (3f3721b, e30a5fa)
+ * Fix issues with `geode::Label` rendering / scaling, add methods for changing fonts (93f48a3, 7d213a6, 140098a)
+ * Automatically add modifier to modifier keys (f6de44f)
+ * Attempt to fix the "File exists" error when updating reosurces (fbbbb75)
+ * Trim queries when searching mods (e9c0b03)
+ * Fix `numToAbbreviatedString` mishandling negative numbers and losing precision due to float usage (#2160)
+ * Fix runtime `.dll` dependency binaries not being loaded the first time a mod is unzipped (#2167)
+ * Fix thread crashes causing info to be duplicated in crashlogs (645b53a)
+ * Fix hash utils not being exported (5fbfba5)
+
 ## v5.9.0
  * Add SHA256 hashing utils (#2139)
  * Add `WebRequest::getBodyRef()` for accessing the body without copying (#2123)
