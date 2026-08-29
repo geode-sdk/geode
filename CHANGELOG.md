@@ -1,6 +1,7 @@
 # Geode Changelog
 
 ## v5.10.1
+ * Fix custom settings not loading properly (60f4df1)
  * Update `arc` to v1.5.9, improving performance of blocking tasks
 
 ## v5.10.0
