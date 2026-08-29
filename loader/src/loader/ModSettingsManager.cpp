@@ -206,12 +206,6 @@ public:
             return true;
         }
         else {
-            if (!this->savedata.contains(key)) {
-                log::error("Unable to load setting '{}' for mod {} (not found in savedata)", key, this->modID);
-                if(saveRequestState == SaveRequestState::Clean) {
-                    saveRequestState = SaveRequestState::SaveOnce;
-                }
-            }
             return false;
         }
     }
@@ -245,8 +239,8 @@ public:
             if (auto v3 = (*gen)(key, modID, setting.json)) {
                 setting.v3 = v3.unwrap();
 
-                // the loading is unnecessary, m_saveData is not initialized yet
-                // this->loadSettingValueFromSave(key);
+                // this is necessary for custom settings
+                this->loadSettingValueFromSave(key);
             }
             else {
                 log::error(
