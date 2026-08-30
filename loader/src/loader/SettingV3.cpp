@@ -1044,7 +1044,7 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string key, std
 
     // Replace known paths like `{gd-save-dir}/`
     try {
-        ret->setDefaultValue(utils::string::utf8ToWide(fmt::format(
+        ret->setDefaultValue(fmt::format(
             fmt::runtime(utils::string::pathToString(ret->getDefaultValue())),
             fmt::arg("gd_dir", dirs::getGameDir()),
             fmt::arg("gd_save_dir", dirs::getSaveDir()),
@@ -1054,7 +1054,7 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string key, std
             fmt::arg("gd_resources_dir", dirs::getResourcesDir()),
             fmt::arg("mod_runtime_dir", dirs::getModRuntimeDir() / modID),
             fmt::arg("mod_resources_dir", dirs::getModRuntimeDir() / modID / "resources" / modID)
-        )));
+        ));
     }
     catch(fmt::format_error const& e) {
         return Err("Invalid format string for file setting path: {}", e.what());
