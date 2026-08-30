@@ -382,6 +382,10 @@ void earlyError(std::string message) {
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
     if (reason != DLL_PROCESS_ATTACH)
         return TRUE;
+
+    // Fixes path.string() and friends
+    std::setlocale(LC_CTYPE, ".UTF-8");
+
     // Prevents threads from notifying this DLL on creation or destruction.
     // Kind of redundant for a game that isn't multi-threaded but will provide
     // some slight optimizations if a mod frequently creates and deletes threads.
