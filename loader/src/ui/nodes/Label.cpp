@@ -1902,7 +1902,7 @@ void Label::setMaxWidth(float maxWidth) noexcept {
 
     m_impl->m_maxLineWidth = maxWidth;
     m_impl->m_lineBreak = maxWidth > 0.f;
-    m_impl->m_layoutDirty = true;
+    m_impl->m_textDirty = true;
 }
 
 float Label::getMaxWidth() noexcept {
