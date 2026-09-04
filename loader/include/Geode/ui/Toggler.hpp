@@ -5,6 +5,9 @@
 #include <Geode/ui/Button.hpp>
 
 namespace geode {
+    /// A customizable toggle button for interactive on/off controls.
+    ///
+    /// Supports custom visuals, state management, and callbacks.
     class GEODE_DLL Toggler : public Button {
     public:
         using TogglerCallback = geode::Function<void(Toggler* sender, bool isToggled)>;
