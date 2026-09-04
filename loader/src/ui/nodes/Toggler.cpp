@@ -213,36 +213,21 @@ void Toggler::activate() {
 }
 
 void Toggler::updateVisuals() {
-    if (!m_impl->m_containerNode) return;
-
-    auto offNode = m_impl->m_offNode;
-    auto onNode = m_impl->m_onNode;
-
-    if (offNode) {
-        offNode->setVisible(!m_impl->m_isToggled);
+    if (m_impl->m_offNode) {
+        m_impl->m_offNode->setVisible(!m_impl->m_isToggled);
+    }
+    if (m_impl->m_onNode) {
+        m_impl->m_onNode->setVisible(m_impl->m_isToggled);
     }
 
-    if (onNode) {
-        onNode->setVisible(m_impl->m_isToggled);
-    }
+    auto activeNode = m_impl->m_isToggled ? m_impl->m_onNode : m_impl->m_offNode;
+    if (!activeNode) return;
 
-    auto activeNode = m_impl->m_isToggled ? onNode : offNode;
-    auto size = activeNode ? activeNode->getScaledContentSize() : CCSize{};
-
+    auto size = activeNode->getScaledContentSize();
     m_impl->m_containerNode->setContentSize(size);
-    m_impl->m_containerNode->setAnchorPoint({0.5f, 0.5f});
 
-    auto center = size / 2.f;
-
-    if (offNode) {
-        offNode->setAnchorPoint({0.5f, 0.5f});
-        offNode->setPosition(center);
-    }
-
-    if (onNode) {
-        onNode->setAnchorPoint({0.5f, 0.5f});
-        onNode->setPosition(center);
-    }
+    m_impl->m_offNode->setPosition(size * 0.5f);
+    m_impl->m_onNode->setPosition(size * 0.5f);
 
     setContentSize(size);
 }
