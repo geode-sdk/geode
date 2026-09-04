@@ -199,7 +199,6 @@ void Toggler::setOnNode(CCNode* node) {
     updateVisuals();
 }
 
-
 void Toggler::setToggleCallback(TogglerCallback callback) {
     m_impl->m_toggleCallback = std::move(callback);
 }
@@ -226,8 +225,12 @@ void Toggler::updateVisuals() {
     auto size = activeNode->getScaledContentSize();
     m_impl->m_containerNode->setContentSize(size);
 
-    m_impl->m_offNode->setPosition(size * 0.5f);
-    m_impl->m_onNode->setPosition(size * 0.5f);
+    if (m_impl->m_offNode) {
+        m_impl->m_offNode->setPosition(size * 0.5f);
+    }
+    if (m_impl->m_onNode) {
+        m_impl->m_onNode->setPosition(size * 0.5f);
+    }
 
     setContentSize(size);
 }
