@@ -3,6 +3,7 @@
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/ui/Button.hpp>
+#include <Geode/cocos/base_nodes/CCNode.h>
 
 namespace geode {
     /// A customizable toggle button for interactive on/off controls.
