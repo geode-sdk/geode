@@ -1,3 +1,5 @@
+#include <Geode/Enums.hpp>
+#include <Geode/binding/GameManager.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
@@ -86,6 +88,8 @@ bool Popup::init(
     CCTouchDispatcher::get()->registerForcePrio(this, 2);
 
     if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
+
+    m_noElasticity = GameManager::get()->getGameVariable(GameVar::FastMenu);
     
     auto winSize = CCDirector::get()->getWinSize();
 
