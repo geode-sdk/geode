@@ -60,6 +60,35 @@ namespace geode {
         /**
          * Create a Button with a ButtonSprite
          * @param text The text shown in the button
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(geode::ZStringView text, ButtonCallback activateCallback = nullptr);
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
+         * @param scale The scale of the ButtonSprite
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(geode::ZStringView text, float scale, ButtonCallback activateCallback = nullptr);
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
+         * @param font The font of the text
+         * @param bg The background of the button
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(
+            geode::ZStringView text,
+            geode::ZStringView font,
+            geode::ZStringView bg,
+            ButtonCallback activateCallback = nullptr
+        );
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
          * @param font The font of the text
          * @param bg The background of the button
          * @param scale The scale of the ButtonSprite
@@ -67,9 +96,29 @@ namespace geode {
          */
         static Button* createWithButtonSprite(
             geode::ZStringView text,
-            geode::ZStringView font = "goldFont.fnt",
-            geode::ZStringView bg = "GJ_button_01.png",
-            float scale = 1.f,
+            geode::ZStringView font,
+            geode::ZStringView bg,
+            float scale,
+            ButtonCallback activateCallback = nullptr
+        );
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
+         * @param font The font of the text
+         * @param bg The background of the button
+         * @param width The width of the button
+         * @param absolute idk
+         * @param scale The scale of the ButtonSprite
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(
+            geode::ZStringView text,
+            geode::ZStringView font,
+            geode::ZStringView bg,
+            int width,
+            bool absolute,
+            float scale,
             ButtonCallback activateCallback = nullptr
         );
 
@@ -80,17 +129,18 @@ namespace geode {
          * @param bg The background of the button
          * @param width The width of the button
          * @param height The height of the button
+         * @param absolute idk
          * @param scale The scale of the ButtonSprite
          * @param activateCallback The callback for when the button is activated
          */
         static Button* createWithButtonSprite(
             geode::ZStringView text,
-            geode::ZStringView font = "goldFont.fnt",
-            geode::ZStringView bg = "GJ_button_01.png",
-            int width = 0,
-            float height = .0f,
-            bool absolute = false,
-            float scale = 1.f,
+            geode::ZStringView font,
+            geode::ZStringView bg,
+            int width,
+            float height,
+            bool absolute,
+            float scale,
             ButtonCallback activateCallback = nullptr
         );
 

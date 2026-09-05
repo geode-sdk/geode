@@ -91,6 +91,18 @@ Button* Button::createWithLabel(ZStringView text, ZStringView font, ButtonCallba
     return nullptr;
 }
 
+Button* Button::createWithButtonSprite(ZStringView text, ButtonCallback activateCallback) {
+    return Button::createWithButtonSprite(text, "goldFont.fnt", "GJ_button_01.png", 0, 0.f, false, 1.f, std::move(activateCallback));
+}
+
+Button* Button::createWithButtonSprite(ZStringView text, float scale, ButtonCallback activateCallback) {
+    return Button::createWithButtonSprite(text, "goldFont.fnt", "GJ_button_01.png", 0, 0.f, false, scale, std::move(activateCallback));
+}
+
+Button* Button::createWithButtonSprite(ZStringView text, ZStringView font, ZStringView bg, ButtonCallback activateCallback) {
+    return Button::createWithButtonSprite(text, font, bg, std::move(activateCallback));
+}
+
 Button* Button::createWithButtonSprite(
     ZStringView text,
     ZStringView font,
@@ -99,6 +111,18 @@ Button* Button::createWithButtonSprite(
     ButtonCallback activateCallback
 ) {
     return Button::createWithButtonSprite(text.c_str(), font.c_str(), bg.c_str(), 0, .0f, false, scale, std::move(activateCallback));
+}
+
+Button* Button::createWithButtonSprite(
+    ZStringView text,
+    ZStringView font,
+    ZStringView bg,
+    int width,
+    bool absolute,
+    float scale,
+    ButtonCallback activateCallback
+) {
+    return Button::createWithButtonSprite(text, font, bg, width, 0, absolute, scale, std::move(activateCallback));
 }
 
 Button* Button::createWithButtonSprite(
