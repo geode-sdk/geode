@@ -107,7 +107,7 @@ namespace geode {
          * @param font The font of the text
          * @param bg The background of the button
          * @param width The width of the button
-         * @param absolute idk
+         * @param absolute Whether to use absolute sizing for the button sprite
          * @param scale The scale of the ButtonSprite
          * @param activateCallback The callback for when the button is activated
          */
@@ -128,7 +128,7 @@ namespace geode {
          * @param bg The background of the button
          * @param width The width of the button
          * @param height The height of the button
-         * @param absolute idk
+         * @param absolute Whether to use absolute sizing for the button sprite
          * @param scale The scale of the ButtonSprite
          * @param activateCallback The callback for when the button is activated
          */
