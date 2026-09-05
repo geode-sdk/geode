@@ -311,14 +311,15 @@ void geode::utils::game::exit(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart(bool save) {
-    if (save) {
+void geode::utils::game::restart(bool saveData, bool safeMode) {
+    if (saveData) {
         AppDelegate::get()->trySaveGame(true);
     }
 
     class Exit : public CCObject {
         public:
         void shutdown() {
+            // TODO v6: handle safe mode
             NSURL* url = [NSURL URLWithString:@"geode://relaunch"];
             if ([[UIApplication sharedApplication] canOpenURL:url]) {
                 GameEvent(GameEventType::Exiting).send();

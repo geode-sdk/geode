@@ -327,7 +327,7 @@ void geode::utils::game::exit(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart(bool save) {
+void geode::utils::game::restart(bool saveData, bool safeMode) {
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
@@ -337,6 +337,7 @@ void geode::utils::game::restart(bool save) {
     class Exit : public CCObject {
     public:
         void restart() {
+            // TODO v6: handle safe mode
             JniMethodInfo t;
             if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "restartGame", "()V")) {
                 t.env->CallStaticVoidMethod(t.classID, t.methodID);
@@ -348,7 +349,7 @@ void geode::utils::game::restart(bool save) {
     // Not implemented
     // log::error("Restarting the game is not implemented on android");
 
-    if (save) {
+    if (saveData) {
         AppDelegate::get()->trySaveGame(true);
     }
     // AppDelegate::get()->showLoadingCircle(false, true);
