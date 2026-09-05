@@ -1,5 +1,7 @@
 #include <Geode/ui/Button.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 
 using namespace geode::prelude;
 
@@ -19,7 +21,7 @@ public:
     float m_touchMultiplier = 1.f;
 
     CCPoint m_offset = {0, -15};
-    
+
     float m_selectedDuration = 0.3f;
     float m_unselectedDuration = 0.4f;
 
@@ -83,6 +85,45 @@ Button* Button::createWithSpriteFrameName(ZStringView frameName, ButtonCallback 
 Button* Button::createWithLabel(ZStringView text, ZStringView font, ButtonCallback activateCallback) {
     auto ret = new Button();
     if (ret->initWithLabel(std::move(text), std::move(font), std::move(activateCallback))) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+Button* Button::createWithButtonSprite(
+    ZStringView text,
+    ZStringView font,
+    ZStringView bg,
+    float scale,
+    ButtonCallback activateCallback
+) {
+    return Button::createWithButtonSprite(text.c_str(), font.c_str(), bg.c_str(), 0, .0f, false, scale, std::move(activateCallback));
+}
+
+Button* Button::createWithButtonSprite(
+    ZStringView text,
+    ZStringView font,
+    ZStringView bg,
+    int width,
+    float height,
+    bool absolute,
+    float scale,
+    ButtonCallback activateCallback
+) {
+    auto ret = new Button();
+    auto spr = ButtonSprite::create(
+        text.c_str(),
+        width,
+        absolute,
+        font.c_str(),
+        bg.c_str(),
+        height,
+        scale
+    );
+    if (!spr) return nullptr;
+    if (ret->initWithNode(spr, std::move(activateCallback))) {
         ret->autorelease();
         return ret;
     }
@@ -187,7 +228,7 @@ CCActionInterval* Button::clickActionForType() {
     }
 
     return nullptr;
-}   
+}
 
 CCActionInterval* Button::releaseActionForType() {
     switch (m_impl->m_animationType) {
@@ -206,7 +247,7 @@ CCActionInterval* Button::releaseActionForType() {
             return CCEaseInOut::create(moveTo, 2.f);
         }
     }
-    
+
     return nullptr;
 }
 
@@ -297,7 +338,7 @@ void Button::selected() {
 
 void Button::unselected() {
     if (!m_impl->m_selected) return;
-    
+
     stopAction(m_impl->m_activeClickAction);
     stopAction(m_impl->m_activeReleaseAction);
 
