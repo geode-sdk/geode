@@ -13,16 +13,6 @@ namespace geode {
     public:
         using TogglerCallback = geode::Function<void(Toggler* sender, bool isToggled)>;
 
-        /// Make a blank toggle.
-        ///
-        /// @param toggleCallback Called when the toggle changes.
-        ///
-        /// @example
-        /// auto toggler = Toggler::create([](Toggler* sender, bool isToggled) {
-        ///     log::info("Toggled: {}", isToggled);
-        /// });
-        static Toggler* create(TogglerCallback toggleCallback = nullptr);
-
         /// Make a toggle with custom on/off nodes.
         ///
         /// @param offNode Node shown when off.
@@ -33,14 +23,14 @@ namespace geode {
         /// auto offNode = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
         /// auto onNode = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
         ///
-        /// auto toggler = Toggler::createWithNodes(
+        /// auto toggler = Toggler::create(
         ///     offNode,
         ///     onNode,
         ///     [](Toggler* sender, bool isToggled) {
         ///         log::info("Toggled: {}", isToggled);
         ///     }
         /// );
-        static Toggler* createWithNodes(
+        static Toggler* create(
             cocos2d::CCNode* offNode,
             cocos2d::CCNode* onNode,
             TogglerCallback toggleCallback = nullptr
@@ -112,7 +102,7 @@ namespace geode {
         ///
         /// @example
         /// if (toggler->isToggled()) {
-        ///     log::info("Feature is enabled");
+        ///     log::info("Toggle is enabled");
         /// }
         bool isToggled() const;
 
@@ -191,29 +181,13 @@ namespace geode {
         Toggler();
         virtual ~Toggler();
 
-        bool init(TogglerCallback toggleCallback);
-
-        bool initWithNodes(
+        bool init(
             cocos2d::CCNode* offNode,
             cocos2d::CCNode* onNode,
             TogglerCallback toggleCallback
         );
 
-        bool initWithSprites(
-            geode::ZStringView offFileName,
-            geode::ZStringView onFileName,
-            TogglerCallback toggleCallback,
-            float scale
-        );
-
-        bool initWithSpriteFrameNames(
-            geode::ZStringView offFrameName,
-            geode::ZStringView onFrameName,
-            TogglerCallback toggleCallback,
-            float scale
-        );
-
-        void updateVisuals();
+        void updateDisplay();
 
     private:
         class Impl;
