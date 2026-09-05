@@ -144,6 +144,20 @@ namespace geode {
          * @param priority Priority
          */
         void setPriority(int32_t priority);
+
+        /**
+         * Get the name of the modify class this hook belongs to, or `std::nullopt` if unavailable.
+         * This is the final, user-specified (or auto generated) name of the modify class, not the name of the modified class.
+         * This will not work for manual hooks or hooks in mods compiled with an older version of Geode.
+         * @returns Name of the modify class this hook belongs to
+         */
+        std::optional<std::string_view> getModifyClassName() const;
+
+        /**
+         * Set the name of the modify class this hook belongs to.
+         * For internal usage only.
+         */
+        void setModifyClassName(std::string name);
     };
 
     class GEODE_DLL Patch final {

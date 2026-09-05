@@ -151,6 +151,16 @@ void Hook::Impl::setPriority(int32_t priority) {
     }
 }
 
+std::optional<std::string_view> Hook::Impl::getModifyClassName() const {
+    return m_modifyClassName.transform([](auto& s) {
+        return std::string_view{s};
+    });
+}
+
+void Hook::Impl::setModifyClassName(std::string name) {
+    m_modifyClassName = std::move(name);
+}
+
 Result<> Hook::Impl::updateHookMetadata() {
     if (!m_enabled) return Ok();
     GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getHandler(m_address));
