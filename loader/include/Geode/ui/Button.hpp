@@ -27,7 +27,7 @@ namespace geode {
         static Button* create(ButtonCallback activateCallback = nullptr);
 
         /**
-         * Create a Button with a nodes on it.
+         * Create a Button with a node on it.
          * The node will be automatically positioned in the center.
          * @param node The node that will show on the button.
          * @param activateCallback The callback for when the button is activated
