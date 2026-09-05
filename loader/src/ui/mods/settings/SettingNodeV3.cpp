@@ -110,10 +110,6 @@ void SettingNodeV3::updateState(CCNode* invoker) {
     m_impl->nameMenu->updateLayout();
 }
 
-void SettingNodeV3::updateState2(CCNode* invoker) {
-    return this->updateState(invoker);
-}
-
 void SettingNodeV3::onDescription(CCObject*) {
     if (!m_impl->setting) return;
     auto title = m_impl->setting->getDisplayName();

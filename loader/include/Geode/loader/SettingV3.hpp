@@ -610,23 +610,6 @@ namespace geode {
     protected:
         bool init(std::shared_ptr<SettingV3> setting, float width);
 
-        // todo in v6: make updateState public
-        /**
-         * Update the state of this setting node, bringing all inputs
-         * up-to-date with the current value. Derivatives of `SettingNodeV3`
-         * should set update the state (such as visibility, value, etc.) of all
-         * its controls, except for the one that's passed as the `invoker`
-         * argument. Derivatives should remember to **always call the base
-         * class's `updateState` function**, as it updates the built-in title
-         * label as well as the description and reset buttons!
-         * @param invoker The button or other interactive element that caused
-         * this state update. If that element is for example a text input, it
-         * may wish to ignore the state update, as it itself is the source of
-         * truth for the node's value at that moment. May be nullptr to mark
-         * that no specific node requested this state update
-         */
-        virtual void updateState(cocos2d::CCNode* invoker);
-
         /**
          * Mark this setting as changed. This updates the UI for committing
          * the value, as well as posts a `SettingNodeValueChangeEventV3`
@@ -651,10 +634,21 @@ namespace geode {
         virtual bool hasUncommittedChanges() const = 0;
         virtual bool hasNonDefaultValue() const = 0;
 
-        // This is extremely silly and will be removed in v6 in favour of just
-        // making `updateState` itself be public
-        // todo in v6: make updateState public and remove this
-        void updateState2(cocos2d::CCNode* invoker);
+        /**
+         * Update the state of this setting node, bringing all inputs
+         * up-to-date with the current value. Derivatives of `SettingNodeV3`
+         * should set update the state (such as visibility, value, etc.) of all
+         * its controls, except for the one that's passed as the `invoker`
+         * argument. Derivatives should remember to **always call the base
+         * class's `updateState` function**, as it updates the built-in title
+         * label as well as the description and reset buttons!
+         * @param invoker The button or other interactive element that caused
+         * this state update. If that element is for example a text input, it
+         * may wish to ignore the state update, as it itself is the source of
+         * truth for the node's value at that moment. May be nullptr to mark
+         * that no specific node requested this state update
+         */
+        virtual void updateState(cocos2d::CCNode* invoker);
 
         // Can be overridden by the setting itself
         // Can / should be used to do alternating BG
