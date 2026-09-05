@@ -1,7 +1,6 @@
 #include <Geode/ui/Button.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/ui/GeodeUI.hpp>
 
 using namespace geode::prelude;
 

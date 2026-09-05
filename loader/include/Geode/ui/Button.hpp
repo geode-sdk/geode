@@ -3,7 +3,6 @@
 #include <Geode/utils/ZStringView.hpp>
 #include <cocos2d.h>
 #include <Geode/binding/ButtonSprite.hpp>
-#include <ui/mods/GeodeStyle.hpp>
 
 namespace geode {
     class GEODE_DLL Button : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {
