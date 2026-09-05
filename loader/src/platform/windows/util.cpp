@@ -273,10 +273,6 @@ void geode::utils::game::exit(bool saveData) {
     std::exit(0);
 }
 
-void geode::utils::game::restart(bool saveData) {
-    restart(saveData, false);
-}
-
 void geode::utils::game::restart(bool saveData, bool safeMode) {
     // TODO: mat
     // TODO: be VERY careful before enabling this again, this function is called in platform/windows/main.cpp,
