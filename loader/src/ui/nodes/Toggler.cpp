@@ -212,25 +212,17 @@ void Toggler::activate() {
 }
 
 void Toggler::updateVisuals() {
-    if (m_impl->m_offNode) {
-        m_impl->m_offNode->setVisible(!m_impl->m_isToggled);
-    }
-    if (m_impl->m_onNode) {
-        m_impl->m_onNode->setVisible(m_impl->m_isToggled);
-    }
+    if (!m_impl->m_offNode || !m_impl->m_onNode) return;
+
+    m_impl->m_offNode->setVisible(!m_impl->m_isToggled);
+    m_impl->m_onNode->setVisible(m_impl->m_isToggled);
 
     auto activeNode = m_impl->m_isToggled ? m_impl->m_onNode : m_impl->m_offNode;
-    if (!activeNode) return;
-
     auto size = activeNode->getScaledContentSize();
+    auto center = size * 0.5f;
+
     m_impl->m_containerNode->setContentSize(size);
-
-    if (m_impl->m_offNode) {
-        m_impl->m_offNode->setPosition(size * 0.5f);
-    }
-    if (m_impl->m_onNode) {
-        m_impl->m_onNode->setPosition(size * 0.5f);
-    }
-
+    m_impl->m_offNode->setPosition(center);
+    m_impl->m_onNode->setPosition(center);
     setContentSize(size);
 }
