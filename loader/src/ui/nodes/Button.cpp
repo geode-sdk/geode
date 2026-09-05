@@ -110,7 +110,7 @@ Button* Button::createWithButtonSprite(
     float scale,
     ButtonCallback activateCallback
 ) {
-    return Button::createWithButtonSprite(text.c_str(), font.c_str(), bg.c_str(), 0, .0f, false, scale, std::move(activateCallback));
+    return Button::createWithButtonSprite(text, font, bg, 0, .0f, false, scale, std::move(activateCallback));
 }
 
 Button* Button::createWithButtonSprite(
