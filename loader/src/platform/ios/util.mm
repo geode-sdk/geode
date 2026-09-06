@@ -319,8 +319,7 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
     class Exit : public CCObject {
         public:
         void shutdown() {
-            // TODO v6: handle safe mode
-            NSURL* url = [NSURL URLWithString:@"geode://relaunch"];
+            NSURL* url = [NSURL URLWithString:safeMode ? @"geode://relaunch?safeMode=1" : @"geode://relaunch"];
             if ([[UIApplication sharedApplication] canOpenURL:url]) {
                 GameEvent(GameEventType::Exiting).send();
                 [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
