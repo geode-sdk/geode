@@ -27,7 +27,7 @@ namespace geode {
         template <typename... Args>
         inline void logImpl(Severity severity, Mod* mod, format::FmtStr<Args...> str, Args&&... args) {
             [&]<typename... Ts>(Ts&&... args) {
-                vlogImpl(severity, mod, str, fmt::make_format_args(args...));
+                vlogImpl(severity, mod, str.get(), fmt::make_format_args(args...));
             }(format::wrap(std::forward<Args>(args))...);
         }
 
