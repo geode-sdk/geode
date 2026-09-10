@@ -6,8 +6,9 @@
 #include <Geode/binding/LevelBrowserLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/BreakLine.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -47,21 +48,21 @@ MDTextArea::MDTextArea() : m_impl(std::make_unique<Impl>()) {}
 auto makeMdFont() -> TextRenderer::Font {
     return [](int style) -> TextRenderer::Label {
         if ((style & TextStyleBold) && (style & TextStyleItalic)) {
-            return CCLabelBMFont::create("", "mdFontBI.fnt"_spr);
+            return Label::create("", "mdFontBI.fnt"_spr);
         }
         if ((style & TextStyleBold)) {
-            return CCLabelBMFont::create("", "mdFontB.fnt"_spr);
+            return Label::create("", "mdFontB.fnt"_spr);
         }
         if ((style & TextStyleItalic)) {
-            return CCLabelBMFont::create("", "mdFontI.fnt"_spr);
+            return Label::create("", "mdFontI.fnt"_spr);
         }
-        return CCLabelBMFont::create("", "mdFont.fnt"_spr);
+        return Label::create("", "mdFont.fnt"_spr);
     };
 }
 
 auto makeMdMonoFont() -> TextRenderer::Font {
     return [](int style) -> TextRenderer::Label {
-        return CCLabelBMFont::create("", "mdFontMono.fnt"_spr);
+        return Label::create("", "mdFontMono.fnt"_spr);
     };
 }
 

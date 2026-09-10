@@ -1,3 +1,4 @@
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/TextRenderer.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -540,7 +541,7 @@ float TextRenderer::adjustLineAlignment() {
 
 void TextRenderer::pushBMFont(char const* bmFont) {
     m_fontStack.push_back([bmFont](int) -> Label {
-        return CCLabelBMFont::create("", bmFont);
+        return geode::Label::create("", bmFont);
     });
 }
 
@@ -555,7 +556,7 @@ void TextRenderer::popFont() {
 TextRenderer::FontRef TextRenderer::getCurrentFont() const {
     if (!m_fontStack.size()) {
         return [](int) -> Label {
-            return CCLabelBMFont::create("", "bigFont.fnt");
+            return geode::Label::create("", "bigFont.fnt");
         };
     }
     return m_fontStack.back();
