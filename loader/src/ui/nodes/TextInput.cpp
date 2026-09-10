@@ -1,6 +1,7 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/modify/CCTextInputNode.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/cocos.hpp>
 
@@ -72,7 +73,7 @@ public:
     NineSlice* bgSprite = nullptr;
     CCTextInputNode* input = nullptr;
     geode::Function<void(std::string const&)> onInput = nullptr;
-    cocos2d::CCLabelBMFont* label = nullptr;
+    geode::Label* label = nullptr;
     bool callbackEnabled = true;
 };
 
@@ -130,13 +131,13 @@ void TextInput::setPlaceholder(gd::string placeholder) {
 void TextInput::setLabel(ZStringView label) {
     if (label.size()) {
         if (m_impl->label) {
-            m_impl->label->setString(label.c_str());
+            m_impl->label->setText(label);
         }
         else {
-            m_impl->label = CCLabelBMFont::create(label.c_str(), "goldFont.fnt");
+            m_impl->label = Label::create(label, "goldFont.fnt");
+            m_impl->label->setLimitLabelWidth(m_impl->bgSprite->getScaledContentWidth() - 6, .4f, .1f);
             this->addChildAtPosition(m_impl->label, Anchor::TopLeft, ccp(3, 2), ccp(0, 0));
         }
-        m_impl->label->limitLabelWidth(m_impl->bgSprite->getScaledContentWidth() - 6, .4f, .1f);
     }
     else {
         if (m_impl->label) {
@@ -165,6 +166,9 @@ void TextInput::setWidth(float width) {
     m_impl->bgSprite->setContentWidth(width * 2);
     m_impl->input->setPositionX(width / 2.f);
     m_impl->bgSprite->setPositionX(width / 2.f);
+    if (m_impl->label) {
+        m_impl->label->setLimitLabelWidth(m_impl->bgSprite->getScaledContentWidth() - 6, .4f, .1f);
+    }
 }
 void TextInput::setDelegate(TextInputDelegate* delegate, std::optional<int> tag) {
     m_impl->input->m_delegate = delegate;

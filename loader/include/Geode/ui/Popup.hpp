@@ -5,6 +5,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/Layout.hpp>
 #include <Geode/ui/NineSlice.hpp>
 
@@ -22,7 +23,7 @@ namespace geode {
     protected:
         cocos2d::CCSize m_size;
         NineSlice* m_bgSprite;
-        cocos2d::CCLabelBMFont* m_title = nullptr;
+        geode::Label* m_title = nullptr;
         CCMenuItemSpriteExtra* m_closeBtn;
 
         ~Popup();

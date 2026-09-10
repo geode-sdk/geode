@@ -3,6 +3,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/Notification.hpp>
@@ -290,7 +291,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         limitNodeWidth(banner, size.width, 1.f, .1f);
         menu->addChildAtPosition(banner, Anchor::Center);
 
-        auto label = CCLabelBMFont::create("Modtober 2025 is Here!", "bigFont.fnt");
+        auto label = Label::create("Modtober 2025 is Here!", "bigFont.fnt");
         label->setScale(.5f);
         menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
@@ -375,9 +376,9 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_statusContainer->setAnchorPoint({ .5f, .5f });
     m_statusContainer->ignoreAnchorPointForPosition(false);
 
-    m_statusTitle = CCLabelBMFont::create("", "bigFont.fnt");
+    m_statusTitle = Label::create("", "bigFont.fnt");
     m_statusTitle->setID("status-title-label");
-    m_statusTitle->setAlignment(kCCTextAlignmentCenter);
+    m_statusTitle->setAlignment(Label::Alignment::Center);
     m_statusContainer->addChild(m_statusTitle);
 
     m_statusDetailsBtn = CCMenuItemSpriteExtra::create(
@@ -732,7 +733,7 @@ void ModList::showStatus(ModListStatus status, ZStringView message, std::optiona
 
     // Update status
     bool hasDetails = details.has_value();
-    m_statusTitle->setString(message.c_str());
+    m_statusTitle->setText(message);
     m_statusDetails->setText(std::move(details).value_or(""));
 
     // Update status visibility
