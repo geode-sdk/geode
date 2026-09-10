@@ -4,6 +4,7 @@
 #include <optional>
 #include <concepts>
 #include <cocos2d.h>
+#include <Geode/ui/Label.hpp>
 #include "../utils/cocos.hpp"
 #include "../utils/file.hpp"
 // this unfortunately has to be included because of C++ templates
@@ -654,9 +655,9 @@ namespace geode {
         // Can / should be used to do alternating BG
         void setDefaultBGColor(cocos2d::ccColor4B color);
 
-        cocos2d::CCLabelBMFont* getNameLabel() const;
+        geode::Label* getNameLabel() const;
         CCMenuItemSpriteExtra* getDescriptionButton() const;
-        cocos2d::CCLabelBMFont* getStatusLabel() const;
+        geode::Label* getStatusLabel() const;
         cocos2d::CCMenu* getNameMenu() const;
         cocos2d::CCMenu* getButtonMenu() const;
         cocos2d::CCLayerColor* getBG() const;
@@ -700,7 +701,7 @@ namespace geode {
             auto validate = this->getSetting()->isValid(m_impl->currentValue);
             if (!validate) {
                 this->getStatusLabel()->setVisible(true);
-                this->getStatusLabel()->setString(validate.unwrapErr().c_str());
+                this->getStatusLabel()->setText(validate.unwrapErr());
                 this->getStatusLabel()->setColor(cocos2d::ccc3(235, 35, 52));
             }
         }

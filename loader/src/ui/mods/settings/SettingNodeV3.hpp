@@ -7,6 +7,7 @@
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/Button.hpp>
+#include <Geode/ui/Label.hpp>
 #include <ui/mods/GeodeStyle.hpp>
 
 using namespace geode::prelude;
@@ -306,7 +307,7 @@ public:
 class FileSettingNodeV3 : public SettingValueNodeV3<FileSettingV3> {
 protected:
     CCSprite* m_fileIcon;
-    CCLabelBMFont* m_nameLabel;
+    geode::Label* m_nameLabel;
     ListenerHandle m_pickHandle;
     async::TaskHolder<Result<std::optional<std::filesystem::path>>> m_pickListener;
     CCMenuItemSpriteExtra* m_selectBtn;

@@ -5,6 +5,7 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -96,8 +97,7 @@ bool ModPopup::init(ModSource&& src) {
         auto loaderHash = about::getLoaderCommitHash();
         auto bindingsHash = about::getBindingsCommitHash();
 
-        auto string = fmt::format("Loader: {}, Bindings: {}", loaderHash, bindingsHash);
-        auto hashLabel = CCLabelBMFont::create(string.c_str(), "chatFont.fnt");
+        auto hashLabel = Label::create(fmt::format("Loader: {}, Bindings: {}", loaderHash, bindingsHash), "chatFont.fnt");
         hashLabel->setAnchorPoint({ .5f, 1.f });
         hashLabel->setOpacity(51);
         hashLabel->setScale(.7f);
@@ -161,15 +161,14 @@ bool ModPopup::init(ModSource&& src) {
         title.append("...");
     }
 
-    auto titleLabel = CCLabelBMFont::create(title.c_str(), "bigFont.fnt");
-    titleLabel->limitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .45f, .1f);
+    auto titleLabel = Label::create(title.str(), "bigFont.fnt");
+    titleLabel->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .45f, .1f);
     titleLabel->setAnchorPoint({ .0f, .5f });
     titleLabel->setID("mod-name-label");
     m_titleContainer->addChildAtPosition(titleLabel, Anchor::TopLeft, ccp(devAndTitlePos, -m_titleContainer->getContentHeight() * .25f));
 
-    auto by = "By " + m_source.formatDevelopers();
-    auto dev = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
-    dev->limitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .35f, .05f);
+    auto dev = Label::create(fmt::format("By {}", m_source.formatDevelopers()), "goldFont.fnt");
+    dev->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .35f, .05f);
     dev->setAnchorPoint({ .0f, .5f });
     dev->setID("mod-developer-label");
     m_titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, ccp(devAndTitlePos, m_titleContainer->getContentHeight() * .25f));
@@ -194,7 +193,7 @@ bool ModPopup::init(ModSource&& src) {
     //         recommendedBy->setContentWidth(m_titleContainer->getContentWidth() - devAndTitlePos);
     //         recommendedBy->setAnchorPoint({ .0f, .5f });
 
-    //         auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+    //         auto byLabel = Label::create("Recommended by ", "bigFont.fnt");
     //         byLabel->setColor("mod-list-recommended-by"_cc3b);
     //         recommendedBy->addChild(byLabel);
 
@@ -205,7 +204,7 @@ bool ModPopup::init(ModSource&& src) {
     //             suggestionStr = fmt::format("{} installed mods", recommends.size());
     //         }
 
-    //         auto nameLabel = CCLabelBMFont::create(suggestionStr.c_str(), "bigFont.fnt");
+    //         auto nameLabel = Label::create(suggestionStr.c_str(), "bigFont.fnt");
     //         nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
     //         recommendedBy->addChild(nameLabel);
 
@@ -220,9 +219,8 @@ bool ModPopup::init(ModSource&& src) {
 
     leftColumn->addChild(m_titleContainer);
 
-    auto idStr = "(ID: " + m_source.getMetadata().getID() + ")";
-    auto idLabel = CCLabelBMFont::create(idStr.c_str(), "bigFont.fnt");
-    idLabel->limitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
+    auto idLabel = Label::create(fmt::format("(ID: {})", m_source.getMetadata().getID()), "bigFont.fnt");
+    idLabel->setLimitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
     idLabel->setColor({ 150, 150, 150 });
     idLabel->setOpacity(140);
     idLabel->setID("mod-id-label");
@@ -269,13 +267,13 @@ bool ModPopup::init(ModSource&& src) {
         );
         container->addChildAtPosition(labelContainer, Anchor::Right);
 
-        auto label = CCLabelBMFont::create("", "bigFont.fnt");
+        auto label = Label::create("", "bigFont.fnt");
         label->setID("label");
         labelContainer->addChild(label);
 
         labelContainer->addChild(SpacerNode::create());
 
-        auto valueLabel = CCLabelBMFont::create("", "bigFont.fnt");
+        auto valueLabel = Label::create("", "bigFont.fnt");
         valueLabel->setID("value-label");
         labelContainer->addChild(valueLabel);
 
@@ -300,8 +298,8 @@ bool ModPopup::init(ModSource&& src) {
 
     // Tags
 
-    auto tagsTitle = CCLabelBMFont::create("Tags", "bigFont.fnt");
-    tagsTitle->limitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
+    auto tagsTitle = Label::create("Tags", "bigFont.fnt");
+    tagsTitle->setLimitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
     tagsTitle->setOpacity(195);
     tagsTitle->setID("tags-title");
     leftColumn->addChild(tagsTitle);
@@ -342,7 +340,7 @@ bool ModPopup::init(ModSource&& src) {
     auto manageContainer = CCNode::create();
     manageContainer->setContentSize({ leftColumn->getContentWidth(), 10 });
 
-    auto manageTitle = CCLabelBMFont::create("Manage", "bigFont.fnt");
+    auto manageTitle = Label::create("Manage", "bigFont.fnt");
     manageTitle->setScale(.25f);
     manageTitle->setOpacity(195);
     manageTitle->setID("manage-title");
@@ -358,7 +356,7 @@ bool ModPopup::init(ModSource&& src) {
     m_restartRequiredLabel->setScale(.3f);
     manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, ccp(0, 0), ccp(1, .5f));
 
-    m_enabledStatusLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_enabledStatusLabel = Label::create("", "bigFont.fnt");
     m_enabledStatusLabel->setScale(.25f);
     m_enabledStatusLabel->setOpacity(140);
     m_enabledStatusLabel->setID("enabled-status");
@@ -490,7 +488,7 @@ bool ModPopup::init(ModSource&& src) {
     m_cancelBtn->setID("cancel-button");
     m_installMenu->addChild(m_cancelBtn);
 
-    m_installStatusLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_installStatusLabel = Label::create("", "bigFont.fnt");
     m_installStatusLabel->setOpacity(120);
     m_installStatusLabel->setVisible(false);
     m_installMenu->addChild(m_installStatusLabel);
@@ -764,11 +762,11 @@ void ModPopup::updateState() {
 
     if (!wantsRestart && asMod) {
         if (asMod->isLoaded()) {
-            m_enabledStatusLabel->setString("Enabled");
+            m_enabledStatusLabel->setText("Enabled");
             m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-enabled"_spr)));
         }
         else {
-            m_enabledStatusLabel->setString("Disabled");
+            m_enabledStatusLabel->setText("Disabled");
             m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
         }
         m_enabledStatusLabel->setVisible(true);
@@ -798,11 +796,11 @@ void ModPopup::updateState() {
     m_uninstallBtn->setVisible(asMod && asMod->getRequestedAction() == ModRequestedAction::None);
 
     if (asMod && modRequestedActionIsUninstall(asMod->getRequestedAction())) {
-        m_installStatusLabel->setString("Mod has been uninstalled");
+        m_installStatusLabel->setText("Mod has been uninstalled");
         m_installStatusLabel->setVisible(true);
     }
     else {
-        m_installStatusLabel->setString("");
+        m_installStatusLabel->setText("");
         m_installStatusLabel->setVisible(false);
     }
 
@@ -824,7 +822,7 @@ void ModPopup::updateState() {
         // you can uninstall loader ingame just fine on windows
         #if !defined(GEODE_IS_WINDOWS)
         m_uninstallBtn->setVisible(false);
-        m_installStatusLabel->setString("N/A");
+        m_installStatusLabel->setText("N/A");
         m_installStatusLabel->setVisible(true);
         #endif
     }
@@ -841,12 +839,12 @@ void ModPopup::updateState() {
 
             auto status = download->getStatus();
             if (auto d = std::get_if<server::DownloadStatusDownloading>(&status)) {
-                m_enabledStatusLabel->setString(fmt::format("Downloading {}%", d->percentage).c_str());
+                m_enabledStatusLabel->setText(fmt::format("Downloading {}%", d->percentage));
                 m_enabledStatusLabel->setColor(ccWHITE);
                 // todo: progress bar
             }
             else {
-                m_enabledStatusLabel->setString("Preparing");
+                m_enabledStatusLabel->setText("Preparing");
                 m_enabledStatusLabel->setColor(ccWHITE);
                 // todo: spinner
             }
@@ -854,12 +852,12 @@ void ModPopup::updateState() {
         else {
             std::visit(makeVisitor {
                 [this](server::DownloadStatusError const& e) {
-                    m_enabledStatusLabel->setString("Error");
+                    m_enabledStatusLabel->setText("Error");
                     m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
                     // todo: show error details somewhere (like an info button)
                 },
                 [this](server::DownloadStatusCancelled const&) {
-                    m_enabledStatusLabel->setString("Cancelled");
+                    m_enabledStatusLabel->setText("Cancelled");
                     m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
                 },
                 [this](server::DownloadStatusDone const&) {
@@ -870,7 +868,7 @@ void ModPopup::updateState() {
                     m_uninstallBtn->setVisible(false);
                     m_cancelBtn->setVisible(false);
 
-                    m_installStatusLabel->setString("Mod has been installed");
+                    m_installStatusLabel->setText("Mod has been installed");
                     m_installStatusLabel->setVisible(true);
                 },
                 // rest are unreachable due to the isActive() check
@@ -902,8 +900,8 @@ void ModPopup::setStatLabel(CCNode* stat, ZStringView value, bool noValue, ccCol
     auto container = stat->getChildByID("labels");
 
     // Update label
-    auto label = static_cast<CCLabelBMFont*>(container->getChildByID("label"));
-    label->setString(value.c_str());
+    auto label = static_cast<Label*>(container->getChildByID("label"));
+    label->setText(value);
     label->setColor(color);
 
     // Remove value if requested
@@ -917,7 +915,7 @@ void ModPopup::setStatLabel(CCNode* stat, ZStringView value, bool noValue, ccCol
 
 void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> const& value) {
     auto container = stat->getChildByID("labels");
-    auto valueLabel = static_cast<CCLabelBMFont*>(container->getChildByID("value-label"));
+    auto valueLabel = static_cast<Label*>(container->getChildByID("value-label"));
     auto spinner = container->getChildByID("loading-spinner");
 
     // Show loading if no value provided
@@ -926,7 +924,7 @@ void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> const& valu
 
     // Update value
     if (value) {
-        valueLabel->setString(value.value().c_str());
+        valueLabel->setText(value.value());
     }
 
     // Update layout
@@ -1019,7 +1017,7 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
         }
 
         if (data.empty()) {
-            auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
+            auto label = Label::create("No tags found", "bigFont.fnt");
             label->setOpacity(120);
             m_tags->addChild(label);
         }
@@ -1039,7 +1037,7 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.f, .1f);
             menu->addChildAtPosition(banner, Anchor::Center);
 
-            auto label = CCLabelBMFont::create(("Entry for Modtober 20" + year).c_str(), "bigFont.fnt");
+            auto label = Label::create(fmt::format("Entry for Modtober 20{}", year), "bigFont.fnt");
             label->setScale(.35f);
             menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
@@ -1076,7 +1074,7 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
     else {
         m_tags->removeAllChildren();
 
-        auto label = CCLabelBMFont::create("No tags found", "bigFont.fnt");
+        auto label = Label::create("No tags found", "bigFont.fnt");
         label->setOpacity(120);
         m_tags->addChild(label);
 

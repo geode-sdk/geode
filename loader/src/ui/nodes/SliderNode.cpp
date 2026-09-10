@@ -1,4 +1,5 @@
 #include <Geode/ui/SliderNode.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
@@ -23,15 +24,15 @@ public:
     CCSprite* m_thumbSelected;
     CCSprite* m_bar;
     geode::NineSlice* m_groove;
-    
+
     SliderCallback m_slideCallback;
     SliderCallback m_clickCallback;
     SliderCallback m_releaseCallback;
-    
+
     geode::TextInput* m_linkedTextInput;
     unsigned int m_textInputPrecision;
 
-    CCLabelBMFont* m_linkedLabel;
+    Label* m_linkedLabel;
     unsigned int m_labelPrecision;
 
     int m_touchPriority = kCCMenuHandlerPriority;
@@ -82,12 +83,12 @@ bool SliderNode::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice*
 
     m_impl->m_thumb->addChild(m_impl->m_thumbRegular);
     m_impl->m_thumb->addChild(m_impl->m_thumbSelected);
-    
+
     addChild(m_impl->m_thumb);
 
     m_impl->m_groove = groove;
     m_impl->m_bar->setZOrder(-1);
-    
+
     auto repeat = ccTexParams{GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
     m_impl->m_bar->getTexture()->setTexParameters(&repeat);
     m_impl->m_bar->setAnchorPoint({0.f, 0.5f});
@@ -116,7 +117,7 @@ bool SliderNode::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice*
 bool SliderNode::initStandard(SliderCallback callback, bool alt) {
     auto thumb = CCSprite::create("sliderthumb.png"_spr);
     auto thumbSel = CCSprite::create("sliderthumbsel.png"_spr);
-    
+
     if (alt) {
         auto groove = geode::NineSlice::create("slider-groove-2.png"_spr);
         return initCustom(thumb, thumbSel, groove, "sliderBar2.png", std::move(callback), {2.f, 2.f});
@@ -130,7 +131,7 @@ bool SliderNode::initStandard(SliderCallback callback, bool alt) {
 void SliderNode::updateSize() {
     m_impl->m_groove->setContentSize(getContentSize());
     m_impl->m_groove->setPosition(getContentSize() / 2.f);
-    
+
     m_impl->m_bar->setContentWidth(getContentWidth() - m_impl->m_barOffset.width * 2);
 
     float usableHeight = getContentHeight() - m_impl->m_barOffset.height * 2.f;
@@ -226,10 +227,10 @@ void SliderNode::updateLinkedTextInput() {
 void SliderNode::updateLinkedLabel() {
     if (m_impl->m_linkedLabel) {
         if (m_impl->m_labelPrecision != 0) {
-            m_impl->m_linkedLabel->setString(numToString(getValue(), m_impl->m_labelPrecision).c_str());
+            m_impl->m_linkedLabel->setText(numToString(getValue(), m_impl->m_labelPrecision));
         }
         else {
-            m_impl->m_linkedLabel->setString(numToString<int>(std::round(getValue())).c_str());
+            m_impl->m_linkedLabel->setText(numToString<int>(std::round(getValue())));
         }
     }
 }
@@ -275,7 +276,7 @@ geode::TextInput* SliderNode::getLinkedTextInput() {
     return m_impl->m_linkedTextInput;
 }
 
-void SliderNode::linkLabel(CCLabelBMFont* label, unsigned int precision) {
+void SliderNode::linkLabel(Label* label, unsigned int precision) {
     m_impl->m_linkedLabel = label;
     m_impl->m_labelPrecision = precision;
     updateLinkedLabel();
@@ -294,7 +295,7 @@ unsigned int SliderNode::getLabelPrecision() {
     return m_impl->m_labelPrecision;
 }
 
-CCLabelBMFont* SliderNode::getLinkedLabel() {
+Label* SliderNode::getLinkedLabel() {
     return m_impl->m_linkedLabel;
 }
 

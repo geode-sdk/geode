@@ -2,9 +2,9 @@
 
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/ui/Layout.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/cocos/cocoa/CCGeometry.h>
-#include <Geode/cocos/label_nodes/CCLabelBMFont.h>
 #include <Geode/cocos/platform/CCPlatformMacros.h>
 #include <Geode/cocos/sprite_nodes/CCSprite.h>
 #include <Geode/DefaultInclude.hpp>
@@ -49,15 +49,15 @@ bool ModDeveloperItem::init(
         Anchor::Center
     );
 
-    auto label = CCLabelBMFont::create(
-        displayName.has_value() ? displayName->c_str() : developer.c_str(),
+    auto label = Label::create(
+        displayName.has_value() ? std::move(*displayName) : developer,
         "bigFont.fnt"
     );
 
     // Left + Right + Space between
     constexpr float paddings = 30.0f;
     float calc = size.width - paddings;
-    label->setWidth(calc);
+    label->setContentWidth(calc);
     label->setScale(0.4f);
     label->setAnchorPoint({0.0f, 0.5f});
 

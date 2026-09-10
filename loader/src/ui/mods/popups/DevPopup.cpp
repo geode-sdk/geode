@@ -11,7 +11,7 @@ bool DevListPopup::init(ModSource meta) {
     m_source = std::move(meta);
 
     this->setTitle(fmt::format("Developers for {}", m_source.getMetadata().getName()));
-    m_title->limitLabelWidth(m_size.width - 50, .7f, .1f);
+    m_title->setLimitLabelWidth(m_size.width - 50, .7f, .1f);
 
     ModDeveloperList* list = ModDeveloperList::create(this, m_source, {210.f, 150.f});
     m_mainLayer->addChildAtPosition(

@@ -1,6 +1,8 @@
 #pragma once
 #include <cocos2d.h>
 
+#include <Geode/ui/Label.hpp>
+
 namespace geode {
     // Enum for progress bar style
     enum class ProgressBarStyle {
@@ -74,7 +76,7 @@ namespace geode {
         /**
          * Get the progress percentage text label node
          */
-        cocos2d::CCLabelBMFont* getProgressLabel() const noexcept;
+        geode::Label* getProgressLabel() const noexcept;
 
         /**
          * Get the current style of the progress bar

@@ -1,4 +1,5 @@
 #include <Geode/ui/TextArea.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/web.hpp>
 #include <regex>
@@ -11,7 +12,7 @@ public:
     cocos2d::CCMenu* m_container = nullptr;
     std::string m_font;
     std::string m_text;
-    std::vector<cocos2d::CCLabelBMFont*> m_lines;
+    std::vector<geode::Label*> m_lines;
     cocos2d::ccColor4B m_color = { 0xFF, 0xFF, 0xFF, 0xFF };
     cocos2d::CCTextAlignment m_alignment = cocos2d::kCCTextAlignmentLeft;
     geode::WrappingMode m_wrappingMode = geode::WrappingMode::WORD_WRAP;
@@ -24,11 +25,11 @@ public:
 
     SimpleTextAreaImpl(geode::SimpleTextArea* self) : m_self(self) {}
 
-    cocos2d::CCLabelBMFont* createLabel(char const* text, float top);
+    geode::Label* createLabel(std::string text, float top);
 
-    float calculateOffset(cocos2d::CCLabelBMFont* label);
+    float calculateOffset(geode::Label* label);
 
-    virtual void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling);
+    virtual void charIteration(geode::FunctionRef<geode::Label*(geode::Label* line, char c, float top)> overflowHandling);
 
     void updateLinesNoWrap();
 
@@ -41,16 +42,16 @@ public:
     virtual void setTextImpl(std::string text);
 };
 
-cocos2d::CCLabelBMFont* geode::SimpleTextAreaImpl::createLabel(char const* text, float top) {
+geode::Label* geode::SimpleTextAreaImpl::createLabel(std::string text, float top) {
     if (m_maxLines && m_lines.size() >= m_maxLines) {
-        cocos2d::CCLabelBMFont* last = m_lines.at(m_maxLines - 1);
+        geode::Label* last = m_lines.at(m_maxLines - 1);
         std::string_view textv = last->getString();
 
-        last->setString(fmt::format("{}...", textv.substr(0, textv.size() - 3)).c_str());
+        last->setText(fmt::format("{}...", textv.substr(0, textv.size() - 3)));
 
         return nullptr;
     } else {
-        cocos2d::CCLabelBMFont* label = cocos2d::CCLabelBMFont::create(text, m_font.c_str());
+        geode::Label* label = geode::Label::create(std::move(text), m_font.c_str());
 
         label->setScale(m_scale);
         label->setPosition({ 0, top });
@@ -61,14 +62,14 @@ cocos2d::CCLabelBMFont* geode::SimpleTextAreaImpl::createLabel(char const* text,
     }
 }
 
-float geode::SimpleTextAreaImpl::calculateOffset(cocos2d::CCLabelBMFont* label) {
+float geode::SimpleTextAreaImpl::calculateOffset(geode::Label* label) {
     return m_linePadding + label->getContentSize().height * m_scale;
 }
 
-void geode::SimpleTextAreaImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) {
+void geode::SimpleTextAreaImpl::charIteration(geode::FunctionRef<geode::Label*(geode::Label* line, char c, float top)> overflowHandling) {
     float top = 0;
     m_lines.clear();
-    cocos2d::CCLabelBMFont* line = createLabel("", top);
+    geode::Label* line = createLabel("", top);
     m_lines = { line };
 
     for (const char c : m_text) {
@@ -89,7 +90,7 @@ void geode::SimpleTextAreaImpl::charIteration(geode::FunctionRef<cocos2d::CCLabe
                 m_lines.push_back(line);
             }
         } else {
-            line->setString((std::string(line->getString()) + c).c_str());
+            line->setText((std::string(line->getString()) + c));
         }
     }
 }
@@ -101,7 +102,7 @@ void geode::SimpleTextAreaImpl::updateLinesNoWrap() {
     m_lines.clear();
 
     while (std::getline(stream, part)) {
-        cocos2d::CCLabelBMFont* line = createLabel(part.c_str(), top);
+        geode::Label* line = createLabel(std::move(part), top);
 
         if (line == nullptr) {
             break;
@@ -114,37 +115,37 @@ void geode::SimpleTextAreaImpl::updateLinesNoWrap() {
 }
 
 void geode::SimpleTextAreaImpl::updateLinesWordWrap(bool spaceWrap) {
-    charIteration([this, spaceWrap](cocos2d::CCLabelBMFont* line, char c, float top) {
+    charIteration([this, spaceWrap](geode::Label* line, char c, float top) {
         const std::string_view delimiters(spaceWrap ? " " : " `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
 
         if (delimiters.find(c) == std::string_view::npos) {
             const std::string& text = line->getString();
             const size_t position = text.find_last_of(delimiters) + 1;
-            cocos2d::CCLabelBMFont* newLine = createLabel((text.substr(position) + c).c_str(), top);
+            geode::Label* newLine = createLabel(text.substr(position) + c, top);
 
             if (newLine != nullptr) {
-                line->setString(text.substr(0, position).c_str());
+                line->setText(text.substr(0, position));
             }
 
             return newLine;
         } else {
-            return createLabel(std::string(c, c != ' ').c_str(), top);
+            return createLabel(std::string(c != ' ', c), top);
         }
     });
 }
 
 void geode::SimpleTextAreaImpl::updateLinesCutoffWrap() {
-    charIteration([this](cocos2d::CCLabelBMFont* line, char c, float top) {
+    charIteration([this](geode::Label* line, char c, float top) {
         const std::string& text = line->getString();
         const char back = text.back();
         const bool lastIsSpace = back == ' ';
-        cocos2d::CCLabelBMFont* newLine = createLabel(std::string(!lastIsSpace, back).append(std::string(c != ' ', c)).c_str(), top);
+        geode::Label* newLine = createLabel(std::string(!lastIsSpace, back).append(std::string(c != ' ', c)), top);
 
         if (newLine == nullptr && !lastIsSpace) {
             if (text[text.size() - 2] == ' ') {
-                line->setString(text.substr(0, text.size() - 1).c_str());
+                line->setText(text.substr(0, text.size() - 1));
             } else {
-                line->setString((text.substr(0, text.size() - 1) + '-').c_str());
+                line->setText(text.substr(0, text.size() - 1) + '-');
             }
         }
 
@@ -184,7 +185,7 @@ void geode::SimpleTextAreaImpl::updateContainer() {
     m_container->setContentSize(m_self->getContentSize());
     m_container->removeAllChildren();
 
-    for (cocos2d::CCLabelBMFont* line : m_lines) {
+    for (geode::Label* line : m_lines) {
         const float y = height + line->getPositionY();
 
         switch (m_alignment) {
@@ -341,7 +342,7 @@ float geode::SimpleTextArea::getLinePadding() {
     return m_impl->m_linePadding;
 }
 
-std::vector<cocos2d::CCLabelBMFont*> geode::SimpleTextArea::getLines() {
+std::vector<geode::Label*> geode::SimpleTextArea::getLines() {
     return m_impl->m_lines;
 }
 
@@ -373,7 +374,7 @@ public:
 
     std::map<CCFontSprite*, ccColor3B> m_ogColorForLink{};
 
-    void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) override;
+    void charIteration(geode::FunctionRef<geode::Label*(geode::Label* line, char c, float top)> overflowHandling) override;
     void formatRichText();
 
     void processLinkClick(
@@ -520,10 +521,10 @@ std::string RichTextArea::getRawText(){
     return castedImpl()->m_rawText;
 }
 
-void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) {
+void RichTextArea::RichImpl::charIteration(geode::FunctionRef<geode::Label*(geode::Label* line, char c, float top)> overflowHandling) {
     float top = 0;
     m_lines.clear();
-    CCLabelBMFont* line = this->createLabel("", top);
+    geode::Label* line = this->createLabel("", top);
     m_lines = { line };
 
     std::map<std::string, std::shared_ptr<RichTextKeyInstanceBase>> appliedRichTextInstances{};
@@ -571,7 +572,7 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
                 m_lines.push_back(line);
             }
         } else {
-            line->setString((std::string(line->getString()) + c).c_str());
+            line->setText((std::string(line->getString()) + c));
         }
 
         if (line->getChildren()->lastObject() != nullptr){

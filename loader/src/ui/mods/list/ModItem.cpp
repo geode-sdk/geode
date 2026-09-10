@@ -12,6 +12,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/MDPopup.hpp>
+#include <Geode/ui/Label.hpp>
 #include <server/DownloadManager.hpp>
 #include <ui/mods/GeodeStyle.hpp>
 #include <ui/mods/popups/ModPopup.hpp>
@@ -46,11 +47,11 @@ bool ModItem::init(ModSource&& source, bool listItem) {
         title.append("...");
     }
 
-    m_titleLabel = CCLabelBMFont::create(title.c_str(), "bigFont.fnt");
+    m_titleLabel = Label::create(title.str(), "bigFont.fnt");
     m_titleLabel->setID("title-label");
     m_titleContainer->addChild(m_titleLabel);
 
-    m_versionLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_versionLabel = Label::create("", "bigFont.fnt");
     m_versionLabel->setID("version-label");
     m_versionLabel->setScale(0.7f);
     m_versionLabel->setLayoutOptions(
@@ -60,7 +61,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
         );
     m_titleContainer->addChild(m_versionLabel);
 
-    m_versionDownloadSeparator = CCLabelBMFont::create("•", "bigFont.fnt");
+    m_versionDownloadSeparator = Label::create("•", "bigFont.fnt");
     m_versionDownloadSeparator->setOpacity(155);
     m_titleContainer->addChild(m_versionDownloadSeparator);
 
@@ -79,7 +80,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     m_developers->setAnchorPoint({ .0f, .5f });
 
     auto by = m_source.formatDevelopers();
-    m_developerLabel = CCLabelBMFont::create(by.c_str(), "goldFont.fnt");
+    m_developerLabel = Label::create(by, "goldFont.fnt");
     m_developerLabel->setID("developers-label");
     auto developersBtn = CCMenuItemSpriteExtra::create(
         m_developerLabel, this, menu_selector(ModItem::onDevelopers)
@@ -101,8 +102,8 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     m_description->setOpacity(90);
 
     auto desc = m_source.getMetadata().getDescription();
-    auto descLabel = CCLabelBMFont::create(
-        desc.value_or("[No Description Provided]").c_str(),
+    auto descLabel = Label::create(
+        desc.value_or("[No Description Provided]"),
         "chatFont.fnt"
     );
     descLabel->setColor(desc ? ccWHITE : ccGRAY);
@@ -172,7 +173,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     m_downloadWaiting->setID("download-waiting-container");
     m_downloadWaiting->setContentSize({ 225, 30 });
 
-    auto downloadWaitingLabel = CCLabelBMFont::create("Preparing Download...", "bigFont.fnt");
+    auto downloadWaitingLabel = Label::create("Preparing Download...", "bigFont.fnt");
     downloadWaitingLabel->setScale(.75f);
     downloadWaitingLabel->setID("download-waiting-label");
     m_downloadWaiting->addChildAtPosition(
@@ -261,7 +262,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
                 }
 
                 m_pinToggle = CCMenuItemToggler::create(
-                    pinOff, pinOn, 
+                    pinOff, pinOn,
                     this, menu_selector(ModItem::onPin)
                 );
                 m_pinToggle->setScale(0.75f);
@@ -298,12 +299,12 @@ bool ModItem::init(ModSource&& source, bool listItem) {
             if (updatedAt) {
                 m_updatedAtContainer = CCNode::create();
 
-                auto installedLabel = CCLabelBMFont::create(
-                    utils::timeToAgoString(updatedAt->updateTime, true).c_str(),
+                auto installedLabel = Label::create(
+                    utils::timeToAgoString(updatedAt->updateTime, true),
                     "bigFont.fnt"
                 );
                 installedLabel->setID("installed-ago-label");
-                installedLabel->limitLabelWidth(125, 1.f, .1f);
+                installedLabel->setLimitLabelWidth(125, 1.f, .1f);
                 m_updatedAtContainer->addChildAtPosition(installedLabel, Anchor::Right, ccp(-0, 0), ccp(1, .5f));
 
                 auto installedIcon = CCSprite::createWithSpriteFrameName("GJ_timeIcon_001.png");
@@ -372,13 +373,13 @@ bool ModItem::init(ModSource&& source, bool listItem) {
             // on which mods to install
             m_downloadCountContainer = CCNode::create();
 
-            auto downloads = CCLabelBMFont::create(
-                numToAbbreviatedString(metadata.downloadCount).c_str(),
+            auto downloads = Label::create(
+                numToAbbreviatedString(metadata.downloadCount),
                 "bigFont.fnt"
             );
             downloads->setID("downloads-label");
             downloads->setColor("mod-list-version-label"_cc3b);
-            downloads->limitLabelWidth(125, 1.f, .1f);
+            downloads->setLimitLabelWidth(125, 1.f, .1f);
             m_downloadCountContainer->addChildAtPosition(downloads, Anchor::Right, ccp(-0, 0), ccp(1, .5f));
 
             auto downloadsIcon = CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png");
@@ -414,7 +415,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
             //         m_recommendedBy = CCNode::create();
             //         m_recommendedBy->setID("recommended-container");
             //         m_recommendedBy->setContentWidth(225);
-            //         auto byLabel = CCLabelBMFont::create("Recommended by ", "bigFont.fnt");
+            //         auto byLabel = Label::create("Recommended by ", "bigFont.fnt");
             //         byLabel->setID("recommended-label");
             //         byLabel->setColor("mod-list-recommended-by"_cc3b);
             //         m_recommendedBy->addChild(byLabel);
@@ -426,7 +427,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
             //             recommendStr = fmt::format("{} installed mods", recommends.size());
             //         }
 
-            //         auto nameLabel = CCLabelBMFont::create(recommendStr.c_str(), "bigFont.fnt");
+            //         auto nameLabel = Label::create(recommendStr.c_str(), "bigFont.fnt");
             //         nameLabel->setID("recommended-name-label");
             //         nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
             //         m_recommendedBy->addChild(nameLabel);
@@ -513,8 +514,8 @@ void ModItem::updateState() {
         }
     }
 
-    // Show the "Updated at" label if the installed mods list is being sorted 
-    // by "Recently installed" (to let people know when they've installed or 
+    // Show the "Updated at" label if the installed mods list is being sorted
+    // by "Recently installed" (to let people know when they've installed or
     // updated the mod)
     // Hide the enable and pin toggles to make space for install times :3
     // (Pinning doesn't make sense for that sorting anyway)
@@ -679,9 +680,7 @@ void ModItem::updateState() {
         if (update.update) {
             m_updateBtn->setVisible(true);
 
-            std::string updateString = "";
-            updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update.update->version.toVString();
-            m_versionLabel->setString(updateString.c_str());
+            m_versionLabel->setText(fmt::format("{} -> {}", m_source.getMetadata().getVersion().toVString(), update.update->version.toVString()));
             m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
             m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-updates-available"_spr)));
@@ -695,7 +694,7 @@ void ModItem::updateState() {
         }
     }
     else {
-        m_versionLabel->setString(m_source.getMetadata().getVersion().toVString().c_str());
+        m_versionLabel->setText(m_source.getMetadata().getVersion().toVString());
         m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label"_spr)));
     }
 
@@ -1034,7 +1033,7 @@ bool AnyModItem::init(ZStringView modID) {
 
                     m_bg->setColor(ccRED);
                     m_bg->setOpacity(90);
-                    auto errorLabel = CCLabelBMFont::create(err.details.c_str(), "bigFont.fnt");
+                    auto errorLabel = Label::create(std::move(err.details), "bigFont.fnt");
                     errorLabel->setAnchorPoint(ccp(0, .5f));
                     errorLabel->setScale(.35f);
                     this->addChildAtPosition(errorLabel, Anchor::Left, ccp(10, 0));
