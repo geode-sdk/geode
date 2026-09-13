@@ -138,6 +138,19 @@ struct fmt::formatter<cocos2d::CCRect> {
     }
 };
 
+// we have this here because the format_as in matjson doesn't work properly
+template <>
+struct fmt::formatter<matjson::Value> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) noexcept { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(matjson::Value const& value, FormatContext& ctx) const noexcept {
+        auto const str = matjson::format_as(value);
+        return std::copy(str.begin(), str.end(), ctx.out());
+    }
+};
+
 namespace geode::format {
     struct Wrapper {
         Wrapper(cocos2d::CCObject* obj) : m_obj(obj) {}
