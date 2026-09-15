@@ -20,6 +20,8 @@ namespace geode {
         /// @param toggleCallback Called when the toggle changes.
         ///
         /// @example
+        /// // These are just example sprites, use `createWithStandardSprites` if you
+        /// // need a GD-style checkbox.
         /// auto offNode = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
         /// auto onNode = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
         ///
@@ -99,9 +101,11 @@ namespace geode {
         /// @param toggleCallback Called when the toggle changes.
         ///
         /// @example
+        /// // These are just example sprites, use `createWithStandardSprites` if you
+        /// // need a GD-style checkbox.
         /// auto toggler = Toggler::createWithSpriteFrameNames(
-        ///     "GJ_checkOff_001.png"_spr,
-        ///     "GJ_checkOn_001.png"_spr,
+        ///     "GJ_checkOff_001.png",
+        ///     "GJ_checkOn_001.png",
         ///     [](Toggler* sender, bool isToggled) {
         ///         log::info("Checkbox state changed: {}", isToggled);
         ///     }
