@@ -100,8 +100,8 @@ Toggler* Toggler::createWithSpriteFrameNames(
     TogglerCallback toggleCallback
 ) {
     return createScaled(
-        CCSprite::createWithSpriteFrameName(offFileName.c_str()),
-        CCSprite::createWithSpriteFrameName(onFileName.c_str()),
+        CCSprite::createWithSpriteFrameName(offFrameName.c_str()),
+        CCSprite::createWithSpriteFrameName(onFrameName.c_str()),
         scale,
         std::move(toggleCallback)
     );
