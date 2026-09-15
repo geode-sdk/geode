@@ -40,7 +40,7 @@ static Toggler* createScaled(
     offNode->setScale(scale);
     onNode->setScale(scale);
 
-    return create(offNode, onNode, std::move(toggleCallback));
+    return Toggler::create(offNode, onNode, std::move(toggleCallback));
 }
 
 Toggler* Toggler::createWithStandardSprites(
