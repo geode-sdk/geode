@@ -29,6 +29,20 @@ Toggler* Toggler::create(
     return nullptr;
 }
 
+static Toggler* createScaled(
+    CCNode* offNode,
+    CCNode* onNode,
+    float scale,
+    Toggler::TogglerCallback toggleCallback
+) {
+    if (!offNode || !onNode) return nullptr;
+
+    offNode->setScale(scale);
+    onNode->setScale(scale);
+
+    return create(offNode, onNode, std::move(toggleCallback));
+}
+
 Toggler* Toggler::createWithStandardSprites(
     TogglerCallback toggleCallback
 ) {
@@ -39,15 +53,12 @@ Toggler* Toggler::createWithStandardSprites(
     float scale,
     TogglerCallback toggleCallback
 ) {
-    auto offNode = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
-    auto onNode = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
-
-    if (!offNode || !onNode) return nullptr;
-
-    offNode->setScale(scale);
-    onNode->setScale(scale);
-
-    return create(offNode, onNode, std::move(toggleCallback));
+    return createScaled(
+        CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
+        CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
+        scale,
+        std::move(toggleCallback)
+    );
 }
 
 Toggler* Toggler::createWithSprites(
@@ -64,15 +75,12 @@ Toggler* Toggler::createWithSprites(
     float scale,
     TogglerCallback toggleCallback
 ) {
-    auto offNode = CCSprite::create(offFileName.c_str());
-    auto onNode = CCSprite::create(onFileName.c_str());
-
-    if (!offNode || !onNode) return nullptr;
-
-    offNode->setScale(scale);
-    onNode->setScale(scale);
-
-    return create(offNode, onNode, std::move(toggleCallback));
+    return createScaled(
+        CCSprite::create(offFileName.c_str()),
+        CCSprite::create(onFileName.c_str()),
+        scale,
+        std::move(toggleCallback)
+    );
 }
 
 Toggler* Toggler::createWithSpriteFrameNames(
@@ -91,15 +99,12 @@ Toggler* Toggler::createWithSpriteFrameNames(
     float scale,
     TogglerCallback toggleCallback
 ) {
-    auto offNode = CCSprite::createWithSpriteFrameName(offFrameName.c_str());
-    auto onNode = CCSprite::createWithSpriteFrameName(onFrameName.c_str());
-
-    if (!offNode || !onNode) return nullptr;
-
-    offNode->setScale(scale);
-    onNode->setScale(scale);
-
-    return create(offNode, onNode, std::move(toggleCallback));
+    return createScaled(
+        CCSprite::createWithSpriteFrameName(offFileName.c_str()),
+        CCSprite::createWithSpriteFrameName(onFileName.c_str()),
+        scale,
+        std::move(toggleCallback)
+    );
 }
 
 bool Toggler::init(
@@ -149,7 +154,9 @@ CCNode* Toggler::getOffNode() const {
 void Toggler::setOffNode(CCNode* node) {
     if (!node || node == m_impl->m_offNode) return;
 
-    m_impl->m_offNode->removeFromParent();
+    node->setScale(m_impl->m_offNode->getScale());
+
+    m_impl->m_offNode->removeFromParentAndCleanup(true);
 
     m_impl->m_offNode = node;
     addChild(node);
@@ -164,7 +171,9 @@ CCNode* Toggler::getOnNode() const {
 void Toggler::setOnNode(CCNode* node) {
     if (!node || node == m_impl->m_onNode) return;
 
-    m_impl->m_onNode->removeFromParent();
+    node->setScale(m_impl->m_onNode->getScale());
+
+    m_impl->m_onNode->removeFromParentAndCleanup(true);
 
     m_impl->m_onNode = node;
     addChild(node);
