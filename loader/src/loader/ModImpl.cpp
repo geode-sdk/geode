@@ -184,6 +184,10 @@ bool Mod::Impl::isInternal() const {
     return m_metadata.getID() == "geode.loader";
 }
 
+bool Mod::Impl::isInvalid() const {
+    return m_metadata.getID().view().starts_with("geode_invalid");
+}
+
 bool Mod::Impl::needsEarlyLoad(std::vector<Mod*>& checked) const {
     checked.push_back(m_self);
     if (this->getMetadata().needsEarlyLoad()) return true;
@@ -733,7 +737,7 @@ void Mod::Impl::setLogLevel(Severity level) {
 }
 
 bool Mod::Impl::shouldLoad() const {
-    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true) || this->isInternal();
+    return !this->isInvalid() && (this->isInternal() || Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true));
 }
 
 bool Mod::Impl::isCurrentlyLoading() const {
@@ -745,7 +749,7 @@ int Mod::Impl::getLoadPriority() const {
 }
 
 bool Mod::Impl::isPinned() const {
-    return Mod::get()->getSavedValue<bool>("is-pinned-" + m_metadata.getID(), false);
+    return !this->isInvalid() && Mod::get()->getSavedValue<bool>("is-pinned-" + m_metadata.getID(), false);
 }
 
 void Mod::Impl::setPinned(bool pinned) {
