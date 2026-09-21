@@ -1,4 +1,5 @@
 #include <Geode/ui/ProgressBar.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
@@ -10,7 +11,7 @@ public:
     // Progress bar fill
     CCSprite* progressBarFill = nullptr;
     // The text label displaying the percentage
-    Ref<CCLabelBMFont> progressPercentLabel = nullptr;
+    Ref<Label> progressPercentLabel = nullptr;
 
     // Current progress bar fill percentage ranging from 0 to 100
     float progress = 0.0f;
@@ -52,12 +53,12 @@ public:
         progressBarFillMaxWidth = progressBar->getScaledContentWidth() - 4.0f;
         progressBarFillMaxHeight = progressBarFill->getScaledContentHeight() - 0.5f;
 
-        progressPercentLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
+        progressPercentLabel = Label::create("0%", "bigFont.fnt");
         progressPercentLabel->setID("progress-percent-label");
         progressPercentLabel->setScale(0.5f);
         progressPercentLabel->setAnchorPoint({ 0, 0.5 });
         progressPercentLabel->setPosition({ progressBar->getScaledContentWidth() + 2.5f, progressBar->getScaledContentHeight() / 2.0f });
-        progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
+        progressPercentLabel->setAlignment(Label::Alignment::Left);
         progressPercentLabel->setVisible(showProgressPercentLabel);
         progressPercentLabel->setZOrder(1);
     };
@@ -84,12 +85,12 @@ public:
         progressBarFillMaxWidth = progressBar->getScaledContentWidth();
         progressBarFillMaxHeight = 20.0f;
 
-        progressPercentLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
+        progressPercentLabel = Label::create("0%", "bigFont.fnt");
         progressPercentLabel->setID("progress-percent-label");
         progressPercentLabel->setScale(0.5f);
         progressPercentLabel->setAnchorPoint({ 0.5, 0.5 });
         progressPercentLabel->setPosition({ progressBar->getScaledContentWidth() / 2.0f, progressBar->getScaledContentHeight() / 2.0f });
-        progressPercentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+        progressPercentLabel->setAlignment(Label::Alignment::Center);
         progressPercentLabel->setVisible(showProgressPercentLabel);
         progressPercentLabel->setZOrder(1);
     };
@@ -160,7 +161,7 @@ void ProgressBar::updateProgress(float value) {
 
     if (m_impl->progressPercentLabel) {
         auto percentString = fmt::format("{}%", geode::utils::numToString(m_impl->progress, m_impl->precision));
-        m_impl->progressPercentLabel->setCString(percentString.c_str());
+        m_impl->progressPercentLabel->setText(std::move(percentString));
     };
 };
 
@@ -173,7 +174,7 @@ float ProgressBar::getProgress() const noexcept {
     return m_impl->progress;
 };
 
-CCLabelBMFont* ProgressBar::getProgressLabel() const noexcept {
+Label* ProgressBar::getProgressLabel() const noexcept {
     return m_impl->progressPercentLabel;
 };
 

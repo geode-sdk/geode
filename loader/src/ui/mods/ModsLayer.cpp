@@ -2,6 +2,7 @@
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
 #include <Geode/loader/Event.hpp>
@@ -38,12 +39,12 @@ bool ModsStatusNode::init() {
     m_statusBG->setContentSize({ 570, 40 });
     m_statusBG->setScale(.5f);
 
-    m_status = CCLabelBMFont::create("", "bigFont.fnt");
+    m_status = Label::create("", "bigFont.fnt");
     m_status->setID("status-label");
     m_status->setScale(.8f);
     m_statusBG->addChildAtPosition(m_status, Anchor::Center);
 
-    m_statusPercentage = CCLabelBMFont::create("", "bigFont.fnt");
+    m_statusPercentage = Label::create("", "bigFont.fnt");
     m_statusPercentage->setID("status-percentage-label");
     m_statusPercentage->setScale(.8f);
     m_statusBG->addChildAtPosition(m_statusPercentage, Anchor::Right, ccp(-35, 0));
@@ -163,7 +164,7 @@ void ModsStatusNode::updateState() {
 
         // If some downloads were cancelled, show the restart button normally
         case DownloadState::SomeCancelled: {
-            m_status->setString("Download(s) Cancelled");
+            m_status->setText("Download(s) Cancelled");
             m_status->setColor(ccWHITE);
             m_status->setVisible(true);
 
@@ -174,10 +175,10 @@ void ModsStatusNode::updateState() {
         // but also a "all done" status
         case DownloadState::AllDone: {
             if (downloads.size() == 1) {
-                m_status->setString(fmt::format("{} Mod Installed/Updated", downloads.size()).c_str());
+                m_status->setText(fmt::format("{} Mod Installed/Updated", downloads.size()));
             }
             else {
-                m_status->setString(fmt::format("{} Mods Installed/Updated", downloads.size()).c_str());
+                m_status->setText(fmt::format("{} Mods Installed/Updated", downloads.size()));
             }
             m_status->setColor("mod-list-enabled"_cc3b);
             m_status->setVisible(true);
@@ -187,7 +188,7 @@ void ModsStatusNode::updateState() {
         } break;
 
         case DownloadState::SomeErrored: {
-            m_status->setString("Some Download(s) Failed");
+            m_status->setText("Some Download(s) Failed");
             m_status->setColor("mod-list-disabled"_cc3b);
             m_status->setVisible(true);
             m_statusBG->setVisible(true);
@@ -205,10 +206,10 @@ void ModsStatusNode::updateState() {
                 }
             }
             if (totalToConfirm == 1) {
-                m_status->setString(fmt::format("Click to Confirm {} Download", totalToConfirm).c_str());
+                m_status->setText(fmt::format("Click to Confirm {} Download", totalToConfirm));
             }
             else {
-                m_status->setString(fmt::format("Click to Confirm {} Downloads", totalToConfirm).c_str());
+                m_status->setText(fmt::format("Click to Confirm {} Downloads", totalToConfirm));
             }
             m_status->setColor(ccWHITE);
             m_status->setVisible(true);
@@ -220,7 +221,7 @@ void ModsStatusNode::updateState() {
         } break;
 
         case DownloadState::SomeFetching: {
-            m_status->setString("Preparing Download(s)");
+            m_status->setText("Preparing Download(s)");
             m_status->setColor(ccWHITE);
             m_status->setVisible(true);
             m_loadingCircle->setVisible(true);
@@ -241,7 +242,7 @@ void ModsStatusNode::updateState() {
             }
             auto percentage = totalProgress / static_cast<float>(totalDownloading);
 
-            m_statusPercentage->setString(fmt::format("{}%", static_cast<size_t>(percentage)).c_str());
+            m_statusPercentage->setText(fmt::format("{}%", static_cast<size_t>(percentage)));
             m_statusPercentage->setVisible(true);
             m_loadingCircle->setVisible(true);
             m_statusBG->setVisible(true);
@@ -617,7 +618,7 @@ bool ModsLayer::init() {
     m_pageMenu->setAnchorPoint({ 1.f, 1.f });
     m_pageMenu->setScale(.65f);
 
-    m_pageLabel = CCLabelBMFont::create("", "goldFont.fnt");
+    m_pageLabel = Label::create("", "goldFont.fnt");
     m_pageLabel->setID("page-label");
     m_pageLabel->setAnchorPoint({ .5f, 1.f });
     m_pageMenu->addChild(m_pageLabel);
@@ -667,7 +668,7 @@ bool ModsLayer::init() {
 
     // add safe mode label
     if (isSafeMode) {
-        auto* label = CCLabelBMFont::create("Safe Mode Enabled", "bigFont.fnt");
+        auto* label = Label::create("Safe Mode Enabled", "bigFont.fnt");
         label->setPosition(winSize.width, 0);
         label->setAnchorPoint(ccp(1, 0));
         label->setOpacity(128);
@@ -765,8 +766,7 @@ void ModsLayer::updateState() {
         auto total = m_currentSource->getItemCount().value();
 
         // Set the page count string
-        auto fmt = fmt::format("Page {}/{} (Total {})", page, count, total);
-        m_pageLabel->setString(fmt.c_str());
+        m_pageLabel->setText(fmt::format("Page {}/{} (Total {})", page, count, total));
 
         // Make page menu visible
         m_pageMenu->setVisible(true);

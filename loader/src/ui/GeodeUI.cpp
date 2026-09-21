@@ -4,6 +4,7 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/LazySprite.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/web.hpp>
@@ -346,7 +347,7 @@ protected:
 
     void onLoadFailed(bool postEvent) {
         // Fallback to default logo if the image failed to load
-        auto sprite = CCLabelBMFont::create("N/A", "bigFont.fnt");
+        auto sprite = Label::create("N/A", "bigFont.fnt");
         sprite->setPosition(this->getScaledContentSize() / 2.f + CCSize{1.f, 2.f});
         sprite->setOpacity(90);
         limitNodeSize(sprite, m_obContentSize, 99.f, 0.f);

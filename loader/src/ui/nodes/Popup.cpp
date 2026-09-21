@@ -1,5 +1,6 @@
 #include <Geode/Enums.hpp>
 #include <Geode/binding/GameManager.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/FLAlertLayerProtocol.hpp>
@@ -90,7 +91,7 @@ bool Popup::init(
     if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
 
     m_noElasticity = GameManager::get()->getGameVariable(GameVar::FastMenu);
-    
+
     auto winSize = CCDirector::get()->getWinSize();
 
     m_mainLayer = CCLayer::create();
@@ -154,13 +155,13 @@ void Popup::setTitle(
     float offset
 ) {
     if (!m_title) {
-        m_title = CCLabelBMFont::create("", font);
+        m_title = Label::create("", font);
         m_title->setZOrder(2);
         m_mainLayer->addChildAtPosition(m_title, Anchor::Top, {0, -offset});
     }
-    
-    m_title->setString(title.c_str());
-    m_title->limitLabelWidth(m_size.width - 20.f, scale, .1f);
+
+    m_title->setText(title);
+    m_title->setLimitLabelWidth(m_size.width - 20.f, scale, .1f);
 }
 
 void Popup::setCloseButtonSpr(CCSprite* spr, float scale) {

@@ -1,5 +1,6 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/StringMap.hpp>
+#include <Geode/ui/Label.hpp>
 
 using namespace geode::prelude;
 
@@ -330,7 +331,7 @@ std::string Keybind::toString() const {
 cocos2d::CCNode* Keybind::createNode() const {
     // If this is not a controller bind, just return a label with the key name
     if ((key < CONTROLLER_A || key > CONTROLLER2_RTHUMBSTICK_RIGHT) && (key < CONTROLLER_L3 || key > CONTROLLER2_R3)) {
-        return CCLabelBMFont::create(this->toString().c_str(), "bigFont.fnt");
+        return Label::create(this->toString(), "bigFont.fnt");
     }
 
     auto isController2 = (key & 0x1) == 0x0;
@@ -367,7 +368,7 @@ cocos2d::CCNode* Keybind::createNode() const {
         default: sprite = nullptr;
     }
     if (!sprite) {
-        return CCLabelBMFont::create("Unknown", "bigFont.fnt");
+        return Label::create("Unknown", "bigFont.fnt");
     }
 
     auto spr = CCSprite::createWithSpriteFrameName(sprite);
@@ -413,7 +414,7 @@ cocos2d::CCNode* Keybind::createNode() const {
     }
 
     if (isController2) {
-        auto indicator = CCLabelBMFont::create("(2)", "bigFont.fnt");
+        auto indicator = Label::create("(2)", "bigFont.fnt");
         indicator->setPosition(ccp(31.f, 31.f));
         indicator->setScale(0.4f);
         indicator->setOpacity(127);

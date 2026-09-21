@@ -1,4 +1,5 @@
 #include <Geode/ui/Button.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
@@ -19,7 +20,7 @@ public:
     float m_touchMultiplier = 1.f;
 
     CCPoint m_offset = {0, -15};
-    
+
     float m_selectedDuration = 0.3f;
     float m_unselectedDuration = 0.4f;
 
@@ -143,7 +144,7 @@ bool Button::initWithSpriteFrameName(ZStringView frameName, ButtonCallback activ
 bool Button::initWithLabel(ZStringView text, ZStringView font, ButtonCallback activateCallback) {
     if (!Button::init(std::move(activateCallback))) return false;
 
-    m_impl->m_displayNode = CCLabelBMFont::create(text.c_str(), font.c_str());
+    m_impl->m_displayNode = Label::create(text, font);
     if (!m_impl->m_displayNode) return false;
 
     setContentSize(m_impl->m_displayNode->getScaledContentSize());
@@ -187,7 +188,7 @@ CCActionInterval* Button::clickActionForType() {
     }
 
     return nullptr;
-}   
+}
 
 CCActionInterval* Button::releaseActionForType() {
     switch (m_impl->m_animationType) {
@@ -206,7 +207,7 @@ CCActionInterval* Button::releaseActionForType() {
             return CCEaseInOut::create(moveTo, 2.f);
         }
     }
-    
+
     return nullptr;
 }
 
@@ -297,7 +298,7 @@ void Button::selected() {
 
 void Button::unselected() {
     if (!m_impl->m_selected) return;
-    
+
     stopAction(m_impl->m_activeClickAction);
     stopAction(m_impl->m_activeReleaseAction);
 

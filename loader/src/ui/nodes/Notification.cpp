@@ -1,4 +1,5 @@
 #include <Geode/loader/Mod.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/OverlayManager.hpp>
 #include <Geode/ui/Notification.hpp>
@@ -13,7 +14,7 @@ static std::deque<Ref<Notification>> s_queue;
 class Notification::Impl final {
 public:
     NineSlice* bg;
-    CCLabelBMFont* label;
+    Label* label;
     CCNodeRGBA* content;
     CCNode* icon = nullptr;
     float time;
@@ -49,7 +50,7 @@ bool Notification::init(ZStringView text, CCNode* icon, float time) {
         m_impl->content->addChild(icon);
     }
 
-    m_impl->label = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
+    m_impl->label = Label::create(text, "bigFont.fnt");
     m_impl->label->setScale(.6f);
     m_impl->content->addChild(m_impl->label);
 
@@ -128,7 +129,7 @@ Notification* Notification::create(ZStringView text, CCNode* icon, float time) {
 }
 
 void Notification::setString(ZStringView text) {
-    m_impl->label->setString(text.c_str());
+    m_impl->label->setText(text);
     this->updateLayout();
 }
 
@@ -167,7 +168,7 @@ NineSlice* Notification::getBG() {
     return m_impl->bg;
 }
 
-CCLabelBMFont* Notification::getLabel() {
+Label* Notification::getLabel() {
     return m_impl->label;
 }
 

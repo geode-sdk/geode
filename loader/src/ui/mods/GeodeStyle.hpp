@@ -8,6 +8,7 @@
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <server/Server.hpp>
@@ -101,7 +102,7 @@ protected:
     NineSlice* m_deselectedBG;
     NineSlice* m_selectedBG;
     CCSprite* m_icon;
-    CCLabelBMFont* m_label;
+    geode::Label* m_label;
 
     bool init(const char* iconFrame, const char* text, float width, bool altColor);
 

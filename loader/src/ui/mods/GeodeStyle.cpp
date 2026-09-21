@@ -4,6 +4,7 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/loader/Priority.hpp>
 
 $on_mod(Loaded) {
@@ -37,7 +38,7 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-problems-item-bg"_spr, { 255, 255, 255, 15 });
     ColorProvider::get()->define("mod-developer-item-bg"_spr, { 255, 255, 255, 15 });
     ColorProvider::get()->define("mod-list-paid-color"_spr, { 0, 255, 63, 255 });
-    
+
     ColorProvider::get()->define("keybinds-list-category-label"_spr, ccc3(148, 116, 155));
 
     // Only used when GD theme is active
@@ -364,8 +365,8 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     limitNodeSize(m_icon, iconSize, 3.f, .1f);
     this->addChildAtPosition(m_icon, Anchor::Left, ccp(16, 0), false);
 
-    m_label = CCLabelBMFont::create(text, "bigFont.fnt");
-    m_label->limitLabelWidth(this->getContentWidth() - 45, std::clamp(width * .0045f, .35f, .55f), .1f);
+    m_label = Label::create(text, "bigFont.fnt");
+    m_label->setLimitLabelWidth(this->getContentWidth() - 45, std::clamp(width * .0045f, .35f, .55f), .1f);
     m_label->setAnchorPoint({ .5f, .5f });
     this->addChildAtPosition(m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false);
 

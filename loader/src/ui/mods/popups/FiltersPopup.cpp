@@ -1,5 +1,7 @@
 #include "FiltersPopup.hpp"
 
+#include <Geode/ui/Label.hpp>
+
 bool FiltersPopup::init(ModListSource* src) {
     float height = 170;
     if (typeinfo_cast<InstalledModListSource*>(src) || typeinfo_cast<ServerModListSource*>(src)) {
@@ -43,7 +45,7 @@ bool FiltersPopup::init(ModListSource* src) {
     tagsTitleMenu->setAnchorPoint({ .5f, 0 });
     tagsTitleMenu->setContentWidth(tagsContainer->getContentWidth());
 
-    auto tagsTitle = CCLabelBMFont::create("Tags", "bigFont.fnt");
+    auto tagsTitle = Label::create("Tags", "bigFont.fnt");
     tagsTitleMenu->addChild(tagsTitle);
 
     tagsTitleMenu->addChild(SpacerNode::create());
@@ -85,7 +87,7 @@ bool FiltersPopup::init(ModListSource* src) {
         m_enabledModsOnly->toggle(src->getQuery().enabledOnly.value_or(false));
         optionsMenu->addChild(m_enabledModsOnly);
 
-        auto enabledOnlyLabel = CCLabelBMFont::create("Enabled Only", "bigFont.fnt");
+        auto enabledOnlyLabel = Label::create("Enabled Only", "bigFont.fnt");
         enabledOnlyLabel->setScale(.35f);
         optionsMenu->addChild(enabledOnlyLabel);
 
@@ -94,7 +96,7 @@ bool FiltersPopup::init(ModListSource* src) {
         m_enabledModsFirst->setLayoutOptions(AxisLayoutOptions::create()->setPrevGap(10.f));
         optionsMenu->addChild(m_enabledModsFirst);
 
-        auto enabledFirstLabel = CCLabelBMFont::create("Enabled First", "bigFont.fnt");
+        auto enabledFirstLabel = Label::create("Enabled First", "bigFont.fnt");
         enabledFirstLabel->setScale(.35f);
         optionsMenu->addChild(enabledFirstLabel);
 
@@ -106,7 +108,7 @@ bool FiltersPopup::init(ModListSource* src) {
         optionsTitleMenu->setAnchorPoint({ .5f, 0 });
         optionsTitleMenu->setContentWidth(optionsContainer->getContentWidth());
 
-        auto optionsTitle = CCLabelBMFont::create("Options", "bigFont.fnt");
+        auto optionsTitle = Label::create("Options", "bigFont.fnt");
         optionsTitleMenu->addChild(optionsTitle);
 
         optionsTitleMenu->addChild(SpacerNode::create());
@@ -134,7 +136,7 @@ bool FiltersPopup::init(ModListSource* src) {
         inputTitleMenu->setAnchorPoint({ .5f, 0 });
         inputTitleMenu->setContentWidth(inputContainer->getContentWidth());
 
-        auto inputTitle = CCLabelBMFont::create("From Developer", "bigFont.fnt");
+        auto inputTitle = Label::create("From Developer", "bigFont.fnt");
         inputTitleMenu->addChild(inputTitle);
 
         inputTitleMenu->addChild(SpacerNode::create());
@@ -192,7 +194,7 @@ void FiltersPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag
     }
     else {
         m_tagsMenu->removeAllChildren();
-        auto label = CCLabelBMFont::create("Unable to load tags", "bigFont.fnt");
+        auto label = Label::create("Unable to load tags", "bigFont.fnt");
         label->setOpacity(105);
         m_tagsMenu->addChild(label);
         m_tagsMenu->updateLayout();

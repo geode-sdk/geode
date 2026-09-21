@@ -5,6 +5,7 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/ui/Button.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/binding/TextArea.hpp>
 #include "KeybindEditPopup.hpp"
 
@@ -12,12 +13,12 @@ class SettingNodeV3::Impl final {
 public:
     std::shared_ptr<SettingV3> setting;
     CCLayerColor* bg;
-    CCLabelBMFont* nameLabel;
+    Label* nameLabel;
     CCMenu* nameMenu;
     CCMenu* buttonMenu;
     CCMenuItemSpriteExtra* resetButton;
     CCMenuItemSpriteExtra* descButton;
-    CCLabelBMFont* statusLabel;
+    Label* statusLabel;
     ccColor4B bgColor = ccc4(0, 0, 0, 0);
     bool committed = false;
     // This is because you can create `TitleSettingNodeV3`s without having an
@@ -43,11 +44,11 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl->nameMenu = CCMenu::create();
     m_impl->nameMenu->setContentWidth(width / 2 + 25);
 
-    m_impl->nameLabel = CCLabelBMFont::create(setting ? setting->getDisplayName().c_str() : "", "bigFont.fnt");
+    m_impl->nameLabel = Label::create(setting ? setting->getDisplayName() : "", "bigFont.fnt");
     m_impl->nameLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(.1f, .4f)->setScalePriority(1));
     m_impl->nameMenu->addChild(m_impl->nameLabel);
 
-    m_impl->statusLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_impl->statusLabel = Label::create("", "bigFont.fnt");
     m_impl->statusLabel->setScale(.25f);
     this->addChildAtPosition(m_impl->statusLabel, Anchor::Left, ccp(10, -10), ccp(0, .5f));
 
@@ -95,13 +96,13 @@ void SettingNodeV3::updateState(CCNode* invoker) {
             m_impl->nameLabel->setColor(ccGRAY);
             m_impl->statusLabel->setVisible(true);
             m_impl->statusLabel->setColor("mod-list-errors-found"_cc3b);
-            m_impl->statusLabel->setString(desc->c_str());
+            m_impl->statusLabel->setText(std::move(*desc));
         }
     }
     if (m_impl->setting && m_impl->setting->requiresRestart() && m_impl->committed) {
         m_impl->statusLabel->setVisible(true);
         m_impl->statusLabel->setColor("mod-list-restart-required-label"_cc3b);
-        m_impl->statusLabel->setString("Restart Required");
+        m_impl->statusLabel->setText("Restart Required");
         m_impl->bg->setColor("mod-list-restart-required-label-bg"_cc3b);
         m_impl->bg->setOpacity(75);
     }
@@ -178,7 +179,7 @@ void SettingNodeV3::setContentSize(CCSize const& size) {
     SettingNodeSizeChangeEventV3(m_impl->setting->getModID(), m_impl->setting->getKey()).send(this);
 }
 
-CCLabelBMFont* SettingNodeV3::getNameLabel() const {
+Label* SettingNodeV3::getNameLabel() const {
     return m_impl->nameLabel;
 }
 
@@ -186,7 +187,7 @@ CCMenuItemSpriteExtra* SettingNodeV3::getDescriptionButton() const {
     return m_impl->descButton;
 }
 
-CCLabelBMFont* SettingNodeV3::getStatusLabel() const {
+Label* SettingNodeV3::getStatusLabel() const {
     return m_impl->statusLabel;
 }
 
@@ -238,7 +239,7 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
     this->getButtonMenu()->setContentWidth(20);
     this->getButtonMenu()->addChildAtPosition(m_collapseToggle, Anchor::Center);
 
-    this->getNameLabel()->setFntFile("goldFont.fnt");
+    this->getNameLabel()->setFont("goldFont.fnt");
     this->getNameMenu()->updateLayout();
     this->setContentHeight(20);
     this->updateState(nullptr);
@@ -289,7 +290,7 @@ TitleSettingNodeV3* TitleSettingNodeV3::create(std::shared_ptr<TitleSettingV3> s
 
 TitleSettingNodeV3* TitleSettingNodeV3::create(ZStringView title, std::optional<ZStringView> description, float width) {
     auto ret = TitleSettingNodeV3::create(nullptr, width);
-    ret->getNameLabel()->setString(title.c_str());
+    ret->getNameLabel()->setText(title);
     ret->overrideDescription(description);
     ret->updateState(nullptr);
     return ret;
@@ -419,7 +420,7 @@ void ButtonSettingNodeV3::updateState(CCNode* invoker) {
     enableButtons(loaded && getSetting()->shouldEnable());
 
     if (!loaded) {
-        this->getStatusLabel()->setString("Enable the mod to use these buttons");
+        this->getStatusLabel()->setText("Enable the mod to use these buttons");
         this->getStatusLabel()->setVisible(true);
     }
 
@@ -602,7 +603,8 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
     m_fileIcon = CCSprite::create();
     this->getButtonMenu()->addChildAtPosition(m_fileIcon, Anchor::Left, ccp(5, 0));
 
-    m_nameLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    m_nameLabel = Label::create("", "bigFont.fnt");
+    m_nameLabel->setLimitLabelWidth(75, .35f, .1f);
     this->getButtonMenu()->addChildAtPosition(m_nameLabel, Anchor::Left, ccp(13, 0), ccp(0, .5f));
 
     m_selectBtnSpr = CCSprite::createWithSpriteFrameName("GJ_plus2Btn_001.png");
@@ -636,20 +638,19 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     limitNodeSize(m_fileIcon, ccp(10, 10), 1.f, .1f);
     if (this->getValue().empty() || isTextualDefaultValue) {
         if (isTextualDefaultValue) {
-            m_nameLabel->setString(utils::string::pathToString(this->getSetting()->getDefaultValue()).c_str());
+            m_nameLabel->setText(utils::string::pathToString(this->getSetting()->getDefaultValue()));
         }
         else {
-            m_nameLabel->setString(this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected");
+            m_nameLabel->setText(this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected");
         }
         m_nameLabel->setColor(ccGRAY);
         m_nameLabel->setOpacity(155);
     }
     else {
-        m_nameLabel->setString(utils::string::pathToString(this->getValue().filename()).c_str());
+        m_nameLabel->setText(utils::string::pathToString(this->getValue().filename()));
         m_nameLabel->setColor(ccWHITE);
         m_nameLabel->setOpacity(255);
     }
-    m_nameLabel->limitLabelWidth(75, .35f, .1f);
 
     auto enable = this->getSetting()->shouldEnable();
     m_selectBtnSpr->setOpacity(enable ? 255 : 155);
@@ -938,15 +939,15 @@ bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float w
 
     this->setContentHeight(30);
 
-    auto label = CCLabelBMFont::create(
+    auto label = Label::create(
         (mod && mod->isLoaded() ?
             fmt::format("Missing setting '{}'", key) :
             fmt::format("Enable the Mod to Edit '{}'", key)
-        ).c_str(),
+        ),
         "bigFont.fnt"
     );
     label->setColor(mod && mod->isLoaded() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
-    label->limitLabelWidth(width - m_obContentSize.height, .3f, .1f);
+    label->setLimitLabelWidth(width - m_obContentSize.height, .3f, .1f);
     this->addChildAtPosition(label, Anchor::Left, ccp(m_obContentSize.height / 2, 0), ccp(0, .5f));
 
     return true;
