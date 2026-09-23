@@ -641,7 +641,14 @@ Result<ServerLoaderVersion> ServerLoaderVersion::parse(matjson::Value raw) {
 
     auto downloads = root.needs("downloads");
 
-    auto dlobj = downloads.needs(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH);
+    // the loader downloads object differentiates android32 and android64, but not mac-arm and mac-intel (they're just mac),
+    // we have no unified macro for this so use either of those 2
+#ifdef GEODE_IS_ANDROID
+    auto key = GEODE_PLATFORM_SHORT_IDENTIFIER;
+#else
+    auto key = GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH;
+#endif
+    auto dlobj = downloads.needs(key);
     auto rsobj = downloads.needs("resources");
     res.download = GEODE_UNWRAP(ServerLoaderDownload::parse(dlobj.takeJson()));
     res.resources = GEODE_UNWRAP(ServerLoaderDownload::parse(rsobj.takeJson()));
