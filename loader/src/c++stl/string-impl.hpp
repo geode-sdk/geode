@@ -13,12 +13,22 @@ namespace geode::stl {
         void free();
 
         char* getStorage();
-        void setStorage(std::string_view);
+        void setStorage(std::string_view str);
+        void setStorage(StringData& other);
+        void swapStorage(StringData& other);
 
         size_t getSize();
-        void setSize(size_t);
+        void setSize(size_t size, char fill);
 
         size_t getCapacity();
-        void setCapacity(size_t);
+        void setCapacity(size_t capacity);
+
+        void append(std::string_view str);
+        void append(size_t count, char c);
+        void insert(size_t pos, std::string_view str);
+        void insert(size_t pos, size_t count, char c);
+        void erase(size_t pos, size_t count);
+        void replace(size_t pos, size_t count, std::string_view str);
+        void replace(size_t pos, size_t count, size_t count2, char c);
     };
 }

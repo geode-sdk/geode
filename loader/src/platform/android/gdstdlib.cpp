@@ -101,8 +101,7 @@ namespace geode::stl {
     char* StringImpl::getStorage() {
         return reinterpret_cast<char*>(data.m_data);
     }
-    // TODO: add a copyFrom(string const&) to take advantage
-    // of gnustl refcounted strings
+
     void StringImpl::setStorage(std::string_view str) {
         this->free();
 
@@ -125,17 +124,130 @@ namespace geode::stl {
         this->getStorage()[str.size()] = 0;
     }
 
+    void StringImpl::setStorage(StringData& str) {
+        this->free();
+
+        auto& internal = str.m_data[-1];
+
+        if (str.m_data[-1].m_refcount < 0) {
+            this->setStorage(std::string_view(reinterpret_cast<const char*>(str.m_data), internal.m_size));
+        } else {
+            if (str.m_data != emptyInternalString()) {
+                ++internal.m_refcount;
+            }
+            data.m_data = &internal;
+        }
+    }
+
+    void StringImpl::swapStorage(StringData& other) {
+        std::swap(this->data.m_data, other.m_data);
+    }
+
     size_t StringImpl::getSize() {
         return data.m_data[-1].m_size;
     }
-    void StringImpl::setSize(size_t size) {
-        // TODO: implement this, remember its copy-on-write...
+    void StringImpl::setSize(size_t size, char fill) {
+        if (size > this->getCapacity()) {
+            this->setCapacity(size);
+        }
+
+        if (size > this->getSize()) {
+            std::memset(this->getStorage() + this->getSize(), fill, size - this->getSize());
+        }
+
+        data.m_data[-1].m_size = size;
+        this->getStorage()[size] = 0;
     }
 
     size_t StringImpl::getCapacity() {
         return data.m_data[-1].m_capacity;
     }
     void StringImpl::setCapacity(size_t cap) {
-        // TODO: implement this, remember its copy-on-write...
+        if (cap == this->getCapacity()) return;
+
+        StringData::Internal internal;
+        internal.m_size = this->getSize();
+        internal.m_capacity = cap;
+        internal.m_refcount = 0;
+
+        // use char* so we can do easy pointer arithmetic with it
+        auto* buffer = static_cast<char*>(gd::operatorNew(cap + 1 + sizeof(internal)));
+        std::memcpy(buffer, &internal, sizeof(internal));
+        std::memcpy(buffer + sizeof(internal), this->getStorage(), this->getSize());
+
+        this->free();
+        data.m_data = reinterpret_cast<StringData::Internal*>(buffer + sizeof(internal));
+
+        this->getStorage()[this->getSize()] = 0;
+    }
+
+    void StringImpl::append(std::string_view str) {
+        if (str.size() == 0) return;
+
+        size_t oldSize = this->getSize();
+        this->setSize(oldSize + str.size(), 0);
+        std::memcpy(this->getStorage() + oldSize, str.data(), str.size());
+    }
+
+    void StringImpl::append(size_t count, char c) {
+        if (count == 0) return;
+
+        this->setSize(this->getSize() + count, c);
+    }
+
+    void StringImpl::insert(size_t pos, std::string_view str) {
+        if (str.size() == 0) return;
+
+        size_t oldSize = this->getSize();
+        this->setSize(oldSize + str.size(), 0);
+        std::memmove(this->getStorage() + pos + str.size(), this->getStorage() + pos, oldSize - pos);
+        std::memcpy(this->getStorage() + pos, str.data(), str.size());
+    }
+
+    void StringImpl::insert(size_t pos, size_t count, char c) {
+        if (count == 0) return;
+
+        size_t oldSize = this->getSize();
+        this->setSize(oldSize + count, 0);
+        std::memmove(this->getStorage() + pos + count, this->getStorage() + pos, oldSize - pos);
+        std::memset(this->getStorage() + pos, c, count);
+    }
+
+    void StringImpl::erase(size_t pos, size_t count) {
+        if (count == 0) return;
+
+        size_t oldSize = this->getSize();
+        count = std::min(count, oldSize - pos);
+
+        std::memmove(this->getStorage() + pos, this->getStorage() + pos + count, oldSize - pos - count);
+        this->setSize(oldSize - count, 0);
+    }
+
+    void StringImpl::replace(size_t pos, size_t count, std::string_view other) {
+        if (count == 0 && other.size() == 0) return;
+
+        size_t oldSize = this->getSize();
+        count = std::min(count, oldSize - pos);
+
+        if (other.size() > count) {
+            this->setSize(oldSize + other.size() - count, 0);
+        }
+
+        std::memmove(this->getStorage() + pos + other.size(), this->getStorage() + pos + count, oldSize - pos - count);
+        std::memcpy(this->getStorage() + pos, other.data(), other.size());
+    }
+
+    void StringImpl::replace(size_t pos, size_t count, size_t count2, char c) {
+        if (count == 0 && count2 == 0) return;
+
+        size_t oldSize = this->getSize();
+        count = std::min(count, oldSize - pos);
+
+        if (count2 > count) {
+            this->setSize(oldSize + count2 - count, 0);
+        }
+
+        std::memmove(this->getStorage() + pos + count2, this->getStorage() + pos + count, oldSize - pos - count);
+        std::memset(this->getStorage() + pos, c, count2);
     }
 }
