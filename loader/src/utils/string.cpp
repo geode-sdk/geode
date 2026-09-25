@@ -137,8 +137,16 @@ std::vector<std::string> utils::string::split(std::string_view str, std::string_
     return doSplit<std::string>(str, split);
 }
 
+std::vector<std::string> utils::string::split(std::string_view str, char split) {
+    return doSplit<std::string>(str, std::string_view(&split, 1));
+}
+
 std::vector<std::string_view> utils::string::splitView(std::string_view str, std::string_view split) {
     return doSplit<std::string_view>(str, split);
+}
+
+std::vector<std::string_view> utils::string::splitView(std::string_view str, char split) {
+    return doSplit<std::string_view>(str, std::string_view(&split, 1));
 }
 
 template <typename T>
