@@ -178,10 +178,12 @@ public:
     float getScaleY() const;
 
 	virtual void pollInputEvents();
-	void updateDesignResolutionSize();
 
     // @note RobTop Addition
     double getPlatformTimestamp();
+
+protected:
+	void updateDesignResolutionSize();
 
 private:
     void getSetOfTouchesEndOrCancel(CCSet& set, int num, int ids[], float xs[], float ys[], double timestamp);
