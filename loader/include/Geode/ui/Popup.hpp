@@ -20,6 +20,7 @@ namespace geode {
             using Event::Event;
         };
 
+        virtual void onClose(CCObject*);
     protected:
         cocos2d::CCSize m_size;
         NineSlice* m_bgSprite;
@@ -45,7 +46,6 @@ namespace geode {
 
         void keyBackClicked() override;
         void keyDown(cocos2d::enumKeyCodes key, double p1) override;
-        virtual void onClose(CCObject*);
 
         void setTitle(
             ZStringView title,
