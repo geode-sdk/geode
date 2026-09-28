@@ -112,7 +112,7 @@ bool Toggler::init(
     CCNode* onNode,
     TogglerCallback toggleCallback
 ) {
-    if (!offNode || !onNode) return false;
+    if (!offNode || !onNode || offNode == onNode) return false;
 
     if (!Button::init(nullptr)) return false;
 
@@ -152,11 +152,12 @@ CCNode* Toggler::getOffNode() const {
 }
 
 void Toggler::setOffNode(CCNode* node) {
-    if (!node || node == m_impl->m_offNode) return;
+    if (!node || node == m_impl->m_offNode || node == m_impl->m_onNode) return;
 
-    node->setScale(m_impl->m_offNode->getScale());
+    node->setScaleX(m_impl->m_offNode->getScaleX());
+    node->setScaleY(m_impl->m_offNode->getScaleY());
 
-    m_impl->m_offNode->removeFromParentAndCleanup(true);
+    m_impl->m_offNode->removeFromParent();
 
     m_impl->m_offNode = node;
     addChild(node);
@@ -169,15 +170,15 @@ CCNode* Toggler::getOnNode() const {
 }
 
 void Toggler::setOnNode(CCNode* node) {
-    if (!node || node == m_impl->m_onNode) return;
+    if (!node || node == m_impl->m_onNode || node == m_impl->m_offNode) return;
 
-    node->setScale(m_impl->m_onNode->getScale());
+    node->setScaleX(m_impl->m_onNode->getScaleX());
+    node->setScaleY(m_impl->m_onNode->getScaleY());
 
-    m_impl->m_onNode->removeFromParentAndCleanup(true);
-
+    m_impl->m_onNode->removeFromParent();
     m_impl->m_onNode = node;
-    addChild(node);
 
+    addChild(node);
     updateDisplay();
 }
 
@@ -193,12 +194,17 @@ void Toggler::activate() {
 }
 
 void Toggler::updateDisplay() {
+    if (!m_impl->m_offNode || !m_impl->m_onNode) return;
+
     auto activeNode = m_impl->m_isToggled
         ? m_impl->m_onNode
         : m_impl->m_offNode;
 
     auto size = activeNode->getScaledContentSize();
     auto center = size * 0.5f;
+
+    m_impl->m_offNode->setAnchorPoint({0.5f, 0.5f});
+    m_impl->m_onNode->setAnchorPoint({0.5f, 0.5f});
 
     m_impl->m_offNode->setVisible(!m_impl->m_isToggled);
     m_impl->m_onNode->setVisible(m_impl->m_isToggled);

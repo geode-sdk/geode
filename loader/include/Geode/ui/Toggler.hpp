@@ -3,12 +3,9 @@
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/ui/Button.hpp>
-#include <Geode/cocos/base_nodes/CCNode.h>
 
 namespace geode {
-    /// A customizable toggle button for interactive on/off controls.
-    ///
-    /// Supports custom visuals, state management, and callbacks.
+    /// A toggle button that supports custom on/off visuals and clean, direct state callbacks.
     class GEODE_DLL Toggler : public Button {
     public:
         using TogglerCallback = geode::Function<void(Toggler* sender, bool isToggled)>;
