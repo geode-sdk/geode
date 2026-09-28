@@ -161,7 +161,8 @@ namespace {
                 timestamp,
                 (isShiftPressed ? KeyboardModifier::Shift : KeyboardModifier::None) |
                 (isCtrlPressed ? KeyboardModifier::Control : KeyboardModifier::None) |
-                (isAltPressed ? KeyboardModifier::Alt : KeyboardModifier::None)
+                (isAltPressed ? KeyboardModifier::Alt : KeyboardModifier::None),
+                nullptr
             );
 
             if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
@@ -208,7 +209,8 @@ namespace {
                 timestamp,
                 (isShiftPressed ? KeyboardModifier::Shift : KeyboardModifier::None) |
                 (isCtrlPressed ? KeyboardModifier::Control : KeyboardModifier::None) |
-                (isAltPressed ? KeyboardModifier::Alt : KeyboardModifier::None)
+                (isAltPressed ? KeyboardModifier::Alt : KeyboardModifier::None),
+                nullptr
             );
 
             if (KeyboardInputEvent(translated_code).send(data) != ListenerResult::Propagate) {
