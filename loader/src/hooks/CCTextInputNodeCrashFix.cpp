@@ -25,17 +25,14 @@ struct CCTextInputNodeCrashFix : Modify<CCTextInputNodeCrashFix, CCTextInputNode
         auto fields = m_fields.self();
 
         addOnEnterCallback([this, fields] {
-            if (fields->m_delegate != m_delegate) {
+            if (m_delegate && fields->m_delegate != m_delegate) {
                 fields->m_delegate = m_delegate;
             }
             m_delegate = fields->m_delegate;
         });
 
         addOnExitCallback([this, fields] {
-            auto fields = m_fields.self();
-            if (fields->m_delegate != m_delegate) {
-                fields->m_delegate = m_delegate;
-            }
+            fields->m_delegate = m_delegate;
             m_delegate = nullptr;
         });
 
