@@ -85,7 +85,6 @@ $on_mod(Loaded) {
     $async() {
         auto time = asp::Instant::now();
 
-        auto start = std::chrono::steady_clock::now();
         log::info("Waiting for 10 frames...");
         for (int i = 0; i < 10; ++i)
             co_await advanceFrame();
