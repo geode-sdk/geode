@@ -142,4 +142,8 @@ namespace geode {
             }
         }
     };
+
+    inline std::string format_as(const Color& color) {
+        return fmt::format("rgb({}, {}, {})", color.r, color.g, color.b);
+    }
 }
