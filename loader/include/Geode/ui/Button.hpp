@@ -27,7 +27,7 @@ namespace geode {
         static Button* create(ButtonCallback activateCallback = nullptr);
 
         /**
-         * Create a Button with a nodes on it.
+         * Create a Button with a node on it.
          * The node will be automatically positioned in the center.
          * @param node The node that will show on the button.
          * @param activateCallback The callback for when the button is activated
@@ -55,6 +55,93 @@ namespace geode {
          * @param activateCallback The callback for when the button is activated
          */
         static Button* createWithLabel(geode::ZStringView text, geode::ZStringView font, ButtonCallback activateCallback = nullptr);
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(geode::ZStringView text, ButtonCallback activateCallback = nullptr);
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
+         * @param scale The scale of the text
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(geode::ZStringView text, float scale, ButtonCallback activateCallback = nullptr);
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
+         * @param font The font of the text
+         * @param bg The background of the button (not in a spritesheet)
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(
+            geode::ZStringView text,
+            geode::ZStringView font,
+            geode::ZStringView bg,
+            ButtonCallback activateCallback = nullptr
+        );
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
+         * @param font The font of the text
+         * @param bg The background of the button (not in a spritesheet)
+         * @param scale The scale of the text
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(
+            geode::ZStringView text,
+            geode::ZStringView font,
+            geode::ZStringView bg,
+            float scale,
+            ButtonCallback activateCallback = nullptr
+        );
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
+         * @param font The font of the text
+         * @param bg The background of the button (not in a spritesheet)
+         * @param width The width of the button (`absolute` must be true)
+         * @param absolute Whether to use absolute width or not
+         * @param scale The scale of the text
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(
+            geode::ZStringView text,
+            geode::ZStringView font,
+            geode::ZStringView bg,
+            int width,
+            bool absolute,
+            float scale,
+            ButtonCallback activateCallback = nullptr
+        );
+
+        /**
+         * Create a Button with a ButtonSprite
+         * @param text The text shown in the button
+         * @param font The font of the text
+         * @param bg The background of the button (not in a spritesheet)
+         * @param width The width of the button (`absolute` must be true)
+         * @param height The height of the button (0 automatically sets the height)
+         * @param absolute Whether to use absolute width or not
+         * @param scale The scale of the text
+         * @param activateCallback The callback for when the button is activated
+         */
+        static Button* createWithButtonSprite(
+            geode::ZStringView text,
+            geode::ZStringView font,
+            geode::ZStringView bg,
+            int width,
+            float height,
+            bool absolute,
+            float scale,
+            ButtonCallback activateCallback = nullptr
+        );
 
         /**
          * Get the Display Node, which was created or passed in on button creation
@@ -108,7 +195,7 @@ namespace geode {
         int getTouchPriority();
 
         /**
-         * Set the touch multiplier, which increases the distance from the 
+         * Set the touch multiplier, which increases the distance from the
          * center that the button can be pressed (default is 1)
          */
         void setTouchMultiplier(float multipler);
@@ -145,7 +232,7 @@ namespace geode {
          */
         virtual void setEnabled(bool enabled);
         virtual bool isEnabled();
-        
+
         /**
          * Get the selected state of the button
          */
@@ -208,7 +295,7 @@ namespace geode {
          * Unregister a button (must be called in onExit)
          */
         void unregisterButton(Button* button);
-        
+
         /**
          * Pass moves from ccTouchMoved to all buttons sharing a parent
          */
