@@ -75,3 +75,11 @@ int32_t Hook::getPriority() const {
 void Hook::setPriority(int32_t priority) {
     return m_impl->setPriority(priority);
 }
+
+std::optional<std::string_view> Hook::getModifyClassName() const {
+    return m_impl->getModifyClassName();
+}
+
+void Hook::setModifyClassName(std::string name) {
+    return m_impl->setModifyClassName(std::move(name));
+}
