@@ -70,8 +70,12 @@ namespace geode::utils::string {
     );
 
     GEODE_DLL std::vector<std::string> split(std::string_view str, std::string_view split);
+    /// Like split but splits on a single character delimiter
+    GEODE_DLL std::vector<std::string> split(std::string_view str, char split);
     /// Like split but returns a vector of `string_view`
     GEODE_DLL std::vector<std::string_view> splitView(std::string_view str, std::string_view split);
+    /// Like splitView but splits on a single character delimiter
+    GEODE_DLL std::vector<std::string_view> splitView(std::string_view str, char split);
 
     GEODE_DLL std::string join(std::span<std::string const> strs, std::string_view separator);
     GEODE_DLL std::string join(std::span<std::string_view const> strs, std::string_view separator);
