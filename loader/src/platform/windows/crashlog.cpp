@@ -147,6 +147,18 @@ static std::string findSymbolNameFromRVA(HMODULE module, DWORD rva) {
     return {};
 }
 
+// TODO: temporary workaround due to wine 11.x having a bug in dbghelp causing it to crash inside SymFromAddr
+static BOOL safeSymFromAddr(HANDLE hProcess, DWORD64 Address, PDWORD64 Displacement, PSYMBOL_INFO Symbol) {
+    BOOL result = false;
+    __try {
+        result = SymFromAddr(hProcess, Address, Displacement, Symbol);
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        log::warn("SymFromAddr crashed with exception {} on address {:x}", GetExceptionCode(), Address);
+        result = false;
+    }
+    return result;
+}
+
 static StackFrame getFrame(void const* addr, bool fullPath = true) {
     HMODULE module = nullptr;
     auto proc = GetCurrentProcess();
@@ -177,10 +189,11 @@ static StackFrame getFrame(void const* addr, bool fullPath = true) {
         symbolInfo->SizeOfStruct = sizeof(SYMBOL_INFO);
         symbolInfo->MaxNameLen = MAX_SYM_NAME;
 
-        if (SymFromAddr(
-                proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)), &displacement,
-                symbolInfo
-            )) {
+        auto result = safeSymFromAddr(
+            proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)), &displacement,
+            symbolInfo
+        );
+        if (result) {
             if (auto entry = SymFunctionTableAccess64(proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)))) {
                 auto moduleBase = SymGetModuleBase64(proc, static_cast<DWORD64>(reinterpret_cast<uintptr_t>(addr)));
                 auto runtimeFunction = static_cast<PRUNTIME_FUNCTION>(entry);
