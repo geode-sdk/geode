@@ -153,7 +153,7 @@ static BOOL safeSymFromAddr(HANDLE hProcess, DWORD64 Address, PDWORD64 Displacem
     __try {
         result = SymFromAddr(hProcess, Address, Displacement, Symbol);
     } __except (EXCEPTION_EXECUTE_HANDLER) {
-        log::warn("SymFromAddr crashed with exception {} on address {:x}", GetExceptionCode(), Address);
+        log::warn("SymFromAddr crashed with exception {:x} on address {:x}", GetExceptionCode(), Address);
         result = false;
     }
     return result;
