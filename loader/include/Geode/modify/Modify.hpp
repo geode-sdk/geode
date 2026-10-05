@@ -131,6 +131,16 @@ namespace geode::modifier {
             return Ok(it->second.get());
         }
 
+        /// @brief Get all hooks in this modify
+        std::vector<Hook*> getAllHooks() {
+            std::vector<Hook*> vec;
+            vec.reserve(m_hooks.size());
+            for (auto& [k, v] : m_hooks) {
+                vec.push_back(v.get());
+            }
+            return vec;
+        }
+
         /// @brief Set the priority of a hook
         /// @param name The name of the hook to set the priority of
         /// @param priority The priority to set the hook to
