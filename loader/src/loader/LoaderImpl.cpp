@@ -33,6 +33,7 @@
 
 #include <server/DownloadManager.hpp>
 #include <Geode/ui/Popup.hpp>
+#include <asp/fs.hpp>
 
 using namespace geode::prelude;
 
@@ -273,11 +274,11 @@ void Loader::Impl::updateModResources(Mod* mod) {
     // skip disabled mods
     if (!mod->isOrWillBeEnabled()) return;
 
-    if (!mod->isInternal()) {
+    /*if (!mod->isInternal()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
         CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
-    }
+    }*/
 
     // only thing needs previous setup is spritesheets
     auto& sheets = mod->getMetadata().getSpritesheets();
@@ -994,9 +995,13 @@ static bool isPlatformBinary(std::string_view modID, std::string_view filename) 
 Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     // Unzip .geode file into temp dir
     auto tempDir = dirs::getModRuntimeDir() / metadata.getID();
+    auto resourceDir = dirs::getGeodeResourcesDir() / metadata.getID();
 
     auto datePath = tempDir / "modified-at";
     std::string currentHash = file::readString(datePath).unwrapOr("");
+
+    auto resDatePath = resourceDir / "modified-at";
+    std::string dateHash = file::readString(resDatePath).unwrapOr("");
 
     std::error_code ec;
     auto modifiedDate = std::filesystem::last_write_time(metadata.getPath(), ec);
@@ -1006,7 +1011,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     }
     auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
     auto modifiedHash = std::to_string(modifiedCount.count());
-    if (currentHash == modifiedHash) {
+    if (currentHash == modifiedHash && dateHash == modifiedHash) {
         log::debug("Same hash detected, skipping unzip");
         return Ok();
     }
@@ -1019,6 +1024,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     }
 
     (void)utils::file::createDirectoryAll(tempDir);
+    (void)utils::file::createDirectoryAll(resourceDir);
 
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
     if (!unzip.hasEntry(metadata.getBinaryName())) {
@@ -1027,6 +1033,17 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
+
+    auto tempResDir = tempDir / "resources" / metadata.getID();
+    if(asp::fs::isDirectory(tempResDir)) {
+        // Move tempResDir contents to resDir
+        std::error_code ec;
+        for (auto& entry : std::filesystem::directory_iterator(tempResDir, ec)) {
+            std::error_code ec;
+            std::filesystem::rename(entry.path(), resourceDir / entry.path().filename(), ec);
+        }
+        // TODO: error handling
+    }
 
     // Delete binaries for other platforms since they're pointless
     // The if should never fail, but you never know
@@ -1064,9 +1081,14 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         }
     }
 
-    auto res = file::writeString(datePath, modifiedHash);
+    auto res = file::writeString(resDatePath, modifiedHash);
     if (!res) {
-        log::warn("Failed to write modified date of geode zip, will try to unzip next launch: {}", res.unwrapErr());
+        log::warn("Failed to write modified date of geode resources, will try to unzip next launch: {}", res.unwrapErr());
+    }
+
+    auto res2 = file::writeString(datePath, modifiedHash);
+    if (!res2) {
+        log::warn("Failed to write modified date of geode zip, will try to unzip next launch: {}", res2.unwrapErr());
     }
 
     return Ok();

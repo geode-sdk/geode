@@ -94,7 +94,7 @@ std::filesystem::path Mod::getBinaryPath() const {
 }
 
 std::filesystem::path Mod::getResourcesDir() const {
-    return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
+    return dirs::getGeodeResourcesDir() / this->getID();
 }
 
 matjson::Value Mod::getDependencySettingsFor(std::string_view id) const {

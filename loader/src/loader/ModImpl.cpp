@@ -71,7 +71,7 @@ Result<> Mod::Impl::setup() {
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
-    if (!m_resourcesLoaded && !this->isInternal()) {
+    /*if (!m_resourcesLoaded && !this->isInternal()) {
         auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
 
         // Hi, linux bros!
@@ -79,8 +79,8 @@ Result<> Mod::Impl::setup() {
             CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
         });
 
-        m_resourcesLoaded = true;
-    }
+    }*/
+    m_resourcesLoaded = true;
 
     return Ok();
 }
@@ -753,6 +753,7 @@ void Mod::Impl::setPinned(bool pinned) {
 }
 
 void Mod::Impl::loadNativeModBinaries() {
+    // TODO: move native binaries out of resources
     auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
 
     // binaries on macos are merged, so make the platform binaries merged as well
