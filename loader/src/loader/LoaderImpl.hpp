@@ -58,6 +58,12 @@ namespace geode {
         int m_refreshedModCount = 0;
         int m_lateRefreshedModCount = 0;
 
+        // Non-early mods' .geode files are unzipped in parallel on worker threads once the
+        // early mods are loaded, and they start loading once all of them are. Workers send
+        // their results back through the main thread queue, so these are main thread only
+        std::unordered_map<Mod*, Result<>> m_unzipResults;
+        size_t m_unzipsRunning = 0;
+
         utils::StringMap<std::string> m_launchArgs;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
@@ -108,6 +114,8 @@ namespace geode {
         void loadModGraph(Mod* node, bool early);
         void findProblems();
         void refreshModGraph();
+        void startUnzippingMods();
+        void startLoadingMods();
         void continueRefreshModGraph();
 
         bool isModInstalled(std::string_view id) const;
