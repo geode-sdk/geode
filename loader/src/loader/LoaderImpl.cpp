@@ -559,29 +559,32 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         m_refreshingModCount -= 1;
     };
 
-    Result<> res = Ok();
+    auto res = [this, node, early, unzipFunction]() {
     auto unzipped = m_unzipResults.find(node);
-    if (early) {
-        // Early mods load during startup, before the background unzips start
-        // (startUnzippingMods) and before there are frames to wait across
-        res = unzipFunction();
-    }
-    else if (unzipped == m_unzipResults.end()) {
-        // startUnzippingMods covers every non-early mod that gets this far, and they only
-        // start loading once all of those are done
-        log::error("{} wasn't unzipped in the background, unzipping now", node->getID());
-        res = unzipFunction();
-    }
-    else {
-        res = std::move(unzipped->second);
-        m_unzipResults.erase(unzipped);
-    }
+        if (early) {
+            // Early load mods are eagerly unzipped
+            return unzipFunction();
+        }
+        else if (unzipped == m_unzipResults.end()) {
+            // Normal mods should be unzipped by startUnzippingMods but let's eagerly unzip
+            // if we reach some weird invalid state instead of crashing
+            log::error("{} wasn't unzipped in the background, unzipping now", node->getID());
+            return unzipFunction();
+        }
+        else {
+            auto res = std::move(unzipped->second);
+            m_unzipResults.erase(unzipped);
+            return res;
+        }
+    }();
+
     if (!res) {
         this->addProblem({ LoadProblem::Type::Unknown, node, res.unwrapErr() });
         log::error("Failed to unzip: {}", res.unwrapErr());
         m_refreshingModCount -= 1;
         return;
     }
+
     loadFunction();
 }
 
@@ -911,12 +914,8 @@ void Loader::Impl::continueRefreshModGraph() {
 
     m_timerBegin = std::chrono::high_resolution_clock::now();
 
-    // Load mods back to back for a while, then let a frame happen so the loading screen
-    // keeps updating. Waiting for a frame after every mod meant at least a frame per mod
-    // however fast it loaded (16 ms at 60 FPS, mostly spent idle). Not tied to the frame
-    // rate: the loading screen only needs to look alive (~20 updates a second), and a
-    // budget of one frame at a high or uncapped frame rate would be one mod per frame again
-    constexpr auto FRAME_BUDGET = std::chrono::milliseconds(50);
+    // Keep loading mods until we pass this threshold to keep the progressbar responsive (hopefully)
+    constexpr auto FRAME_BUDGET = std::chrono::milliseconds(20);
     auto deadline = std::chrono::steady_clock::now() + FRAME_BUDGET;
 
     switch (m_loadingState) {
@@ -927,6 +926,7 @@ void Loader::Impl::continueRefreshModGraph() {
                 log::info("Loading mod {} {}", mod->getID(), mod->getVersion());
                 this->loadModGraph(mod, false);
             }
+            // Don't diagnose problems until we load all mods
             if (!m_modsToLoad.empty()) break;
             m_loadingState = LoadingState::Problems;
             [[fallthrough]];
