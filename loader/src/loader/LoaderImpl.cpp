@@ -559,37 +559,61 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         m_refreshingModCount -= 1;
     };
 
+    Result<> res = Ok();
+    auto unzipped = m_unzipResults.find(node);
     if (early) {
-        auto res = unzipFunction();
-        if (!res) {
-            this->addProblem({ LoadProblem::Type::Unknown, node, res.unwrapErr() });
-            log::error("Failed to unzip: {}", res.unwrapErr());
-            m_refreshingModCount -= 1;
-            return;
-        }
-        loadFunction();
+        // Early mods load during startup, before the background unzips start
+        // (startUnzippingMods) and before there are frames to wait across
+        res = unzipFunction();
+    }
+    else if (unzipped == m_unzipResults.end()) {
+        // startUnzippingMods covers every non-early mod that gets this far, and they only
+        // start loading once all of those are done
+        log::error("{} wasn't unzipped in the background, unzipping now", node->getID());
+        res = unzipFunction();
     }
     else {
-        auto nest = log::saveNest();
+        res = std::move(unzipped->second);
+        m_unzipResults.erase(unzipped);
+    }
+    if (!res) {
+        this->addProblem({ LoadProblem::Type::Unknown, node, res.unwrapErr() });
+        log::error("Failed to unzip: {}", res.unwrapErr());
+        m_refreshingModCount -= 1;
+        return;
+    }
+    loadFunction();
+}
 
-        async::runtime().spawnBlocking<void>([=, this]() {
-            log::loadNest(nest);
-            auto res = unzipFunction();
-            this->queueInMainThread([=, this, res = std::move(res)]() {
-                auto prevNest = log::saveNest();
-                log::loadNest(nest);
-                if (!res) {
-                    this->addProblem({ LoadProblem::Type::Unknown, node, res.unwrapErr() });
-                    log::error("Failed to unzip: {}", res.unwrapErr());
-                    m_refreshingModCount -= 1;
-                    log::loadNest(prevNest);
-                    return;
-                }
-                loadFunction();
-                log::loadNest(prevNest);
+void Loader::Impl::startUnzippingMods() {
+    for (auto mod : m_modsToLoad) {
+        // Don't load stuff that isn't compatible 
+        if (!mod->getMetadata().checkGameVersion() || !mod->getMetadata().checkGeodeVersion()) {
+            continue;
+        }
+        m_unzipsRunning += 1;
+        async::runtime().spawnBlocking<void>([this, mod]() {
+            auto res = this->unzipGeodeFile(mod->getMetadata());
+            this->queueInMainThread([this, mod, res = std::move(res)]() mutable {
+                m_unzipResults.emplace(mod, std::move(res));
+                m_unzipsRunning -= 1;
+                if (m_unzipsRunning == 0) this->startLoadingMods();
             });
         });
     }
+    // Nothing to unzip (or everything's for another version): load on the first frame
+    if (m_unzipsRunning == 0) {
+        this->queueInMainThread([this]() {
+            this->startLoadingMods();
+        });
+    }
+}
+
+void Loader::Impl::startLoadingMods() {
+    utils::thread::setName("Main");
+
+    log::info("Loading non-early mods");
+    this->continueRefreshModGraph();
 }
 
 void Loader::Impl::findProblems() {
@@ -821,12 +845,8 @@ void Loader::Impl::refreshModGraph() {
 
     m_loadingState = LoadingState::Mods;
 
-    queueInMainThread([this]() {
-        utils::thread::setName("Main");
-
-        log::info("Loading non-early mods");
-        this->continueRefreshModGraph();
-    });
+    // Unzip every non-early mod, then load them (startLoadingMods) once all are unzipped
+    this->startUnzippingMods();
 }
 
 void Loader::Impl::orderModStack() {
@@ -891,19 +911,29 @@ void Loader::Impl::continueRefreshModGraph() {
 
     m_timerBegin = std::chrono::high_resolution_clock::now();
 
+    // Load mods back to back for a while, then let a frame happen so the loading screen
+    // keeps updating. Waiting for a frame after every mod meant at least a frame per mod
+    // however fast it loaded (16 ms at 60 FPS, mostly spent idle). Not tied to the frame
+    // rate: the loading screen only needs to look alive (~20 updates a second), and a
+    // budget of one frame at a high or uncapped frame rate would be one mod per frame again
+    constexpr auto FRAME_BUDGET = std::chrono::milliseconds(50);
+    auto deadline = std::chrono::steady_clock::now() + FRAME_BUDGET;
+
     switch (m_loadingState) {
         case LoadingState::Mods:
-            if (!m_modsToLoad.empty()) {
+            while (!m_modsToLoad.empty() && std::chrono::steady_clock::now() < deadline) {
                 auto mod = m_modsToLoad.front();
                 m_modsToLoad.pop_front();
                 log::info("Loading mod {} {}", mod->getID(), mod->getVersion());
                 this->loadModGraph(mod, false);
-                break;
             }
+            if (!m_modsToLoad.empty()) break;
             m_loadingState = LoadingState::Problems;
             [[fallthrough]];
 
         case LoadingState::Problems:
+            // Unzips of mods that weren't loaded (e.g. missing dependencies)
+            m_unzipResults.clear();
             log::info("Finding problems");
             {
                 log::NestScope nest;
@@ -983,11 +1013,12 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     }
     auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
     auto modifiedHash = std::to_string(modifiedCount.count());
+    // With the id: non-early mods unzip in parallel, so these lines can end up anywhere
     if (currentHash == modifiedHash) {
-        log::debug("Same hash detected, skipping unzip");
+        log::debug("Same hash detected, skipping unzip of {}", metadata.getID());
         return Ok();
     }
-    log::debug("Hash mismatch detected, unzipping");
+    log::debug("Hash mismatch detected, unzipping {}", metadata.getID());
 
     std::filesystem::remove_all(tempDir, ec);
     if (ec) {
