@@ -914,20 +914,15 @@ void Loader::Impl::continueRefreshModGraph() {
 
     m_timerBegin = std::chrono::high_resolution_clock::now();
 
-    // Keep loading mods until we pass this threshold to keep the progressbar responsive (hopefully)
-    constexpr auto FRAME_BUDGET = std::chrono::milliseconds(20);
-    auto deadline = std::chrono::steady_clock::now() + FRAME_BUDGET;
-
     switch (m_loadingState) {
         case LoadingState::Mods:
-            while (!m_modsToLoad.empty() && std::chrono::steady_clock::now() < deadline) {
+            if (!m_modsToLoad.empty()) {
                 auto mod = m_modsToLoad.front();
                 m_modsToLoad.pop_front();
                 log::info("Loading mod {} {}", mod->getID(), mod->getVersion());
                 this->loadModGraph(mod, false);
+                break;
             }
-            // Don't diagnose problems until we load all mods
-            if (!m_modsToLoad.empty()) break;
             m_loadingState = LoadingState::Problems;
             [[fallthrough]];
 
