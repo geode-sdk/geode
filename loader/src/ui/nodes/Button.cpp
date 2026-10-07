@@ -381,7 +381,7 @@ void Button::onExit() {
 }
 
 bool Button::ccTouchBegan(CCTouch* touch, CCEvent* event) {
-    if (!nodeIsVisible(this)) return false;
+    if (!nodeIsVisible(this) || !m_impl->m_enabled) return false;
 
     if (SharedButtonHandler::containsTouch(this, touch)) {
         SharedButtonHandler::get()->setActiveButton(this);

@@ -363,7 +363,7 @@ void SliderNode::updateFromTouch(CCTouch* touch) {
 }
 
 bool SliderNode::ccTouchBegan(CCTouch* touch, CCEvent* event) {
-    if (!m_impl->m_enabled || !m_impl->m_thumb->isVisible() || m_impl->m_readOnly) return false;
+    if (!nodeIsVisible(this) || !m_impl->m_enabled || !m_impl->m_thumb->isVisible() || m_impl->m_readOnly) return false;
 
     auto location = m_impl->m_thumb->convertToNodeSpace(touch->getLocation());
     auto bounds = CCRect{0.f, 0.f, m_impl->m_thumb->getContentWidth(), m_impl->m_thumb->getContentHeight()};
