@@ -12,6 +12,8 @@
  * Bump arc to fix IPC crashes & memory errors (d12590e, 545b017, 17acdeb)
  * Fix crashes with no crashlog due to a Wine bug (36e4105)
  * Fix `Label::setMaxWidth` not setting the right dirty flag (5473ed4)
+ * Fix `Label::setFitBox` being too eager to wrap lines for short strings (5ff0423)
+ * Fix crashes caused by mods not cleaning up `Label` after texture reload (e92c895)
 
 ## v5.10.1
  * Fix custom settings not loading properly (60f4df1)
