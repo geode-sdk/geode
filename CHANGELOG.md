@@ -1,5 +1,18 @@
 # Geode Changelog
 
+## v5.11.0
+ * Force UTF-8 for character conversion functions instead of system locale, most importantly fixing `fs::path::string()` throwing exceptions (6da9d75)
+ * Add `Modify::getModifyClassName`, `Modify::getAllHooks` (#2181, 7e314fa)
+ * Fix `matjson::Value` not being formattable (e992b2b)
+ * Fix loader/resource downloads raising parse errors on Android (6add223)
+ * Fix `Button` and `SliderNode` swallowing touches when disabled/invisible (#2208)
+ * Fix rare wrapper crash caused by calling a GD/Cocos function from multiple threads (7d9aa0d)
+ * Improve parallelization for mod unzipping (e93da46)
+ * Add fix for `CCDirector` undefined behavior during destruction, causing crashes when a node is autoreleased during game exit (c1ca042)
+ * Bump arc to fix IPC crashes & memory errors (d12590e, 545b017, 17acdeb)
+ * Fix crashes with no crashlog due to a Wine bug (36e4105)
+ * Fix `Label::setMaxWidth` not setting the right dirty flag (5473ed4)
+
 ## v5.10.1
  * Fix custom settings not loading properly (60f4df1)
  * Update `arc` to v1.5.9, improving performance of blocking tasks
