@@ -231,16 +231,10 @@ void ModsStatusNode::updateState() {
 
         case DownloadState::SomeDownloading: {
             size_t totalProgress = 0;
-            // size_t totalDownloading = 0;
 
             for (auto& download : downloads) {
                 auto status = download.getStatus();
-                /*
-                if (auto loading = std::get_if<server::DownloadStatusDownloading>(&status)) {
-                    totalProgress += loading->percentage;
-                    totalDownloading += 1;
-                }
-                */
+                
                 if (std::holds_alternative<server::DownloadStatusDone>(status)) {
                     totalProgress += 100;
                 } else if (auto downloading = std::get_if<server::DownloadStatusDownloading>(&status)) {
