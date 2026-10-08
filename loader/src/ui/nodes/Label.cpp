@@ -461,8 +461,23 @@ private:
 };
 
 $on_game(TexturesUnloaded) {
-    BitmapFont::purgeAllFonts();
+    // BitmapFont::purgeAllFonts();
     SharedIndexBuffer::get().purge();
+}
+
+$on_game(TexturesLoaded) {
+    // a bit hacky, but mods sometimes forget to re-create the label on texture reload,
+    // which would trigger a crash if we purge all fonts
+    for (auto& [name, font] : GetBitmapFontsCache()) {
+        BitmapFont tmp;
+        if (!tmp.initWithFile(name)) {
+            log::warn("Failed to reload bitmap font '{}'", name);
+            continue;
+        }
+
+        tmp.initBakedValues();
+        font = std::move(tmp);
+    }
 }
 
 struct LabelFontBatch {
