@@ -71,6 +71,7 @@ protected:
     void onSettings(CCObject*);
     void onLink(CCObject*);
     void onSupport(CCObject*);
+    void onCommunity(CCObject*);
     void onModtober24Info(CCObject*);
     void onModtober25Info(CCObject*);
 
