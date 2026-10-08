@@ -23,7 +23,8 @@ namespace geode {
         /// @param font Pointer to the bitmap font to purge
         static void purgeFont(BitmapFont const* font);
 
-        /// Purges the entire font cache. Called automatically on textures reload.
+        /// Purges the entire font cache.
+        /// @note Make sure there are no alive labels, as this can cause crashes.
         static void purgeAllFonts();
 
         using KerningPair = std::pair<uint32_t, uint32_t>;
@@ -290,8 +291,8 @@ namespace geode {
         /// Disables automatic content size scaling.
         void removeLabelSizeLimit() noexcept;
 
-       /// Acts similarly to setLimitLabelSize, except instead of letterboxing it attempts to
-       /// automatically pick the best line wrap width, filling more area with largest possible scale.
+        /// Acts similarly to setLimitLabelSize, except instead of letterboxing it attempts to
+        /// automatically pick the best line wrap width, filling more area with largest possible scale.
         void setFitBox(cocos2d::CCSize size, float maxScale = 1.f) noexcept;
         void disableFitBox() noexcept;
 
