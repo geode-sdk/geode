@@ -1512,37 +1512,62 @@ struct Label::Impl {
             return;
         }
 
-        float lo = 1.f;
-        float hi = std::max(naturalWidth, lo);
-
-        float bestWrap = hi;
-        float bestScale = -1.f;
         float lineHeight = m_fonts.empty() ? 0.f : m_fonts.front()->getCommonHeightScaled() + m_extraLineSpacing;
 
         m_lineBreak = true;
 
         constexpr auto ITERATIONS = 14;
+        constexpr float FLOAT_MAX = std::numeric_limits<float>::max();
+        constexpr float FLOAT_MIN = std::numeric_limits<float>::min();
+        constexpr float MIN_WIDTH_RATIO = 0.95f;
+
+        auto eval = [&](float wrap, float& outMinW, float& outMaxW, float& rawW, float& rawH) {
+            m_maxLineWidth = wrap;
+            this->breakLines();
+
+            float maxW = 0.f;
+            float minW = FLOAT_MAX;
+            for (auto const& line : m_lines) {
+                maxW = std::max(maxW, line.width);
+                minW = std::min(minW, line.width);
+            }
+
+            outMinW = minW;
+            outMaxW = maxW;
+
+            float h = lineHeight * m_lines.size();
+            rawW = m_limitSize.width  > 0.f && maxW > 0.f ? m_limitSize.width / maxW : FLOAT_MAX;
+            rawH = m_limitSize.height > 0.f && h > 0.f ? m_limitSize.height / h : FLOAT_MAX;
+
+            return std::min({rawW, rawH, m_defaultScale});
+        };
+
+        float minW = 0.f;
+        float maxW = 0.f;
+        float widthRatio = 0.f;
+        float heightRatio = 0.f;
+
+        float bestWrap = std::max(naturalWidth, 1.f);
+        float bestScale = eval(bestWrap, minW, maxW, widthRatio, heightRatio);
+        float bestBalance = minW;
+
+        float lo = 1.f;
+        float hi = bestWrap;
 
         for (int i = 0; i < ITERATIONS; ++i) {
             float mid = (lo + hi) * 0.5f;
-            m_maxLineWidth = mid;
-            this->breakLines();
+            float scale = eval(mid, minW, maxW, widthRatio, heightRatio);
 
-            float w = 0.f;
-            for (auto const& line : m_lines) w = std::max(w, line.width);
-            float h = lineHeight * m_lines.size();
-
-            float rawWidthRatio = (m_limitSize.width > 0.f && w > 0.f) ? m_limitSize.width / w : std::numeric_limits<float>::max();
-            float rawHeightRatio = (m_limitSize.height > 0.f && h > 0.f) ? m_limitSize.height / h : std::numeric_limits<float>::max();
-
-            float widthRatio = std::min(rawWidthRatio, m_defaultScale);
-            float heightRatio = std::min(rawHeightRatio, m_defaultScale);
-
-            float scale = std::min(widthRatio, heightRatio);
+            // make sure the label fills at least 95% of the available width, so it doesn't wrap too early
+            bool withinTolerance = scale >= bestScale * MIN_WIDTH_RATIO;
 
             if (scale > bestScale) {
                 bestScale = scale;
                 bestWrap = mid;
+                bestBalance = minW;
+            } else if (withinTolerance && minW > bestBalance) {
+                bestWrap = mid;
+                bestBalance = minW;
             }
 
             if (widthRatio > heightRatio) {
@@ -1555,7 +1580,16 @@ struct Label::Impl {
         m_maxLineWidth = bestWrap;
         this->breakLines();
 
-        m_label->setScale(bestScale);
+        float h = lineHeight * m_lines.size();
+        float finalW = 0.f;
+        for (auto const& line : m_lines) {
+            finalW = std::max(finalW, line.width);
+        }
+
+        float finalWidthRatio = m_limitSize.width  > 0.f && finalW > 0.f ? m_limitSize.width / finalW : FLOAT_MAX;
+        float finalHeightRatio = m_limitSize.height > 0.f && h > 0.f ? m_limitSize.height / h : FLOAT_MAX;
+
+        m_label->setScale(std::min({finalWidthRatio, finalHeightRatio, m_defaultScale}));
     }
 
     void validate() {
