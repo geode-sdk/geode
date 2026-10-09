@@ -1,0 +1,69 @@
+name: Lint codebase
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+    - '**'              # every branch
+    - '!no-build-**'    # unless marked as no-build
+
+env:
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm-cache
+  base-configure-command: >-
+    cmake -B build
+    -DGEODE_DISABLE_PRECOMPILED_HEADERS=ON
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo
+    -DGEODE_CODEGEN_CMAKE_ARGS="-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++;-G Ninja"
+    -G Ninja
+
+jobs:
+  lint-android-64:
+    name: Lint Android (64-bit)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Ninja
+      uses: ./.github/actions/setup-ninja
+      with:
+        host: linux
+
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
+      with:
+        host: linux
+        target: android64
+        use-ccache: false 
+
+    - name: Install Clang
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget lsb-release software-properties-common gnupg
+
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 23 all
+
+    - name: Add LLVM 23 to path
+      run: echo "/usr/lib/llvm-23/bin" >> $GITHUB_PATH
+
+    - name: Setup CLI
+      uses: geode-sdk/cli/.github/actions/setup@main
+
+    - name: Configure
+      run: >
+        ${{ env.base-configure-command }}
+        -DCMAKE_TOOLCHAIN_FILE=/usr/local/lib/android/sdk/ndk/29.0.14206865/build/cmake/android.toolchain.cmake
+        -DCMAKE_C_COMPILER=clang
+        -DCMAKE_CXX_COMPILER=clang++
+        -DANDROID_PLATFORM=android-23
+        -DANDROID_STL=c++_shared
+        -DANDROID_ABI=arm64-v8a
+
+    - name: Lint
+      run: >
+        run-clang-tidy -p build -j"$(nproc)" -quiet 'loader/.*\.cpp'

@@ -1,0 +1,123 @@
+Checks: |
+  -*,
+
+  # correctness #
+  clang-analyzer-*,
+  -clang-analyzer-security.FloatLoopCounter,
+  -clang-analyzer-security.ArrayBound, # fires in fmt, for some reason ignoring fmt headers doesnt seem to work
+  -clang-analyzer-optin.mpi.*,
+  -clang-analyzer-optin.osx.*,
+  -clang-analyzer-optin.performance.*,
+  -clang-analyzer-optin.portability.UnixAPI,
+  -clang-analyzer-optin.taint.*,
+
+  # bugs #
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-signed-bitwise,
+  -bugprone-exception-escape,
+  -bugprone-crtp-constructor-accessibility,
+  -bugprone-derived-method-shadowing-base-method,
+  # often not useful
+  -bugprone-macro-parentheses,
+
+  # performance #
+  performance-*,
+  -performance-unnecessary-value-param,
+  -performance-enum-size,
+  -performance-no-int-to-ptr,
+
+  # c++ core guidlines #
+  # cppcoreguidelines-missing-std-forward, ## too many false positives
+  cppcoreguidelines-slicing,
+  cppcoreguidelines-avoid-capturing-lambda-coroutines,
+  cppcoreguidelines-avoid-reference-coroutine-parameters,
+  cppcoreguidelines-no-suspend-with-lock,
+  cppcoreguidelines-misleading-capture-default-by-value,
+  cppcoreguidelines-interfaces-global-init,
+  # cppcoreguidelines-narrowing-conversions, ## annoying
+
+  # misc stuff #
+  misc-definitions-in-headers,
+  misc-misleading-bidirectional,
+  misc-misplaced-const,
+  misc-new-delete-overloads,
+  misc-non-copyable-objects,
+  misc-predictable-rand,
+  misc-redundant-expression,
+  misc-throw-by-value-catch-by-reference,
+  misc-uniqueptr-reset-release,
+  misc-unused-alias-decls,
+  misc-unused-using-decls,
+  misc-confusable-identifiers,
+  portability-std-allocator-const, # const elements in collections
+  google-runtime-operator,
+
+  # modernize code #
+  modernize-avoid-bind,
+  modernize-concat-nested-namespaces,
+  modernize-deprecated-headers,
+  modernize-deprecated-ios-base-aliases,
+  modernize-loop-convert,
+  modernize-use-noexcept,
+  modernize-use-using,
+  modernize-use-bool-literals,
+  modernize-use-default-member-init,
+  modernize-use-transparent-functors,
+  modernize-use-uncaught-exceptions,
+  modernize-make-unique,
+  modernize-make-shared,
+  modernize-pass-by-value,
+  modernize-raw-string-literal,
+  modernize-redundant-void-arg,
+
+
+  # code readability checks #
+  readability-ambiguous-smartptr-reset-call,
+  readability-const-return-type,
+  readability-container-contains,
+  readability-delete-null-pointer,
+  readability-deleted-default,
+  readability-misleading-indentation,
+  readability-misplaced-array-index,
+  readability-non-const-parameter,
+  readability-redundant-casting,
+  readability-redundant-control-flow,
+  readability-redundant-member-init,
+  readability-redundant-smartptr-get,
+  readability-redundant-string-cstr,
+  readability-redundant-string-init,
+  readability-reference-to-constructed-temporary,
+  readability-simplify-boolean-expr,
+  readability-static-definition-in-anonymous-namespace,
+  readability-string-compare,
+  readability-uniqueptr-delete-release,
+
+  # TODO (v6): these are good but require abi break or massive changes to fix rn
+  -performance-noexcept-move-constructor,
+  -misc-header-include-cycle,
+  -modernize-use-override,
+  -modernize-use-nullptr,
+  -bugprone-unchecked-optional-access, ## this one maybe dont
+  -bugprone-branch-clone, ## often harmless
+
+HeaderFilterRegex: '.*/loader/.*'
+ExcludeHeaderFilterRegex: '.*/Geode/(c\+\+stl/gnustl|cocos|fmod|external)/.*'
+
+FormatStyle: file
+
+CheckOptions:
+  - key: performance-move-const-arg.CheckTriviallyCopyableMove
+    value: false
+  # Prevents marking forwarding refs as erroneous
+  - key: cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreNonDeducedTemplateTypes
+    value: true
+  # prevents marking `n << 1` due to '1' being signed
+  - key: bugprone-signed-bitwise.IgnorePositiveIntegerLiterals
+    value: true
+  # this is just silly
+  - key: modernize-use-override.IgnoreDestructors
+    value: true
+  - key: modernize-use-override.AllowVirtualAndOverride
+    value: true
