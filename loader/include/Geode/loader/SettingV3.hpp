@@ -846,14 +846,14 @@ namespace geode {
         using Ty = typename SettingTypeForValueType<T>::SettingType;
         using Ret = utils::function::Return<decltype(callback)>;
         if constexpr (std::is_same_v<Ret, void>) {
-            return SettingChangedEventV3(mod, std::move(settingKey)).listen([callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
+            return SettingChangedEventV3(mod, std::move(settingKey)).listen([callback = std::forward<Callback>(callback)](std::shared_ptr<SettingV3> setting) {
                 if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
                     return callback(ty->getValue());
                 }
             }).leak();
         }
         else {
-            return SettingChangedEventV3(mod, std::move(settingKey)).listen([callback = std::move(callback)](std::shared_ptr<SettingV3> setting) {
+            return SettingChangedEventV3(mod, std::move(settingKey)).listen([callback = std::forward<Callback>(callback)](std::shared_ptr<SettingV3> setting) {
                 if (auto ty = geode::cast::typeinfo_pointer_cast<Ty>(setting)) {
                     return callback(ty->getValue());
                 }
@@ -867,7 +867,7 @@ namespace geode {
     template <class Callback>
     requires std::is_invocable_v<Callback, std::string_view, std::shared_ptr<SettingV3>>
     ListenerHandle* listenForAllSettingChanges(Callback&& callback, Mod* mod = getMod()) {
-        return SettingChangedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, std::shared_ptr<SettingV3> setting) {
+        return SettingChangedEventV3().listen([callback = std::forward<Callback>(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, std::shared_ptr<SettingV3> setting) {
             if (mod && getModID(mod) != modID) {
                 return;
             }
@@ -878,13 +878,13 @@ namespace geode {
     template <class Callback>
     requires std::is_invocable_v<Callback, Keybind const&, bool, bool, double>
     ListenerHandle* listenForKeybindSettingPresses(std::string settingKey, Callback&& callback, Mod* mod = getMod()) {
-        return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::move(callback)).leak();
+        return KeybindSettingPressedEventV3(mod, std::move(settingKey)).listen(std::forward<Callback>(callback)).leak();
     }
 
     template <class Callback>
     requires std::is_invocable_v<Callback, std::string_view, Keybind const&, bool, bool, double>
     ListenerHandle* listenForAllKeybindSettingPresses(Callback&& callback, Mod* mod = getMod()) {
-        return KeybindSettingPressedEventV3().listen([callback = std::move(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, Keybind const& keybind, bool down, bool repeat, double timestamp) {
+        return KeybindSettingPressedEventV3().listen([callback = std::forward<Callback>(callback), mod = std::move(mod)](std::string_view modID, std::string_view key, Keybind const& keybind, bool down, bool repeat, double timestamp) {
             if (mod && getModID(mod) != modID) {
                 return;
             }

@@ -261,7 +261,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
                 }
 
                 m_pinToggle = CCMenuItemToggler::create(
-                    pinOff, pinOn, 
+                    pinOff, pinOn,
                     this, menu_selector(ModItem::onPin)
                 );
                 m_pinToggle->setScale(0.75f);
@@ -513,8 +513,8 @@ void ModItem::updateState() {
         }
     }
 
-    // Show the "Updated at" label if the installed mods list is being sorted 
-    // by "Recently installed" (to let people know when they've installed or 
+    // Show the "Updated at" label if the installed mods list is being sorted
+    // by "Recently installed" (to let people know when they've installed or
     // updated the mod)
     // Hide the enable and pin toggles to make space for install times :3
     // (Pinning doesn't make sense for that sorting anyway)
@@ -679,7 +679,7 @@ void ModItem::updateState() {
         if (update.update) {
             m_updateBtn->setVisible(true);
 
-            std::string updateString = "";
+            std::string updateString;
             updateString += m_source.getMetadata().getVersion().toVString() + " -> " + update.update->version.toVString();
             m_versionLabel->setString(updateString.c_str());
             m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));

@@ -43,8 +43,6 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
     m_impl->m_color = color;
     m_impl->m_originalColor = color;
 
-    auto winSize = CCDirector::sharedDirector()->getWinSize();
-
     this->setTitle("Select Color");
 
     auto bg = NineSlice::create(

@@ -73,7 +73,7 @@ public:
         if (fullType.starts_with("custom:")) {
             auto full = std::string(fullType.substr(fullType.find(':') + 1));
             // If there's no mod ID in the type name, use the current mod's ID
-            if (full.find('/') == std::string_view::npos) {
+            if (!full.contains('/')) {
                 full = fmt::format("{}/{}", modID, full);
             }
             auto it = m_types.find(full);
@@ -93,14 +93,14 @@ public:
     }
 };
 
-// This is used for migrating old keybind configurations from Custom Keybinds 
+// This is used for migrating old keybind configurations from Custom Keybinds
 // over to the new Keybind settings system
 class OldCKSaveData final {
 private:
     matjson::Value m_data;
 
     // Load the savedata of Custom Keybinds from disk
-    // This doesn't (and shouldn't) depend on Custom Keybinds being loaded or 
+    // This doesn't (and shouldn't) depend on Custom Keybinds being loaded or
     // even installed
     OldCKSaveData()
       : m_data(file::readJson(
@@ -125,8 +125,8 @@ private:
                 }
             } break;
 
-            // Unknown devices are theoretically possible but I don't think 
-            // anyone ever did those. Regardless, if they did, they're so rare 
+            // Unknown devices are theoretically possible but I don't think
+            // anyone ever did those. Regardless, if they did, they're so rare
             // we can expect users to just manually migrate their bindings
             default: return KEY_None;
         }
@@ -140,7 +140,7 @@ public:
 
     std::optional<std::vector<Keybind>> getOldValue(std::string_view key) {
         if (auto value = m_data.get(key)) {
-            // Using JSON validation so the code is cleaner, we don't 
+            // Using JSON validation so the code is cleaner, we don't
             // really care if the parsing is succesful or not though
             auto root = checkJson(std::move(value).unwrap(), std::string(key));
             auto binds = root.needs("binds");
@@ -317,7 +317,7 @@ Result<> ModSettingsManager::load(matjson::Value const& json) {
         m_impl->savedata = json;
         for (auto const& [key, _] : json) {
             if (!m_impl->loadSettingValueFromSave(key)) {
-                // If this is a keybind setting and it hasn't yet been saved, 
+                // If this is a keybind setting and it hasn't yet been saved,
                 // then try migrating it
                 if (auto kb = typeinfo_pointer_cast<KeybindSettingV3>(this->get(key))) {
                     if (auto migrateFrom = kb->getMigrateFrom()) {

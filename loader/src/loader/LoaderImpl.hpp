@@ -40,8 +40,8 @@ namespace geode {
 
         LoadingState m_loadingState = LoadingState::None;
 
-        std::vector<geode::Function<void(void)>> m_mainThreadQueue;
-        std::vector<geode::Function<void(void)>> m_mainThreadQueueExec; // see comments in loaderimpl.cpp for the purpose
+        std::vector<geode::Function<void()>> m_mainThreadQueue;
+        std::vector<geode::Function<void()>> m_mainThreadQueueExec; // see comments in loaderimpl.cpp for the purpose
         mutable std::mutex m_mainThreadMutex;
         std::vector<std::pair<Hook*, Mod*>> m_uninitializedHooks;
         bool m_readyToHook = false;

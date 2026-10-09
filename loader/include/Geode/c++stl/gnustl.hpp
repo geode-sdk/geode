@@ -52,7 +52,10 @@ namespace gd {
         }
 
         _bit_reference& operator=(_bit_reference const& x) {
-            return *this = bool(x);
+            if (this != &x) {
+                return *this = bool(x);
+            }
+            return *this;
         }
 
         bool operator==(_bit_reference const& x) const {
@@ -89,7 +92,7 @@ namespace gd {
         }
 
         bool operator!=(_bit_iterator const& b) {
-            return !(m_bitptr == b.m_bitptr && m_offset == b.m_offset);
+            return m_bitptr != b.m_bitptr || m_offset != b.m_offset;
         }
     };
 

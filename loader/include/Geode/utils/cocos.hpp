@@ -340,7 +340,9 @@ namespace geode {
         }
 
         Ref<T>& operator=(Ref<T> const& other) {
-            this->swap(other.data());
+            if (this != &other) {
+                this->swap(other.data());
+            }
             return *this;
         }
 
@@ -446,7 +448,7 @@ namespace geode {
 
         std::shared_ptr<WeakRefController> m_controller;
 
-        WeakRef(std::shared_ptr<WeakRefController> obj) : m_controller(obj) {}
+        WeakRef(std::shared_ptr<WeakRefController> obj) : m_controller(std::move(obj)) {}
 
         friend class std::hash<WeakRef<T>>;
 

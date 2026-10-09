@@ -559,7 +559,7 @@ namespace geode::comm {
         bool m_active = false;
 
         ListenerHandle(std::shared_ptr<BaseFilter> filter, ReceiverHandle handle, RemoverType* remover, bool active = true) noexcept
-            : m_filter(std::move(filter)), m_handle(handle), m_remover(remover), m_active(active) {}
+            : m_filter(filter), m_handle(handle), m_remover(remover), m_active(active) {}
 
         ListenerHandle(std::weak_ptr<BaseFilter> filter, ReceiverHandle handle, RemoverType* remover, bool active = true) noexcept
             : m_filter(std::move(filter)), m_handle(handle), m_remover(remover), m_active(active) {}

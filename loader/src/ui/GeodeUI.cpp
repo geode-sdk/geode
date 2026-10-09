@@ -29,7 +29,7 @@ protected:
     async::TaskHolder<Result<server::ServerModMetadata, server::ServerError>> m_listener;
     async::TaskHolder<Result<server::ServerModVersion, server::ServerError>> m_versionListener;
 
-    std::optional<server::ServerModMetadata> m_loadedMod{};
+    std::optional<server::ServerModMetadata> m_loadedMod;
 
     bool init(std::string id) {
         if (!Popup::init(180.f, 100.f, "square01_001.png"))

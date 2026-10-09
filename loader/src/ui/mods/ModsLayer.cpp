@@ -319,7 +319,6 @@ bool ModsLayer::init() {
     auto winSize = CCDirector::get()->getWinSize();
     const bool isSafeMode = LoaderImpl::get()->isSafeMode();
 
-    const bool geodeTheme = isGeodeTheme();
     if (!isSafeMode) {
         auto listener = NodeProvidingEvent("geode-background"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
             if (nodeOut) return; // someone overrode it already
