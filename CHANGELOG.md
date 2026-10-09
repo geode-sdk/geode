@@ -9,11 +9,15 @@
  * Fix rare wrapper crash caused by calling a GD/Cocos function from multiple threads (7d9aa0d)
  * Improve parallelization for mod unzipping (e93da46)
  * Add fix for `CCDirector` undefined behavior during destruction, causing crashes when a node is autoreleased during game exit (c1ca042)
+ * Add formatter for `geode::Color` (#2199)
+ * Add `CCFileUtils::getTexturePackCount` (ce35a1f)
  * Bump arc to fix IPC crashes & memory errors (d12590e, 545b017, 17acdeb)
  * Fix crashes with no crashlog due to a Wine bug (36e4105)
+ * Fix progress bar for mod downloads showing progress of a single mod instead of the entire download (#2182)
  * Fix `Label::setMaxWidth` not setting the right dirty flag (5473ed4)
  * Fix `Label::setFitBox` being too eager to wrap lines for short strings (5ff0423)
  * Fix crashes caused by mods not cleaning up `Label` after texture reload (e92c895)
+ * Update libcurl and other network dependencies, enable ECH for web requests (f3afcf7)
 
 ## v5.10.1
  * Fix custom settings not loading properly (60f4df1)
