@@ -5,6 +5,7 @@ Checks: |
   clang-analyzer-*,
   -clang-analyzer-security.FloatLoopCounter,
   -clang-analyzer-security.ArrayBound, # fires in fmt, for some reason ignoring fmt headers doesnt seem to work
+  -clang-analyzer-cplusplus.NewDeleteLeaks, ## ListenerHandle::leak
   -clang-analyzer-optin.mpi.*,
   -clang-analyzer-optin.osx.*,
   -clang-analyzer-optin.performance.*,
@@ -19,6 +20,7 @@ Checks: |
   -bugprone-exception-escape,
   -bugprone-crtp-constructor-accessibility,
   -bugprone-derived-method-shadowing-base-method,
+  -bugprone-throwing-static-initialization,
   # often not useful
   -bugprone-macro-parentheses,
 
@@ -101,6 +103,7 @@ Checks: |
   -modernize-use-nullptr,
   -bugprone-unchecked-optional-access, ## this one maybe dont
   -bugprone-branch-clone, ## often harmless
+  -readability-redundant-member-init, ## CCPoint{}
 
 HeaderFilterRegex: '.*/loader/.*'
 ExcludeHeaderFilterRegex: '.*/Geode/(c\+\+stl/gnustl|cocos|fmod|external)/.*'
