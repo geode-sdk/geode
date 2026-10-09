@@ -33,7 +33,6 @@ Checks: |
   # c++ core guidlines #
   # cppcoreguidelines-missing-std-forward, ## too many false positives
   cppcoreguidelines-slicing,
-  cppcoreguidelines-avoid-capturing-lambda-coroutines,
   cppcoreguidelines-avoid-reference-coroutine-parameters,
   cppcoreguidelines-no-suspend-with-lock,
   cppcoreguidelines-misleading-capture-default-by-value,
