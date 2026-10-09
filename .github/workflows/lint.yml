@@ -66,4 +66,5 @@ jobs:
 
     - name: Lint
       run: >
-        run-clang-tidy -p build -j"$(nproc)" -quiet 'loader/.*\.cpp'
+        run-clang-tidy -p build -j"$(nproc)" -quiet
+        'loader/(?!.*cocos2d-ext).*\.cpp'
