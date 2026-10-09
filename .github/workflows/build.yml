@@ -89,7 +89,7 @@ jobs:
         key: xwin-win-v1-${{ hashFiles('.xwin-cache/**/*') }}
 
     - name: Download Windows headers
-      run: ./xwin --arch x86_64 --sdk-version 10.0.22621 --accept-license splat --include-debug-libs
+      run: ./xwin --arch x86_64 --sdk-version 10.0.26100 --accept-license splat --include-debug-libs
       if: steps.xwin-cache.outputs.cache-hit != 'true'
 
     - name: Download clang-msvc-sdk toolchain
