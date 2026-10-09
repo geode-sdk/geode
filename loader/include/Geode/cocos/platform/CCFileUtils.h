@@ -303,6 +303,12 @@ public:
      * @note Geode addition
      */
     void GEODE_DLL updatePaths();
+    /**
+     * Returns how many texture packs are currently loaded
+     * @return Number of texture packs
+     * @note Geode addition
+     */
+    size_t GEODE_DLL getTexturePackCount();
 
     /**
       * Adds a path to search paths.
