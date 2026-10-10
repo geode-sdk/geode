@@ -134,6 +134,9 @@ namespace server {
         Downloads,
         RecentlyUpdated,
         RecentlyPublished,
+        Oldest,
+        Name,
+        NameReverse,
     };
 
     static const char* sortToString(ModsSort sorting);
