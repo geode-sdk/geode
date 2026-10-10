@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v5.11.1
+ * Revert Force UTF-8 for character conversion functions instead of system locale, most importantly fixing `fs::path::string()` throwing exceptions (ac72778)
+
 ## v5.11.0
  * Force UTF-8 for character conversion functions instead of system locale, most importantly fixing `fs::path::string()` throwing exceptions (6da9d75)
  * Add `Modify::getModifyClassName`, `Modify::getAllHooks` (#2181, 7e314fa)
