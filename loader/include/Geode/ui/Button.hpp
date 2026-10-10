@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/utils/ZStringView.hpp>
+#include <Geode/utils/function.hpp>
 #include <cocos2d.h>
 
 namespace geode {
@@ -108,7 +109,7 @@ namespace geode {
         int getTouchPriority();
 
         /**
-         * Set the touch multiplier, which increases the distance from the 
+         * Set the touch multiplier, which increases the distance from the
          * center that the button can be pressed (default is 1)
          */
         void setTouchMultiplier(float multipler);
@@ -145,7 +146,7 @@ namespace geode {
          */
         virtual void setEnabled(bool enabled);
         virtual bool isEnabled();
-        
+
         /**
          * Get the selected state of the button
          */
@@ -208,7 +209,7 @@ namespace geode {
          * Unregister a button (must be called in onExit)
          */
         void unregisterButton(Button* button);
-        
+
         /**
          * Pass moves from ccTouchMoved to all buttons sharing a parent
          */
