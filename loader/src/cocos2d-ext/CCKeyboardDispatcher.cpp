@@ -40,7 +40,7 @@ void CCKeyboardDispatcher::addDelegate(CCKeyboardDelegate* pDelegate)
 
     if (m_bLocked)
     {
-        ccCArrayAppendValue(m_pUnknown3c, pDelegate);
+        ccCArrayAppendValue(m_pHandlersToAdd, pDelegate);
         m_bToAdd = true;
     }
     else
@@ -156,11 +156,11 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
     m_bToAdd = false;
 
     void* delegate;
-    CCARRAYDATA_FOREACH(m_pUnknown3c, delegate)
+    CCARRAYDATA_FOREACH(m_pHandlersToAdd, delegate)
     {
         forceAddDelegate(static_cast<CCKeyboardDelegate*>(delegate));
     }
-    ccCArrayRemoveAllValues(m_pUnknown3c);
+    ccCArrayRemoveAllValues(m_pHandlersToAdd);
 
     return true;
 }
