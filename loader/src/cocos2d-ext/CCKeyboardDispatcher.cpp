@@ -24,13 +24,13 @@ CCKeyboardDispatcher::CCKeyboardDispatcher()
 CCKeyboardDispatcher::~CCKeyboardDispatcher()
 {
     CC_SAFE_RELEASE(m_pDelegates);
-    if (m_pUnknown3c)
+    if (m_pHandlersToAdd)
     {
-        ccCArrayFree(m_pUnknown3c);
+        ccCArrayFree(m_pHandlersToAdd);
     }
-    if (m_pUnknown40)
+    if (m_pHandlersToRemove)
     {
-        ccCArrayFree(m_pUnknown40);
+        ccCArrayFree(m_pHandlersToRemove);
     }
 }
 
@@ -38,10 +38,10 @@ void CCKeyboardDispatcher::addDelegate(CCKeyboardDelegate* pDelegate)
 {
     if (!pDelegate) return;
 
-    if (m_bUnknown38)
+    if (m_bLocked)
     {
         ccCArrayAppendValue(m_pUnknown3c, pDelegate);
-        m_bUnknown39 = true;
+        m_bToAdd = true;
     }
     else
     {
@@ -53,10 +53,10 @@ void CCKeyboardDispatcher::removeDelegate(CCKeyboardDelegate* pDelegate)
 {
     if (!pDelegate) return;
 
-    if (m_bUnknown38)
+    if (m_bLocked)
     {
-        ccCArrayAppendValue(m_pUnknown40, pDelegate);
-        m_bUnknown3a = true;
+        ccCArrayAppendValue(m_pHandlersToRemove, pDelegate);
+        m_bToRemove = true;
     }
     else
     {
@@ -121,7 +121,7 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
             break;
     }
 
-    m_bUnknown38 = true;
+    m_bLocked = true;
 
     for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pDelegates))
     {
@@ -136,24 +136,24 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
         }
         break;
     }
-    m_bUnknown38 = false;
+    m_bLocked = false;
 
-    if (m_bUnknown3a)
+    if (m_bToRemove)
     {
-        m_bUnknown3a = false;
+        m_bToRemove = false;
 
         void* delegate;
-        CCARRAYDATA_FOREACH(m_pUnknown40, delegate)
+        CCARRAYDATA_FOREACH(m_pHandlersToRemove, delegate)
         {
             forceRemoveDelegate(static_cast<CCKeyboardDelegate*>(delegate));
         }
-        ccCArrayRemoveAllValues(m_pUnknown40);
+        ccCArrayRemoveAllValues(m_pHandlersToRemove);
     }
 
-    if (!m_bUnknown39)
+    if (!m_bToAdd)
         return true;
 
-    m_bUnknown39 = false;
+    m_bToAdd = false;
 
     void* delegate;
     CCARRAYDATA_FOREACH(m_pUnknown3c, delegate)
