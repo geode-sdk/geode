@@ -706,16 +706,18 @@ namespace geode::cocos {
      * Create a CCScene from a layer and switch to it with the default fade
      * transition
      * @param layer Layer to create a scene from
+     * @param replace Whether to replace the current scene
      * @returns Created scene (not the fade transition)
      */
-    GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer);
+    GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer, bool replace = false);
 
     /**
      * Switches to an existing CCScene using the default fade transition
      * @param scene Scene to switch to
+     * @param replace Whether to replace the current scene
      * @returns Created scene (identical to the argument)
      */
-    GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCScene* scene);
+    GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCScene* scene, bool replace = false);
 
     using CreateLayerFunc = geode::Function<cocos2d::CCLayer*()>;
     using CreateSceneFunc = geode::Function<cocos2d::CCScene*()>;
