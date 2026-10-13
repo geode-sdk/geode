@@ -6,17 +6,17 @@ using namespace cocos2d;
 #ifdef GEODE_IS_IOS
 
 CCKeyboardDispatcher::CCKeyboardDispatcher()
-    : m_bUnknown38(false),
-    m_bUnknown39(false),
-    m_bUnknown3a(false),
+    : m_bLocked(false),
+    m_bToAdd(false),
+    m_bToRemove(false),
     m_bShiftPressed(false),
     m_bControlPressed(false),
     m_bAltPressed(false),
     m_bCommandPressed(false),
     m_bBlockRepeat(false),
     m_pDelegates(CCArray::create()),
-    m_pUnknown3c(ccCArrayNew(8)),
-    m_pUnknown40(ccCArrayNew(8))
+    m_pHandlersToAdd(ccCArrayNew(8)),
+    m_pHandlersToRemove(ccCArrayNew(8))
 {
     m_pDelegates->retain();
 }
