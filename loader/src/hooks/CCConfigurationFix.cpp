@@ -4,6 +4,8 @@
 using namespace geode::prelude;
 
 class $modify(CCConfigurationFix, CCConfiguration) {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCConfiguration fix")
+
     void gatherGPUInfo() {
         CCConfiguration::gatherGPUInfo();
 
