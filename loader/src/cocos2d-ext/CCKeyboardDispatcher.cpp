@@ -14,16 +14,16 @@ CCKeyboardDispatcher::CCKeyboardDispatcher()
     m_bAltPressed(false),
     m_bCommandPressed(false),
     m_bBlockRepeat(false),
-    m_pDelegates(CCArray::create()),
+    m_pHandlers(CCArray::create()),
     m_pHandlersToAdd(ccCArrayNew(8)),
     m_pHandlersToRemove(ccCArrayNew(8))
 {
-    m_pDelegates->retain();
+    m_pHandlers->retain();
 }
 
 CCKeyboardDispatcher::~CCKeyboardDispatcher()
 {
-    CC_SAFE_RELEASE(m_pDelegates);
+    CC_SAFE_RELEASE(m_pHandlers);
     if (m_pHandlersToAdd)
     {
         ccCArrayFree(m_pHandlersToAdd);
@@ -68,7 +68,7 @@ void CCKeyboardDispatcher::forceAddDelegate(CCKeyboardDelegate* pDelegate)
 {
     if (auto handler = CCKeyboardHandler::handlerWithDelegate(pDelegate))
     {
-        m_pDelegates->addObject(handler);
+        m_pHandlers->addObject(handler);
     }
 }
 
@@ -76,9 +76,9 @@ void CCKeyboardDispatcher::forceRemoveDelegate(CCKeyboardDelegate* pDelegate)
 {
     if (!pDelegate) return;
 
-    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pDelegates)) {
+    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pHandlers)) {
         if (pDelegate == handler->getDelegate()) {
-            m_pDelegates->removeObject(handler, true);
+            m_pHandlers->removeObject(handler, true);
         }
     }
 }
@@ -123,7 +123,7 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
 
     m_bLocked = true;
 
-    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pDelegates))
+    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pHandlers))
     {
         auto delegate = handler->getDelegate();
         if (isKeyDown)
