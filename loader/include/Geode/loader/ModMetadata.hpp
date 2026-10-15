@@ -4,6 +4,7 @@
 #include <Geode/utils/ZStringView.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
+#include <unordered_set>
 #include <filesystem>
 #include <matjson.hpp>
 #include <memory>

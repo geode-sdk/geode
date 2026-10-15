@@ -50,10 +50,10 @@ public:
     bool init();
     virtual void addSearchPath(const char* path);
     virtual void removeSearchPath(const char* path);
-    virtual gd::string getWritablePath();
-    virtual gd::string getWritablePath2();
-    virtual bool isFileExist(const gd::string& strFilePath);
-    virtual bool isAbsolutePath(const gd::string& strPath);
+    virtual std::string getWritablePath();
+    virtual std::string getWritablePath2();
+    virtual bool isFileExist(const std::string& strFilePath);
+    virtual bool isAbsolutePath(const std::string& strPath);
 
     /**
      *  Gets full path for filename, resolution directory and search path.
@@ -63,12 +63,12 @@ public:
      *  @param searchPath The search path.
      *  @return The full path of the file. It will return an empty string if the full path of the file doesn't exist.
      */
-    virtual gd::string getPathForFilename(const gd::string& filename, const gd::string& resolutionDirectory, const gd::string& searchPath);
+    virtual std::string getPathForFilename(const std::string& filename, const std::string& resolutionDirectory, const std::string& searchPath);
 
-    virtual gd::string fullPathForFilename(const char* pszFileName);
+    virtual std::string fullPathForFilename(const char* pszFileName);
 
     /* transfer utf8 to gbk */
-    gd::string utf8Togbk(const char *src);
+    std::string utf8Togbk(const char *src);
 };
 
 // end of platform group

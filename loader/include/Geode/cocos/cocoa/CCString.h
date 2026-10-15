@@ -52,7 +52,7 @@ public:
      * @lua NA
      */
 #if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_WINDOWS)
-    // Make sure its imported because of gd::string stuff,
+    // Make sure its imported because of std::string stuff,
     // check android/main.cpp for more info
     CCString();
 #else
@@ -65,7 +65,7 @@ public:
     /**
      * @lua NA
      */
-    inline CCString(const gd::string& str) : m_sString(str.c_str()) {}
+    inline CCString(const std::string& str) : m_sString(str.c_str()) {}
     /**
      * @lua NA
      */
@@ -116,12 +116,12 @@ public:
     virtual CCObject* copyWithZone(CCZone* pZone);
     virtual bool isEqual(const CCObject* pObject);
 
-    /** create a string with std string, you can also pass a c string pointer because the default constructor of gd::string can access a c string pointer.
+    /** create a string with std string, you can also pass a c string pointer because the default constructor of std::string can access a c string pointer.
      *  @return A CCString pointer which is an autorelease object pointer,
      *          it means that you needn't do a release operation unless you retain it.
      */
     // Geode change: this is kind of a hack but i think it will work
-    static inline CCString* create(gd::string const& str) {
+    static inline CCString* create(std::string const& str) {
     	return CCString::createWithData(reinterpret_cast<unsigned char const*>(str.c_str()), str.size());
     }
 
@@ -174,7 +174,7 @@ private:
     }
 
 public:
-    gd::string m_sString;
+    std::string m_sString;
 };
 
 /*

@@ -285,7 +285,7 @@ public:
 private:
     int  getHandleOfControlEvent(CCControlEvent controlEvent);
 private:
-    gd::map<int,int> m_mapHandleOfControlEvent;
+    std::map<int,int> m_mapHandleOfControlEvent;
 };
 
 // end of GUI group

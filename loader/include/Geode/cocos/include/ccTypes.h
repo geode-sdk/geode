@@ -29,10 +29,6 @@ THE SOFTWARE.
 
 #include <string>
 
-#ifdef __cplusplus
-#include <Geode/c++stl/gdstdlib.hpp>
-#endif
-
 #include "../cocoa/CCGeometry.h"
 #include "../platform/CCGL.h"
 
@@ -447,7 +443,7 @@ public:
     { m_dimensions = CCSizeMake(0,0); }
 
     // font name
-    gd::string             m_fontName;
+    std::string             m_fontName;
     // font size
     int                     m_fontSize;
     // horizontal alignment
