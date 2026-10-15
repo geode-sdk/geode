@@ -69,7 +69,7 @@ public:
     void leftMouseUp();
 
     // @note RobTop Addition
-    void logTimeElapsed(gd::string);
+    void logTimeElapsed(std::string);
 
     // @note RobTop Addition
     void moveMouse(int, int);
@@ -88,17 +88,17 @@ public:
      *  Sets the Resource root path.
      *  @deprecated Please use CCFileUtils::sharedFileUtils()->setSearchPaths() instead.
      */
-    void setResourceRootPath(const gd::string& rootResDir);
+    void setResourceRootPath(const std::string& rootResDir);
 
     /**
      *  Gets the Resource root path.
      *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead.
      */
-    const gd::string& getResourceRootPath(void);
+    const std::string& getResourceRootPath(void);
 
-    void setStartupScriptFilename(const gd::string& startupScriptFile);
+    void setStartupScriptFilename(const std::string& startupScriptFile);
 
-    const gd::string& getStartupScriptFilename(void)
+    const std::string& getStartupScriptFilename(void)
     {
         return m_startupScriptFilename;
     }
@@ -108,8 +108,8 @@ public:
     HACCEL              m_hAccelTable;
     LARGE_INTEGER       m_nAnimationInterval;
     LARGE_INTEGER       m_nVsyncInterval;
-    gd::string          m_resourceRootPath;
-    gd::string          m_startupScriptFilename;
+    std::string          m_resourceRootPath;
+    std::string          m_startupScriptFilename;
     CXBOXController* m_pControllerHandler;
     CXBOXController* m_pController2Handler; //might be swapped with m_pControllerHandler
     bool m_bUpdateController;

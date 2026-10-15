@@ -150,7 +150,7 @@ public:
     virtual void setString(const char *text);
     virtual const char* getString(void);
 public:
-    gd::string * m_pInputText;
+    std::string * m_pInputText;
 
     // place holder text property
     // place holder text displayed when there is no text in the text field.
@@ -158,7 +158,7 @@ public:
     virtual void setPlaceHolder(const char * text);
     virtual const char * getPlaceHolder(void);
 public:
-    gd::string * m_pPlaceHolder;
+    std::string * m_pPlaceHolder;
     ccColor3B m_ColorSpaceHolder;
 public:
     virtual void setSecureTextEntry(bool value);

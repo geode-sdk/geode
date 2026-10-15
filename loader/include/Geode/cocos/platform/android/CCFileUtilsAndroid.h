@@ -52,9 +52,9 @@ public:
     /* override funtions */
     bool init();
     virtual unsigned char* getFileData(const char* pszFileName, const char* pszMode, unsigned long * pSize);
-    virtual gd::string getWritablePath();
-    virtual bool isFileExist(const gd::string& strFilePath);
-    virtual bool isAbsolutePath(const gd::string& strPath);
+    virtual std::string getWritablePath();
+    virtual bool isFileExist(const std::string& strFilePath);
+    virtual bool isAbsolutePath(const std::string& strPath);
 
     /** This function is android specific. It is used for CCTextureCache::addImageAsync().
      Don't use it in your codes.

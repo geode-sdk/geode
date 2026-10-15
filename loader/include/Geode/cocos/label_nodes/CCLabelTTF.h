@@ -232,11 +232,11 @@ public:
     /** The vertical alignment of the label */
     CCVerticalTextAlignment m_vAlignment;
     /** Font name used in the label */
-    gd::string * m_pFontName;
+    std::string * m_pFontName;
     /** Font size of the label */
     float m_fFontSize;
     /** label's string */
-    gd::string m_string;
+    std::string m_string;
 
     /** font shadow */
     bool    m_shadowEnabled;

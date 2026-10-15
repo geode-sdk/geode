@@ -121,7 +121,7 @@ void TextInput::textChanged(CCTextInputNode* input) {
     }
 }
 
-void TextInput::setPlaceholder(gd::string placeholder) {
+void TextInput::setPlaceholder(std::string placeholder) {
     m_impl->input->m_caption = std::move(placeholder);
     m_impl->input->refreshLabel();
     // This is needed to actually update the placeholder
@@ -146,7 +146,7 @@ void TextInput::setLabel(ZStringView label) {
         }
     }
 }
-void TextInput::setFilter(gd::string allowedChars) {
+void TextInput::setFilter(std::string allowedChars) {
     m_impl->input->m_allowedChars = std::move(allowedChars);
 }
 void TextInput::setCommonFilter(CommonFilter filter) {
@@ -209,7 +209,7 @@ void TextInput::hideBG() {
     m_impl->bgSprite->setVisible(false);
 }
 
-void TextInput::setString(gd::string str, bool triggerCallback) {
+void TextInput::setString(std::string str, bool triggerCallback) {
     auto oldDelegate = m_impl->input->m_delegate;
     // Avoid triggering the callback
     m_impl->input->m_delegate = nullptr;
@@ -220,7 +220,7 @@ void TextInput::setString(gd::string str, bool triggerCallback) {
     }
 }
 
-gd::string TextInput::getString() const {
+std::string TextInput::getString() const {
     return m_impl->input->getString();
 }
 bool TextInput::isCallbackEnabled() const {

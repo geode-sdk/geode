@@ -65,8 +65,8 @@ public:
 	virtual void closeKeyboard();
 	virtual void onEnter(void);
 private:
-	Platform::String^ stringToPlatformString(gd::string strSrc);
-	gd::string PlatformStringTostring(Platform::String^ strSrc);
+	Platform::String^ stringToPlatformString(std::string strSrc);
+	std::string PlatformStringTostring(Platform::String^ strSrc);
 public:
 
 	CCLabelTTF* m_pLabel;
@@ -75,8 +75,8 @@ public:
 	EditBoxInputFlag    m_eEditBoxInputFlag;
 	KeyboardReturnType  m_eKeyboardReturnType;
 
-	gd::string m_strText;
-	gd::string m_strPlaceHolder;
+	std::string m_strText;
+	std::string m_strPlaceHolder;
 
 	ccColor3B m_colText;
 	ccColor3B m_colPlaceHolder;

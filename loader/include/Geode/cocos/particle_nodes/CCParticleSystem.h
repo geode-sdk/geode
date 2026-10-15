@@ -176,7 +176,7 @@ class CC_DLL CCParticleSystem : public CCNode, public CCTextureProtocol
 {
     GEODE_FRIEND_MODIFY
 public:
-    gd::string m_sPlistFile;
+    std::string m_sPlistFile;
     //! time elapsed since the start of the system (in seconds)
     float m_fElapsed;
 

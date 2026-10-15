@@ -77,7 +77,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/ui/mods/settings/*.cpp
 	src/ui/mods/test/*.cpp
 	src/ui/*.cpp
-	src/c++stl/*.cpp
 	hash/hash.cpp
 )
 

@@ -71,7 +71,7 @@ namespace geode {
         /**
          * Set the placeholder label for this input
          */
-        void setPlaceholder(gd::string placeholder);
+        void setPlaceholder(std::string placeholder);
         /**
          * Set a label on this input that shows up on the top. Set an empty
          * string to remove the label
@@ -82,7 +82,7 @@ namespace geode {
          * @param allowedChars String of allowed characters; each character in
          * the string represents one allowed character
          */
-        void setFilter(gd::string allowedChars);
+        void setFilter(std::string allowedChars);
         /**
          * Set a commonly used filter (number, text, etc.)
          */
@@ -143,11 +143,11 @@ namespace geode {
          * @param triggerCallback Whether this should trigger the callback
          * function / delegate's textChanged event or not
          */
-        void setString(gd::string str, bool triggerCallback = false);
+        void setString(std::string str, bool triggerCallback = false);
         /**
          * Get the current value of the input
          */
-        gd::string getString() const;
+        std::string getString() const;
         /**
          * Gets if the callback is enabled or not.
          */

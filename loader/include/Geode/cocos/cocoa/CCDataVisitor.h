@@ -95,7 +95,7 @@ public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCPrettyPrinter, CCDataVisitor)
 
     virtual void clear();
-    virtual gd::string getResult();
+    virtual std::string getResult();
 
     virtual void visitObject(const CCObject *p);
     virtual void visit(const CCBool * p);
@@ -110,8 +110,8 @@ private:
     void setIndentLevel(int indentLevel);
 public:
     int _indentLevel;
-    gd::string _indentStr;
-    gd::string _result;
+    std::string _indentStr;
+    std::string _result;
 };
 
 // end of data_structure group
