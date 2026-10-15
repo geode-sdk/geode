@@ -205,13 +205,13 @@ public:
     }
 
     /** Set any custom headers **/
-    inline void setHeaders(gd::vector<gd::string> pHeaders)
+    inline void setHeaders(std::vector<std::string> pHeaders)
    	{
    		_headers=pHeaders;
    	}
 
     /** Get custom headers **/
-   	inline gd::vector<gd::string> getHeaders()
+   	inline std::vector<std::string> getHeaders()
    	{
    		return _headers;
    	}
@@ -264,13 +264,13 @@ public:
 public:
     // properties
     HttpRequestType             _requestType;    /// kHttpRequestGet, kHttpRequestPost or other enums
-    gd::string                 _url;            /// target url that this request is sent to
-    gd::vector<char>           _requestData;    /// used for POST
-    gd::string                 _tag;            /// user defined tag, to identify different requests in response callback
+    std::string                 _url;            /// target url that this request is sent to
+    std::vector<char>           _requestData;    /// used for POST
+    std::string                 _tag;            /// user defined tag, to identify different requests in response callback
     CCObject*          _pTarget;        /// callback target of pSelector function
     SEL_HttpResponse            _pSelector;      /// callback function, e.g. MyLayer::onHttpResponse(CCHttpClient *sender, CCHttpResponse * response)
     void*                       _pUserData;      /// You can add your customed data here
-    gd::vector<gd::string>    _headers;		      /// custom http headers
+    std::vector<std::string>    _headers;		      /// custom http headers
 
     // @note RobTop Addition
     int _type;

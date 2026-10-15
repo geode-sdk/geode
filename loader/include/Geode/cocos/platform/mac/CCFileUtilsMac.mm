@@ -122,7 +122,7 @@ static void addValueToCCDict(id key, id value, CCDictionary* pDict)
 {
     // the key must be a string
     CCAssert([key isKindOfClass:[NSString class]], "The key should be a string!");
-    gd::string pKey = [key UTF8String];
+    std::string pKey = [key UTF8String];
     
     // the value is a new dictionary
     if ([value isKindOfClass:[NSDictionary class]]) {
@@ -218,17 +218,17 @@ CCFileUtils* CCFileUtils::sharedFileUtils()
 
 static NSFileManager* s_fileManager = [NSFileManager defaultManager];
 
-gd::string CCFileUtilsMac::getWritablePath()
+std::string CCFileUtilsMac::getWritablePath()
 {
     // save to document folder
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
-    gd::string strRet = [documentsDirectory UTF8String];
+    std::string strRet = [documentsDirectory UTF8String];
     strRet.append("/");
     return strRet;
 }
 
-bool CCFileUtilsMac::isFileExist(const gd::string& strFilePath)
+bool CCFileUtilsMac::isFileExist(const std::string& strFilePath)
 {
     if (0 == strFilePath.length())
     {
@@ -239,10 +239,10 @@ bool CCFileUtilsMac::isFileExist(const gd::string& strFilePath)
     
     if (strFilePath[0] != '/')
     {
-        gd::string path = strFilePath;
-        gd::string file;
+        std::string path = strFilePath;
+        std::string file;
         size_t pos = path.find_last_of("/");
-        if (pos != gd::string::npos)
+        if (pos != std::string::npos)
         {
             file = path.substr(pos+1);
             path = path.substr(0, pos+1);
@@ -265,7 +265,7 @@ bool CCFileUtilsMac::isFileExist(const gd::string& strFilePath)
     return bRet;
 }
 
-gd::string CCFileUtilsMac::getFullPathForDirectoryAndFilename(const gd::string& strDirectory, const gd::string& strFilename)
+std::string CCFileUtilsMac::getFullPathForDirectoryAndFilename(const std::string& strDirectory, const std::string& strFilename)
 {
     if (strDirectory[0] != '/')
     {
@@ -278,7 +278,7 @@ gd::string CCFileUtilsMac::getFullPathForDirectoryAndFilename(const gd::string& 
     }
     else
     {
-        gd::string fullPath = strDirectory+strFilename;
+        std::string fullPath = strDirectory+strFilename;
         // Search path is an absolute path.
         if ([s_fileManager fileExistsAtPath:[NSString stringWithUTF8String:fullPath.c_str()]]) {
             return fullPath;
@@ -287,15 +287,15 @@ gd::string CCFileUtilsMac::getFullPathForDirectoryAndFilename(const gd::string& 
     return "";
 }
 
-bool CCFileUtilsMac::isAbsolutePath(const gd::string& strPath)
+bool CCFileUtilsMac::isAbsolutePath(const std::string& strPath)
 {
     NSString* path = [NSString stringWithUTF8String:strPath.c_str()];
     return [path isAbsolutePath] ? true : false;
 }
 
-CCDictionary* CCFileUtilsMac::createCCDictionaryWithContentsOfFile(const gd::string& filename)
+CCDictionary* CCFileUtilsMac::createCCDictionaryWithContentsOfFile(const std::string& filename)
 {
-    gd::string fullPath = CCFileUtils::sharedFileUtils()->fullPathForFilename(filename.c_str());
+    std::string fullPath = CCFileUtils::sharedFileUtils()->fullPathForFilename(filename.c_str());
     NSString* pPath = [NSString stringWithUTF8String:fullPath.c_str()];
     NSDictionary* pDict = [NSDictionary dictionaryWithContentsOfFile:pPath];
     
@@ -308,7 +308,7 @@ CCDictionary* CCFileUtilsMac::createCCDictionaryWithContentsOfFile(const gd::str
     return pRet;
 }
 
-bool CCFileUtilsMac::writeToFile(CCDictionary *dict, const gd::string &fullPath)
+bool CCFileUtilsMac::writeToFile(CCDictionary *dict, const std::string &fullPath)
 {
     CCLOG("iOS||Mac CCDictionary %d write to file %s", dict->m_uID, fullPath.c_str());
     NSMutableDictionary *nsDict = [NSMutableDictionary dictionary];
@@ -324,14 +324,14 @@ bool CCFileUtilsMac::writeToFile(CCDictionary *dict, const gd::string &fullPath)
     return [nsDict writeToFile:file atomically:YES];
 }
 
-CCArray* CCFileUtilsMac::createCCArrayWithContentsOfFile(const gd::string& filename)
+CCArray* CCFileUtilsMac::createCCArrayWithContentsOfFile(const std::string& filename)
 {
     //    NSString* pPath = [NSString stringWithUTF8String:pFileName];
     //    NSString* pathExtension= [pPath pathExtension];
     //    pPath = [pPath stringByDeletingPathExtension];
     //    pPath = [[NSBundle mainBundle] pathForResource:pPath ofType:pathExtension];
     //    fixing cannot read data using CCArray::createWithContentsOfFile
-    gd::string fullPath = CCFileUtils::sharedFileUtils()->fullPathForFilename(filename.c_str());
+    std::string fullPath = CCFileUtils::sharedFileUtils()->fullPathForFilename(filename.c_str());
     NSString* pPath = [NSString stringWithUTF8String:fullPath.c_str()];
     NSArray* pArray = [NSArray arrayWithContentsOfFile:pPath];
     

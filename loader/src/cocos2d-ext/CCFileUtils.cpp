@@ -121,7 +121,7 @@ struct FileUtilsUpdatePaths : Modify<FileUtilsUpdatePaths, CCFileUtils> {
         return ret;
     }
 
-    gd::string fullPathForFilename(const char* filename, bool unk) override {
+    std::string fullPathForFilename(const char* filename, bool unk) override {
         using namespace std::string_literals;
         using namespace std::string_view_literals;
 

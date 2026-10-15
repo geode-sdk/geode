@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Geode/Prelude.hpp>
-#include <Geode/c++stl/gdstdlib.hpp>
 #include <Geode/platform/platform.hpp>
 #include <variant>
 

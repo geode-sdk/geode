@@ -45,7 +45,7 @@ class $modify(CCFileUtilsExistFix, CCFileUtilsMac) {
         (void)self.setHookPriority("CCFileUtilsMac::isFileExist", Priority::Replace);
     }
 
-    bool isFileExist(const gd::string& path) {
+    bool isFileExist(const std::string& path) {
         return isFileExistImpl(path);
     }
 };
@@ -59,7 +59,7 @@ class $modify(CCFileUtilsExistFix, CCFileUtilsIOS) {
         (void)self.setHookPriority("CCFileUtilsIOS::isFileExist", Priority::Replace);
     }
 
-    bool isFileExist(const gd::string& path) {
+    bool isFileExist(const std::string& path) {
         return isFileExistImpl(path);
     }
 };
