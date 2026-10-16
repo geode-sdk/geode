@@ -745,13 +745,10 @@ void Mod::Impl::setPinned(bool pinned) {
 }
 
 void Mod::Impl::loadNativeModBinaries() {
-    // TODO: move native binaries out of resources
-    auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-
     // binaries on macos are merged, so make the platform binaries merged as well
     auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
 
-    auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
+    auto const binariesDir = dirs::getModRuntimeDir() / m_metadata.getID() / "binaries" / binaryPlatformId;
 
     if (binariesDir.exists()) {
         geode::log::info("Loaded binaries from path {}", binariesDir);
