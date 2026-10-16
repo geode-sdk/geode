@@ -2,6 +2,7 @@
 
 #include <coroutine>
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/Result.hpp>
 #include <concepts>
 #include <arc/future/Future.hpp>
 
