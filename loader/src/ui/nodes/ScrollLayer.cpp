@@ -187,8 +187,10 @@ void ScrollLayer::visit() {
     m_impl->visit(); 
 }
 
-void ScrollLayer::scrollWheel(float y, float x) { 
-    m_impl->scrollWheel(y, x); 
+// TODO: 2.209
+bool ScrollLayer::scrollWheel(float y, float x) {
+    m_impl->scrollWheel(y, x);
+    return true;
 }
 
 void ScrollLayer::enableScrollWheel(bool enable) { 
