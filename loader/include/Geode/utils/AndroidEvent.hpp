@@ -36,12 +36,16 @@ namespace geode {
     protected:
         float m_scrollX;
         float m_scrollY;
+        float m_mouseX;
+        float m_mouseY;
 
     public:
-        AndroidScrollInput(float scrollX, float scrollY);
+        AndroidScrollInput(float scrollX, float scrollY, float mouseX, float mouseY);
 
         float scrollX() const;
         float scrollY() const;
+        float mouseX() const;
+        float mouseY() const;
     };
 
     class GEODE_DLL AndroidTouchInput final {
