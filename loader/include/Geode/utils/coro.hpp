@@ -3,8 +3,11 @@
 #include <coroutine>
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/Result.hpp>
+#include <cocos2d.h>
 #include <concepts>
 #include <arc/future/Future.hpp>
+#include <arc/task/Task.hpp>
+#include <arc/runtime/Runtime.hpp>
 
 namespace geode::utils::coro {
     /**

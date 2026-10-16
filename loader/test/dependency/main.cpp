@@ -133,7 +133,7 @@ class MySettingValue;
 // }
 
 struct MyMenuLayer : Modify<MyMenuLayer, MenuLayer> {
-    void onMoreGames(CCObject*) {
+    void onNewgrounds(CCObject*) {
         TestEvent().send("Event system works!");
         if (Mod::get()->getSettingValue<bool>("its-raining-after-all")) {
             FLAlertLayer::create("Damn", ":(", "OK")->show();
