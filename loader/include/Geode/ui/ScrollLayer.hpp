@@ -50,7 +50,7 @@ namespace geode {
             cocos2d::CCSize const& size, bool scrollWheelEnabled = true, bool vertical = true
         );
 
-        void scrollWheel(float y, float) override;
+        bool scrollWheel(float y, float) override;
         void enableScrollWheel(bool enable = true);
         void scrollToTop();
 
