@@ -577,37 +577,64 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
         m_refreshingModCount -= 1;
     };
 
-    if (early) {
-        auto res = unzipFunction();
-        if (!res) {
-            this->addProblem({ LoadProblem::Type::Unknown, node, res.unwrapErr() });
-            log::error("Failed to unzip: {}", res.unwrapErr());
-            m_refreshingModCount -= 1;
-            return;
+    auto res = [this, node, early, unzipFunction]() {
+    auto unzipped = m_unzipResults.find(node);
+        if (early) {
+            // Early load mods are eagerly unzipped
+            return unzipFunction();
         }
-        loadFunction();
-    }
-    else {
-        auto nest = log::saveNest();
+        else if (unzipped == m_unzipResults.end()) {
+            // Normal mods should be unzipped by startUnzippingMods but let's eagerly unzip
+            // if we reach some weird invalid state instead of crashing
+            log::error("{} wasn't unzipped in the background, unzipping now", node->getID());
+            return unzipFunction();
+        }
+        else {
+            auto res = std::move(unzipped->second);
+            m_unzipResults.erase(unzipped);
+            return res;
+        }
+    }();
 
-        async::runtime().spawnBlocking<void>([=, this]() {
-            log::loadNest(nest);
-            auto res = unzipFunction();
-            this->queueInMainThread([=, this, res = std::move(res)]() {
-                auto prevNest = log::saveNest();
-                log::loadNest(nest);
-                if (!res) {
-                    this->addProblem({ LoadProblem::Type::Unknown, node, res.unwrapErr() });
-                    log::error("Failed to unzip: {}", res.unwrapErr());
-                    m_refreshingModCount -= 1;
-                    log::loadNest(prevNest);
-                    return;
-                }
-                loadFunction();
-                log::loadNest(prevNest);
+    if (!res) {
+        this->addProblem({ LoadProblem::Type::Unknown, node, res.unwrapErr() });
+        log::error("Failed to unzip: {}", res.unwrapErr());
+        m_refreshingModCount -= 1;
+        return;
+    }
+
+    loadFunction();
+}
+
+void Loader::Impl::startUnzippingMods() {
+    for (auto mod : m_modsToLoad) {
+        // Don't load stuff that isn't compatible 
+        if (!mod->getMetadata().checkGameVersion() || !mod->getMetadata().checkGeodeVersion()) {
+            continue;
+        }
+        m_unzipsRunning += 1;
+        async::runtime().spawnBlocking<void>([this, mod]() {
+            auto res = this->unzipGeodeFile(mod->getMetadata());
+            this->queueInMainThread([this, mod, res = std::move(res)]() mutable {
+                m_unzipResults.emplace(mod, std::move(res));
+                m_unzipsRunning -= 1;
+                if (m_unzipsRunning == 0) this->startLoadingMods();
             });
         });
     }
+    // Nothing to unzip (or everything's for another version): load on the first frame
+    if (m_unzipsRunning == 0) {
+        this->queueInMainThread([this]() {
+            this->startLoadingMods();
+        });
+    }
+}
+
+void Loader::Impl::startLoadingMods() {
+    utils::thread::setName("Main");
+
+    log::info("Loading non-early mods");
+    this->continueRefreshModGraph();
 }
 
 void Loader::Impl::findProblems() {
@@ -839,12 +866,8 @@ void Loader::Impl::refreshModGraph() {
 
     m_loadingState = LoadingState::Mods;
 
-    queueInMainThread([this]() {
-        utils::thread::setName("Main");
-
-        log::info("Loading non-early mods");
-        this->continueRefreshModGraph();
-    });
+    // Unzip every non-early mod, then load them (startLoadingMods) once all are unzipped
+    this->startUnzippingMods();
 }
 
 void Loader::Impl::orderModStack() {
@@ -922,6 +945,8 @@ void Loader::Impl::continueRefreshModGraph() {
             [[fallthrough]];
 
         case LoadingState::Problems:
+            // Unzips of mods that weren't loaded (e.g. missing dependencies)
+            m_unzipResults.clear();
             log::info("Finding problems");
             {
                 log::NestScope nest;
@@ -1005,11 +1030,12 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     }
     auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
     auto modifiedHash = std::to_string(modifiedCount.count());
-    if (currentHash == modifiedHash && dateHash == modifiedHash) {
-        log::debug("Same hash detected, skipping unzip");
+    // With the id: non-early mods unzip in parallel, so these lines can end up anywhere
+    if (currentHash == modifiedHash) {
+        log::debug("Same hash detected, skipping unzip of {}", metadata.getID());
         return Ok();
     }
-    log::debug("Hash mismatch detected, unzipping");
+    log::debug("Hash mismatch detected, unzipping {}", metadata.getID());
 
     std::filesystem::remove_all(tempDir, ec);
     if (ec) {

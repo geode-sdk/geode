@@ -277,6 +277,8 @@ public:
 private:
     char * atlasNameFromFntFile(const char *fntFile);
     int kerningAmountForFirst(unsigned short first, unsigned short second);
+
+public:
     float getLetterPosXLeft( CCSprite* characterSprite, float, bool);
     float getLetterPosXRight( CCSprite* characterSprite, float, bool);
 

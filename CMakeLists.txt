@@ -265,10 +265,10 @@ CPMAddPackage("gh:fmtlib/fmt#12.2.0") # commit between 12.1.0 and 12.2.0 that fi
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
-	set(GEODE_ARC_VERSION "@1.5.9" CACHE STRING "")
+	set(GEODE_ARC_VERSION "@1.5.11" CACHE STRING "")
 endif()
 if (NOT DEFINED GEODE_ASP_VERSION)
-	set(GEODE_ASP_VERSION "#76d4d86" CACHE STRING "")
+	set(GEODE_ASP_VERSION "#ecea33b" CACHE STRING "")
 endif()
 
 CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")
@@ -324,7 +324,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.14")
+	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.15")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 

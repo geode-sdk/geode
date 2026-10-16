@@ -51,6 +51,8 @@ $execute {
 #else
 
 struct GameExitHook : Modify<GameExitHook, CCDirector> {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("gameexit hook crashes on 2.209")
+
     void purgeDirector() {
         triggerEvent();
         CCDirector::purgeDirector();

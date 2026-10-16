@@ -45,8 +45,23 @@ public:
 
 MDTextArea::MDTextArea() : m_impl(std::make_unique<Impl>()) {}
 
+static auto mustLabel(ZStringView font) -> CCLabelBMFont* {
+    auto label = CCLabelBMFont::create("", font.c_str());
+
+    // missing geode textures, this can happen if the user has no textures and opens something that has an MDTextArea
+    // to avoid crashing in TextRenderer, just use chatFont.fnt as a fallback
+    if (!label) {
+        log::error("Missing font {}, using fallback!", font);
+        label = CCLabelBMFont::create("", "chatFont.fnt");
+    }
+
+    return label;
+}
+
 auto makeMdFont() -> TextRenderer::Font {
     return [](int style) -> TextRenderer::Label {
+        ZStringView texture;
+
         if ((style & TextStyleBold) && (style & TextStyleItalic)) {
             return Label::create("", "mdFontBI.fnt"_spr);
         }

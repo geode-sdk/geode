@@ -28,6 +28,7 @@
 #include "ui/ScrollLayer.hpp"
 #include "ui/SelectList.hpp"
 #include "ui/SimpleAxisLayout.hpp"
+#include "ui/SliderNode.hpp"
 #include "ui/SpacerNode.hpp"
 #include "ui/TextArea.hpp"
 #include "ui/TextInput.hpp"

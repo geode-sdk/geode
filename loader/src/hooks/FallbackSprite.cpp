@@ -83,6 +83,8 @@ static void assignFallbackObj(CCNode* node) {
 }
 
 class $modify(CCSprite) {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCSprite fallback sprite")
+
     static CCSprite* create(const char* name) {
         auto* sprite = CCSprite::create(name);
         if (sprite == nullptr) {
@@ -154,6 +156,8 @@ class $modify(CCSprite) {
 };
 
 class $modify(CCSpriteFrameCache) {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCSpriteFrameCache fallback sprite")
+
     CCSpriteFrame* spriteFrameByName(char const* name) {
         auto* frame = CCSpriteFrameCache::spriteFrameByName(name);
 
@@ -202,6 +206,8 @@ class $modify(CCSpriteFrameCache) {
 
 class $modify (CCSpriteBatchNode)
 {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCSpriteBatchNode fallback sprite")
+
     bool initWithTexture(CCTexture2D *tex, unsigned int capacity)
     {
         if (!tex)
