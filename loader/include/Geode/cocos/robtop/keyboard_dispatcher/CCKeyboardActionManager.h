@@ -5,7 +5,7 @@
 
 NS_CC_BEGIN
 
-class CC_DLL CCKeyboardActionManager : public cocos2d::CCObject
+class CC_DLL CCKeyboardActionManager : public CCObject
 {
 public:
     virtual bool handleGlobalAction(int, bool);
