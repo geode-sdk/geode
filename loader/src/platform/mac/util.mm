@@ -281,6 +281,10 @@ asp::fs::Path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
 }
 
+asp::fs::path dirs::getGeodeResourcesDir() {
+    return dirs::getGeodeDir() / "resources";
+}
+
 void geode::utils::game::exit(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
