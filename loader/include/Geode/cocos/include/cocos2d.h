@@ -299,6 +299,7 @@ THE SOFTWARE.
 
 // touch_dispatcher
 #include "../touch_dispatcher/CCTouch.h"
+#include "../touch_dispatcher/CCTouchClipper.h"
 #include "../touch_dispatcher/CCTouchDelegateProtocol.h"
 #include "../touch_dispatcher/CCTouchDispatcher.h"
 #include "../touch_dispatcher/CCTouchHandler.h"
