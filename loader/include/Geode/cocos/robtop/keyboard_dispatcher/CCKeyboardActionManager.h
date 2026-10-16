@@ -7,7 +7,10 @@ NS_CC_BEGIN
 
 class CC_DLL CCKeyboardActionManager : public CCObject
 {
+    GEODE_FRIEND_MODIFY
+
 public:
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCKeyboardActionManager, CCObject)
     virtual bool handleGlobalAction(int, bool);
 };
 
