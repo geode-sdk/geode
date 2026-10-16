@@ -10,6 +10,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <iostream>
 #include <tulip/TulipHook.hpp>
+#include <arc/future/PollableMetadata.hpp>
 
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(AddressInline_, Convention_, ClassName_, FunctionName_, ...)          \
     do {                                                                                                      \
@@ -128,6 +129,16 @@ namespace geode::modifier {
                 return Err("Hook not in this modify");
             }
             return Ok(it->second.get());
+        }
+
+        /// @brief Get all hooks in this modify
+        std::vector<Hook*> getAllHooks() {
+            std::vector<Hook*> vec;
+            vec.reserve(m_hooks.size());
+            for (auto& [k, v] : m_hooks) {
+                vec.push_back(v.get());
+            }
+            return vec;
         }
 
         /// @brief Set the priority of a hook
@@ -411,6 +422,7 @@ namespace geode::modifier {
             ModifyDerived::Derived::onModify(*this);
             std::vector<std::string> added;
             for (auto& [uuid, hook] : m_hooks) {
+                hook->setModifyClassName(std::string{ModifyDerived::Derived::SELF_NAME});
                 auto res = Mod::get()->claimHook(hook);
                 if (!res) {
                     log::error("Failed to claim hook {}: {}", hook->getDisplayName(), res.unwrapErr());
@@ -460,6 +472,11 @@ namespace geode {
 
     public:
         using Self = Derived;
+
+        static inline constexpr std::string_view SELF_NAME = [] {
+            auto [ptr, size] = arc::getTypename<Self>();
+            return std::string_view{ptr, size};
+        }();
 
         // abusing the internal stuff
         // basically we dont want modify to invoke base ctors and dtors

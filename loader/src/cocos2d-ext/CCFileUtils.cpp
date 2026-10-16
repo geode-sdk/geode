@@ -37,7 +37,7 @@ void CCFileUtils::removeTexturePack(std::string_view id) {
 
     REMOVED_PACKS.push_back(std::move(*pack));
     PACKS.erase(pack);
-    
+
     this->updatePaths();
 }
 
@@ -101,6 +101,10 @@ void CCFileUtils::updatePaths() {
     for (auto& path : PATHS) {
         this->addSearchPath(path.c_str());
     }
+}
+
+size_t CCFileUtils::getTexturePackCount() {
+    return PACKS.size();
 }
 
 #pragma warning(pop)

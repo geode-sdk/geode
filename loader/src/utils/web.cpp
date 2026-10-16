@@ -616,6 +616,12 @@ public:
             curl_easy_setopt(curl, CURLOPT_ALTSVC, cachePath.c_str());
         }
 
+        // ECH is experimental in curl and not considered entirely stable, we use it by default but allow it to be disabled
+        auto disableEch = Loader::get()->getLaunchFlag("disable-ech");
+        if (disableEch) {
+            curl_easy_setopt(curl, CURLOPT_ECH, "true"); // use ECH if possible; proceed without when not
+        }
+
         // Set request method
         if (m_method != "GET") {
             if (m_method == "POST") {

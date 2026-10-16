@@ -43,6 +43,7 @@ public:
     void* m_address;
     void* m_detour;
     std::string m_displayName;
+    std::optional<std::string> m_modifyClassName;
     tulip::hook::HandlerMetadata m_handlerMetadata;
     tulip::hook::HookMetadata m_hookMetadata;
     tulip::hook::HookHandle m_handle = 0;
@@ -59,6 +60,9 @@ public:
     void setHookMetadata(tulip::hook::HookMetadata metadata);
     int32_t getPriority() const;
     void setPriority(int32_t priority);
+
+    std::optional<std::string_view> getModifyClassName() const;
+    void setModifyClassName(std::string name);
 
     Result<> updateHookMetadata();
 
