@@ -286,6 +286,10 @@ std::filesystem::path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
 }
 
+std::filesystem::path dirs::getGeodeResourcesDir() {
+    return dirs::getGeodeDir() / "resources";
+}
+
 void geode::utils::game::exit(bool save) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {

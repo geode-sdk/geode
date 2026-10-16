@@ -402,6 +402,10 @@ std::filesystem::path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
+std::filesystem::path dirs::getGeodeResourcesDir() {
+    return dirs::getGeodeDir() / "resources";
+}
+
 std::filesystem::path dirs::getResourcesDir() {
     return [[[NSBundle mainBundle] resourcePath] UTF8String];
 }

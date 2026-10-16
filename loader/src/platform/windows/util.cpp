@@ -252,6 +252,10 @@ std::filesystem::path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
 }
 
+std::filesystem::path dirs::getGeodeResourcesDir() {
+    return dirs::getGeodeDir() / "resources";
+}
+
 void geode::utils::game::exit(bool saveData) {
     // TODO: mat
     #if 0

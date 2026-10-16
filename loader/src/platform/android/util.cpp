@@ -122,6 +122,27 @@ std::filesystem::path dirs::getModRuntimeDir() {
     return std::filesystem::path(cachedResult) / "geode" / "unzipped";
 }
 
+std::filesystem::path dirs::getGeodeResourcesDir() {
+    // TODO: dedupe the cachedResult copypaste
+    static std::string cachedResult = [] {
+        // incase the jni fails, default to this
+        std::string path = "/data/user/0/com.geode.launcher/files/";
+
+        JniMethodInfo t;
+        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getInternalDirectory", "()Ljava/lang/String;")) {
+            jstring str = reinterpret_cast<jstring>(t.env->CallStaticObjectMethod(t.classID, t.methodID));
+            t.env->DeleteLocalRef(t.classID);
+            path = JniHelper::jstring2string(str);
+            t.env->DeleteLocalRef(str);
+        } else {
+            clearJNIException();
+        }
+
+        return path;
+    }();
+    return std::filesystem::path(cachedResult) / "geode" / "resources";
+}
+
 std::filesystem::path dirs::getResourcesDir() {
     return "assets";
 }

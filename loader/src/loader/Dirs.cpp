@@ -15,10 +15,6 @@ std::filesystem::path dirs::getGeodeSaveDir() {
     return dirs::getSaveDir() / "geode";
 }
 
-std::filesystem::path dirs::getGeodeResourcesDir() {
-    return dirs::getGeodeDir() / "resources";
-}
-
 std::filesystem::path dirs::getGeodeLogDir() {
     return dirs::getGeodeDir() / "logs";
 }
