@@ -88,13 +88,13 @@ public:
      *  Sets the Resource root path.
      *  @deprecated Please use CCFileUtils::sharedFileUtils()->setSearchPaths() instead.
      */
-    CC_DEPRECATED_ATTRIBUTE void setResourceRootPath(const gd::string& rootResDir);
+    void setResourceRootPath(const gd::string& rootResDir);
 
     /**
      *  Gets the Resource root path.
      *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead.
      */
-    CC_DEPRECATED_ATTRIBUTE const gd::string& getResourceRootPath(void);
+    const gd::string& getResourceRootPath(void);
 
     void setStartupScriptFilename(const gd::string& startupScriptFile);
 
