@@ -207,9 +207,15 @@ public:
 	// @note RobTop Addition
     bool isUsingForcePrio();
 	// @note RobTop Addition
-    void registerForcePrio(cocos2d::CCObject*, int);
+    void registerForcePrio(cocos2d::CCObject*, int, int);
 	// @note RobTop Addition
     void unregisterForcePrio(cocos2d::CCObject*);
+    // @note RobTop Addition
+    bool ownerLevelOf(CCNode*, int&);
+    // @note RobTop Addition
+    bool ownerLevelFor(CCTouchDelegate*, int&);
+    // @note RobTop Addition
+    unsigned int getTouchCount() const;
 
 private:
     // @note RobTop Addition

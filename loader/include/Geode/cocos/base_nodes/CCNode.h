@@ -358,6 +358,10 @@ public:
     virtual void  setPositionY(float y);
     virtual float getPositionY(void);
 
+    // @note RobTop Addition
+    virtual void offsetPosition(float, float);
+    // @note RobTop Addition
+    virtual void applyScale(float);
 
     /**
      * Changes the X skew angle of the node in degrees.

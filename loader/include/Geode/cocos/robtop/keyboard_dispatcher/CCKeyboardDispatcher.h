@@ -52,6 +52,15 @@ public:
 		this->m_bBlockRepeat = blockRepeat;
 	}
 
+	void flushPendingDelegates();
+	bool getLastRepeat() const;
+	bool getCaptureMode() const;
+
+	void releaseAllKeys(double);
+
+protected:
+	void dispatchToTopDelegate(enumKeyCodes key, bool unk, std::vector<int> const& unk2, double unk3);
+
 public:
 	CCArray* m_pDelegates;	// 0x34
 	bool m_bUnknown38;			// 0x38

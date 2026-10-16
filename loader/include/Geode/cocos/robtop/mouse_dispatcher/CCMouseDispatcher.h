@@ -25,6 +25,9 @@ public:
 
 	bool dispatchScrollMSG(float y, float x);
 
+	bool dispatchRightClick(float, float);
+	void flushPendingDelegates();
+
 public:
 	CCArray* m_pMouseHandlers;
 	bool m_bLocked;
