@@ -71,15 +71,6 @@ Result<> Mod::Impl::setup() {
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
-    /*if (!m_resourcesLoaded && !this->isInternal()) {
-        auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-
-        // Hi, linux bros!
-        Loader::get()->queueInMainThread([searchPathRoot]() {
-            CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
-        });
-
-    }*/
     m_resourcesLoaded = true;
 
     return Ok();
