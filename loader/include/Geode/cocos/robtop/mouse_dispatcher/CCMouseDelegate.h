@@ -14,7 +14,10 @@ public:
 
 	virtual void rightKeyUp() {}
 
-	virtual void scrollWheel(float y, float x) {}
+	virtual bool scrollWheel(float y, float x) { return false; }
+
+	// TODO: im not sure about position of this one
+	virtual bool rightClick(float, float) {return false; }
 
 	//pretty certain there's no fields, based on initializer
 };

@@ -83,6 +83,12 @@ public:
     // @note RobTop Addition
     void updateMouseControl();
 
+    // @note RobTop Addition
+    void applySwapInterval();
+    // @note RobTop Addition
+    void checkMonitorChanged();
+    // @note RobTop Addition
+    void resyncVerticalSync();
 
     /**
      *  Sets the Resource root path.
