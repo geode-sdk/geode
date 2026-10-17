@@ -283,6 +283,9 @@ const char* server::sortToString(ModsSort sorting) {
         case ModsSort::Downloads: return "downloads";
         case ModsSort::RecentlyUpdated: return "recently_updated";
         case ModsSort::RecentlyPublished: return "recently_published";
+        case ModsSort::Oldest: return "oldest";
+        case ModsSort::Name: return "name";
+        case ModsSort::NameReverse: return "name_reverse";
     }
 }
 
