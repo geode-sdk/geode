@@ -401,8 +401,6 @@ public:
     // @note RobTop Addition
     void toggleShowFPS(bool, std::string, cocos2d::CCPoint);
     // @note RobTop Addition
-    double getLastInputTime();
-    // @note RobTop Addition
     void noteInput();
 
 protected:
@@ -455,6 +453,10 @@ public:
 
     // @note RobTop Addition
     CC_PROPERTY(CCMouseDispatcher*, m_pMouseDispatcher, MouseDispatcher);
+#if GEODE_COMP_GD_VERSION >= 22090
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(double, m_lastInputTime, LastInputTime);
+#endif
 
     /** CCAccelerometer associated with this director
      @since v2.0
