@@ -10,6 +10,7 @@ class CC_DLL CCTouchClipper
     GEODE_FRIEND_MODIFY
 
 public:
+    virtual ~CCTouchClipper() {}
     virtual bool touchInsideClip(cocos2d::CCPoint const&) = 0;
 };
 
