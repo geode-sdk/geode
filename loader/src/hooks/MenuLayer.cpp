@@ -1,7 +1,6 @@
 #include "../ui/mods/ModsLayer.hpp"
 #include <Geode/loader/GameEvent.hpp>
 #include <Geode/modify/MenuLayer.hpp>
-#include <Geode/modify/Modify.hpp>
 #include <Geode/modify/IDManager.hpp>
 #include <Geode/utils/NodeIDs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>

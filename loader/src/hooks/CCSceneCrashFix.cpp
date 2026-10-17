@@ -1,4 +1,3 @@
-#include <Geode/Geode.hpp>
 #include <Geode/modify/CCScene.hpp>
 
 using namespace geode::prelude;

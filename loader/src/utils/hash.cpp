@@ -1,3 +1,4 @@
+#include <Geode/utils/crypto.hpp>
 #include <Geode/utils/hash.hpp>
 #include <openssl/sha.h>
 #include <openssl/evp.h>

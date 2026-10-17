@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/utils/hash.hpp>
+#include <Geode/utils/crypto.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/StringBuffer.hpp>
 #include <asp/iter.hpp>

@@ -5,6 +5,7 @@
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/loader/ModEvent.hpp>
 #include <Geode/loader/Priority.hpp>
 
 $on_mod(Loaded) {

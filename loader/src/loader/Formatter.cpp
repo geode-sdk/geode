@@ -1,6 +1,7 @@
 #include <Geode/utils/StringBuffer.hpp>
 #include <Geode/loader/Formatter.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/ModEvent.hpp>
 #include <ranges>
 
 using namespace geode::prelude;

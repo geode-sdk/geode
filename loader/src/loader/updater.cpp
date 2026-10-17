@@ -6,6 +6,7 @@
 #include <utility>
 #include "LoaderImpl.hpp"
 #include "ModMetadataImpl.hpp"
+#include <Geode/utils/crypto.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/StringMap.hpp>
 

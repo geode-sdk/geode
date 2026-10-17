@@ -1,4 +1,5 @@
-#include <Geode/Geode.hpp>
+#include <Geode/platform/cplatform.h>
+
 #ifndef GEODE_IS_IOS
 #include <Geode/utils/VMTHookManager.hpp>
 #include <Geode/modify/Traits.hpp>

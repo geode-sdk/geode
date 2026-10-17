@@ -2,6 +2,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/utils/crypto.hpp>
 #include <Geode/utils/StringMap.hpp>
 #include <fmt/format.h>
 #include <optional>

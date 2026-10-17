@@ -1,3 +1,4 @@
+#include <Geode/loader/ModEvent.hpp>
 #include <Geode/loader/GameEvent.hpp>
 #include <Geode/modify/CCDirector.hpp>
 #include <Geode/modify/PlatformToolbox.hpp>

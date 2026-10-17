@@ -1,3 +1,5 @@
+#include <Geode/platform/cplatform.h>
+
 #ifdef GEODE_IS_IOS
 #include <Geode/DefaultInclude.hpp>
 
