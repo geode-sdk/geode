@@ -1,7 +1,8 @@
+#include <Windows.h>
+
 #include "nfdwin.hpp"
 #include <Geode/utils/string.hpp>
 #include <algorithm>
-#include <Windows.h>
 
 using Path = std::filesystem::path;
 using Paths = std::vector<std::filesystem::path>;
