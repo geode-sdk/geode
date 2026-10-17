@@ -83,7 +83,7 @@ public:
 
 public:
 
-    CCArray* m_pDelegates;
+    CCArray* m_pHandlers;
     bool m_bLocked;
     bool m_bToAdd;
     bool m_bToRemove;
