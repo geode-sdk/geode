@@ -330,41 +330,33 @@ namespace geode::comm {
         using SizeFuncType = geode::Function<size_t(OpaquePort*)>;
         using RemoveFuncType = geode::Function<size_t(OpaquePort*)>;
 
-        bool send(BaseFilter const* filter, SendFuncType func);
-        ListenerHandle addReceiver(BaseFilter const* filter, AddFuncType func) noexcept;
-        size_t getReceiverCount(BaseFilter const* filter, SizeFuncType func) noexcept;
-        size_t removeReceiver(BaseFilter const* filter, RemoveFuncType func) noexcept;
+        bool send(BaseFilter const* filter, OpaqueCallable::SendFunction sendFunction);
+        ListenerHandle addReceiver(BaseFilter const* filter, OpaqueCallable* opaqueCallable, int priority) noexcept;
+        size_t getReceiverCount(BaseFilter const* filter) noexcept;
+        size_t removeReceiver(BaseFilter const* filter, ReceiverHandle handle) noexcept;
     };
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
     bool BasicEvent<Marker, PReturn(PArgs...), FArgs...>::send(PArgs... args) {
-        return EventCenterType::get()->send(this, [&](OpaquePort* opaquePort) {
-            return opaquePort->send([&](OpaqueCallable* opaqueCallable) {
-                auto typedCallable = static_cast<TypedCallable<CallableType>*>(opaqueCallable);
-                typedCallable->call(args...);
-            });
+        return EventCenterType::get()->send(this, [&](OpaqueCallable* opaqueCallable) {
+            auto typedCallable = static_cast<TypedCallable<CallableType>*>(opaqueCallable);
+            typedCallable->call(args...);
         });
     }
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
     ListenerHandle BasicEvent<Marker, PReturn(PArgs...), FArgs...>::addReceiver(CallableType receiver, int priority) const noexcept {
-        return EventCenterType::get()->addReceiver(this, [&](OpaquePort* opaquePort) {
-            return opaquePort->addReceiver(new TypedReceiver<CallableType>(std::move(receiver)), priority);
-        });
+        return EventCenterType::get()->addReceiver(this, new TypedReceiver<CallableType>(std::move(receiver)), priority);
     }
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
     size_t BasicEvent<Marker, PReturn(PArgs...), FArgs...>::getReceiverCount() const noexcept {
-        return EventCenterType::get()->getReceiverCount(this, [&](OpaquePort* opaquePort) {
-            return opaquePort->getReceiverCount();
-        });
+        return EventCenterType::get()->getReceiverCount(this);
     }
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
     size_t BasicEvent<Marker, PReturn(PArgs...), FArgs...>::removeReceiver(ReceiverHandle handle) const noexcept {
-        return EventCenterType::get()->removeReceiver(this, [&](OpaquePort* opaquePort) {
-            return opaquePort->removeReceiver(handle);
-        });
+        return EventCenterType::get()->removeReceiver(this, handle);
     }
 }
 

@@ -161,10 +161,10 @@ public:
     std::mutex m_mutex;
     MapType m_ports;
 
-    bool send(BaseFilter const* filter, SendFuncType func) noexcept;
-    ListenerHandle addReceiver(BaseFilter const* filter, AddFuncType func) noexcept;
-    size_t getReceiverCount(BaseFilter const* filter, SizeFuncType func) noexcept;
-    size_t removeReceiver(BaseFilter const* filter, RemoveFuncType func) noexcept;
+    bool send(BaseFilter const* filter, OpaqueCallable::SendFunction sendFunction);
+    ListenerHandle addReceiver(BaseFilter const* filter, OpaqueCallable* opaqueCallable, int priority) noexcept;
+    size_t getReceiverCount(BaseFilter const* filter) noexcept;
+    size_t removeReceiver(BaseFilter const* filter, ReceiverHandle handle) noexcept;
 };
 
 EventCenterGlobal::EventCenterGlobal() : m_impl(std::make_unique<Impl>()) {}
@@ -175,7 +175,7 @@ EventCenterGlobal* EventCenterGlobal::get() {
     return s_instance;
 }
 
-bool EventCenterGlobal::Impl::send(BaseFilter const* filter, SendFuncType func) {
+bool EventCenterGlobal::Impl::send(BaseFilter const* filter, OpaqueCallable::SendFunction sendFunction) {
     // log::debug("EventCenterGlobal sending event for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
     auto lock = std::unique_lock<std::mutex>(m_mutex);
@@ -183,13 +183,13 @@ bool EventCenterGlobal::Impl::send(BaseFilter const* filter, SendFuncType func) 
     auto const end = m_ports.end();
 
     if (it != end) {
-        auto port = it->second;
+        auto* opaquePort = it->second.get();
         lock.unlock();
-        return std::invoke(func, port.get());
+        return opaquePort->send(std::move(sendFunction));
     }
     return false;
 }
-ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, AddFuncType func) noexcept {
+ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, OpaqueCallable* opaqueCallable, int priority) noexcept {
     // log::debug("EventCenterGlobal adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
     auto lock = std::unique_lock<std::mutex>(m_mutex);
@@ -197,7 +197,10 @@ ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, Ad
     auto const end = m_ports.end();
 
     if (it != end) {
-        return ListenerHandle(it->first, std::invoke(func, it->second.get()), nullptr);
+        auto* opaquePort = it->second.get();
+        auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority)
+
+        return ListenerHandle(it->first, receiverHandle, nullptr);
     }
     else {
         auto clonedFilter = Impl::KeyType(filter->clone());
@@ -205,32 +208,29 @@ ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, Ad
         auto filter2 = clonedFilter.get();
         // geode::console::log(fmt::format("Cloned filter for adding receiver {}, {}", (void*)filter2, cast::getRuntimeTypeName(filter2)), Severity::Debug);
 
-        auto port = std::make_unique<OpaquePort>();
+        auto opaquePort = std::make_unique<OpaquePort>();
 
-        ReceiverHandle handle = std::invoke(func, port.get());
-        auto ret = ListenerHandle(clonedFilter, handle, nullptr);
+        auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority)
+        auto listenerHandle = ListenerHandle(clonedFilter, receiverHandle, nullptr);
 
-        m_ports.emplace(std::move(clonedFilter), std::move(port));
-        return ret;
+        m_ports.emplace(std::move(clonedFilter), std::move(opaquePort));
+        return listenerHandle;
     }
 }
-size_t EventCenterGlobal::Impl::getReceiverCount(BaseFilter const* filter, SizeFuncType func, MigrateFuncType migratePort) noexcept {
+size_t EventCenterGlobal::Impl::getReceiverCount(BaseFilter const* filter) noexcept {
     auto lock = std::unique_lock<std::mutex>(m_mutex);
     auto it = m_ports.find(filter);
     auto const end = m_ports.end();
 
     if (it != end) {
-        if (auto newPort = std::invoke(migratePort, it->second.get())) {
-            it->second.reset(newPort);
-        }
+        auto* opaquePort = it->second.get();
 
-        auto port = it->second;
         lock.unlock();
-        return std::invoke(func, port.get());
+        return opaquePort->getReceiverCount();
     }
     return 0;
 }
-size_t EventCenterGlobal::Impl::removeReceiver(BaseFilter const* filter, RemoveFuncType func, MigrateFuncType migratePort) noexcept {
+size_t EventCenterGlobal::Impl::removeReceiver(BaseFilter const* filter, ReceiverHandle handle) noexcept {
     // log::debug("EventCenterGlobal removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
     auto lock = std::unique_lock<std::mutex>(m_mutex);
@@ -238,10 +238,9 @@ size_t EventCenterGlobal::Impl::removeReceiver(BaseFilter const* filter, RemoveF
     auto const end = m_ports.end();
 
     if (it != end) {
-        if (auto newPort = std::invoke(migratePort, it->second.get())) {
-            it->second.reset(newPort);
-        }
-        auto size = std::invoke(func, it->second.get());
+        auto* opaquePort = it->second.get();
+
+        auto size = opaquePort->removeReceiver(handle);
         if (size == 0) {
             // geode::console::log(fmt::format("Removing port for filter type {}", cast::getRuntimeTypeName(filter)), Severity::Debug);
             m_ports.erase(it);
@@ -251,15 +250,15 @@ size_t EventCenterGlobal::Impl::removeReceiver(BaseFilter const* filter, RemoveF
     return (size_t)-1;
 }
 
-bool EventCenterGlobal::send(BaseFilter const* filter, SendFuncType func) {
-    return m_impl->send(filter, func);
+bool EventCenterGlobal::send(BaseFilter const* filter, OpaqueCallable::SendFunction sendFunction) {
+    return m_impl->send(filter, sendFunction);
 }
-ListenerHandle EventCenterGlobal::addListener(BaseFilter const* filter, AddListenerFuncType func) noexcept {
-    return m_impl->addListener(filter, func);
+ListenerHandle EventCenterGlobal::addReceiver(BaseFilter const* filter, OpaqueCallable* opaqueCallable, int priority) noexcept {
+    return m_impl->addReceiver(filter, opaqueCallable, priority);
 }
-size_t EventCenterGlobal::getReceiverCount(BaseFilter const* filter, SizeFuncType func) noexcept {
-    return m_impl->getReceiverCount(filter, func);
+size_t EventCenterGlobal::getReceiverCount(BaseFilter const* filter) noexcept {
+    return m_impl->getReceiverCount(filter);
 }
-size_t EventCenterGlobal::removeReceiver(BaseFilter const* filter, RemoveFuncType func) noexcept {
-    return m_impl->removeReceiver(filter, func);
+size_t EventCenterGlobal::removeReceiver(BaseFilter const* filter, ReceiverHandle handle) noexcept {
+    return m_impl->removeReceiver(filter, handle);
 }
