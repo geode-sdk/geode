@@ -120,6 +120,14 @@ namespace geode::comm {
         class Impl;
         std::unique_ptr<Impl> m_impl;
 
+        // assumes not locked, because it locks itself
+        void cleanup() noexcept;
+
+        void incrementSending() noexcept;
+        void decrementSending() noexcept;
+        OpaqueCallable::Pair* getCallable(size_t& index) noexcept;
+
+
     public:
         Port2Opaque();
         virtual ~Port2Opaque();
@@ -130,14 +138,23 @@ namespace geode::comm {
 
         size_t getReceiverCount() const noexcept;
 
-        // assumes not locked, because it locks itself
-        void cleanup() noexcept;
-
         // todo: think about this
         template <class ...Args>
         requires std::invocable<Callable, Args...>
         bool send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
 
+            this->incrementSending();
+            bool ret = false;
+            size_t index = 0;
+            while (auto* ptr = this->getCallable(index)) {
+                if (std::invoke(ptr->second, ptr->first)) {
+                    ret = true;
+                    break;
+                }
+                ++index;
+            }
+            this->decrementSending();
+            return ret;
         }
     };
 
