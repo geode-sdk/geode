@@ -84,13 +84,13 @@
             "type": "bool",
             "default": true,
             "name": "Check For Updates",
-            "description": "Automatically check for <cy>Geode</c> updates on startup"
+            "description": "Automatically check for <cy>Geode</c> updates on startup."
         },
         "disable-last-crashed-popup": {
             "type": "bool",
             "default": false,
             "name": "Disable Crash Popup",
-            "description": "Disables the popup at startup asking if you'd like to send a bug report; intended for developers"
+            "description": "Disables the popup at startup asking if you'd like to send a bug report; intended for developers."
         },
         "used-theme": {
             "type": "string",
@@ -108,7 +108,7 @@
             "type": "bool",
             "default": false,
             "name": "Expand Installed Mods List",
-            "description": "Make the installed mods list a single infinite scrollable list instead of having pages"
+            "description": "Make the installed mods list a single infinite scrollable list instead of having pages."
         },
         "developer-title": {
             "type": "title",
@@ -118,7 +118,7 @@
             "type": "bool",
             "default": false,
             "name": "Show Platform Console",
-            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>",
+            "description": "Show the native console (if one exists). <cr>This setting is meant for developers</c>.",
             "platforms": [
                 "win",
                 "mac"
@@ -129,7 +129,13 @@
             "type": "bool",
             "default": false,
             "name": "Show Restart Button",
-            "description": "Show a button in the Geode Menu to restart the game"
+            "description": "Show a button in the Geode Menu to restart the game."
+        },
+        "disable-fallback": {
+            "type": "bool",
+            "default": false,
+            "name": "Disable fallback textures",
+            "description": "Disables the fallback texture warning to make debugging easier."
         },
         "console-log-level": {
             "type": "string",
@@ -157,7 +163,7 @@
             "type": "bool",
             "default": false,
             "name": "Log Milliseconds",
-            "description": "Shows milliseconds in all logs"
+            "description": "Shows milliseconds in all logs."
         },
         "log-thread": {
             "type": "bool",
