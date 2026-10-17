@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v5.11.2
+ * Fix 2.209 crashes (note that this release is still primarily for 2.2081)
+ * Fix text inputs in forward compat mode on 2.209
+
 ## v5.11.1
  * Revert Force UTF-8 for character conversion functions instead of system locale, most importantly fixing `fs::path::string()` throwing exceptions (ac72778)
 

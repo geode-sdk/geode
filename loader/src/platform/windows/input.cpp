@@ -455,6 +455,8 @@ static void GLFWCharCallback(GLFWwindow* window, unsigned int c) {
 static void GLFWFocusCallback(GLFWwindow* window, int focused);
 
 struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("this breaks text inputs on 2.209")
+
     void handleKeyboardEvent(RawInputEvent const& evt) {
         using enum KeyboardInputData::Action;
         bool isDown = evt.type == RawInputEvent::Type::KeyDown;

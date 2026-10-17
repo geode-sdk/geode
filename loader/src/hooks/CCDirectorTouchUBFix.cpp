@@ -9,6 +9,8 @@ using namespace geode::prelude;
 ///
 /// This fix simply retains the touch dispatcher until it's safe to destroy it.
 struct CCDirectorTouchUBFix : Modify<CCDirectorTouchUBFix, CCDirector> {
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCDirectorTouchUBFix")
+
     void destructor() {
         Ref _{m_pTouchDispatcher};
         CCDirector::~CCDirector();
