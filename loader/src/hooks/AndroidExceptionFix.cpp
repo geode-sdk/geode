@@ -1,8 +1,9 @@
-#include <Geode/Geode.hpp>
-
-using namespace geode::prelude;
+#include <Geode/platform/cplatform.h>
 
 #ifdef GEODE_IS_ANDROID
+#include <Geode/loader/Mod.hpp>
+
+using namespace geode::prelude;
 
 // replaces https://github.com/llvm-mirror/libcxxabi/blob/master/src/private_typeinfo.cpp#L213
 // this is the function that checks if a type can catch an exception

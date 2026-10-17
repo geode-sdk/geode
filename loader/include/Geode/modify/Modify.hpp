@@ -8,6 +8,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/StringMap.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/ModEvent.hpp>
 #include <iostream>
 #include <tulip/TulipHook.hpp>
 #include <arc/future/PollableMetadata.hpp>

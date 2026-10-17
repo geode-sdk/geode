@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <Geode/Result.hpp>
 #include "Log.hpp"
-#include "ModEvent.hpp"
 #include "ModMetadata.hpp"
 #include "Types.hpp"
 

@@ -1,6 +1,7 @@
 #ifndef __CC_APPLICATION_WIN32_H__
 #define __CC_APPLICATION_WIN32_H__
 
+#include <Windows.h>
 #include "../../include/ccMacros.h"
 #include "CCStdC.h"
 #include "../CCCommon.h"

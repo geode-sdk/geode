@@ -1,5 +1,6 @@
 #include "ModList.hpp"
 #include <Geode/cocos/actions/CCActionInterval.h>
+#include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>

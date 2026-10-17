@@ -1,4 +1,3 @@
-#include <Geode/Geode.hpp>
 #include <Geode/modify/CCMenuItem.hpp>
 #include <Geode/modify/CCMenu.hpp>
 

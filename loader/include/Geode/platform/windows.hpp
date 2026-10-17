@@ -4,14 +4,19 @@
 #pragma warning(disable : 4251) // dll-interface
 #pragma warning(disable : 4244) // narrowing conversion
 
-#include <Windows.h>
-#include <cstring>
+#include "_casts_shared.hpp"
+
+#include <optional>
 #include <type_traits>
 #include <typeinfo>
-#include <memory>
-#include <optional>
 #include <intrin.h>  // for _ReadWriteBarrier
-#include "_casts_shared.hpp"
+
+#ifndef _WINDOWS_
+struct HINSTANCE__;
+using HINSTANCE = HINSTANCE__*;
+using HMODULE = HINSTANCE;
+extern "C" __declspec(dllimport) HMODULE __stdcall GetModuleHandleW(wchar_t const* lpModuleName);
+#endif
 
 namespace geode {
     struct PlatformInfo {
@@ -57,7 +62,7 @@ namespace geode {
 
 namespace geode::base {
     GEODE_NOINLINE inline uintptr_t get() {
-        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleW(0));
         return base;
     }
 

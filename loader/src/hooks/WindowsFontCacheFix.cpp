@@ -1,4 +1,4 @@
-#include <Geode/Geode.hpp>
+#include <Geode/platform/cplatform.h>
 
 #ifdef GEODE_IS_WINDOWS
 

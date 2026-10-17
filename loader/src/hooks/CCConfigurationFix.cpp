@@ -1,4 +1,3 @@
-#include <Geode/Geode.hpp>
 #include <Geode/modify/CCConfiguration.hpp>
 
 using namespace geode::prelude;

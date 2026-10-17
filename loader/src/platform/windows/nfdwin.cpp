@@ -1,3 +1,5 @@
+#include <Windows.h>
+
 #include "nfdwin.hpp"
 #include <Geode/utils/string.hpp>
 #include <algorithm>

@@ -1,3 +1,5 @@
+#include <Windows.h>
+#include <Xinput.h>
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
@@ -723,11 +725,11 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
         if (!controller) return;
 
         auto timestamp = getInputTimestamp();
-        if (XInputGetState(controller->m_userIndex, &controller->m_xinputState) != ERROR_SUCCESS) {
+        if (XInputGetState(controller->m_userIndex, reinterpret_cast<XINPUT_STATE*>(&controller->m_xinputState)) != ERROR_SUCCESS) {
             return;
         }
 
-        XINPUT_STATE state = controller->m_xinputState;
+        XINPUT_STATE& state = *reinterpret_cast<XINPUT_STATE*>(&controller->m_xinputState);
         auto* dispatcher = CCKeyboardDispatcher::get();
 
         int player2Offset = userIndex > 1 ? 1 : 0;
@@ -811,8 +813,8 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
         handleButton(XINPUT_GAMEPAD_LEFT_SHOULDER, CONTROLLER_LB, controller->m_lb);
         handleButton(XINPUT_GAMEPAD_RIGHT_SHOULDER, CONTROLLER_RB, controller->m_rb);
 
-        handleTrigger(controller->m_xinputState.Gamepad.bLeftTrigger, CONTROLLER_LT, controller->m_lt);
-        handleTrigger(controller->m_xinputState.Gamepad.bRightTrigger, CONTROLLER_RT, controller->m_rt);
+        handleTrigger(reinterpret_cast<XINPUT_STATE*>(&controller->m_xinputState)->Gamepad.bLeftTrigger, CONTROLLER_LT, controller->m_lt);
+        handleTrigger(reinterpret_cast<XINPUT_STATE*>(&controller->m_xinputState)->Gamepad.bRightTrigger, CONTROLLER_RT, controller->m_rt);
 
         handleButton(XINPUT_GAMEPAD_START, CONTROLLER_Start, controller->m_start);
 

@@ -1,4 +1,3 @@
-#include <Geode/Geode.hpp>
 #include <Geode/modify/ChannelControl.hpp>
 #include <Geode/modify/System.hpp>
 

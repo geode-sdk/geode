@@ -1,3 +1,4 @@
+#include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/async.hpp>
 #include <Geode/loader/GameEvent.hpp>
 #include <Geode/loader/Log.hpp>
