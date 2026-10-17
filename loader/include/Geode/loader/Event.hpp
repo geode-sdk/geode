@@ -37,48 +37,48 @@ namespace geode::comm {
     using ReceiverHandle = size_t;
 
     struct OpaqueCallable {
-        virtual ~OpaqueCallable();
+        virtual ~OpaqueCallable() = 0;
 
-        int getPriority() const noexcept = 0;
-        ReceiverHandle getHandle() const noexcept = 0;
-        void setPriority(int priority) noexcept = 0;
-        void setHandle(ReceiverHandle handle) noexcept = 0;
-        size_t getVersion() const noexcept = 0;
-        size_t getMinorVersion() const noexcept = 0;
+        virtual int getPriority() const noexcept = 0;
+        virtual ReceiverHandle getHandle() const noexcept = 0;
+        virtual void setPriority(int priority) noexcept = 0;
+        virtual void setHandle(ReceiverHandle handle) noexcept = 0;
+        virtual size_t getVersion() const noexcept = 0;
+        virtual size_t getMinorVersion() const noexcept = 0;
 
         using SendFunction = geode::CopyableFunction<bool(OpaqueCallable*)>;
     };
 
     template <class Callable>
-    struct TypedCallable {
+    struct TypedCallable : OpaqueCallable {
         Callable m_callable;
         int m_priority = 0;
         ReceiverHandle m_handle = 0;
 
         TypedCallable(Callable callable) : m_callable(callable) {}
-        ~TypedCallable() = default;
+        ~TypedCallable() override = default;
 
-        int getPriority() const noexcept {
+        int getPriority() const noexcept override {
             return m_priority;
         }
 
-        ReceiverHandle getHandle() const noexcept {
+        ReceiverHandle getHandle() const noexcept override {
             return m_handle;
         }
 
-        void setPriority(int priority) noexcept {
+        void setPriority(int priority) noexcept override {
             m_priority = priority;
         }
 
-        void setHandle(ReceiverHandle handle) noexcept {
+        void setHandle(ReceiverHandle handle) noexcept override {
             m_handle = handle;
         }
 
-        size_t getVersion() const noexcept {
+        size_t getVersion() const noexcept override {
             return 1;
         }
 
-        size_t getMinorVersion() const noexcept {
+        size_t getMinorVersion() const noexcept override {
             return 0;
         }
 
@@ -338,7 +338,7 @@ namespace geode::comm {
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
     bool BasicEvent<Marker, PReturn(PArgs...), FArgs...>::send(PArgs... args) {
-        return EventCenterType::get()->send(this, [&](OpaqueCallable* opaqueCallable) {
+        return EventCenterGlobal::get()->send(this, [&](OpaqueCallable* opaqueCallable) {
             auto typedCallable = static_cast<TypedCallable<CallableType>*>(opaqueCallable);
             typedCallable->call(args...);
         });
@@ -346,17 +346,17 @@ namespace geode::comm {
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
     ListenerHandle BasicEvent<Marker, PReturn(PArgs...), FArgs...>::addReceiver(CallableType receiver, int priority) const noexcept {
-        return EventCenterType::get()->addReceiver(this, new TypedReceiver<CallableType>(std::move(receiver)), priority);
+        return EventCenterGlobal::get()->addReceiver(this, new TypedCallable<CallableType>(std::move(receiver)), priority);
     }
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
     size_t BasicEvent<Marker, PReturn(PArgs...), FArgs...>::getReceiverCount() const noexcept {
-        return EventCenterType::get()->getReceiverCount(this);
+        return EventCenterGlobal::get()->getReceiverCount(this);
     }
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
     size_t BasicEvent<Marker, PReturn(PArgs...), FArgs...>::removeReceiver(ReceiverHandle handle) const noexcept {
-        return EventCenterType::get()->removeReceiver(this, handle);
+        return EventCenterGlobal::get()->removeReceiver(this, handle);
     }
 }
 
