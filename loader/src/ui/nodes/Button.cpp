@@ -19,7 +19,7 @@ public:
     float m_touchMultiplier = 1.f;
 
     CCPoint m_offset = {0, -15};
-    
+
     float m_selectedDuration = 0.3f;
     float m_unselectedDuration = 0.4f;
 
@@ -158,7 +158,9 @@ CCNode* Button::getDisplayNode() {
 }
 
 void Button::setDisplayNode(CCNode* node) {
-    m_impl->m_displayNode->removeFromParent();
+    if (m_impl->m_displayNode) {
+        m_impl->m_displayNode->removeFromParent();
+    }
 
     m_impl->m_displayNode = node;
 
@@ -187,7 +189,7 @@ CCActionInterval* Button::clickActionForType() {
     }
 
     return nullptr;
-}   
+}
 
 CCActionInterval* Button::releaseActionForType() {
     switch (m_impl->m_animationType) {
@@ -206,7 +208,7 @@ CCActionInterval* Button::releaseActionForType() {
             return CCEaseInOut::create(moveTo, 2.f);
         }
     }
-    
+
     return nullptr;
 }
 
@@ -297,7 +299,7 @@ void Button::selected() {
 
 void Button::unselected() {
     if (!m_impl->m_selected) return;
-    
+
     stopAction(m_impl->m_activeClickAction);
     stopAction(m_impl->m_activeReleaseAction);
 
