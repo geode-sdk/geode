@@ -7,7 +7,7 @@ using namespace geode::comm;
 
 // OpaquePort
 // // only threadsafe ver for now before i can handle it all
-class OpaquePort::Impl {
+struct OpaquePort::Impl {
     mutable std::mutex m_mutex;
 
     std::vector<std::unique_ptr<OpaqueCallable>> m_receivers;
@@ -27,8 +27,8 @@ class OpaquePort::Impl {
 
     OpaqueCallable* getCallable(size_t& index) noexcept;
 
-    bool send(OpaqueCallable::SendFunction opaqueFunction) noexcept;
-}
+    bool send(OpaqueCallable::SendFunction opaqueFunction);
+};
 
 OpaquePort::OpaquePort() : m_impl(new OpaquePort::Impl) {}
 OpaquePort::~OpaquePort() = default;
@@ -43,12 +43,12 @@ ReceiverHandle OpaquePort::Impl::addReceiver(OpaqueCallable* opaqueCallable, int
         m_toAdd.emplace_back(opaqueCallable);
         return handle;
     }
-    for (auto it = m_receivers->begin(); it != m_receivers->end(); ++it) {
-        if (priority < it->getPriority()) {
+    for (auto it = m_receivers.begin(); it != m_receivers.end(); ++it) {
+        if (priority < (*it)->getPriority()) {
             opaqueCallable->setPriority(priority);
             opaqueCallable->setHandle(handle);
             // geode::console::log(fmt::format("Added handler with id {} to receivers", handle), Severity::Debug);
-            m_receivers.insert(it, {opaqueCallable});
+            m_receivers.insert(it, std::unique_ptr<OpaqueCallable>(opaqueCallable));
             return handle;
         }
     }
@@ -61,9 +61,9 @@ ReceiverHandle OpaquePort::Impl::addReceiver(OpaqueCallable* opaqueCallable, int
 
 size_t OpaquePort::Impl::removeReceiver(ReceiverHandle handle) noexcept {
     auto lock = std::unique_lock<std::mutex>(m_mutex);
-    auto size = m_receivers->size();
+    auto size = m_receivers.size();
     for (int i = 0; i < size; ++i) {
-        if (m_receivers[i].m_handle == handle) {
+        if (m_receivers[i]->getHandle() == handle) {
             if (m_sending > 0) {
                 // geode::console::log(fmt::format("Added handler with id {} to toRemove", handle), Severity::Debug);
                 m_toRemove.push_back(handle);
@@ -101,16 +101,16 @@ bool OpaquePort::Impl::send(OpaqueCallable::SendFunction opaqueFunction) {
     if (m_sending == 0) {
         // is it n^2? yes, do i care? no
         for (auto handle : m_toRemove) {
-            std::erase_if(m_receivers.begin(), m_receivers.end(), [](auto* opaqueCallable) {
-                return receiver->getHandle() == handle;
+            std::erase_if(m_receivers, [&](auto const& a) {
+                return a->getHandle() == handle;
             });
         }
         m_toRemove.clear();
 
-        m_receivers->insert(m_receivers.end(), std::make_move_iterator(m_toAdd.begin()), std::make_move_iterator(m_toAdd.end()));
+        m_receivers.insert(m_receivers.end(), std::make_move_iterator(m_toAdd.begin()), std::make_move_iterator(m_toAdd.end()));
         m_toAdd.clear();
 
-        std::sort(m_receivers.begin(), m_receivers.end(), [](auto* a, auto* b) {
+        std::sort(m_receivers.begin(), m_receivers.end(), [](auto const& a, auto const& b) {
             return a->getPriority() < b->getPriority();
         });
     }
@@ -126,7 +126,7 @@ OpaqueCallable* OpaquePort::Impl::getCallable(size_t& index) noexcept {
     if (index >= m_receivers.size()) return nullptr;
     auto* opaqueCallable = m_receivers[index].get();
 
-    while (std::find(m_toRemove.begin(), m_toRemove.end(), opaqueCallable->getHandle()) != m_toRemove.end())) {
+    while (std::find(m_toRemove.begin(), m_toRemove.end(), opaqueCallable->getHandle()) != m_toRemove.end()) {
         ++index;
         if (index >= m_receivers.size()) return nullptr;
         opaqueCallable = m_receivers[index].get();
@@ -134,8 +134,8 @@ OpaqueCallable* OpaquePort::Impl::getCallable(size_t& index) noexcept {
     return opaqueCallable;
 }
 
-ReceiverHandle OpaquePort::addReceiver(OpaqueCallable* opaqueCallable, OpaqueCallable::SendFunction opaqueFunction, int priority) noexcept {
-    return m_impl->addReceiver(opaqueCallable, std::move(opaqueFunction), priority);
+ReceiverHandle OpaquePort::addReceiver(OpaqueCallable* opaqueCallable, int priority) noexcept {
+    return m_impl->addReceiver(opaqueCallable, priority);
 }
 
 size_t OpaquePort::removeReceiver(ReceiverHandle handle) noexcept {
@@ -146,7 +146,7 @@ size_t OpaquePort::getReceiverCount() const noexcept {
     return m_impl->getReceiverCount();
 }
 
-bool OpaquePort::send(OpaqueCallable::SendFunction opaqueFunction) noexcept {
+bool OpaquePort::send(OpaqueCallable::SendFunction opaqueFunction) {
     return m_impl->send(std::move(opaqueFunction));
 }
 
@@ -198,7 +198,7 @@ ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, Op
 
     if (it != end) {
         auto* opaquePort = it->second.get();
-        auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority)
+        auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority);
 
         return ListenerHandle(it->first, receiverHandle, nullptr);
     }
@@ -210,7 +210,7 @@ ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, Op
 
         auto opaquePort = std::make_unique<OpaquePort>();
 
-        auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority)
+        auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority);
         auto listenerHandle = ListenerHandle(clonedFilter, receiverHandle, nullptr);
 
         m_ports.emplace(std::move(clonedFilter), std::move(opaquePort));

@@ -36,11 +36,6 @@
 
 using namespace geode::prelude;
 
-comm::EventCenter* geode::comm::EventCenter::get() {
-    static auto s_instance = new EventCenter();
-    return s_instance;
-}
-
 Loader::Impl* LoaderImpl::get() {
     return Loader::get()->m_impl.get();
 }
@@ -590,7 +585,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
 
 void Loader::Impl::startUnzippingMods() {
     for (auto mod : m_modsToLoad) {
-        // Don't load stuff that isn't compatible 
+        // Don't load stuff that isn't compatible
         if (!mod->getMetadata().checkGameVersion() || !mod->getMetadata().checkGeodeVersion()) {
             continue;
         }

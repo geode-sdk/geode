@@ -37,7 +37,7 @@ namespace geode::comm {
     using ReceiverHandle = size_t;
 
     struct OpaqueCallable {
-        virtual ~OpaqueCallable() = 0;
+        virtual ~OpaqueCallable() = default;
 
         virtual int getPriority() const noexcept = 0;
         virtual ReceiverHandle getHandle() const noexcept = 0;
@@ -340,7 +340,7 @@ namespace geode::comm {
     bool BasicEvent<Marker, PReturn(PArgs...), FArgs...>::send(PArgs... args) {
         return EventCenterGlobal::get()->send(this, [&](OpaqueCallable* opaqueCallable) {
             auto typedCallable = static_cast<TypedCallable<CallableType>*>(opaqueCallable);
-            typedCallable->call(args...);
+            return typedCallable->call(args...);
         });
     }
 
