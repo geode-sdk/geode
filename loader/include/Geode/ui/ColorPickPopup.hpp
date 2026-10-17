@@ -11,8 +11,7 @@ namespace geode {
 
     class GEODE_DLL ColorPickPopup :
         public Popup,
-        public cocos2d::extension::ColorPickerDelegate,
-        public TextInputDelegate {
+        public cocos2d::extension::ColorPickerDelegate {
         class Impl;
         std::unique_ptr<Impl> m_impl;
     protected:
