@@ -64,22 +64,82 @@ namespace geode::comm {
         }
     };
 
-    template <class Callable>
-    struct PortCallableMove : PortCallableCopy<Callable> {
-        template <class ...Args>
-        bool call(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if (!this->m_callable) return false;
+    struct OpaqueCallable {
+        virtual ~OpaqueCallable();
 
-            if constexpr (std::is_same_v<void, decltype(std::invoke(this->m_callable, std::forward<Args>(args)...))>) {
-                std::invoke(std::move(this->m_callable), std::forward<Args>(args)...);
+        int getPriority() const noexcept = 0;
+        ReceiverHandle getHandle() const noexcept = 0;
+        void setPriority(int priority) = 0;
+        void setHandle(ReceiverHandle handle) = 0;
+
+        using SendFunction = geode::CopyableFunction<bool(OpaqueCallable*)>;
+        using Pair = std::pair<OpaqueCallable*, SendFunction>;
+    };
+
+    template <class Callable>
+    struct TypedCallable {
+        Callable m_callable;
+        int m_priority;
+        ReceiverHandle m_handle;
+
+        ~TypedCallable() = default;
+
+        int getPriority() const noexcept {
+            return m_priority;
+        }
+
+        ReceiverHandle getHandle() const noexcept {
+            return m_handle;
+        }
+
+        void setPriority(int priority) {
+            m_priority = priority;
+        }
+
+        void setHandle(ReceiverHandle handle) {
+            m_handle = handle;
+        }
+
+        template <class ...Args>
+        bool call(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+            if (!m_callable) return false;
+
+            if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, std::forward<Args>(args)...))>) {
+                std::invoke(m_callable, std::forward<Args>(args)...);
                 return false;
+            } else {
+                return std::invoke(m_callable, std::forward<Args>(args)...);
             }
-            return std::invoke(std::move(this->m_callable), std::forward<Args>(args)...);
         }
     };
 
     class EventCenterThreadLocal;
     class EventCenterGlobal;
+
+    class Port2Opaque {
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
+
+    public:
+        Port2Opaque();
+        virtual ~Port2Opaque();
+
+        ReceiverHandle addReceiver(OpaqueCallable* opaqueCallable, OpaqueCallable::SendFunction opaqueFunction, int priority) noexcept;
+
+        size_t removeReceiver(ReceiverHandle handle) noexcept;
+
+        size_t getReceiverCount() const noexcept;
+
+        // assumes not locked, because it locks itself
+        void cleanup() noexcept;
+
+        // todo: think about this
+        template <class ...Args>
+        requires std::invocable<Callable, Args...>
+        bool send(Args&&... value) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
+
+        }
+    };
 
     // Okay so even though the Event system is fully header only,
     // we can still version it. One caveat/hackiness is that
@@ -312,113 +372,6 @@ namespace geode::comm {
             return ret;
         }
     };
-
-    // template <class Callable, bool ThreadSafe = false>
-    // class OncePort : protected Port<Callable, ThreadSafe, PortCallableMove> {
-    //     std::conditional_t<ThreadSafe, std::atomic_flag, bool> m_sent = false;
-    // public:
-    //     using CallableType = Callable;
-
-    //     using Port<Callable, ThreadSafe>::addReceiver;
-    //     using Port<Callable, ThreadSafe>::removeReceiver;
-
-    //     template <class ...Args>
-    //     bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-
-    //         if constexpr (ThreadSafe) {
-    //             if (m_sent.test_and_set())
-    //                 return false;
-    //         } else {
-    //             if (m_sent) return false;
-    //             m_sent = true;
-    //         }
-
-    //         return Port<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
-    //     }
-    //     bool isSent() const noexcept {
-    //         if constexpr (ThreadSafe)
-    //             return m_sent.test();
-    //         else
-    //             return m_sent;
-    //     }
-    // };
-
-    // template <class Callable, bool ThreadSafe = false, template <class> class Container = PortCallableCopy>
-    // class QueuedPort : protected Port<Callable, ThreadSafe, Container> {
-    //     using VectorType = std::vector<geode::CopyableFunction<void()>>;
-    //     std::conditional_t<ThreadSafe, asp::PtrSwap<VectorType>, VectorType> m_queue;
-    // public:
-    //     using CallableType = Callable;
-
-    //     using Port<Callable, ThreadSafe>::addReceiver;
-    //     using Port<Callable, ThreadSafe>::removeReceiver;
-
-    //     template <class ...Args>
-    //     requires std::invocable<Callable, Args...>
-    //     bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-    //         auto lam = [=, this] {
-    //             return Port<Callable, ThreadSafe>::send(args...);
-    //         };
-
-    //         if constexpr (ThreadSafe) {
-    //             m_queue.rcu([&](auto const& ptr) {
-    //                 auto newQueue = asp::make_shared<VectorType>(*ptr.get());
-    //                 newQueue->push_back(lam);
-    //                 return newQueue;
-    //             });
-    //         } else {
-    //             m_queue.push_back(lam);
-    //         }
-    //         return false;
-    //     }
-
-    //     void flush() noexcept {
-    //         if constexpr (ThreadSafe) {
-    //             m_queue.rcu([&](auto const& ptr) {
-    //                 auto newQueue = asp::make_shared<VectorType>(*ptr.get());
-    //                 for (auto& q : *newQueue) {
-    //                     std::invoke(q);
-    //                 }
-    //                 newQueue->clear();
-    //                 return newQueue;
-    //             });
-    //         } else {
-    //             for (auto& q : m_queue) {
-    //                 std::invoke(q);
-    //             }
-    //             m_queue.clear();
-    //         }
-    //     }
-    // };
-
-    // template <class Callable, bool ThreadSafe = false>
-    // class QueuedOncePort : protected QueuedPort<Callable, ThreadSafe, PortCallableMove> {
-    //     std::conditional_t<ThreadSafe, std::atomic_flag, bool> m_sent = false;
-    // public:
-    //     using CallableType = Callable;
-
-    //     using QueuedPort<Callable, ThreadSafe>::addReceiver;
-    //     using QueuedPort<Callable, ThreadSafe>::removeReceiver;
-    //     using QueuedPort<Callable, ThreadSafe>::flush;
-
-    //     template <class ...Args>
-    //     bool send(Args&&... args) noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-    //         if constexpr (ThreadSafe) {
-    //             if (m_sent.test_and_set())
-    //                 return false;
-    //         } else {
-    //             if (m_sent) return false;
-    //             m_sent = true;
-    //         }
-    //         return QueuedPort<Callable, ThreadSafe>::send(std::forward<Args>(args)...);
-    //     }
-    //     bool isSent() const noexcept {
-    //         if constexpr (ThreadSafe)
-    //             return m_sent.test();
-    //         else
-    //             return m_sent;
-    //     }
-    // };
 
     template <template <class, bool, template <class> class> class PortType, bool ThreadSafe, template <class> class Container>
     struct PortWrapper {

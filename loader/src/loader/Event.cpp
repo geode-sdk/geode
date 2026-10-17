@@ -5,6 +5,116 @@
 using namespace geode::prelude;
 using namespace geode::comm;
 
+// Port2Opaque
+// // only threadsafe ver for now before i can handle it all
+class Port2Opaque::Impl {
+    mutable std::mutex m_mutex;
+
+    std::vector<OpaqueCallable::Pair> m_receivers;
+    std::vector<OpaqueCallable::Pair> m_toAdd;
+    std::vector<ReceiverHandle> m_toRemove;
+
+    size_t m_nextID = 1;
+    size_t m_sending = 0;
+
+    ReceiverHandle addReceiver(OpaqueCallable* opaqueCallable, OpaqueCallable::SendFunction opaqueFunction, int priority) noexcept;
+
+    size_t removeReceiver(ReceiverHandle handle) noexcept;
+
+    size_t getReceiverCount() const noexcept;
+
+    void cleanup() noexcept;
+}
+
+Port2Opaque::Port2Opaque() : m_impl(new Port2Opaque::Impl) {}
+virtual Port2Opaque::~Port2Opaque() = default;
+
+ReceiverHandle Port2Opaque::Impl::addReceiver(OpaqueCallable* opaqueCallable, OpaqueCallable::SendFunction opaqueFunction, int priority) noexcept {
+    auto lock = std::unique_lock<std::mutex>(m_mutex);
+    ReceiverHandle handle = static_cast<ReceiverHandle>(m_nextID++);
+    auto receivers = m_receivers.load();
+    if (m_sending > 0) {
+        opaqueCallable->setPriority(priority);
+        opaqueCallable->setHandle(handle);
+        // geode::console::log(fmt::format("Added handler with id {} to toAdd", handle), Severity::Debug);
+        m_toAdd.push_back({opaqueCallable, std::move(opaqueFunction)});
+        return handle;
+    }
+    for (auto it = receivers->begin(); it != receivers->end(); ++it) {
+        if (priority < it->getPriority()) {
+            opaqueCallable->setPriority(priority);
+            opaqueCallable->setHandle(handle);
+            // geode::console::log(fmt::format("Added handler with id {} to receivers", handle), Severity::Debug);
+            receivers->insert(it, {opaqueCallable, std::move(opaqueFunction)});
+            return handle;
+        }
+    }
+    receivers->push_back({std::move(receiver), priority, handle});
+    return handle;
+}
+
+size_t Port2Opaque::Impl::removeReceiver(ReceiverHandle handle) noexcept {
+    auto lock = std::unique_lock<std::mutex>(m_mutex);
+    auto size = m_receivers->size();
+    for (int i = 0; i < size; ++i) {
+        if (m_receivers[i].m_handle == handle) {
+            if (m_sending > 0) {
+                // geode::console::log(fmt::format("Added handler with id {} to toRemove", handle), Severity::Debug);
+                m_toRemove.push_back(handle);
+            } else {
+                // geode::console::log(fmt::format("Removed handler with id {} from receivers", handle), Severity::Debug);
+                m_receivers.erase(receivers.begin() + i);
+            }
+            // size - 1, return for symmetry
+            return size - 1;
+        }
+    }
+    // size
+    return size;
+}
+
+void Port2Opaque::Impl::cleanup() noexcept {
+    auto lock = std::unique_lock<std::mutex>(m_mutex);
+    if (m_sending == 0) {
+        // is it n^2? yes, do i care? no
+        for (auto handle : m_toRemove) {
+            std::erase_if(m_receivers.begin(), m_receivers.end(), [](auto& receiver) {
+                return receiver->getHandle() == handle;
+            });
+        }
+        m_toRemove.clear();
+
+        receivers->insert(receivers->end(), std::make_move_iterator(m_toAdd.begin()), std::make_move_iterator(m_toAdd.end()));
+        m_toAdd.clear();
+
+        std::sort(receivers->begin(), receivers->end(), [](auto& a, auto& b) {
+            return a.m_priority < b.m_priority;
+        });
+    }
+}
+
+size_t Port2Opaque::Impl::getReceiverCount() const noexcept {
+    auto lock = std::unique_lock<std::mutex>(m_mutex);
+    return m_receivers.size() + m_toAdd.size() - m_toRemove.size();
+}
+
+ReceiverHandle Port2Opaque::addReceiver(OpaqueCallable* opaqueCallable, OpaqueCallable::SendFunction opaqueFunction, int priority) noexcept {
+    return m_impl->addReceiver(opaqueCallable, std::move(opaqueFunction), priority);
+}
+
+size_t Port2Opaque::removeReceiver(ReceiverHandle handle) noexcept {
+    return m_impl->removeReceiver(handle);
+}
+
+size_t Port2Opaque::getReceiverCount() const noexcept {
+    return m_impl->getReceiverCount();
+}
+
+void Port2Opaque::cleanup() noexcept {
+    m_impl->cleanup();
+}
+
+
 // EventCenterThreadLocal
 
 class EventCenterThreadLocal::Impl {
