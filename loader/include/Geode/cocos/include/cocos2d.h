@@ -299,6 +299,7 @@ THE SOFTWARE.
 
 // touch_dispatcher
 #include "../touch_dispatcher/CCTouch.h"
+#include "../touch_dispatcher/CCTouchClipper.h"
 #include "../touch_dispatcher/CCTouchDelegateProtocol.h"
 #include "../touch_dispatcher/CCTouchDispatcher.h"
 #include "../touch_dispatcher/CCTouchHandler.h"
@@ -314,6 +315,7 @@ THE SOFTWARE.
 #include "../support/component/CCComponentContainer.h"
 
 //robtop
+#include "../robtop/keyboard_dispatcher/CCKeyboardActionManager.h"
 #include "../robtop/keyboard_dispatcher/CCKeyboardDelegate.h"
 #include "../robtop/keyboard_dispatcher/CCKeyboardDispatcher.h"
 
@@ -328,6 +330,8 @@ THE SOFTWARE.
 
 #include "../robtop/sprite_nodes/CCFontSprite.h"
 #include "../robtop/sprite_nodes/CCSpriteExtra.h"
+
+#include "../robtop/touch_dispatcher/CCTouchClipper.h"
 
 #include "../robtop/xml/DS_Dictionary.h"
 #include "../robtop/xml/ObjectDecoder.h"

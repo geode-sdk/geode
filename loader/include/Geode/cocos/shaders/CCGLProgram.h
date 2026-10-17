@@ -290,7 +290,7 @@ public:
     bool              m_hasShaderCompiler;
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT) || (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
-    gd::string       m_shaderId;
+    std::string       m_shaderId;
 #endif
 };
 

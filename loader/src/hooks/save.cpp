@@ -1,3 +1,5 @@
+// TODO: 2.209
+#if 0
 #include <Geode/loader/Loader.hpp>
 
 using namespace geode::prelude;
@@ -47,9 +49,10 @@ struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
 
 // redirects the save path to what geode knows, in case launcher's fopen hook fails
 struct FileOperationOverride : Modify<FileOperationOverride, FileOperation> {
-    static gd::string getFilePath() {
+    static std::string getFilePath() {
         return utils::string::pathToString(dirs::getSaveDir()) + "/";
     }
 };
 
+#endif
 #endif

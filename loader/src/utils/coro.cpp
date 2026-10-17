@@ -1,4 +1,5 @@
 #include <Geode/utils/coro.hpp>
+#include <Geode/loader/Loader.hpp>
 #include <arc/sync/oneshot.hpp>
 
 namespace geode::utils::coro {

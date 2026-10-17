@@ -8,14 +8,15 @@
 #include <loader/console.hpp>
 #include <loader/updater.hpp>
 #include <Geode/utils/NodeIDs.hpp>
+#include <Geode/ui/Label.hpp>
 
 using namespace geode::prelude;
 
 struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
     struct Fields {
         bool m_menuDisabled = false;
-        CCLabelBMFont* m_smallLabel = nullptr;
-        CCLabelBMFont* m_smallLabel2 = nullptr;
+        Label* m_smallLabel = nullptr;
+        Label* m_smallLabel2 = nullptr;
         int m_geodeLoadStep = 0;
         int m_totalMods = 0;
         ~Fields() {
@@ -72,13 +73,13 @@ struct CustomLoadingLayer : Modify<CustomLoadingLayer, LoadingLayer> {
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-        m_fields->m_smallLabel = CCLabelBMFont::create("", "goldFont.fnt");
+        m_fields->m_smallLabel = Label::create("", "goldFont.fnt");
         m_fields->m_smallLabel->setPosition(winSize.width / 2, 30.f);
         m_fields->m_smallLabel->setScale(.45f);
         m_fields->m_smallLabel->setID("geode-small-label");
         this->addChild(m_fields->m_smallLabel);
 
-        m_fields->m_smallLabel2 = CCLabelBMFont::create("", "goldFont.fnt");
+        m_fields->m_smallLabel2 = Label::create("", "goldFont.fnt");
         m_fields->m_smallLabel2->setPosition(winSize.width / 2, 15.f);
         m_fields->m_smallLabel2->setScale(.45f);
         m_fields->m_smallLabel2->setID("geode-small-label-2");

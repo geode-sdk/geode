@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cocos2d.h>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/function.hpp>
 
 namespace geode {
@@ -115,6 +116,8 @@ namespace geode {
                     if constexpr (std::is_same_v<cocos2d::CCLabelBMFont, T>) {
                         m_lineHeight = label->getConfiguration()->m_nCommonHeight /
                             cocos2d::CC_CONTENT_SCALE_FACTOR();
+                    } else if constexpr (std::is_same_v<geode::Label, T>) {
+                        m_lineHeight = label->getFont()->getCommonHeightScaled();
                     }
                 }
             }

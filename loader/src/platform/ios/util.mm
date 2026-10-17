@@ -311,11 +311,12 @@ void geode::utils::game::exit(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart(bool save) {
-    if (save) {
+void geode::utils::game::restart(bool saveData, bool safeMode) {
+    if (saveData) {
         AppDelegate::get()->trySaveGame(true);
     }
 
+    // TODO: someone clean this up to have safeMode as pSelector as I cannot think rn
     class Exit : public CCObject {
         public:
         void shutdown() {
@@ -332,13 +333,35 @@ void geode::utils::game::restart(bool save) {
                  )->show();
             }
         }
+        void shutdownSafe() {
+            NSURL* url = [NSURL URLWithString:@"geode://relaunch?safeMode=1"];
+            if ([[UIApplication sharedApplication] canOpenURL:url]) {
+                GameEvent(GameEventType::Exiting).send();
+                [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+            } else {
+                // this would only happen if you don't have the launcher
+                FLAlertLayer::create(
+                     "Unavailable",
+                     "Restarting is currently <cr>unavailable</c>. Please <cy>restart the game</c> manually.",
+                     "OK"
+                 )->show();
+            }
+        }
     };
 
-    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
-        CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
-        nullptr
-    ), CCDirector::get()->getRunningScene(), false);
+    if (safeMode) {
+        CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+            CCDelayTime::create(0.5f),
+            CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdownSafe)),
+            nullptr
+        ), CCDirector::get()->getRunningScene(), false);
+    } else {
+        CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+            CCDelayTime::create(0.5f),
+            CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+            nullptr
+        ), CCDirector::get()->getRunningScene(), false);
+    }
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {

@@ -128,11 +128,11 @@ public:
     /**
      * @note RobTop addition
      */
-    static CCEGLView* create(const gd::string&);
+    static CCEGLView* create(const std::string&);
 
-    static cocos2d::CCEGLView* createWithFullScreen(gd::string const&, bool);
-	static cocos2d::CCEGLView* createWithFullScreen(gd::string const&, bool, GLFWvidmode const&, GLFWmonitor*);
-	static cocos2d::CCEGLView* createWithRect(gd::string const&, cocos2d::CCRect, float);
+    static cocos2d::CCEGLView* createWithFullScreen(std::string const&, bool);
+	static cocos2d::CCEGLView* createWithFullScreen(std::string const&, bool, GLFWvidmode const&, GLFWmonitor*);
+	static cocos2d::CCEGLView* createWithRect(std::string const&, cocos2d::CCRect, float);
 
     /**
      * @note Geode addition
@@ -167,15 +167,15 @@ public:
 	bool getShouldHideCursor() const;
 	void iconify();
 
-    bool initWithFullScreen(gd::string const&, bool);
-	bool initWithFullscreen(gd::string const&, bool, GLFWvidmode const&, GLFWmonitor*);
-	bool initWithRect(gd::string const&, cocos2d::CCRect, float);
+    bool initWithFullScreen(std::string const&, bool);
+	bool initWithFullscreen(std::string const&, bool, GLFWvidmode const&, GLFWmonitor*);
+	bool initWithRect(std::string const&, cocos2d::CCRect, float);
 
 	bool isRetinaEnabled() const;
 
 	void onGLFWWindowCloseFunCallback(GLFWwindow*);
 	void releaseCapture();
-	void showMessage(gd::string);
+	void showMessage(std::string);
 
 	void toggleGameplayActive(bool);
 	void toggleLockCursor(bool);
@@ -186,6 +186,11 @@ public:
     void pumpRawInput();
     // @note RobTop Addition
     void performSafeClipboardPaste();
+    // @note RobTop Addition
+    void clearQueuedInput();
+
+    // @note RobTop Addition
+    static int scanCodeForPositionalKey(int key);
 
 public:
     static CCEGLView* s_pEglView;

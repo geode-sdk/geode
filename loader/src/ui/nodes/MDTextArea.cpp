@@ -6,8 +6,9 @@
 #include <Geode/binding/LevelBrowserLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/BreakLine.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>

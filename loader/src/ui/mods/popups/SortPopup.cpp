@@ -1,9 +1,11 @@
 #include "SortPopup.hpp"
 
+#include <Geode/ui/Label.hpp>
+
 bool SortPopup::init(ModListSource* src) {
     if (!GeodePopup::init(230.f, 165.f))
         return false;
-    
+
     m_noElasticity = true;
     m_source = src;
 
@@ -12,7 +14,7 @@ bool SortPopup::init(ModListSource* src) {
     auto container = CCNode::create();
     container->setContentSize({ 200, 115 });
 
-    for (auto const& [sort, name] : src->getSortingOptions()) {
+    for (auto& [sort, name] : src->getSortingOptions()) {
         auto node = CCMenu::create();
         node->setContentSize({ container->getContentWidth(), 22 });
 
@@ -28,7 +30,7 @@ bool SortPopup::init(ModListSource* src) {
         node->addChildAtPosition(toggle, Anchor::Left, ccp(15, 0));
         m_options.push_back(toggle);
 
-        auto label = CCLabelBMFont::create(name.c_str(), "bigFont.fnt");
+        auto label = Label::create(std::move(name), "bigFont.fnt");
         label->setScale(.5f);
         node->addChildAtPosition(label, Anchor::Left, ccp(30, 0), ccp(0, .5f));
 

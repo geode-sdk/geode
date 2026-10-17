@@ -318,12 +318,15 @@ void geode::utils::game::exit(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart(bool save) {
+void geode::utils::game::restart(bool saveData, bool safeMode) {
     if (CCApplication::sharedApplication() &&
         (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
         log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
         return;
     }
+
+    static bool s_safeMode = safeMode;
+    s_safeMode = safeMode;
 
     auto restart = +[] {
         log::info("Restarting game...");
@@ -331,11 +334,16 @@ void geode::utils::game::restart(bool save) {
 
         NSTask *task = [NSTask new];
         [task setLaunchPath: intoNS(utils::string::pathToString(gdExec))];
+
+        if (s_safeMode) {
+            [task setArguments: @[@"--geode:safe-mode"]];
+        }
+
         [task launch];
     };
 
     std::atexit(restart);
-    exit(save);
+    exit(saveData);
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {

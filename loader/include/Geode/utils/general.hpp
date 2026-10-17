@@ -365,17 +365,10 @@ namespace geode::utils::game {
      * Restarts the game, optionally saving the game data.
      *
      * @param saveData Whether to save the game data
-     */
-    GEODE_DLL void restart(bool saveData /* = true */);
-
-    /**
-     * Restarts the game, optionally saving the game data.
-     *
-     * @param saveData Whether to save the game data
      * @param safeMode Whether to restart in safe mode
 
      */
-    GEODE_DLL void restart(bool saveData /* = true */, bool safeMode /* = false */);
+    GEODE_DLL void restart(bool saveData /* = true */, bool safeMode = false);
 
     /**
      * Launches the loader uninstaller, optionally deleting saved data.

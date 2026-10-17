@@ -81,6 +81,8 @@ public:
     // @note RobTop Addition
     virtual void applicationWillResignActive() {}
     // @note RobTop Addition
+    virtual void applicationWillTerminate() {}
+    // @note RobTop Addition
     virtual void trySaveGame(bool) {}
     // @note RobTop Addition
     virtual void gameDidSave() {}

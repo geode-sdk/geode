@@ -43,15 +43,15 @@ class CC_DLL CCFileUtilsMac : public CCFileUtils
     GEODE_FRIEND_MODIFY
 public:
     /* override funtions */
-    virtual gd::string getWritablePath();
-    virtual bool isFileExist(const gd::string& strFilePath);
-    virtual bool isAbsolutePath(const gd::string& strPath);
-    virtual gd::string getFullPathForDirectoryAndFilename(const gd::string& strDirectory, const gd::string& strFilename);
+    virtual std::string getWritablePath();
+    virtual bool isFileExist(const std::string& strFilePath);
+    virtual bool isAbsolutePath(const std::string& strPath);
+    virtual std::string getFullPathForDirectoryAndFilename(const std::string& strDirectory, const std::string& strFilename);
 
-    virtual CCDictionary* createCCDictionaryWithContentsOfFile(const gd::string& filename);
-    virtual bool writeToFile(CCDictionary *dict, const gd::string& fullPath);
+    virtual CCDictionary* createCCDictionaryWithContentsOfFile(const std::string& filename);
+    virtual bool writeToFile(CCDictionary *dict, const std::string& fullPath);
 
-    virtual CCArray* createCCArrayWithContentsOfFile(const gd::string& filename);
+    virtual CCArray* createCCArrayWithContentsOfFile(const std::string& filename);
 
 };
 

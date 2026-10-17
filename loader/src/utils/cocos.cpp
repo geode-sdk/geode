@@ -557,15 +557,18 @@ bool geode::cocos::fileExistsInSearchPaths(char const* filename) {
     return utils->isFileExist(utils->fullPathForFilename(filename, false));
 }
 
-CCScene* geode::cocos::switchToScene(CCLayer* layer) {
+CCScene* geode::cocos::switchToScene(CCLayer* layer, bool replace) {
     auto scene = CCScene::create();
     scene->addChild(layer);
-    CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, scene));
-    return scene;
+    return switchToScene(scene, replace);
 }
 
-CCScene* geode::cocos::switchToScene(CCScene* scene) {
-    CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, scene));
+CCScene* geode::cocos::switchToScene(CCScene* scene, bool replace) {
+    if (replace) {
+        CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, scene));
+    } else {
+        CCDirector::get()->pushScene(CCTransitionFade::create(.5f, scene));
+    }
     return scene;
 }
 

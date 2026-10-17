@@ -120,12 +120,12 @@ public://@public
     //! Padding
     ccBMFontPadding    m_tPadding;
     //! atlas name
-    gd::string m_sAtlasName;
+    std::string m_sAtlasName;
     //! values for kerning
     tCCKerningHashElement *m_pKerningDictionary;
 
     // Character Set defines the letters that actually exist in the font
-    gd::set<unsigned int> *m_pCharacterSet;
+    std::set<unsigned int> *m_pCharacterSet;
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCBMFontConfiguration, CCObject)
     CCBMFontConfiguration();
@@ -149,14 +149,14 @@ public:
     inline const char* getAtlasName(){ return m_sAtlasName.c_str(); }
     inline void setAtlasName(const char* atlasName) { m_sAtlasName = atlasName; }
 
-    inline gd::set<unsigned int>* getCharacterSet() const { return m_pCharacterSet; }
+    inline std::set<unsigned int>* getCharacterSet() const { return m_pCharacterSet; }
 private:
-    gd::set<unsigned int>* parseConfigFile(const char *controlFile);
-    void parseCharacterDefinition(gd::string line, ccBMFontDef *characterDefinition);
-    void parseInfoArguments(gd::string line);
-    void parseCommonArguments(gd::string line);
-    void parseImageFileName(gd::string line, const char *fntFile);
-    void parseKerningEntry(gd::string line);
+    std::set<unsigned int>* parseConfigFile(const char *controlFile);
+    void parseCharacterDefinition(std::string line, ccBMFontDef *characterDefinition);
+    void parseInfoArguments(std::string line);
+    void parseCommonArguments(std::string line);
+    void parseImageFileName(std::string line, const char *fntFile);
+    void parseKerningEntry(std::string line);
     void purgeKerningDictionary();
     void purgeFontDefDictionary();
 };
@@ -289,11 +289,11 @@ public:
     unsigned short* m_sString;
 
     // name of fntFile
-    gd::string m_sFntFile;
+    std::string m_sFntFile;
 
     // initial string without line breaks
     unsigned short* m_sInitialString;
-    gd::string m_sInitialStringUTF8;
+    std::string m_sInitialStringUTF8;
 
     // alignment of all lines
     CCTextAlignment m_pAlignment;

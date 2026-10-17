@@ -235,7 +235,7 @@ public:
      *  @endcode
      *  @see objectForKey(intptr_t)
      */
-    CCObject* objectForKey(const gd::string& key);
+    CCObject* objectForKey(const std::string& key);
 
     /**
      *  Get the object according to the specified integer key.
@@ -243,7 +243,7 @@ public:
      *  @note The dictionary needs to use integer as key. If string is passed, an assert will appear.
      *  @param key  The integer key for searching.
      *  @return The object matches the key.
-     *  @see objectForKey(const gd::string&)
+     *  @see objectForKey(const std::string&)
      */
     CCObject* objectForKey(intptr_t key);
 
@@ -255,7 +255,7 @@ public:
      *          It will return an empty string if the objects aren't CCString pointer or the key wasn't found.
      *  @see valueForKey(intptr_t)
      */
-    const CCString* valueForKey(const gd::string& key);
+    const CCString* valueForKey(const std::string& key);
 
     /** Get the value according to the specified integer key.
      *
@@ -278,7 +278,7 @@ public:
      *  @param key      The string key for searching.
      *  @see setObject(CCObject*, intptr_t)
      */
-    void setObject(CCObject* pObject, const gd::string& key);
+    void setObject(CCObject* pObject, const std::string& key);
 
     /** Insert an object to dictionary, and match it with the specified string key.
      *
@@ -288,7 +288,7 @@ public:
      *        Then the new object will be inserted after that.
      *  @param pObject  The Object to be inserted.
      *  @param key      The string key for searching.
-     *  @see setObject(CCObject*, const gd::string&)
+     *  @see setObject(CCObject*, const std::string&)
      */
     void setObject(CCObject* pObject, intptr_t key);
 
@@ -299,13 +299,13 @@ public:
      *  @see removeObjectForKey(intptr_t), removeObjectsForKeys(CCArray*),
      *       removeObjectForElememt(CCDictElement*), removeAllObjects().
      */
-    void removeObjectForKey(const gd::string& key);
+    void removeObjectForKey(const std::string& key);
 
     /**
      *  Remove an object by the specified integer key.
      *
      *  @param key  The integer key for searching.
-     *  @see removeObjectForKey(const gd::string&), removeObjectsForKeys(CCArray*),
+     *  @see removeObjectForKey(const std::string&), removeObjectsForKeys(CCArray*),
      *       removeObjectForElememt(CCDictElement*), removeAllObjects().
      */
     void removeObjectForKey(intptr_t key);
@@ -314,7 +314,7 @@ public:
      *  Remove objects by an array of keys.
      *
      *  @param pKeyArray  The array contains keys to be removed.
-     *  @see removeObjectForKey(const gd::string&), removeObjectForKey(intptr_t),
+     *  @see removeObjectForKey(const std::string&), removeObjectForKey(intptr_t),
      *       removeObjectForElememt(CCDictElement*), removeAllObjects().
      */
     void removeObjectsForKeys(CCArray* pKeyArray);
@@ -323,7 +323,7 @@ public:
      *  Remove an object by an element.
      *
      *  @param pElement  The element need to be removed.
-     *  @see removeObjectForKey(const gd::string&), removeObjectForKey(intptr_t),
+     *  @see removeObjectForKey(const std::string&), removeObjectForKey(intptr_t),
      *       removeObjectsForKeys(CCArray*), removeAllObjects().
      *  @lua NA
      */
@@ -332,7 +332,7 @@ public:
     /**
      *  Remove all objects in the dictionary.
      *
-     *  @see removeObjectForKey(const gd::string&), removeObjectForKey(intptr_t),
+     *  @see removeObjectForKey(const std::string&), removeObjectForKey(intptr_t),
      *       removeObjectsForKeys(CCArray*), removeObjectForElememt(CCDictElement*).
      */
     void removeAllObjects();
@@ -352,7 +352,7 @@ public:
      *  Return a random object in the dictionary.
      *
      *  @return The random object.
-     *  @see objectForKey(intptr_t), objectForKey(const gd::string&)
+     *  @see objectForKey(intptr_t), objectForKey(const std::string&)
      *  @lua NA
      */
     CCObject* randomObject();
@@ -408,8 +408,8 @@ public:
      */
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
-	char const* charForKey(gd::string const&);
-	gd::string getFirstKey();
+	char const* charForKey(std::string const&);
+	std::string getFirstKey();
 
     /**
      * Turns this dictionary into a `CCDictionaryExt<K, V>`, making it way more convenient to use.
@@ -428,7 +428,7 @@ private:
     /**
      *  For internal usage, invoked by setObject.
      */
-    void setObjectUnSafe(CCObject* pObject, const gd::string& key);
+    void setObjectUnSafe(CCObject* pObject, const std::string& key);
     void setObjectUnSafe(CCObject* pObject, const intptr_t key);
 
 public:

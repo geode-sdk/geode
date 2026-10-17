@@ -2,6 +2,7 @@
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/ui/Label.hpp>
 #include <memory>
 #include <cocos2d.h>
 
@@ -50,7 +51,7 @@ namespace geode {
         float getScale() override;
         void setLinePadding(float padding);
         float getLinePadding();
-        std::vector<cocos2d::CCLabelBMFont*> getLines();
+        std::vector<geode::Label*> getLines();
         float getHeight();
         float getLineHeight();
 

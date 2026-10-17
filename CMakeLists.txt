@@ -200,15 +200,15 @@ include(cmake/GeodeFile.cmake)
 # so please update them when you set the game version
 
 # begin GEODE_GD_VERSION
-# win:     2.2081
-# mac:     2.2081
-# ios:     2.2081
-# android: 2.2081
+# win:     2.2091
+# mac:     2.2091
+# ios:     2.2091
+# android: 2.2091
 # end GEODE_GD_VERSION
 
 if (NOT DEFINED GEODE_GD_VERSION)
-	set(GEODE_GD_VERSION 2.2081 CACHE INTERNAL "Geode GD Version")
-	set(GEODE_COMP_GD_VERSION 22081 CACHE INTERNAL "Geode Comparable GD Version")
+	set(GEODE_GD_VERSION 2.2091 CACHE INTERNAL "Geode GD Version")
+	set(GEODE_COMP_GD_VERSION 22091 CACHE INTERNAL "Geode Comparable GD Version")
 endif()
 
 target_compile_definitions(
@@ -261,7 +261,7 @@ set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.4.1")
 CPMAddPackage("gh:geode-sdk/json@3.3.1")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
-CPMAddPackage("gh:fmtlib/fmt#5ac44cd") # commit between 12.1.0 and 12.2.0 that fixes nodiscard warning
+CPMAddPackage("gh:fmtlib/fmt#12.2.0") # commit between 12.1.0 and 12.2.0 that fixes nodiscard warning
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)

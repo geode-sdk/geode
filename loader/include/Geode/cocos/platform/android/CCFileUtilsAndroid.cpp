@@ -39,7 +39,7 @@ CCFileUtils* CCFileUtils::sharedFileUtils()
     {
         s_sharedFileUtils = new CCFileUtilsAndroid();
         s_sharedFileUtils->init();
-        gd::string resourcePath = getApkPath();
+        std::string resourcePath = getApkPath();
         s_pZipFile = new ZipFile(resourcePath, "assets/");
     }
     return s_sharedFileUtils;
@@ -60,7 +60,7 @@ bool CCFileUtilsAndroid::init()
     return CCFileUtils::init();
 }
 
-bool CCFileUtilsAndroid::isFileExist(const gd::string& strFilePath)
+bool CCFileUtilsAndroid::isFileExist(const std::string& strFilePath)
 {
     if (0 == strFilePath.length())
     {
@@ -72,7 +72,7 @@ bool CCFileUtilsAndroid::isFileExist(const gd::string& strFilePath)
     // Check whether file exists in apk.
     if (strFilePath[0] != '/')
     {
-        gd::string strPath = strFilePath;
+        std::string strPath = strFilePath;
         if (strPath.find(m_strDefaultResRootPath) != 0)
         {// Didn't find "assets/" at the beginning of the path, adding it.
             strPath.insert(0, m_strDefaultResRootPath);
@@ -95,7 +95,7 @@ bool CCFileUtilsAndroid::isFileExist(const gd::string& strFilePath)
     return bFound;
 }
 
-bool CCFileUtilsAndroid::isAbsolutePath(const gd::string& strPath)
+bool CCFileUtilsAndroid::isAbsolutePath(const std::string& strPath)
 {
     // On Android, there are two situations for full path.
     // 1) Files in APK, e.g. assets/path/path/file.png
@@ -167,7 +167,7 @@ unsigned char* CCFileUtilsAndroid::doGetFileData(const char* pszFileName, const 
 
     if (! pData)
     {
-        gd::string msg = "Get data from file(";
+        std::string msg = "Get data from file(";
         msg.append(pszFileName).append(") failed!");
         CCLOG("%s", msg.c_str());
     }

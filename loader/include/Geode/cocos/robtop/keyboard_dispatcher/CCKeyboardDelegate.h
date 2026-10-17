@@ -280,6 +280,9 @@ public:
 
     void setDelegate(CCKeyboardDelegate* pDelegate);
 
+    // TODO unsure about position
+    // virtual bool handleAction(int, bool, double);
+
 public:
     CCKeyboardDelegate* m_pDelegate;
 };

@@ -247,7 +247,7 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
             continue;
         }
         if (sett->getSetting() && sett->getSetting()->getEnableIf()) {
-            sett->updateState2(nullptr);
+            sett->updateState(nullptr);
         }
     }
     m_list->m_contentLayer->updateLayout();

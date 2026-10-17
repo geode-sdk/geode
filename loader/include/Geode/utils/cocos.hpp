@@ -706,16 +706,18 @@ namespace geode::cocos {
      * Create a CCScene from a layer and switch to it with the default fade
      * transition
      * @param layer Layer to create a scene from
+     * @param replace Whether to replace the current scene
      * @returns Created scene (not the fade transition)
      */
-    GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer);
+    GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCLayer* layer, bool replace = false);
 
     /**
      * Switches to an existing CCScene using the default fade transition
      * @param scene Scene to switch to
+     * @param replace Whether to replace the current scene
      * @returns Created scene (identical to the argument)
      */
-    GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCScene* scene);
+    GEODE_DLL cocos2d::CCScene* switchToScene(cocos2d::CCScene* scene, bool replace = false);
 
     using CreateLayerFunc = geode::Function<cocos2d::CCLayer*()>;
     using CreateSceneFunc = geode::Function<cocos2d::CCScene*()>;
@@ -1074,7 +1076,7 @@ namespace geode::cocos {
     concept CocosObjectPtr = std::is_pointer_v<T> && std::is_convertible_v<T, cocos2d::CCObject const*>;
 
     template <class K>
-    concept CocosDictionaryKey = std::same_as<K, int> || std::same_as<K, intptr_t> || std::same_as<K, gd::string> || std::same_as<K, std::string> || std::same_as<K, std::string_view> || std::same_as<K, const char*>;
+    concept CocosDictionaryKey = std::same_as<K, int> || std::same_as<K, intptr_t> || std::same_as<K, std::string> || std::same_as<K, std::string> || std::same_as<K, std::string_view> || std::same_as<K, const char*>;
 
     /**
      * A templated wrapper over CCArray, providing easy iteration and indexing.
@@ -1208,7 +1210,7 @@ namespace geode::cocos {
         std::pair<K, T*> operator*() {
             if constexpr (
                 std::is_same_v<K, std::string>
-                || std::is_same_v<K, gd::string>
+                || std::is_same_v<K, std::string>
                 || std::is_same_v<K, std::string_view>
                 || std::is_same_v<K, const char*>)
             {
@@ -1263,7 +1265,7 @@ namespace geode::cocos {
      * A templated wrapper over CCDictionary, providing easy iteration and indexing.
      * This will keep ownership of the given CCDictionary*.
      *
-     * @tparam Key Type of the key. MUST be one of: int, std::string_view (recommended), gd::string, std::string.
+     * @tparam Key Type of the key. MUST be one of: int, std::string_view (recommended), std::string, std::string.
      * @tparam ValuePtr Pointer to a type that inherits CCObject.
      *
      * @example

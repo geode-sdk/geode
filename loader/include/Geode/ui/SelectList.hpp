@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/function.hpp>
 
 namespace geode {
@@ -16,7 +17,7 @@ namespace geode {
         std::vector<T> m_list;
         size_t m_index = 0;
         geode::Function<void(T const&, size_t)> m_onChange;
-        cocos2d::CCLabelBMFont* m_label;
+        geode::Label* m_label;
         CCMenuItemSpriteExtra* m_prevBtn;
         CCMenuItemSpriteExtra* m_nextBtn;
 
@@ -47,7 +48,7 @@ namespace geode {
             m_nextBtn->setPosition(width / 2 - 10.f, 0.f);
             this->addChild(m_nextBtn);
 
-            m_label = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
+            m_label = geode::Label::create("", "bigFont.fnt");
             this->addChild(m_label);
 
             this->updateLabel();
@@ -59,7 +60,7 @@ namespace geode {
 
         void updateLabel() {
             if (m_list.size()) {
-                m_label->setString(Stringify(m_list.at(m_index)).c_str());
+                m_label->setText(Stringify(m_list.at(m_index)));
                 m_prevBtn->setEnabled(true);
                 m_nextBtn->setEnabled(true);
             }
@@ -68,7 +69,7 @@ namespace geode {
                 m_prevBtn->setEnabled(false);
                 m_nextBtn->setEnabled(false);
             }
-            m_label->limitLabelWidth(m_obContentSize.width - 40.f, .6f, .1f);
+            m_label->setLimitLabelWidth(m_obContentSize.width - 40.f, .6f, .1f);
         }
 
         void onPrev(CCObject* sender) {

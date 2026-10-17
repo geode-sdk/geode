@@ -176,7 +176,7 @@ class CC_DLL CCParticleSystem : public CCNode, public CCTextureProtocol
 {
     GEODE_FRIEND_MODIFY
 public:
-    gd::string m_sPlistFile;
+    std::string m_sPlistFile;
     //! time elapsed since the start of the system (in seconds)
     float m_fElapsed;
 
@@ -267,6 +267,8 @@ public:
 public:
 	// @note RobTop Addition
     virtual void updateEmissionRate();
+    // @note RobTop Addition
+    float getParticleDrawCost();
 
     // mode A
     virtual const CCPoint& getGravity();
@@ -544,9 +546,6 @@ public:
     void toggleUniformColorMode(bool useUniformColorMode) { m_bUseUniformColorMode = useUniformColorMode; }
 	// @note RobTop Addition
     void updateVisible();
-
-    // @note RobTop Addition
-    int getParticleDrawCost();
 };
 
 // end of particle_nodes group
