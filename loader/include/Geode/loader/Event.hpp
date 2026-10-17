@@ -1,17 +1,13 @@
 #pragma once
 
-#include <any>
-#include <vector>
-#include <concepts>
+#include <cstddef>
 #include <functional>
-#include <variant>
 #include <memory>
-#include <thread>
-#include <algorithm>
-#include <mutex>
-#include <atomic>
-#include <asp/ptr/PtrSwap.hpp>
-#include <asp/iter.hpp>
+#include <new>
+#include <optional>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 #include "../utils/function.hpp"
 #include "../utils/casts.hpp"
 #include "../utils/hash.hpp"
@@ -23,17 +19,6 @@
 // }
 
 namespace geode::comm {
-    template <class T>
-    struct RefOrVoid {
-        using type = void(T const&);
-    };
-    template <>
-    struct RefOrVoid<void> {
-        using type = void();
-    };
-    template <class T>
-    using RefOrVoidType = typename RefOrVoid<T>::type;
-
     using ReceiverHandle = size_t;
 
     struct OpaqueCallable {
@@ -46,7 +31,7 @@ namespace geode::comm {
         virtual size_t getVersion() const noexcept = 0;
         virtual size_t getMinorVersion() const noexcept = 0;
 
-        using SendFunction = geode::CopyableFunction<bool(OpaqueCallable*)>;
+        using SendFunction = geode::FunctionRef<bool(OpaqueCallable*)>;
     };
 
     template <class Callable>
@@ -55,7 +40,7 @@ namespace geode::comm {
         int m_priority = 0;
         ReceiverHandle m_handle = 0;
 
-        TypedCallable(Callable callable) : m_callable(callable) {}
+        TypedCallable(Callable callable) : m_callable(std::move(callable)) {}
         ~TypedCallable() override = default;
 
         int getPriority() const noexcept override {
@@ -84,15 +69,26 @@ namespace geode::comm {
 
         template <class ...Args>
         bool call(Args&&... args) const noexcept(std::is_nothrow_invocable_v<Callable, Args...>) {
-            if (!m_callable) return false;
             if (this->getVersion() != 1) return false;
 
+            if (!m_callable) return false;
             if constexpr (std::is_same_v<void, decltype(std::invoke(m_callable, std::forward<Args>(args)...))>) {
                 std::invoke(m_callable, std::forward<Args>(args)...);
                 return false;
             } else {
                 return std::invoke(m_callable, std::forward<Args>(args)...);
             }
+        }
+    };
+
+    template <class Callable, class... PArgs>
+    struct SendOp {
+        std::tuple<PArgs&...> args;
+
+        bool operator()(OpaqueCallable* opaqueCallable) const {
+            if (opaqueCallable->getVersion() != 1) return false;
+            auto typedCallable = static_cast<TypedCallable<Callable>*>(opaqueCallable);
+            return std::apply([typedCallable](auto&... a) { return typedCallable->call(a...); }, args);
         }
     };
 
@@ -338,10 +334,7 @@ namespace geode::comm {
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
     bool BasicEvent<Marker, PReturn(PArgs...), FArgs...>::send(PArgs... args) {
-        return EventCenterGlobal::get()->send(this, [&](OpaqueCallable* opaqueCallable) {
-            auto typedCallable = static_cast<TypedCallable<CallableType>*>(opaqueCallable);
-            return typedCallable->call(args...);
-        });
+        return EventCenterGlobal::get()->send(this, SendOp<CallableType, PArgs...>{std::tuple<PArgs&...>(args...)});
     }
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
@@ -457,9 +450,9 @@ namespace comm {
                 }, std::move(filterCopy));
                 if (ret) return true;
 
-                return std::apply([&](auto&&... fargs) {
-                    return Event2Type().send(std::move(fargs)..., std::forward<PArgs>(args)...);
-                }, std::move(*m_filter));
+                return std::apply([&](auto const&... fargs) {
+                    return Event2Type().send(fargs..., std::forward<PArgs>(args)...);
+                }, *m_filter);
             }
             return false;
         }

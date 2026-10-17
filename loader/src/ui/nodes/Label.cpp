@@ -5,6 +5,7 @@
 #include <Geode/utils/file.hpp>
 #include <asp/collections/SmallVec.hpp>
 #include <simdutf/implementation.h>
+#include <asp/iter.hpp>
 
 #include <numeric>
 #include <ranges>
