@@ -246,12 +246,24 @@ public:
 
 protected:
 
-    // 2.2 changes
+    // @note Robtop Addition, 2.209
+    int m_globalTouchCounter;
 
+    // 2.2 changes
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(int, m_targetPrio, TargetPrio);
     // @note RobTop Addition
     CCDictionary* m_pForcePrioDict;
+
+    // @note Robtop Addition, 2.209
+    CCDictionary* m_touchPrioOwnedNodeDict;
+
+    // the touch prio stored in extraneous dict gets their priority added
+    // with the priority of the parent and put into the main dict instead
+
+    // @note Robtop Addition, 2.209
+    CCDictionary* m_extraneousTouchPrioOwnedNodeDict;
+
     // @note RobTop Addition
     int m_forcePrio;
 };
