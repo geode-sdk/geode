@@ -1,4 +1,6 @@
+#ifdef GEODE_IS_WINDOWS
 #include <Windows.h>
+#endif
 #include <Geode/utils/terminate.hpp>
 #include <Geode/loader/Mod.hpp>
 #include "../loader/Log.hpp"
