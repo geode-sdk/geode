@@ -5,7 +5,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/ZStringView.hpp>
-#include <Geode/loader/Signal.hpp>
+// #include <Geode/loader/Signal.hpp>
 
 namespace geode {
     enum class SaveRequestState {
@@ -67,7 +67,8 @@ namespace geode {
         /**
          * Setting observer.
          */
-        comm::Observer m_settingObserver;
+         // TODO: reenable?
+        // comm::Observer m_settingObserver;
         /**
          * Whether the mod resources are loaded or not
          */

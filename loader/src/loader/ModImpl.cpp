@@ -320,7 +320,7 @@ bool Mod::Impl::hasSetting(std::string_view key) const {
 }
 
 void Mod::Impl::settingReact(geode::Function<void()> fn) {
-    m_settingObserver.reactToChanges(std::move(fn));
+    // m_settingObserver.reactToChanges(std::move(fn));
 }
 
 std::string Mod::Impl::getLaunchArgumentName(std::string_view name) const {

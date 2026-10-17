@@ -23,7 +23,7 @@
 #include <unordered_map>
 #include <vector>
 #include <arc/future/Future.hpp>
-#include "Signal.hpp"
+// #include "Signal.hpp"
 
 namespace geode {
     template <class T>
@@ -82,7 +82,7 @@ namespace geode {
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
         void settingReact(geode::Function<void()> fn);
-        
+
         matjson::Value& getSaveContainerTemp();
     public:
         // no copying
@@ -103,9 +103,9 @@ namespace geode {
         VersionInfo getVersion() const;
         bool isLoaded() const;
         /**
-         * Whether the mod is currently enabled, or marked as to be enabled 
+         * Whether the mod is currently enabled, or marked as to be enabled
          * after a restart. Useful for UI
-         * @note This does not communicate whether the mod is actually 
+         * @note This does not communicate whether the mod is actually
          * *loaded* – for that, use `Mod::isLoaded`
          */
         bool isOrWillBeEnabled() const;
@@ -262,17 +262,17 @@ namespace geode {
             return T();
         }
 
-        template <class T>
-        comm::Signal<T> makeSettingSignal(std::string_view key) {
-            comm::Signal<T> sig = getSettingValue<T>(key);
-            settingReact([=, this] { setSettingValue<T>(key, *sig); });
+        // template <class T>
+        // comm::Signal<T> makeSettingSignal(std::string_view key) {
+        //     comm::Signal<T> sig = getSettingValue<T>(key);
+        //     settingReact([=, this] { setSettingValue<T>(key, *sig); });
 
-            listenForSettingChanges(key, [=](T value) mutable {
-                *sig = value;
-            }, this);
+        //     listenForSettingChanges(key, [=](T value) mutable {
+        //         *sig = value;
+        //     }, this);
 
-            return sig;
-        }
+        //     return sig;
+        // }
 
         template <class T>
         T setSettingValue(std::string_view key, T const& value) {
@@ -330,7 +330,7 @@ namespace geode {
                 if constexpr (requires(Elem const& a, Elem const& b) { { a == b } -> std::convertible_to<bool>; }) {
                     if (old == value) return old;
                 }
-            } 
+            }
             else if constexpr (requires(T const& a, T const& b) { { a == b } -> std::convertible_to<bool>; }) {
                 if (old == value) return old;
             }
