@@ -182,9 +182,6 @@ public:
     // @note RobTop Addition
     double getPlatformTimestamp();
 
-    // @note RobTop Addition
-    void handleRightClick(float, float);
-
 protected:
 	void updateDesignResolutionSize();
 
