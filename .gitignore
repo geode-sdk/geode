@@ -85,4 +85,4 @@ test-docs.bat
 bindings
 bindings/**
 
-CMakePresets.json
+CMakeUserPresets.json
