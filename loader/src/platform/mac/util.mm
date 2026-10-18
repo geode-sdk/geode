@@ -20,17 +20,11 @@ using namespace geode::prelude;
 #import <Foundation/Foundation.h>
 #undef CommentType
 
+template <typename T>
+NSString* intoNS(T&& input) {
+    std::string_view str{input};
 
-NSString* intoNS(std::string_view str) {
     return [[NSString alloc] initWithBytes:str.data() length:str.size() encoding:NSUTF8StringEncoding];
-}
-
-NSString* intoNS(ZStringView str) {
-    return intoNS(std::string_view(str));
-}
-
-NSString* intoNS(asp::fs::PathView str) {
-    return intoNS(str.view());
 }
 
 bool utils::clipboard::write(ZStringView data) {
@@ -118,7 +112,7 @@ namespace {
             [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
         } else {
             auto defaultPath = intoNS(path.parent().value());
-            auto name = intoNS(path.filename());
+            auto name = intoNS(path.filename().value());
 
             [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
             [panel setNameFieldStringValue: name];

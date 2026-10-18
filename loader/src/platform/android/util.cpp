@@ -236,7 +236,7 @@ arc::Future<file::PickResult> file::pick(file::PickMode mode, file::FilePickOpti
         JniMethodInfo t;
         if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
             jstring stringArg1 = t.env->NewStringUTF(
-                options.defaultPath.transform([](auto p) {
+                options.defaultPath.and_then([](auto p) {
                     return p.filename();
                 }).value_or("").string().c_str()
             );
