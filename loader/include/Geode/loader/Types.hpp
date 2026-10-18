@@ -96,7 +96,7 @@ namespace geode {
         }
     };
 
-    constexpr std::string_view GEODE_MOD_EXTENSION = ".geode";
+    constexpr std::string_view GEODE_MOD_EXTENSION = "geode";
 
     class Mod;
     class Loader;
