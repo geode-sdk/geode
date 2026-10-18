@@ -3,7 +3,6 @@
 #include "../load.hpp"
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
-#include "internalString.hpp"
 #include <cocos2d.h>
 #include <Geode/loader/Log.hpp>
 #include <asp/fs/Path.hpp>
@@ -50,14 +49,6 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
     auto updatePath = geode::dirs::getGameDir() / "update";
     if (auto err = asp::fs::removeDirAll(updatePath).err()) {
         geode::log::warn("Failed to remove update directory: {}", *err);
-    }
-
-    {
-        // Epic hack: get the empty internal string from CCString
-        // avoid ::create as to not call autorelease
-        auto* cc = new CCString();
-        setEmptyInternalString(&cc->m_sString);
-        delete cc;
     }
 
     reportPlatformCapability("internal_callbacks_v2");
