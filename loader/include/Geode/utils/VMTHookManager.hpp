@@ -135,10 +135,10 @@ namespace geode {
          * @param convention The calling convention for the hook.
          * @param hookMetadata Additional metadata for the hook.
          *
-         * @return A result containing the hook, if successful. Will return a nullopt if the hook has already been created.
+         * @return A result containing the hook, if successful. Will return nullptr if the hook has already been created.
          */
         template<auto Function, class Class>
-        Result<std::optional<Hook*>> addHook(
+        Result<Hook*> addHook(
             Class* instance, std::string displayName = "",
             tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
             tulip::hook::HookMetadata hookMetadata = tulip::hook::HookMetadata{}
@@ -166,7 +166,7 @@ namespace geode {
                     return Ok(hook);
                 }
             }
-            return Ok(std::nullopt);
+            return Ok(nullptr);
         }
 
         /**
