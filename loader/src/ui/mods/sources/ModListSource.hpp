@@ -122,14 +122,14 @@ enum class InstalledModListType {
 };
 struct InstalledModsQuery final {
     std::optional<std::string> query;
-    std::unordered_set<std::string> tags = {};
+    std::unordered_set<std::string> tags;
     size_t page = 0;
     size_t pageSize = 10;
     InstalledModListType type = InstalledModListType::All;
     InstalledModListSort sort = InstalledModListSort::Alphabetical;
     std::optional<bool> enabledOnly;
     std::optional<bool> enabledFirst;
-    
+
     void filter(ModListSource::ProvidedMods& mods);
     bool preCheck(ModSource const& src) const;
     bool queryCheck(ModSource const& src, double& weighted) const;
