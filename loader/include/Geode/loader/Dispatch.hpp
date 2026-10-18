@@ -81,33 +81,30 @@ namespace geode::geode_internal {
         }).leak();
         return true;
     }
+
+    template <typename R>
+    inline auto getValueOnFailed() {
+        if constexpr (IsResult<R>) {
+            return [] -> R {
+                return Err("Unable to call method");
+            }();
+        } else {
+            return R{};
+        }
+    }
 }
 
 #define GEODE_EVENT_EXPORT_CALL(ret, name, params, args, eventID)                                       \
     static ret (name) params {                                                                          \
         static auto storage = geode::geode_internal::callEventExportListener<ret (*) params>(eventID);  \
-        if (!storage) return geode::Err("Unable to call method");                                       \
-        return storage args;                                                                            \
-    }
-
-#define GEODE_EVENT_EXPORT_CALL_NORES(ret, name, params, args, eventID)                                 \
-    static ret (name) params {                                                                          \
-        static auto storage = geode::geode_internal::callEventExportListener<ret (*) params>(eventID);  \
-        if (!storage) return ret{};                                                                     \
+        if (!storage) return geode::geode_internal::getValueOnFailed<ret>();                            \
         return storage args;                                                                            \
     }
 
 #define GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, eventID)                                \
     inline ret (name) params {                                                                                 \
         static auto storage = geode::geode_internal::callEventExportListener<ret (Class::*) params>(eventID);  \
-        if (!storage) return geode::Err("Unable to call method");                                              \
-        return storage args;                                                                                   \
-    }
-
-#define GEODE_EVENT_EXPORT_CALL_MEMBER_NORES(Class, ret, name, params, args, eventID)                          \
-    inline ret (name) params {                                                                                 \
-        static auto storage = geode::geode_internal::callEventExportListener<ret (Class::*) params>(eventID);  \
-        if (!storage) return ret{};                                                                            \
+        if (!storage) return geode::geode_internal::getValueOnFailed<ret>();                                   \
         return storage args;                                                                                   \
     }
 
@@ -128,23 +125,11 @@ namespace geode::geode_internal {
     #define GEODE_EVENT_EXPORT_ID(ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_CALL(ret, name, params, args, (eventID))
 
-    #define GEODE_EVENT_EXPORT_NORES(ret, name, params, args) \
-        GEODE_EVENT_EXPORT_CALL_NORES(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
-
-    #define GEODE_EVENT_EXPORT_ID_NORES(ret, name, params, args, eventID) \
-        GEODE_EVENT_EXPORT_CALL_NORES(ret, name, params, args, (eventID))
-
     #define GEODE_EVENT_EXPORT_MEMBER(Class, ret, name, params, args) \
         GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
 
     #define GEODE_EVENT_EXPORT_MEMBER_ID(Class, ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, (eventID))
-
-    #define GEODE_EVENT_EXPORT_MEMBER_NORES(Class, ret, name, params, args) \
-        GEODE_EVENT_EXPORT_CALL_MEMBER_NORES(Class, ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
-
-    #define GEODE_EVENT_EXPORT_MEMBER_ID_NORES(Class, ret, name, params, args, eventID) \
-        GEODE_EVENT_EXPORT_CALL_MEMBER_NORES(Class, ret, name, params, args, (eventID))
 #else
     #define GEODE_EVENT_EXPORT(ret, name, params, args) \
         GEODE_EVENT_EXPORT_DEFINE(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
@@ -152,21 +137,9 @@ namespace geode::geode_internal {
     #define GEODE_EVENT_EXPORT_ID(ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_DEFINE(ret, name, params, args, (eventID))
 
-    #define GEODE_EVENT_EXPORT_NORES(ret, name, params, args) \
-        GEODE_EVENT_EXPORT_DEFINE_NORES(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
-
-    #define GEODE_EVENT_EXPORT_ID_NORES(ret, name, params, args, eventID) \
-        GEODE_EVENT_EXPORT_DEFINE_NORES(ret, name, params, args, (eventID))
-
     #define GEODE_EVENT_EXPORT_MEMBER(Class, ret, name, params, args) \
         GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
 
     #define GEODE_EVENT_EXPORT_MEMBER_ID(Class, ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, (eventID))
-
-    #define GEODE_EVENT_EXPORT_MEMBER_NORES(Class, ret, name, params, args) \
-        GEODE_EVENT_EXPORT_DEFINE_MEMBER_NORES(Class, ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name,#args))
-
-    #define GEODE_EVENT_EXPORT_MEMBER_ID_NORES(Class, ret, name, params, args, eventID) \
-        GEODE_EVENT_EXPORT_DEFINE_MEMBER_NORES(Class, ret, name, params, args, (eventID))
 #endif
