@@ -524,10 +524,11 @@ Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
 Result<> ModMetadata::Impl::addSpecialFiles(asp::fs::PathView dir) {
     // unzip known MD files
     for (auto& [file, target] : this->getSpecialFiles()) {
-        if (asp::fs::exists(dir / file)) {
-            auto data = utils::file::readString(dir / file);
+        auto path = dir / file;
+        if (asp::fs::exists(path)) {
+            auto data = utils::file::readString(path);
             if (!data) {
-                return Err("Unable to read \"{}\": {}", data.unwrapErr());
+                return Err("Unable to read \"{}\": {}", path, data.unwrapErr());
             }
             *target = sanitizeDetailsData(std::move(data.unwrap()));
         }
