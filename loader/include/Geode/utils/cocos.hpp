@@ -1,47 +1,43 @@
 #pragma once
 
-#include <matjson.hpp>
-#include "casts.hpp"
-#include "general.hpp"
 #include "../DefaultInclude.hpp"
-#include <Geode/utils/ZStringView.hpp>
-#include <functional>
-#include <algorithm>
-#include <type_traits>
-#include "../loader/Event.hpp"
-#include <Geode/cocos/include/ccTypes.h>
-#include <Geode/cocos/cocoa/CCArray.h>
-#include <Geode/cocos/cocoa/CCDictionary.h>
-#include <Geode/cocos/base_nodes/CCNode.h>
-#include <Geode/cocos/sprite_nodes/CCSprite.h>
-#include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
-#include <Geode/cocos/CCDirector.h>
-#include <Geode/cocos/CCConfiguration.h>
-#include <Geode/cocos/actions/CCActionInterval.h>
-#include <Geode/cocos/cocoa/CCFloat.h>
-#include <Geode/cocos/cocoa/CCDouble.h>
-#include <Geode/cocos/layers_scenes_transitions_nodes/CCScene.h>
-#include <Geode/cocos/menu_nodes/CCMenu.h>
-#include <Geode/cocos/sprite_nodes/CCSpriteFrame.h>
-#include <Geode/cocos/sprite_nodes/CCSpriteFrameCache.h>
-#include <Geode/cocos/platform/CCImage.h>
-#include <Geode/cocos/label_nodes/CCLabelBMFont.h>
-#include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
-#include <Geode/cocos/touch_dispatcher/CCTouchDispatcher.h>
-#include <Geode/cocos/draw_nodes/CCDrawingPrimitives.h>
-#include <Geode/cocos/support/CCPointExtension.h>
-#include <Geode/cocos/actions/CCActionInstant.h>
-#include <unordered_map>
-
 #include "casts.hpp"
 #include "general.hpp"
-#include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/ZStringView.hpp>
-#include <Geode/loader/Event.hpp>
+
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
+#include <Geode/cocos/CCConfiguration.h>
+#include <Geode/cocos/CCDirector.h>
+#include <Geode/cocos/actions/CCActionInstant.h>
+#include <Geode/cocos/actions/CCActionInterval.h>
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/cocoa/CCArray.h>
+#include <Geode/cocos/cocoa/CCDictionary.h>
+#include <Geode/cocos/cocoa/CCDouble.h>
+#include <Geode/cocos/cocoa/CCFloat.h>
+#include <Geode/cocos/draw_nodes/CCDrawingPrimitives.h>
+#include <Geode/cocos/include/ccTypes.h>
+#include <Geode/cocos/label_nodes/CCLabelBMFont.h>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCScene.h>
+#include <Geode/cocos/menu_nodes/CCMenu.h>
+#include <Geode/cocos/platform/CCImage.h>
+#include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
+#include <Geode/cocos/sprite_nodes/CCSpriteFrame.h>
+#include <Geode/cocos/sprite_nodes/CCSpriteFrameCache.h>
+#include <Geode/cocos/support/CCPointExtension.h>
+#include <Geode/cocos/touch_dispatcher/CCTouchDispatcher.h>
+#include <Geode/loader/Event.hpp>
 #include <Geode/ui/Layout.hpp>
 #include <Geode/ui/SpacerNode.hpp>
+#include <Geode/utils/ZStringView.hpp>
+
+#include <algorithm>
+#include <functional>
+#include <matjson.hpp>
+#include <type_traits>
+#include <unordered_map>
 
 // support converting ccColor3B / ccColor4B to / from json
 

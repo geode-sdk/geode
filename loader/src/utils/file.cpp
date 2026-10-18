@@ -2,17 +2,22 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
+
+#include <asp/fs/fs.hpp>
+#include <asp/iter.hpp>
 #include <matjson.hpp>
 #include <mz.h>
 #include <mz_os.h>
 #include <mz_strm.h>
-#include <mz_strm_os.h>
 #include <mz_strm_mem.h>
+#include <mz_strm_os.h>
 #include <mz_zip.h>
-#include <Geode/utils/ranges.hpp>
-#include <asp/fs/fs.hpp>
-#include <asp/iter.hpp>
+
+#ifdef GEODE_IS_WINDOWS
+#include <Windows.h>
+#endif
 
 using namespace geode::prelude;
 using namespace geode::utils::file;
