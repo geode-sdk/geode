@@ -129,7 +129,7 @@ bool EventWinnerAnimation::init() {
 
     this->runAction(CCSequence::create(
         CCDelayTime::create(2.f),
-        CallFuncExt::create([=, this]() {
+        CallFuncExt::create([this, flash, cloud, particles, logo]() {
             flash->removeFromParent();
             cloud->removeFromParent();
 

@@ -895,7 +895,7 @@ void Loader::Impl::orderModStack() {
         if (visited.contains(mod))
             return;
         visited.insert(mod);
-        for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
+        for (auto& dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
             if (!dep.isRequired()) {
                 continue;
             }
@@ -1235,14 +1235,14 @@ bool Loader::Impl::getLaunchFlag(std::string_view name) const {
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
-    if (!m_handlerHandles.count(address)) {
+    if (!m_handlerHandles.contains(address)) {
         return Err("Handler does not exist at address");
     }
     return Ok(m_handlerHandles[address].first);
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
-    if (m_handlerHandles.count(address) && m_handlerHandles[address].second > 0) {
+    if (m_handlerHandles.contains(address) && m_handlerHandles[address].second > 0) {
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
     }
@@ -1255,7 +1255,7 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* address) {
-    if (!m_handlerHandles.count(address)) {
+    if (!m_handlerHandles.contains(address)) {
         return Err("Handler does not exist at address");
     }
     auto handle = m_handlerHandles[address].first;
@@ -1264,7 +1264,7 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* add
 }
 
 Result<> Loader::Impl::removeHandlerIfNeeded(void* address) {
-    if (!m_handlerHandles.count(address)) {
+    if (!m_handlerHandles.contains(address)) {
         return Err("Handler does not exist at address");
     }
     auto handle = m_handlerHandles[address].first;

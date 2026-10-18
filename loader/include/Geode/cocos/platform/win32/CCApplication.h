@@ -6,6 +6,7 @@
 #include "CCStdC.h"
 #include "../CCCommon.h"
 #include "../CCApplicationProtocol.h"
+#include "../../cocoa/CCGeometry.h"
 #include "CXBOXController.h"
 #include <string>
 

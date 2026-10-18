@@ -84,7 +84,7 @@ namespace geode {
              * Line height. If 0, the renderer will dynamically
              * calculate line height based on content size.
              */
-            float m_lineHeight;
+            float m_lineHeight = 0.f;
 
             explicit inline Label() {
                 m_node = nullptr;

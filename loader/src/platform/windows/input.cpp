@@ -602,7 +602,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         }
 
         // update mouse position
-        POINT p;
+        POINT p{};
         float newX = m_fMouseX;
         float newY = m_fMouseY;
 

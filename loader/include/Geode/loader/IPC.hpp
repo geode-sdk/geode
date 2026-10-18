@@ -34,7 +34,7 @@ namespace geode::ipc {
     template <class Callback>
     inline ListenerHandle* listen(std::string messageID, Callback&& callback) {
         return IPCEvent(getMod()->getID(), std::move(messageID)).listen(
-            [callback = std::move(callback)](void* rawHandle, matjson::Value data, matjson::Value& reply) {
+            [callback = std::forward<Callback>(callback)](void* rawHandle, matjson::Value data, matjson::Value& reply) {
                 reply = callback(data);
                 return true;
             }

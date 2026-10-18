@@ -477,7 +477,7 @@ $on_game(TexturesLoaded) {
         }
 
         tmp.initBakedValues();
-        font = std::move(tmp);
+        font = tmp;
     }
 }
 

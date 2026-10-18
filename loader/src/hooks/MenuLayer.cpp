@@ -242,7 +242,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
             m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
                 if (result.isOk()) {
-                    auto updatesFound = result.unwrap();
+                    auto& updatesFound = result.unwrap();
                     if (updatesFound.modsWithUpdates.size() || updatesFound.modsWithDeprecations.size()) {
                         if (updatesFound.modsWithUpdates.size()) {
                             log::info(
