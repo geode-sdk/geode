@@ -1,7 +1,7 @@
 #include <crashlogApple.hpp>
 
 #include <thread>
-#include <asp/fs/Path.hpp>
+#include <asp/fs/fs.hpp>
 
 using namespace geode::prelude;
 using namespace crashlog;

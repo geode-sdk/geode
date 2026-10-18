@@ -5,6 +5,7 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <tulip/TulipHook.hpp>
+#include <asp/fs/fs.hpp>
 #include <thread>
 #include <dlfcn.h>
 #include <cxxabi.h>
