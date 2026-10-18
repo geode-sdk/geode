@@ -5,7 +5,7 @@
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
 #include <cocos2d.h>
 #include <Geode/loader/Log.hpp>
-#include <filesystem>
+#include <asp/fs/fs.hpp>
 #include <Geode/loader/Dirs.hpp>
 
 using namespace geode::prelude;
@@ -47,10 +47,8 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
     glDeleteVertexArraysOESEXT = (PFNGLDELETEVERTEXARRAYSOESPROC)eglGetProcAddress("glDeleteVertexArraysOES");
 
     auto updatePath = geode::dirs::getGameDir() / "update";
-    std::error_code ec;
-    std::filesystem::remove_all(updatePath, ec);
-    if (ec) {
-        geode::log::warn("Failed to remove update directory: {}", ec.message());
+    if (auto err = asp::fs::removeDirAll(updatePath).err()) {
+        geode::log::warn("Failed to remove update directory: {}", *err);
     }
 
     reportPlatformCapability("internal_callbacks_v2");

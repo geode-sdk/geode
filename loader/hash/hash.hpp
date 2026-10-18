@@ -5,9 +5,9 @@
 #include <Geode/utils/StringBuffer.hpp>
 #include <asp/iter.hpp>
 #include <string>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 
-inline geode::Sha256 sha256Text(std::filesystem::path const& path) {
+inline geode::Sha256 sha256Text(asp::fs::PathView path) {
     std::string input = geode::utils::file::readString(path).unwrapOrDefault();
     geode::utils::StringBuffer<> buf;
 

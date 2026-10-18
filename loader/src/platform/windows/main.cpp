@@ -6,6 +6,7 @@
 #include <Geode/utils/general.hpp>
 #include "loader/LoaderImpl.hpp"
 #include "loader/console.hpp"
+#include <asp/fs/fs.hpp>
 
 using namespace geode::prelude;
 
@@ -14,16 +15,16 @@ void updateGeode() {
     const auto geodeDir = dirs::getGeodeDir();
     const auto updatesDir = geodeDir / "update";
 
-    bool bootstrapperExists = std::filesystem::exists(workingDir / "GeodeBootstrapper.dll");
-    bool updatesDirExists = std::filesystem::exists(geodeDir) && std::filesystem::exists(updatesDir);
+    bool bootstrapperExists = asp::fs::exists(workingDir / "GeodeBootstrapper.dll");
+    bool updatesDirExists = geodeDir.exists() && updatesDir.exists();
 
     if (!bootstrapperExists && !updatesDirExists)
         return;
 
     // update updater
-    if (std::filesystem::exists(updatesDir) &&
-        std::filesystem::exists(updatesDir / "GeodeUpdater.exe"))
-        std::filesystem::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
+    if (asp::fs::exists(updatesDir) && asp::fs::exists(updatesDir / "GeodeUpdater.exe")) {
+        (void) asp::fs::rename(updatesDir / "GeodeUpdater.exe", workingDir / "GeodeUpdater.exe");
+    }
 
     utils::game::restart(true);
 }
@@ -148,7 +149,8 @@ void fixCurrentWorkingDirectory() {
     auto size = GetModuleFileNameW(nullptr, cwd.data(), cwd.size());
     if (size == cwd.size()) return;
 
-    SetCurrentDirectoryW(std::filesystem::path(cwd.data()).parent_path().c_str());
+    auto cwdPath = asp::fs::Path::fromWide(cwd.data());
+    SetCurrentDirectoryW(cwdPath.parent()->native().c_str());
 }
 
 bool cleanModeCheck() {
@@ -389,15 +391,10 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID) {
 
     // if we find the old bootstrapper dll, don't load geode, copy new updater and let it do the rest
     auto workingDir = dirs::getGameDir();
-    std::error_code error;
-    bool oldBootstrapperExists = std::filesystem::exists(workingDir / "GeodeBootstrapper.dll", error);
-    if (error) {
-        earlyError("There was an error checking whether the old GeodeBootstrapper.dll exists: " + error.message());
-        return FALSE;
-    }
-    else if (oldBootstrapperExists)
+    bool oldBootstrapperExists = asp::fs::exists(workingDir / "GeodeBootstrapper.dll");
+    if (oldBootstrapperExists) {
         CreateThread(nullptr, 0, upgradeThread, nullptr, 0, nullptr);
-    else if (auto error = loadGeode(); !error.empty()) {
+    } else if (auto error = loadGeode(); !error.empty()) {
         earlyError(error);
         return TRUE;
     }

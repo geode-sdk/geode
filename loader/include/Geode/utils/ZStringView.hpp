@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <string_view>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <matjson.hpp>
 #include <fmt/format.h>
 
@@ -57,8 +57,8 @@ namespace geode {
         }
 #endif
 
-        operator std::filesystem::path() const {
-            return std::filesystem::path(this->view());
+        operator asp::fs::Path() const {
+            return asp::fs::Path(this->view());
         }
 
         C const* c_str() const {
@@ -131,7 +131,7 @@ namespace geode {
 
     template <typename T, typename C>
     requires std::same_as<std::remove_cvref_t<T>, BasicZStringView<C>>
-    std::filesystem::path operator/(std::filesystem::path const& lhs, T&& rhs) {
+    asp::fs::Path operator/(asp::fs::Path const& lhs, T&& rhs) {
         return lhs / rhs.view();
     }
 

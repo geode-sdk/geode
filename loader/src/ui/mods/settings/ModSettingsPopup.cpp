@@ -47,7 +47,7 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
     createFolderButton("save.png"_spr, &ModSettingsPopup::onOpenSaveDirectory);
     createFolderButton("settings.png"_spr, &ModSettingsPopup::onOpenConfigDirectory);
     auto persistentBtn = createFolderButton("GJ_lockGray_001.png", &ModSettingsPopup::onOpenPersistentDirectory);
-    if (!std::filesystem::exists(mod->getPersistentDir(false))) {
+    if (mod->getPersistentDir(false).exists()) {
         persistentBtn->setEnabled(false);
         auto spr = static_cast<CCSprite*>(persistentBtn->getNormalImage());
         spr->setCascadeColorEnabled(true);

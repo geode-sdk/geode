@@ -2,6 +2,7 @@
 
 #include <Geode/Result.hpp>
 #include <string_view>
+#include <algorithm>
 #include <cocos-ext.h>
 #include <ccTypes.h>
 

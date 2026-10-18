@@ -239,7 +239,7 @@ Popup* geode::openKeybindsPopup(std::optional<KeybindCategory> category, Mod* mo
     return popup;
 }
 
-using ModLogoSrc = std::variant<Mod*, std::string, std::filesystem::path>;
+using ModLogoSrc = std::variant<Mod*, std::string, asp::fs::Path>;
 
 class ModLogoSprite : public CCNodeRGBA {
 protected:
@@ -304,7 +304,7 @@ protected:
                     }
                 );
             },
-            [this](std::filesystem::path const& path) {
+            [this](asp::fs::Path const& path) {
                 m_sprite->setLoadCallback([this](Result<> res) {
                     this->onLoaded(std::move(res));
                 });
@@ -390,8 +390,8 @@ CCNode* geode::createModLogo(Mod* mod) {
     return ModLogoSprite::create(ModLogoSrc(mod));
 }
 
-CCNode* geode::createModLogo(std::filesystem::path const& geodePackage) {
-    return ModLogoSprite::create(ModLogoSrc(geodePackage));
+CCNode* geode::createModLogo(asp::fs::PathView geodePackage) {
+    return ModLogoSprite::create(ModLogoSrc(asp::fs::Path{geodePackage}));
 }
 
 CCNode* geode::createServerModLogo(std::string id) {

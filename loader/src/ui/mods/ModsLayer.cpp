@@ -235,7 +235,7 @@ void ModsStatusNode::updateState() {
 
             for (auto& download : downloads) {
                 auto status = download.getStatus();
-                
+
                 if (std::holds_alternative<server::DownloadStatusDone>(status)) {
                     totalProgress += 100;
                 } else if (auto downloading = std::get_if<server::DownloadStatusDownloading>(&status)) {
@@ -942,7 +942,7 @@ void ModsLayer::installModFromFile() {
             .description = "Geode Mods",
             .files = { "*.geode" },
         }}
-    }), [](Result<std::optional<std::filesystem::path>> result) {
+    }), [](Result<std::optional<asp::fs::Path>> result) {
         if (result.isOk() && result.unwrap().has_value()) {
             LoaderImpl::get()->installModManuallyFromFile(std::move(result).unwrap().value(), []() {
                 InstalledModListSource::get(InstalledModListType::All)->clearCache();

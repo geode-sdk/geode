@@ -1,19 +1,21 @@
 #pragma once
 
 #include <matjson.hpp>
-#include "casts.hpp"
-#include "general.hpp"
-#include "../DefaultInclude.hpp"
-#include <Geode/utils/ZStringView.hpp>
 #include <cocos2d.h>
 #include <functional>
+#include <algorithm>
 #include <type_traits>
-#include "../loader/Event.hpp"
+#include <unordered_map>
+
+#include "casts.hpp"
+#include "general.hpp"
+#include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/ZStringView.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
-#include <unordered_map>
-#include "../ui/Layout.hpp"
-#include "../ui/SpacerNode.hpp"
+#include <Geode/ui/Layout.hpp>
+#include <Geode/ui/SpacerNode.hpp>
 
 // support converting ccColor3B / ccColor4B to / from json
 

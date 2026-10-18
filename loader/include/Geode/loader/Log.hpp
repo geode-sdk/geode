@@ -10,7 +10,7 @@
 #include <Geode/Result.hpp>
 #include <ccTypes.h>
 #include <chrono>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <asp/time/SystemTime.hpp>
 #include "Formatter.hpp"
 
@@ -57,7 +57,7 @@ namespace geode {
         }
 
         /// Returns the path to the current log file
-        GEODE_DLL std::filesystem::path const& getCurrentLogPath();
+        GEODE_DLL asp::fs::PathView getCurrentLogPath();
 
         GEODE_DLL void pushNest(Mod* mod);
         GEODE_DLL void popNest(Mod* mod);

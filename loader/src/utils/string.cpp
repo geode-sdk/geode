@@ -62,15 +62,6 @@ Result<std::u32string> utils::string::utf8ToUtf32(std::string_view str) {
     return Ok(std::move(result));
 }
 
-std::string utils::string::pathToString(std::filesystem::path const& path) {
-#ifdef GEODE_IS_WINDOWS
-    return utils::string::wideToUtf8(path.native());
-#else
-    return path.string();
-#endif
-}
-
-
 bool utils::string::startsWith(std::string_view str, std::string_view prefix) {
     return str.rfind(prefix, 0) == 0;
 }

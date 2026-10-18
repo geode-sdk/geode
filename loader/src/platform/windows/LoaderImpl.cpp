@@ -69,8 +69,8 @@ bool Loader::Impl::userTriedToLoadDLLs() const {
         for (auto i = 0; i < (needed / sizeof(HMODULE)); i++) {
             std::array<wchar_t, MAX_PATH> modName;
             if (GetModuleFileNameExW(process, mods[i], modName.data(), modName.size())) {
-                auto u8name = utils::string::pathToString(std::filesystem::path(modName.data()).filename());
-                if (KNOWN_MOD_DLLS.count(string::trim(string::toLower(u8name)))) {
+                auto u8name = asp::fs::Path::fromWide(modName.data()).filename().value_or("");
+                if (KNOWN_MOD_DLLS.count(string::trim(string::toLower(std::string{u8name})))) {
                     triedToLoadDLLs = true;
                 }
             }

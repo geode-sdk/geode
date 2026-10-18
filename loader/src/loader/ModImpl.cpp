@@ -18,7 +18,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/string.hpp>
 #include <algorithm>
-#include <filesystem>
+#include <asp/fs/fs.hpp>
 #include <optional>
 #include <string>
 #include <system_error>
@@ -76,7 +76,7 @@ Result<> Mod::Impl::setup() {
 
         // Hi, linux bros!
         Loader::get()->queueInMainThread([searchPathRoot]() {
-            CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
+            CCFileUtils::get()->addSearchPath(searchPathRoot.c_str());
         });
 
         m_resourcesLoaded = true;
@@ -87,7 +87,7 @@ Result<> Mod::Impl::setup() {
 
 // Getters
 
-std::filesystem::path Mod::Impl::getSaveDir() const {
+asp::fs::Path Mod::Impl::getSaveDir() const {
     return m_saveDirPath;
 }
 
@@ -135,18 +135,18 @@ std::vector<Mod*> Mod::Impl::getEnabledDependants() const {
 }
 #endif
 
-std::filesystem::path Mod::Impl::getTempDir() const {
+asp::fs::Path Mod::Impl::getTempDir() const {
     return m_tempDirName;
 }
 
-std::filesystem::path Mod::Impl::getBinaryPath() const {
+asp::fs::Path Mod::Impl::getBinaryPath() const {
     if (auto value = LoaderImpl::get()->getBinaryPath()) {
-        return std::filesystem::path(value.value()) / m_metadata.getBinaryName();
+        return asp::fs::Path(value.value()) / m_metadata.getBinaryName();
     }
     return m_tempDirName / m_metadata.getBinaryName();
 }
 
-std::filesystem::path Mod::Impl::getPackagePath() const {
+asp::fs::Path Mod::Impl::getPackagePath() const {
     return m_metadata.getPath();
 }
 
@@ -220,7 +220,7 @@ Result<> Mod::Impl::loadData() {
     // Settings
     // Check if settings exist
     auto settingPath = m_saveDirPath / "settings.json";
-    if (std::filesystem::exists(settingPath)) {
+    if (settingPath.exists()) {
         if (auto json = utils::file::readJson(settingPath)) {
             auto load = m_settings->load(json.unwrap());
             if (!load) {
@@ -238,7 +238,7 @@ Result<> Mod::Impl::loadData() {
 
     // Saved values
     auto savedPath = m_saveDirPath / "saved.json";
-    if (std::filesystem::exists(savedPath)) {
+    if (savedPath.exists()) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
         m_saved = GEODE_UNWRAP(matjson::parse(data).mapErr([](auto&& err) {
             return fmt::format("Unable to parse saved values: {}", err);
@@ -364,9 +364,8 @@ Result<> Mod::Impl::loadBinary() {
     if (m_loaded)
         return Ok();
 
-    if (!std::filesystem::exists(this->getBinaryPath())) {
-        std::error_code ec;
-        std::filesystem::remove(m_tempDirName / "modified-at", ec);
+    if (this->getBinaryPath().exists()) {
+        (void) asp::fs::remove(m_tempDirName / "modified-at");
         return Err(
             fmt::format(
                 "Failed to load {}: No binary could be found for current platform.\n"
@@ -477,20 +476,13 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     // Make loader forget the mod should be disabled
     Mod::get()->getSaveContainer().erase("should-load-" + m_metadata.getID());
 
-    std::error_code ec;
-    std::filesystem::remove(m_metadata.getPath(), ec);
-    if (ec) {
-        return Err(
-            "Unable to delete mod's .geode file: " + ec.message()
-        );
+    if (auto e = asp::fs::remove(m_metadata.getPath())) {
+        return Err("Unable to delete mod's .geode file: {}", e.unwrapErr());
     }
 
     if (deleteSaveData) {
-        std::filesystem::remove_all(this->getSaveDir(), ec);
-        if (ec) {
-            return Err(
-                "Unable to delete mod's save directory: " + ec.message()
-            );
+        if (auto e = asp::fs::removeDirAll(this->getSaveDir())) {
+            return Err("Unable to delete mod's save directory: {}", e.unwrapErr());
         }
     }
 
@@ -679,7 +671,7 @@ Result<> Mod::Impl::createTempDir() {
     return Ok();
 }
 
-std::filesystem::path Mod::Impl::getConfigDir(bool create) const {
+asp::fs::Path Mod::Impl::getConfigDir(bool create) const {
     auto dir = dirs::getModConfigDir() / m_metadata.getID();
     if (create) {
         (void)file::createDirectoryAll(dir);
@@ -687,7 +679,7 @@ std::filesystem::path Mod::Impl::getConfigDir(bool create) const {
     return dir;
 }
 
-std::filesystem::path Mod::Impl::getPersistentDir(bool create) const {
+asp::fs::Path Mod::Impl::getPersistentDir(bool create) const {
     auto dir = dirs::getModPersistentDir() / m_metadata.getID();
     if (create) {
         (void)file::createDirectoryAll(dir);
@@ -764,8 +756,7 @@ void Mod::Impl::loadNativeModBinaries() {
 
     auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
 
-    std::error_code code;
-    if (std::filesystem::exists(binariesDir, code) && !code) {
+    if (binariesDir.exists()) {
         geode::log::info("Loaded binaries from path {}", binariesDir);
         ModImpl::get()->addNativeBinariesPath(binariesDir);
     }
