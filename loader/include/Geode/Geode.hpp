@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cocos2d.h>
 #include "Bindings.hpp"
 #include "Loader.hpp"
 #include "UI.hpp"

@@ -1,16 +1,18 @@
 #pragma once
 
 #include "LoadingSpinner.hpp"
-#include <Geode/utils/web.hpp>
+
+#include <Geode/cocos/include/ccTypes.h>
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/utils/web.hpp>
 
-#include <cocos2d.h>
 #include <asp/fs/Path.hpp>
-#include <string>
 #include <functional>
 #include <span>
 #include <stdint.h>
+#include <string>
 
 namespace geode {
     /**

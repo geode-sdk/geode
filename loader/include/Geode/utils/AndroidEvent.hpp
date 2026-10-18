@@ -8,6 +8,7 @@
 #include "../loader/Event.hpp"
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
 #include <Geode/Result.hpp>
+#include <variant>
 
 namespace geode {
     namespace utils {

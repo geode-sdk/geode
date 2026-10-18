@@ -1,6 +1,10 @@
 #include <Geode/loader/ModEvent.hpp>
 #include <loader/LoaderImpl.hpp>
 
+#ifdef GEODE_IS_WINDOWS
+#include <Windows.h>
+#endif
+
 using namespace geode::prelude;
 
 $on_mod(Loaded) {

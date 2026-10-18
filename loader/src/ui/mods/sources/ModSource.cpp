@@ -7,6 +7,7 @@
 #include <server/DownloadManager.hpp>
 #include <Geode/binding/GameObject.hpp>
 #include <unordered_set>
+#include <Geode/cocos/particle_nodes/CCParticleSystem.h>
 
 ModSource::ModSource(Mod* mod, ModListSource* listSource)
   : m_value(mod), m_listSource(listSource) {}

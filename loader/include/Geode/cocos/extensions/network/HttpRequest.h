@@ -25,7 +25,7 @@
 #ifndef __HTTP_REQUEST_H__
 #define __HTTP_REQUEST_H__
 
-#include "../../include/cocos2d.h"
+#include "../../cocoa/CCObject.h"
 #include "../ExtensionMacros.h"
 
 enum class GJHttpType;

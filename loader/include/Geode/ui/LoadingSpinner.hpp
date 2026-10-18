@@ -1,6 +1,7 @@
 #pragma once
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
 
-#include <cocos2d.h>
 
 namespace geode {
     /**

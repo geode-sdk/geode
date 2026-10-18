@@ -2,6 +2,7 @@
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 #include <regex>
 #include <fmt/chrono.h>
 

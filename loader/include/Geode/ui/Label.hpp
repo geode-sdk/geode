@@ -1,7 +1,6 @@
 #pragma once
-
-#include <cocos2d.h>
 #include <Geode/utils/cocos.hpp>
+#include <variant>
 
 namespace geode {
     /// A bitmap font cache that acts similarly to cocos2d::CCBMFontConfiguration, but is more performant.
@@ -9,6 +8,11 @@ namespace geode {
     public:
         BitmapFont();
         ~BitmapFont();
+
+        BitmapFont(BitmapFont const&);
+        BitmapFont(BitmapFont&&) noexcept;
+        BitmapFont& operator=(BitmapFont const&);
+        BitmapFont& operator=(BitmapFont&&) noexcept;
 
         /// Loads a bitmap font from a .fnt file. Caches for future reuse.
         /// @param fntFile File name of the .fnt file

@@ -1,11 +1,9 @@
 #include <Geode/modify/Field.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/modify/Field.hpp>
 #include <Geode/modify/CCNode.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/StringMap.hpp>
-#include <cocos2d.h>
 #include <queue>
 #include <stack>
 
@@ -148,7 +146,6 @@ public:
 };
 
 // proxy forwards
-#include <Geode/modify/CCNode.hpp>
 struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     virtual CCObject* getUserObject() {
         if (auto asNode = typeinfo_cast<CCNode*>(this)) {

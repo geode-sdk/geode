@@ -1,22 +1,22 @@
 #include "ModPopup.hpp"
 
-#include <optional>
+#include "../../../internal/about.hpp"
+#include "../settings/ModSettingsPopup.hpp"
+#include "ConfirmUninstallPopup.hpp"
+#include "server/DownloadManager.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/ui/MDTextArea.hpp>
-#include <Geode/ui/TextInput.hpp>
-#include <Geode/ui/Label.hpp>
-#include <Geode/utils/web.hpp>
+#include <Geode/cocos/cocoa/CCBool.h>
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/MDTextArea.hpp>
+#include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/utils/web.hpp>
 #include <optional>
-#include "ConfirmUninstallPopup.hpp"
-#include "../settings/ModSettingsPopup.hpp"
-#include "../../../internal/about.hpp"
-#include "server/DownloadManager.hpp"
 
 class FetchTextArea : public CCNode {
 public:

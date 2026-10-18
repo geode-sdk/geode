@@ -3,9 +3,12 @@
 #include "../DefaultInclude.hpp"
 #include <optional>
 #include <concepts>
-#include <cocos2d.h>
 #include <Geode/ui/Label.hpp>
-#include "../utils/cocos.hpp"
+#include <Geode/cocos/include/ccTypes.h>
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
+#include <Geode/cocos/menu_nodes/CCMenu.h>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include "../utils/file.hpp"
 // this unfortunately has to be included because of C++ templates
 #include "../utils/JsonValidation.hpp"

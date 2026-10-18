@@ -4,7 +4,7 @@
 
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/function.hpp>
-#include <cocos2d.h>
+#include <Geode/cocos/base_nodes/CCNode.h>
 #include <vector>
 
 namespace cocos2d {

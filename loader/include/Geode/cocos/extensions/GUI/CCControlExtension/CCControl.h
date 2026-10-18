@@ -32,7 +32,6 @@
 
 #include "CCInvocation.h"
 #include "CCControlUtils.h"
-#include "../../../include/cocos2d.h"
 
 NS_CC_EXT_BEGIN
 

@@ -1,29 +1,33 @@
 #include "ModsLayer.hpp"
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
-#include <Geode/loader/Dirs.hpp>
-#include <Geode/ui/BasedButtonSprite.hpp>
-#include <Geode/ui/Label.hpp>
-#include <Geode/utils/file.hpp>
-#include <Geode/cocos/cocoa/CCObject.h>
-#include <Geode/loader/Event.hpp>
+
+#include "GeodeStyle.hpp"
 #include "SwelvyBG.hpp"
+#include "popups/ConfirmInstall.hpp"
+#include "settings/KeybindsPopup.hpp"
+#include "ui/mods/sources/ModListSource.hpp"
+
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/MenuLayer.hpp>
+#include <Geode/binding/SetIDPopup.hpp>
+#include <Geode/binding/SetTextPopup.hpp>
+#include <Geode/binding/Slider.hpp>
+#include <Geode/cocos/cocoa/CCObject.h>
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
+#include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Event.hpp>
+#include <Geode/mapping/CCTransitionFade.hpp>
+#include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/MDPopup.hpp>
+#include <Geode/ui/PopupManager.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
+#include <Geode/utils/file.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/ui/GeodeUI.hpp>
-#include <Geode/ui/SimpleAxisLayout.hpp>
-#include <Geode/ui/PopupManager.hpp>
-#include <Geode/binding/Slider.hpp>
-#include <Geode/binding/SetTextPopup.hpp>
-#include <Geode/binding/SetIDPopup.hpp>
-#include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/MenuLayer.hpp>
-#include "popups/ConfirmInstall.hpp"
-#include "GeodeStyle.hpp"
-#include "ui/mods/sources/ModListSource.hpp"
 #include <loader/LoaderImpl.hpp>
-#include <Geode/ui/MDPopup.hpp>
-#include "settings/KeybindsPopup.hpp"
 
 bool ModsStatusNode::init() {
     if (!CCNode::init())

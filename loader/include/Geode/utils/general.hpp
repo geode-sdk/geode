@@ -7,6 +7,7 @@
 #include <Geode/utils/hash.hpp>
 #include <asp/time/SystemTime.hpp>
 #include "../DefaultInclude.hpp"
+#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <chrono>
 #include <iomanip>
 #include <string>
@@ -18,8 +19,8 @@
 #include <charconv>
 #include <clocale>
 #include <type_traits>
+#include <variant>
 #include <fmt/format.h>
-#include <cocos2d.h>
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;

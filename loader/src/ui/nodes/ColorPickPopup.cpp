@@ -11,6 +11,7 @@
 #include <charconv>
 #include <clocale>
 #include <Geode/loader/Mod.hpp>
+#include <GUI/CCControlExtension/CCControlColourPicker.h>
 
 using namespace geode::prelude;
 

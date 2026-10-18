@@ -1,6 +1,5 @@
 
 #include <Geode/loader/Dirs.hpp>
-#include <cocos2d.h>
 #include <crashlog.hpp>
 #include <asp/fs/Path.hpp>
 #include "LoaderImpl.hpp"

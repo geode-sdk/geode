@@ -1,6 +1,5 @@
 #pragma once
-
-#include <cocos2d.h>
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
 
 #pragma warning(disable: 4275)
 

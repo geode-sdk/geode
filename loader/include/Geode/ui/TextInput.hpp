@@ -6,7 +6,6 @@
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/ui/NineSlice.hpp>
-#include <cocos2d.h>
 
 namespace geode {
     enum class CommonFilter {

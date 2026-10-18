@@ -14,6 +14,7 @@
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
 #include "ModListItem.hpp"
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {

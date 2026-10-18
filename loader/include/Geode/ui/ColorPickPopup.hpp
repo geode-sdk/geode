@@ -1,8 +1,10 @@
 #pragma once
 
+#include "../loader/Event.hpp"
 #include "Popup.hpp"
 #include "TextInput.hpp"
-#include "../loader/Event.hpp"
+
+#include <GUI/CCControlExtension/ColorPickerDelegate.h>
 #include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/mapping/ColorPickerDelegate.hpp>
 #include <Geode/utils/function.hpp>

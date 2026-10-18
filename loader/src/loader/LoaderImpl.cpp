@@ -1,5 +1,4 @@
 #include "LoaderImpl.hpp"
-#include <cocos2d.h>
 
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
@@ -18,6 +17,10 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/cocos/platform/CCFileUtils.h>
+#include <Geode/cocos/platform/win32/CCApplication.h>
+#include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
+#include <Geode/cocos/textures/CCTextureCache.h>
 #include <about.hpp>
 #include <crashlog.hpp>
 #include <fmt/format.h>

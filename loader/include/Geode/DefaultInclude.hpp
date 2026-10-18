@@ -2,7 +2,8 @@
 
 #include <Geode/Prelude.hpp>
 #include <Geode/platform/platform.hpp>
-#include <variant>
+#include <cstddef>
+#include <cstring>
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
     #if !defined(__clang__)

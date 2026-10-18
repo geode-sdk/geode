@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cocos2d.h>
-#include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Label.hpp>

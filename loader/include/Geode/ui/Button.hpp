@@ -1,7 +1,10 @@
 #pragma once
 
 #include <Geode/utils/ZStringView.hpp>
-#include <cocos2d.h>
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/touch_dispatcher/CCTouchDelegateProtocol.h>
+#include <Geode/cocos/actions/CCActionInterval.h>
+#include <Geode/cocos/actions/CCActionEase.h>
 
 namespace geode {
     class GEODE_DLL Button : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {

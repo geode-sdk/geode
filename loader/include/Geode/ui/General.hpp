@@ -1,8 +1,6 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include <cocos2d.h>
-#include <cocos-ext.h>
 
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/ui/NineSlice.hpp>

@@ -18,6 +18,7 @@
 #include <fmt/format.h>
 #include "ui/mods/list/ModDeveloperItem.hpp"
 #include "../UpdateModListState.hpp"
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 
 bool ModDeveloperItem::init(
     DevListPopup* popup,

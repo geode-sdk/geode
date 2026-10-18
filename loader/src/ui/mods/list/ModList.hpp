@@ -10,6 +10,7 @@
 #include "ModListItem.hpp"
 #include "../sources/ModListSource.hpp"
 #include <server/DownloadManager.hpp>
+#include <variant>
 
 using namespace geode::prelude;
 

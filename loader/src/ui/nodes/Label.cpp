@@ -1,4 +1,7 @@
 #include <Geode/ui/Label.hpp>
+#include <Geode/cocos/platform/CCFileUtils.h>
+#include <Geode/cocos/shaders/CCShaderCache.h>
+#include <Geode/cocos/textures/CCTextureCache.h>
 
 #include <Geode/loader/GameEvent.hpp>
 #include <Geode/utils/StringMap.hpp>
@@ -19,6 +22,10 @@ static StringMap<BitmapFont>& GetBitmapFontsCache() {
 
 BitmapFont::BitmapFont() = default;
 BitmapFont::~BitmapFont() = default;
+BitmapFont::BitmapFont(BitmapFont const&) = default;
+BitmapFont::BitmapFont(BitmapFont&&) noexcept = default;
+BitmapFont& BitmapFont::operator=(BitmapFont const&) = default;
+BitmapFont& BitmapFont::operator=(BitmapFont&&) noexcept = default;
 
 BitmapFont* BitmapFont::load(ZStringView fntFile) {
     auto& cache = GetBitmapFontsCache();
@@ -477,7 +484,7 @@ $on_game(TexturesLoaded) {
         }
 
         tmp.initBakedValues();
-        font = tmp;
+        font = std::move(tmp);
     }
 }
 

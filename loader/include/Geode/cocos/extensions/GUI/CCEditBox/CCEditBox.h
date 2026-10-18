@@ -26,12 +26,11 @@
 #ifndef __CCEDITTEXT_H__
 #define __CCEDITTEXT_H__
 
-#include "../../../include/cocos2d.h"
+#include "../../../text_input_node/CCIMEDelegate.h"
 #include "../../ExtensionMacros.h"
 #include "../CCControlExtension/CCControlExtensions.h"
 
 NS_CC_EXT_BEGIN
-
 
 enum KeyboardReturnType {
     kKeyboardReturnTypeDefault = 0,

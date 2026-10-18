@@ -28,7 +28,6 @@
 
 #include "spine.h"
 #include "CCSkeleton.h"
-#include "../../include/cocos2d.h"
 
 namespace cocos2d { namespace extension {
 

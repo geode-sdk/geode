@@ -1,4 +1,5 @@
 #include <Geode/DefaultInclude.hpp>
+#include <Windows.h>
 
 #include <Geode/loader/Mod.hpp>
 #include <loader/ModImpl.hpp>

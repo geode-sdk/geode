@@ -1,14 +1,15 @@
 #include <Geode/loader/Event.hpp>
-#include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/modify/CCLayer.hpp>
+#include <Geode/modify/LoadingLayer.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/utils/NodeIDs.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <array>
 #include <fmt/format.h>
 #include <loader/LoaderImpl.hpp>
 #include <loader/console.hpp>
 #include <loader/updater.hpp>
-#include <Geode/utils/NodeIDs.hpp>
-#include <Geode/ui/Label.hpp>
+#include <variant>
 
 using namespace geode::prelude;
 

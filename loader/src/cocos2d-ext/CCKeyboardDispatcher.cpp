@@ -1,4 +1,3 @@
-#include <cocos2d.h>
 #include <Geode/utils/cocos.hpp>
 
 using namespace cocos2d;

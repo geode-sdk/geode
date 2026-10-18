@@ -2,53 +2,26 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
+
+#include <asp/fs/fs.hpp>
+#include <asp/iter.hpp>
 #include <matjson.hpp>
 #include <mz.h>
 #include <mz_os.h>
 #include <mz_strm.h>
-#include <mz_strm_os.h>
 #include <mz_strm_mem.h>
+#include <mz_strm_os.h>
 #include <mz_zip.h>
-#include <Geode/utils/ranges.hpp>
-#include <asp/fs/fs.hpp>
-#include <asp/iter.hpp>
+
+#ifdef GEODE_IS_WINDOWS
+#include <Windows.h>
+#endif
 
 using namespace geode::prelude;
 using namespace geode::utils::file;
 using namespace asp::fs;
-
-#ifdef GEODE_IS_WINDOWS
-static std::string formatError(DWORD error = GetLastError()) {
-    LPSTR buffer = nullptr;
-    DWORD size = FormatMessageA(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr,
-        error,
-        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-        (LPSTR)&buffer,
-        0,
-        nullptr
-    );
-
-    if (size == 0 || !buffer) {
-        return fmt::format("Win error {}", error);
-    }
-
-    std::string message(buffer, size);
-    LocalFree(buffer);
-
-    while (!message.empty() && (message.back() == '\n' || message.back() == '\r')) {
-        message.pop_back();
-    }
-
-    return message;
-}
-#else
-static std::string formatError(int error = errno) {
-    return strerror(error); // thank you posix for making it simple
-}
-#endif
 
 Result<std::string> utils::file::readString(PathView path) {
     return asp::fs::readToString(path);

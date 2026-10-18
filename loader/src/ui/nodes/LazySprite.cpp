@@ -3,6 +3,7 @@
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/async.hpp>
+#include <Geode/cocos/textures/CCTextureCache.h>
 
 using namespace geode::prelude;
 

@@ -1,8 +1,12 @@
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
+#include <Geode/cocos/platform/CCFileUtils.h>
+#include <Geode/cocos/textures/CCTextureCache.h>
+#include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <matjson.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/GameManager.hpp>
+#include <matjson.hpp>
 
 #ifdef GEODE_IS_WINDOWS
 #else
@@ -278,6 +282,9 @@ WeakRefPool* WeakRefPool::get() {
     static auto inst = new WeakRefPool();
     return inst;
 }
+
+WeakRefPool::WeakRefPool() = default;
+WeakRefPool::~WeakRefPool() = default;
 
 void WeakRefPool::check(CCObject* obj) {
     // if this object's only reference is the WeakRefPool aka only weak

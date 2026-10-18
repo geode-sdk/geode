@@ -11,6 +11,7 @@
 #include <mutex>
 #include <optional>
 #include <string_view>
+#include <variant>
 
 namespace geode {
     using ScheduledFunction = geode::Function<void()>;

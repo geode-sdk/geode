@@ -1,4 +1,3 @@
-#include <cocos2d.h>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/ui/NodeEvent.hpp>
 

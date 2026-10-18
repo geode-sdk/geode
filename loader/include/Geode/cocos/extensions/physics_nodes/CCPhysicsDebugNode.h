@@ -23,7 +23,6 @@
 #ifndef __PHYSICSNODES_DEBUGNODE_H__
 #define __PHYSICSNODES_DEBUGNODE_H__
 
-#include "../../include/cocos2d.h"
 #include "../ExtensionMacros.h"
 
 #if CC_ENABLE_CHIPMUNK_INTEGRATION

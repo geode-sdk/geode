@@ -1,6 +1,7 @@
 #include <Geode/ui/SliderNode.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/Geode.hpp>
+#include <Geode/cocos/extensions/network/HttpResponse.h>
 
 using namespace geode::prelude;
 
