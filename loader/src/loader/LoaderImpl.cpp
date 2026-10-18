@@ -823,7 +823,7 @@ void Loader::Impl::refreshModGraph() {
     {
         log::NestScope nest;
         if (auto e = this->queueMods(modQueue).err()) {
-            log::error("Failed to queue mods: {}", e);
+            log::error("Failed to queue mods: {}", *e);
         }
     }
 

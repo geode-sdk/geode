@@ -51,13 +51,7 @@ public:
     /**
      * @lua NA
      */
-#if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_WINDOWS)
-    // Make sure its imported because of std::string stuff,
-    // check android/main.cpp for more info
-    CCString();
-#else
-    inline CCString() : m_sString("") {}
-#endif
+    inline CCString() {}
     /**
      * @lua NA
      */
