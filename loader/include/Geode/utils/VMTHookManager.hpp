@@ -25,12 +25,12 @@ namespace geode {
             __nop(); __nop(); __nop(); __nop(); __nop(); __nop();
             return emptyFunction<UUID>();
         }
-    #elif defined(GEODE_IS_INTEL_MAC) 
+    #elif defined(GEODE_IS_INTEL_MAC)
         template <auto UUID>
         static void __attribute__((naked)) emptyFunction() {
             __asm__ volatile(
-                "0:\n\t"                 
-                ".rept 30\n\t"           
+                "0:\n\t"
+                ".rept 30\n\t"
                 "nop\n\t"
                 ".endr\n\t"
                 "jmp 0b\n\t"
@@ -40,11 +40,11 @@ namespace geode {
         template <auto UUID>
         static void __attribute__((naked)) emptyFunction() {
             __asm__ volatile(
-                "0:\n\t"                 
-                ".rept 8\n\t"            
+                "0:\n\t"
+                ".rept 8\n\t"
                 "nop\n\t"
                 ".endr\n\t"
-                "bl 0b\n\t"              
+                "bl 0b\n\t"
             );
         }
     #elif defined(GEODE_IS_ANDROID32)
@@ -53,16 +53,16 @@ namespace geode {
             __asm__ volatile(
             #if defined(__thumb__)
                 ".syntax unified\n\t"
-                "0:\n\t"                 
-                ".rept 16\n\t"           
+                "0:\n\t"
+                ".rept 16\n\t"
                 "nop\n\t"
                 ".endr\n\t"
-                "bl 0b\n\t"              
+                "bl 0b\n\t"
 
             #else
                 ".syntax unified\n\t"
-                "0:\n\t"                 
-                ".rept 8\n\t"           
+                "0:\n\t"
+                ".rept 8\n\t"
                 "nop\n\t"
                 ".endr\n\t"
                 "bl 0b\n\t"
