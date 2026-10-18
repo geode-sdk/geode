@@ -236,7 +236,9 @@ arc::Future<file::PickResult> file::pick(file::PickMode mode, file::FilePickOpti
         JniMethodInfo t;
         if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
             jstring stringArg1 = t.env->NewStringUTF(
-                utils::string::pathToString(options.defaultPath.value_or(asp::fs::Path()).filename()).c_str()
+                options.defaultPath.transform([](auto p) {
+                    return p.filename();
+                }).value_or("").string().c_str()
             );
 
             jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
@@ -275,7 +277,7 @@ arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
         JniMethodInfo t;
         if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
             jstring stringArg1 = t.env->NewStringUTF(
-                utils::string::pathToString(options.defaultPath.value_or(asp::fs::Path())).c_str()
+                options.defaultPath.value_or(asp::fs::Path()).c_str()
             );
 
             jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);

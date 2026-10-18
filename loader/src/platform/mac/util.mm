@@ -332,7 +332,7 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
         auto gdExec = dirs::getGameDir() / "MacOS" / "Geometry Dash";
 
         NSTask *task = [NSTask new];
-        [task setLaunchPath: intoNS(utils::string::pathToString(gdExec))];
+        [task setLaunchPath: intoNS(gdExec.string())];
 
         if (s_safeMode) {
             [task setArguments: @[@"--geode:safe-mode"]];

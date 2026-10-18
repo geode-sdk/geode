@@ -290,7 +290,7 @@ MultipartForm& MultipartForm::param(std::string name, std::string value) {
 
 Result<MultipartForm&> MultipartForm::file(std::string name, asp::fs::PathView path, std::string mime) {
     if (!m_impl->isBuilt()) {
-        std::string filename = path.filename().value_or({}).string();
+        std::string filename = path.filename().value_or("").string();
 
         // according to mdn, filenames should be ascii
         for (unsigned char c : filename) {

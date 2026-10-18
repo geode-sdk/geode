@@ -102,7 +102,7 @@ bool utils::file::openFolder(asp::fs::PathView path) {
             // Don't try to open up a file >:(
             asp::fs::Path dir = path;
             if (!dir.isDir()) {
-                dir = dir.parent().value_or({});
+                dir = dir.parent().value_or("");
             }
             if (auto id = ILCreateFromPathW(dir.native().c_str())) {
                 asp::fs::Path selectPath = path / ".";

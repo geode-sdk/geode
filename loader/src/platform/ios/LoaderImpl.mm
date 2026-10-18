@@ -54,7 +54,7 @@ void console::openIfClosed() {
     if (s_isOpen) return;
 
     asp::fs::Path(getpwuid(getuid())->pw_dir);
-    freopen(utils::string::pathToString(dirs::getGeodeDir() / "geode_log.txt").c_str(), "w", stdout);
+    freopen((dirs::getGeodeDir() / "geode_log.txt").c_str(), "w", stdout);
     s_isOpen = true;
 }
 

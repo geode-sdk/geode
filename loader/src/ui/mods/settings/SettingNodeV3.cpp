@@ -669,7 +669,7 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
             this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile,
             {
                 // Prefer opening the current path directly if possible
-                this->getValue().empty() || !this->getValue().parent().value_or({}).exists()
+                this->getValue().empty() || !this->getValue().parent().value_or("").exists()
                     ? dirs::getGameDir() : this->getValue(),
                 this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
             }

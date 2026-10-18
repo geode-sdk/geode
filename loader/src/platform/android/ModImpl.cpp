@@ -16,7 +16,7 @@ T findSymbolOrMangled(void* so, char const* name, char const* mangled) {
 
 Result<> Mod::Impl::loadPlatformBinary() {
     auto so =
-        dlopen(utils::string::pathToString(this->getBinaryPath()).c_str(), RTLD_LAZY);
+        dlopen(this->getBinaryPath().c_str(), RTLD_LAZY);
     if (so) {
         if (m_platformInfo) {
             delete m_platformInfo;
