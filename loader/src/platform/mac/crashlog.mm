@@ -1,7 +1,7 @@
 #include <crashlogApple.hpp>
 
 #include <thread>
-#include <filesystem>
+#include <asp/fs/fs.hpp>
 
 using namespace geode::prelude;
 using namespace crashlog;
@@ -13,7 +13,7 @@ static std::condition_variable s_cv;
 static int s_crashIter = 0;
 
 
-std::string_view CrashContext::getGeodeBinaryName() {
+asp::fs::PathView CrashContext::getGeodeBinaryName() {
     return "Geode.dylib";
 }
 
@@ -115,10 +115,9 @@ bool crashlog::setupPlatformHandler() {
     std::thread(&handlerThread).detach();
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-    if (std::filesystem::exists(lastCrashedFile)) {
+    if (lastCrashedFile.exists()) {
         s_lastLaunchCrashed = true;
-        std::error_code ec;
-        std::filesystem::remove(lastCrashedFile, ec);
+        (void) asp::fs::remove(lastCrashedFile);
     }
     return true;
 }
@@ -129,6 +128,6 @@ bool crashlog::didLastLaunchCrash() {
     return s_lastLaunchCrashed;
 }
 
-std::filesystem::path crashlog::getCrashLogDirectory() {
+asp::fs::Path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }

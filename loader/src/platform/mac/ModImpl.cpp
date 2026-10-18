@@ -2,6 +2,8 @@
 
 #include <Geode/loader/Mod.hpp>
 #include <loader/ModImpl.hpp>
+#include <asp/fs/fs.hpp>
+#include <asp/iter.hpp>
 #include <dlfcn.h>
 
 using namespace geode::prelude;
@@ -17,7 +19,7 @@ T findSymbolOrMangled(void* dylib, char const* name, char const* mangled) {
 
 Result<> Mod::Impl::loadPlatformBinary() {
     auto dylib =
-        dlopen(utils::string::pathToString(this->getBinaryPath()).c_str(), RTLD_LAZY);
+        dlopen(this->getBinaryPath().c_str(), RTLD_LAZY);
     if (dylib) {
         if (m_platformInfo) {
             delete m_platformInfo;
@@ -40,32 +42,39 @@ Result<> Mod::Impl::loadPlatformBinary() {
     return Err("Unable to load the DYLIB: dlerror returned (" + err + ")");
 }
 
-void Mod::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
+void Mod::Impl::addNativeBinariesPath(asp::fs::Path const& path) {
     // this takes advantage of dyld using already loaded binaries when loading relative shared libraries
     // however, this also means that the binaries are loaded, which could have some weird side effects
     // but if you could use dlopen (and thus control when libraries are loaded), then you wouldn't be using this, would you?
 
-    for (const auto& entry : std::filesystem::directory_iterator(path)) {
-        if (!entry.is_regular_file()) {
-            continue;
-        }
-
-        auto& entry_path = entry.path();
-
-        if (entry_path.extension() != ".dylib") {
-            continue;
-        }
-
-        auto handle = dlopen(utils::string::pathToString(entry_path).c_str(), RTLD_LAZY);
-
-        if (!handle) {
-            auto err = dlerror();
-            log::warn("failed to load native binary at {}: dlerror returned ({})", 
-                entry_path, err
-            );
-            continue;
-        }
-
-        dlclose(handle);
+    auto result = asp::fs::iterDir(path);
+    if (!result) {
+        log::error("Unable to iterate directory {}: {}", path, result.unwrapErr());
+        return;
     }
+
+    std::move(result).unwrap()
+        .filterMap([] (auto result) { return result.ok(); })
+        .filter([] (auto& entry) {
+            return entry.isFile();
+        })
+        .filterMap([](auto entry) -> std::optional<asp::fs::Path> {
+            if (entry.path.extension() != "dylib") {
+                return std::nullopt;
+            }
+            return entry.path;
+        })
+        .forEach([](auto path) {
+            auto handle = dlopen(path.c_str(), RTLD_LAZY);
+
+            if (!handle) {
+                auto err = dlerror();
+                log::warn("failed to load native binary at {}: dlerror returned ({})",
+                    path, err
+                );
+                return;
+            }
+
+            dlclose(handle);
+        });
 }

@@ -1,55 +1,55 @@
 
 #include <Geode/loader/Dirs.hpp>
 #include <crashlog.hpp>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include "LoaderImpl.hpp"
 
 using namespace geode::prelude;
 
-std::filesystem::path dirs::getGeodeDir() {
+asp::fs::Path dirs::getGeodeDir() {
     return dirs::getGameDir() / "geode";
 }
 
-std::filesystem::path dirs::getGeodeSaveDir() {
+asp::fs::Path dirs::getGeodeSaveDir() {
     return dirs::getSaveDir() / "geode";
 }
 
-std::filesystem::path dirs::getGeodeResourcesDir() {
+asp::fs::Path dirs::getGeodeResourcesDir() {
     return dirs::getGeodeDir() / "resources";
 }
 
-std::filesystem::path dirs::getGeodeLogDir() {
+asp::fs::Path dirs::getGeodeLogDir() {
     return dirs::getGeodeDir() / "logs";
 }
 
-std::filesystem::path dirs::getTempDir() {
+asp::fs::Path dirs::getTempDir() {
     return dirs::getGeodeDir() / "temp";
 }
 
-std::filesystem::path dirs::getModsDir() {
+asp::fs::Path dirs::getModsDir() {
     return dirs::getGeodeDir() / "mods";
 }
 
-std::filesystem::path dirs::getModsSaveDir() {
+asp::fs::Path dirs::getModsSaveDir() {
     return dirs::getGeodeSaveDir() / "mods";
 }
 
-std::filesystem::path dirs::getModConfigDir() {
+asp::fs::Path dirs::getModConfigDir() {
     return dirs::getGeodeDir() / "config";
 }
 
-std::filesystem::path dirs::getIndexDir() {
+asp::fs::Path dirs::getIndexDir() {
     return dirs::getGeodeDir() / "index";
 }
 
-std::filesystem::path dirs::getCrashlogsDir() {
+asp::fs::Path dirs::getCrashlogsDir() {
     return crashlog::getCrashLogDirectory();
 }
 
-std::filesystem::path dirs::getModPersistentDir() {
+asp::fs::Path dirs::getModPersistentDir() {
     return dirs::getSaveDir() / "geode-persistent";
 }
 
-// std::filesystem::path dirs::getModBinariesDir() {
+// asp::fs::Path dirs::getModBinariesDir() {
 //     return dirs::getModRuntimeDir() / "binaries";
 // }

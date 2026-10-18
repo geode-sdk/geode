@@ -5,31 +5,31 @@ using namespace cocos2d;
 #ifdef GEODE_IS_IOS
 
 CCKeyboardDispatcher::CCKeyboardDispatcher()
-    : m_bUnknown38(false),
-    m_bUnknown39(false),
-    m_bUnknown3a(false),
+    : m_bLocked(false),
+    m_bToAdd(false),
+    m_bToRemove(false),
     m_bShiftPressed(false),
     m_bControlPressed(false),
     m_bAltPressed(false),
     m_bCommandPressed(false),
     m_bBlockRepeat(false),
-    m_pDelegates(CCArray::create()),
-    m_pUnknown3c(ccCArrayNew(8)),
-    m_pUnknown40(ccCArrayNew(8))
+    m_pHandlers(CCArray::create()),
+    m_pHandlersToAdd(ccCArrayNew(8)),
+    m_pHandlersToRemove(ccCArrayNew(8))
 {
-    m_pDelegates->retain();
+    m_pHandlers->retain();
 }
 
 CCKeyboardDispatcher::~CCKeyboardDispatcher()
 {
-    CC_SAFE_RELEASE(m_pDelegates);
-    if (m_pUnknown3c)
+    CC_SAFE_RELEASE(m_pHandlers);
+    if (m_pHandlersToAdd)
     {
-        ccCArrayFree(m_pUnknown3c);
+        ccCArrayFree(m_pHandlersToAdd);
     }
-    if (m_pUnknown40)
+    if (m_pHandlersToRemove)
     {
-        ccCArrayFree(m_pUnknown40);
+        ccCArrayFree(m_pHandlersToRemove);
     }
 }
 
@@ -37,10 +37,10 @@ void CCKeyboardDispatcher::addDelegate(CCKeyboardDelegate* pDelegate)
 {
     if (!pDelegate) return;
 
-    if (m_bUnknown38)
+    if (m_bLocked)
     {
-        ccCArrayAppendValue(m_pUnknown3c, pDelegate);
-        m_bUnknown39 = true;
+        ccCArrayAppendValue(m_pHandlersToAdd, pDelegate);
+        m_bToAdd = true;
     }
     else
     {
@@ -52,10 +52,10 @@ void CCKeyboardDispatcher::removeDelegate(CCKeyboardDelegate* pDelegate)
 {
     if (!pDelegate) return;
 
-    if (m_bUnknown38)
+    if (m_bLocked)
     {
-        ccCArrayAppendValue(m_pUnknown40, pDelegate);
-        m_bUnknown3a = true;
+        ccCArrayAppendValue(m_pHandlersToRemove, pDelegate);
+        m_bToRemove = true;
     }
     else
     {
@@ -67,7 +67,7 @@ void CCKeyboardDispatcher::forceAddDelegate(CCKeyboardDelegate* pDelegate)
 {
     if (auto handler = CCKeyboardHandler::handlerWithDelegate(pDelegate))
     {
-        m_pDelegates->addObject(handler);
+        m_pHandlers->addObject(handler);
     }
 }
 
@@ -75,9 +75,9 @@ void CCKeyboardDispatcher::forceRemoveDelegate(CCKeyboardDelegate* pDelegate)
 {
     if (!pDelegate) return;
 
-    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pDelegates)) {
+    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pHandlers)) {
         if (pDelegate == handler->getDelegate()) {
-            m_pDelegates->removeObject(handler, true);
+            m_pHandlers->removeObject(handler, true);
         }
     }
 }
@@ -120,9 +120,9 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
             break;
     }
 
-    m_bUnknown38 = true;
+    m_bLocked = true;
 
-    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pDelegates))
+    for (auto handler : geode::cocos::CCArrayExt<CCKeyboardHandler>(m_pHandlers))
     {
         auto delegate = handler->getDelegate();
         if (isKeyDown)
@@ -135,31 +135,31 @@ bool CCKeyboardDispatcher::dispatchKeyboardMSG(enumKeyCodes key, bool isKeyDown,
         }
         break;
     }
-    m_bUnknown38 = false;
+    m_bLocked = false;
 
-    if (m_bUnknown3a)
+    if (m_bToRemove)
     {
-        m_bUnknown3a = false;
+        m_bToRemove = false;
 
         void* delegate;
-        CCARRAYDATA_FOREACH(m_pUnknown40, delegate)
+        CCARRAYDATA_FOREACH(m_pHandlersToRemove, delegate)
         {
             forceRemoveDelegate(static_cast<CCKeyboardDelegate*>(delegate));
         }
-        ccCArrayRemoveAllValues(m_pUnknown40);
+        ccCArrayRemoveAllValues(m_pHandlersToRemove);
     }
 
-    if (!m_bUnknown39)
+    if (!m_bToAdd)
         return true;
 
-    m_bUnknown39 = false;
+    m_bToAdd = false;
 
     void* delegate;
-    CCARRAYDATA_FOREACH(m_pUnknown3c, delegate)
+    CCARRAYDATA_FOREACH(m_pHandlersToAdd, delegate)
     {
         forceAddDelegate(static_cast<CCKeyboardDelegate*>(delegate));
     }
-    ccCArrayRemoveAllValues(m_pUnknown3c);
+    ccCArrayRemoveAllValues(m_pHandlersToAdd);
 
     return true;
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <Geode/Result.hpp>
 #include "Log.hpp"
 #include "ModMetadata.hpp"
@@ -29,7 +29,7 @@ namespace geode {
             HasIncompatibilities = 4,
         };
         Type type;
-        std::variant<std::filesystem::path, ModMetadata, Mod*> cause;
+        std::variant<asp::fs::Path, ModMetadata, Mod*> cause;
         /// Human-readable message (that should also suggest a fix; aka be UI-ready)
         std::string message;
 

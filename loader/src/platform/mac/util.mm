@@ -20,17 +20,11 @@ using namespace geode::prelude;
 #import <Foundation/Foundation.h>
 #undef CommentType
 
+template <typename T>
+NSString* intoNS(T&& input) {
+    std::string_view str{input};
 
-NSString* intoNS(std::string const& str) {
-    return [NSString stringWithUTF8String:str.c_str()];
-}
-
-NSString* intoNS(std::string_view str) {
     return [[NSString alloc] initWithBytes:str.data() length:str.size() encoding:NSUTF8StringEncoding];
-}
-
-NSString* intoNS(ZStringView str) {
-    return intoNS(std::string_view(str));
 }
 
 bool utils::clipboard::write(ZStringView data) {
@@ -48,8 +42,8 @@ std::string utils::clipboard::read() {
     return std::string(clipboard);
 }
 
-bool utils::file::openFolder(std::filesystem::path const& path) {
-    NSURL* folderURL = [NSURL fileURLWithPath:intoNS(utils::string::pathToString(path))];
+bool utils::file::openFolder(asp::fs::PathView path) {
+    NSURL* folderURL = [NSURL fileURLWithPath:intoNS(path.string())];
     [[NSWorkspace sharedWorkspace] openURL:folderURL];
     return true;
 }
@@ -60,13 +54,13 @@ void utils::web::openLinkUnsafe(ZStringView url) {
 }
 
 /*@interface FileDialog : NSObject
-+ (Result<std::filesystem::path>)importDocumentWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options mult:(bool)mult;
-+ (Result<std::vector<std::filesystem::path>>)importDocumentsWithOptions:(file::FilePickOptions const&)options;
++ (Result<asp::fs::Path>)importDocumentWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options mult:(bool)mult;
++ (Result<std::vector<asp::fs::Path>>)importDocumentsWithOptions:(file::FilePickOptions const&)options;
 @end
 
 @implementation FileDialog
 
-+ (Result<std::filesystem::path>)importDocumentWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options mult:(bool)mult {
++ (Result<asp::fs::Path>)importDocumentWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options mult:(bool)mult {
     NSOpenPanel* panel = [NSOpenPanel openPanel];
     // TODO: [panel setAllowedFileTypes:@[]];
 
@@ -81,7 +75,7 @@ void utils::web::openLinkUnsafe(ZStringView url) {
     if (result == NSFileHandlingPanelOKButton) {
         auto fileUrl = [[panel URLs] objectAtIndex:0];
         auto path = std::string([[fileUrl path] UTF8String], [[fileUrl path] lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);
-        return Ok(std::filesystem::path(path));
+        return Ok(asp::fs::Path(path));
     } else {
         return Err(result);
     }
@@ -90,16 +84,16 @@ void utils::web::openLinkUnsafe(ZStringView url) {
 @end*/
 
 namespace {
-    using FileResult = Result<std::vector<std::filesystem::path>>;
+    using FileResult = Result<std::vector<asp::fs::Path>>;
 }
 
 @interface FileDialog : NSObject
-+(Result<std::vector<std::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult;
++(Result<std::vector<asp::fs::Path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult;
 +(void) dispatchFilePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult onCompletion:(void(^)(FileResult&&))onCompletion;
 @end
 
 @implementation FileDialog
-+(Result<std::vector<std::filesystem::path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult {
++(Result<std::vector<asp::fs::Path>>) filePickerWithMode:(file::PickMode)mode options:(file::FilePickOptions const&)options multiple:(bool)mult {
     NSSavePanel* panel;
     if (mode == file::PickMode::SaveFile)
         panel = [NSSavePanel savePanel];
@@ -113,12 +107,12 @@ namespace {
     if (options.defaultPath) {
         auto path = options.defaultPath.value();
 
-        if (std::filesystem::is_directory(path) || mode == file::PickMode::OpenFolder) {
-            auto defaultPath = intoNS(options.defaultPath.value());
+        if (path.isDir() || mode == file::PickMode::OpenFolder) {
+            auto defaultPath = intoNS(path);
             [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
         } else {
-            auto defaultPath = intoNS(options.defaultPath->parent_path());
-            auto name = intoNS(options.defaultPath->filename());
+            auto defaultPath = intoNS(path.parent().value());
+            auto name = intoNS(path.filename().value());
 
             [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
             [panel setNameFieldStringValue: name];
@@ -159,7 +153,7 @@ namespace {
     int result = [panel runModal];
 
     if (result == NSModalResponseOK) {
-        std::vector<std::filesystem::path> fileURLs;
+        std::vector<asp::fs::Path> fileURLs;
         if (mode == file::PickMode::SaveFile) {
             fileURLs.push_back(std::string([[[panel URL] path] UTF8String]));
         }
@@ -186,7 +180,7 @@ namespace {
 
 @end
 
-GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(file::PickMode mode, file::FilePickOptions options) {
+GEODE_DLL arc::Future<Result<std::optional<asp::fs::Path>>> file::pick(file::PickMode mode, file::FilePickOptions options) {
     auto [tx, rx] = arc::oneshot::channel<FileResult>();
     __block auto sender = std::move(tx);
 
@@ -216,7 +210,7 @@ GEODE_DLL arc::Future<Result<std::optional<std::filesystem::path>>> file::pick(f
     co_return Ok(std::move(paths[0]));
 }
 
-GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany(file::FilePickOptions options) {
+GEODE_DLL arc::Future<Result<std::vector<asp::fs::Path>>> file::pickMany(file::FilePickOptions options) {
     auto [tx, rx] = arc::oneshot::channel<FileResult>();
     __block auto sender = std::move(tx);
 
@@ -234,7 +228,7 @@ GEODE_DLL arc::Future<Result<std::vector<std::filesystem::path>>> file::pickMany
     if (!res) {
         auto err = std::move(res).unwrapErr();
         if (err == "File picker cancelled") {
-            co_return Ok(std::vector<std::filesystem::path>{});
+            co_return Ok(std::vector<asp::fs::Path>{});
         }
         co_return Err(std::move(err));
     }
@@ -250,27 +244,26 @@ CCPoint cocos::getMousePos() {
     return ccp(mouse.x - windowFrame.origin.x, mouse.y - windowFrame.origin.y) * scaleFactor;
 }
 
-std::filesystem::path dirs::getGameDir() {
+asp::fs::Path dirs::getGameDir() {
     static auto path = [] {
         std::array<char, PATH_MAX> gddir;
 
         uint32_t out = PATH_MAX;
         _NSGetExecutablePath(gddir.data(), &out);
 
-        std::filesystem::path gdpath = gddir.data();
-        auto currentPath = std::filesystem::canonical(gdpath.parent_path().parent_path());
-        return currentPath;
+        asp::fs::Path gdpath = gddir.data();
+        return gdpath.parent()->parent().value();
     }();
 
     return path;
 }
 
-std::filesystem::path dirs::getSaveDir() {
+asp::fs::Path dirs::getSaveDir() {
     static auto path = [] {
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
         NSString *applicationSupportDirectory = [paths firstObject];
 
-        std::filesystem::path supportPath = [applicationSupportDirectory UTF8String];
+        asp::fs::Path supportPath = [applicationSupportDirectory UTF8String];
         auto currentPath = supportPath / "GeometryDash";
         return currentPath;
     }();
@@ -278,11 +271,11 @@ std::filesystem::path dirs::getSaveDir() {
     return path;
 }
 
-std::filesystem::path dirs::getModRuntimeDir() {
+asp::fs::Path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
-std::filesystem::path dirs::getResourcesDir() {
+asp::fs::Path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
 }
 
@@ -333,7 +326,7 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
         auto gdExec = dirs::getGameDir() / "MacOS" / "Geometry Dash";
 
         NSTask *task = [NSTask new];
-        [task setLaunchPath: intoNS(utils::string::pathToString(gdExec))];
+        [task setLaunchPath: intoNS(gdExec.string())];
 
         if (s_safeMode) {
             [task setArguments: @[@"--geode:safe-mode"]];

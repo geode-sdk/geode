@@ -62,12 +62,12 @@ protected:
 	void dispatchToTopDelegate(enumKeyCodes key, bool unk, std::vector<int> const& unk2, double unk3);
 
 public:
-	CCArray* m_pDelegates;	// 0x34
-	bool m_bUnknown38;			// 0x38
-	bool m_bUnknown39;      // 0x39
-	bool m_bUnknown3a;			// 0x3a
-	ccCArray* m_pUnknown3c; // 0x3c
-	ccCArray* m_pUnknown40;	// 0x40
+	CCArray* m_pHandlers;	// 0x34
+	bool m_bLocked;			// 0x38
+	bool m_bToAdd;      // 0x39
+	bool m_bToRemove;			// 0x3a
+	ccCArray* m_pHandlersToAdd; // 0x3c
+	ccCArray* m_pHandlersToRemove;	// 0x40
 	bool m_bShiftPressed;		// 0x44
 	bool m_bControlPressed;	// 0x45
 	bool m_bAltPressed;			// 0x46

@@ -309,7 +309,7 @@ protected:
     CCSprite* m_fileIcon;
     geode::Label* m_nameLabel;
     ListenerHandle m_pickHandle;
-    async::TaskHolder<Result<std::optional<std::filesystem::path>>> m_pickListener;
+    async::TaskHolder<Result<std::optional<asp::fs::Path>>> m_pickListener;
     CCMenuItemSpriteExtra* m_selectBtn;
     CCSprite* m_selectBtnSpr;
 

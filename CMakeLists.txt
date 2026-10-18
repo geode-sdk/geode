@@ -261,14 +261,14 @@ set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.4.1")
 CPMAddPackage("gh:geode-sdk/json@3.3.1")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
-CPMAddPackage("gh:fmtlib/fmt#12.2.0") # commit between 12.1.0 and 12.2.0 that fixes nodiscard warning
+CPMAddPackage("gh:fmtlib/fmt#12.2.0")
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
-	set(GEODE_ARC_VERSION "@1.5.11" CACHE STRING "")
+	set(GEODE_ARC_VERSION "@1.6.1" CACHE STRING "")
 endif()
 if (NOT DEFINED GEODE_ASP_VERSION)
-	set(GEODE_ASP_VERSION "#ecea33b" CACHE STRING "")
+	set(GEODE_ASP_VERSION "@1.4.2" CACHE STRING "")
 endif()
 
 CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")

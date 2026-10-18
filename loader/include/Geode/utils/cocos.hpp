@@ -6,6 +6,7 @@
 #include "../DefaultInclude.hpp"
 #include <Geode/utils/ZStringView.hpp>
 #include <functional>
+#include <algorithm>
 #include <type_traits>
 #include "../loader/Event.hpp"
 #include <Geode/cocos/include/ccTypes.h>
@@ -30,11 +31,17 @@
 #include <Geode/cocos/draw_nodes/CCDrawingPrimitives.h>
 #include <Geode/cocos/support/CCPointExtension.h>
 #include <Geode/cocos/actions/CCActionInstant.h>
+#include <unordered_map>
+
+#include "casts.hpp"
+#include "general.hpp"
+#include <Geode/DefaultInclude.hpp>
+#include <Geode/utils/ZStringView.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
-#include <unordered_map>
-#include "../ui/Layout.hpp"
-#include "../ui/SpacerNode.hpp"
+#include <Geode/ui/Layout.hpp>
+#include <Geode/ui/SpacerNode.hpp>
 
 // support converting ccColor3B / ccColor4B to / from json
 

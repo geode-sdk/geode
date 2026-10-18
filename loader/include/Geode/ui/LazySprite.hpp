@@ -7,7 +7,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/function.hpp>
 
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <string>
 #include <functional>
 #include <span>
@@ -28,7 +28,7 @@ namespace geode {
         static LazySprite* create(cocos2d::CCSize size, bool loadingCircle = true);
 
         void loadFromUrl(std::string url, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
-        void loadFromFile(std::filesystem::path const& path, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
+        void loadFromFile(asp::fs::Path path, Format format = Format::kFmtUnKnown, bool ignoreCache = false);
         void loadFromData(std::vector<uint8_t> data, Format format = Format::kFmtUnKnown);
         void loadFromData(std::span<uint8_t const> data, Format format = Format::kFmtUnKnown);
         void loadFromData(uint8_t const* ptr, size_t size, Format format = Format::kFmtUnKnown);

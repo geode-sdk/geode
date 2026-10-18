@@ -11,327 +11,118 @@
 #include <mz_strm_mem.h>
 #include <mz_zip.h>
 #include <Geode/utils/ranges.hpp>
-
-#ifdef GEODE_IS_WINDOWS
-# include <Windows.h>
-# include <filesystem>
-#else
-# include <unistd.h>
-# include <fcntl.h>
-# include <sys/stat.h>
-#endif
-
-#if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
-struct path_hash_t {
-    std::size_t operator()(std::filesystem::path const& path) const noexcept {
-        return std::filesystem::hash_value(path);
-    }
-};
-#else
-using path_hash_t = std::hash<std::filesystem::path>;
-#endif
+#include <asp/fs/fs.hpp>
+#include <asp/iter.hpp>
 
 using namespace geode::prelude;
 using namespace geode::utils::file;
+using namespace asp::fs;
 
-#ifdef GEODE_IS_WINDOWS
-static std::string formatError(DWORD error = GetLastError()) {
-    LPSTR buffer = nullptr;
-    DWORD size = FormatMessageA(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr,
-        error,
-        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-        (LPSTR)&buffer,
-        0,
-        nullptr
-    );
-
-    if (size == 0 || !buffer) {
-        return fmt::format("Win error {}", error);
-    }
-
-    std::string message(buffer, size);
-    LocalFree(buffer);
-
-    while (!message.empty() && (message.back() == '\n' || message.back() == '\r')) {
-        message.pop_back();
-    }
-
-    return message;
-}
-#else
-static std::string formatError(int error = errno) {
-    return strerror(error); // thank you posix for making it simple
-}
-#endif
-
-#ifdef GEODE_IS_WINDOWS
-template <typename T>
-Result<> readFileInto(std::filesystem::path const& path, T& out) {
-    HANDLE file = CreateFileW(
-        path.c_str(),
-        GENERIC_READ,
-        FILE_SHARE_READ,
-        nullptr,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        nullptr
-    );
-
-    if (file == INVALID_HANDLE_VALUE) {
-        return Err("Unable to open file: {}", formatError());
-    }
-
-    LARGE_INTEGER fileSize;
-    if (!GetFileSizeEx(file, &fileSize)) {
-        CloseHandle(file);
-        return Err("Unable to get file size: {}", formatError());
-    }
-
-    out.resize(fileSize.QuadPart);
-    DWORD read = 0;
-    if (!ReadFile(file, out.data(), static_cast<DWORD>(out.size()), &read, nullptr)) {
-        CloseHandle(file);
-        return Err("Unable to read file: {}", formatError());
-    }
-
-    CloseHandle(file);
-
-    if (read < out.size()) {
-        return Err("Unable to read entire file: only read {} of {}", read, out.size());
-    }
-
-    return Ok();
+Result<std::string> utils::file::readString(PathView path) {
+    return asp::fs::readToString(path);
 }
 
-static Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
-    HANDLE file = CreateFileW(
-        path.c_str(),
-        GENERIC_WRITE,
-        0,
-        nullptr,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH,
-        nullptr
-    );
-
-    if (file == INVALID_HANDLE_VALUE) {
-        return Err("Unable to open file: {}", formatError());
-    }
-
-    DWORD written = 0;
-    if (!WriteFile(file, data, static_cast<DWORD>(size), &written, nullptr)) {
-        CloseHandle(file);
-        return Err("Unable to write file: {}", formatError());
-    }
-
-    if (written < size) {
-        CloseHandle(file);
-        return Err("Unable to write entire file: only wrote {} of {}", written, size);
-    }
-
-    CloseHandle(file);
-
-    return Ok();
-}
-
-#else
-
-template <typename T>
-Result<> readFileInto(std::filesystem::path const& path, T& out) {
-    int file = open(path.c_str(), O_RDONLY);
-
-    if (file == -1) {
-        return Err("Unable to open file: {}", formatError());
-    }
-
-    struct stat fst;
-    if (fstat(file, &fst) == -1) {
-        close(file);
-        return Err("Unable to get file size: {}", formatError());
-    }
-
-    out.resize(fst.st_size);
-    ssize_t bread = read(file, out.data(), out.size());
-    close(file);
-
-    if (bread < 0) {
-        return Err("Unable to read file: {}", formatError());
-    }
-
-    if (bread < out.size()) {
-        return Err("Unable to read entire file: only read {} of {}", bread, out.size());
-    }
-
-    return Ok();
-}
-
-static Result<> writeFileFrom(std::filesystem::path const& path, void* data, size_t size) {
-    int file = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-
-    if (file < 0) {
-        return Err("Unable to open file: {}", formatError());
-    }
-
-    size_t written = 0;
-    while (written < size) {
-        ssize_t bwrite = write(file, (uint8_t*)data + written, size - written);
-        if (bwrite < 0) {
-            if (errno == EINTR) continue;
-            close(file);
-            return Err("Unable to write file: {}", formatError());
-        }
-        written += bwrite;
-    }
-
-    close(file);
-
-    return Ok();
-}
-
-#endif
-
-Result<std::string> utils::file::readString(std::filesystem::path const& path) {
-    std::string contents;
-    GEODE_UNWRAP(readFileInto(path, contents));
-    return Ok(std::move(contents));
-}
-
-Result<matjson::Value> utils::file::readJson(std::filesystem::path const& path) {
+Result<matjson::Value> utils::file::readJson(PathView path) {
     auto str = GEODE_UNWRAP(utils::file::readString(path));
     return matjson::parse(str).mapErr([&](auto const& err) {
         return fmt::format("Unable to parse JSON: {}", err);
     });
 }
 
-Result<ByteVector> utils::file::readBinary(std::filesystem::path const& path) {
-    std::vector<uint8_t> contents;
-    GEODE_UNWRAP(readFileInto(path, contents));
-    return Ok(std::move(contents));
+Result<ByteVector> utils::file::readBinary(PathView path) {
+    return asp::fs::read(path);
 }
 
-Result<> utils::file::writeString(std::filesystem::path const& path, std::string_view data) {
-    return writeFileFrom(path, (void*)data.data(), data.size());
+Result<> utils::file::writeString(PathView path, std::string_view data) {
+    return asp::fs::write(path, data);
 }
 
-Result<> utils::file::writeStringSafe(std::filesystem::path const& path, std::string_view data) {
+Result<> utils::file::writeStringSafe(PathView path, std::string_view data) {
     GEODE_ANDROID(
         return utils::file::writeString(path, data); // safe approach causes significant performance issues on Android
     )
 
-    std::error_code ec;
-
-    auto tmpPath = path;
+    Path tmpPath = path;
     tmpPath += ".tmp";
 
     auto res = utils::file::writeString(tmpPath, data);
     if (!res) {
-        if (std::filesystem::exists(tmpPath, ec)) {
-            std::filesystem::remove(tmpPath, ec);
-        }
+        // remove temp path if we anything was created
+        (void) asp::fs::remove(tmpPath);
         return res;
     }
 
-    std::filesystem::rename(tmpPath, path, ec);
-    if (ec) {
-        return Err("Unable to rename temporary file: " + ec.message());
+    res = asp::fs::rename(tmpPath, path);
+    if (!res) {
+        return Err("Unable to rename temporary file: {}", res.unwrapErr());
     }
 
     return Ok();
 }
 
-Result<> utils::file::writeBinary(std::filesystem::path const& path, ByteSpan data) {
-    return writeFileFrom(path, (void*)data.data(), data.size());
+Result<> utils::file::writeBinary(PathView path, ByteSpan data) {
+    return asp::fs::write(path, data);
 }
 
-Result<> utils::file::writeBinarySafe(std::filesystem::path const& path, ByteSpan data) {
+Result<> utils::file::writeBinarySafe(PathView path, ByteSpan data) {
     GEODE_ANDROID(
         return utils::file::writeBinary(path, data); // safe approach causes significant performance issues on Android
     )
 
-    std::error_code ec;
-
-    auto tmpPath = path;
+    Path tmpPath = path;
     tmpPath += ".tmp";
 
     auto res = utils::file::writeBinary(tmpPath, data);
     if (!res) {
-        if (std::filesystem::exists(tmpPath, ec)) {
-            std::filesystem::remove(tmpPath, ec);
-        }
+        // remove temp path if we anything was created
+        (void) asp::fs::remove(tmpPath);
         return res;
     }
 
-    std::filesystem::rename(tmpPath, path, ec);
-    if (ec) {
-        return Err("Unable to rename temporary file: " + ec.message());
+    res = asp::fs::rename(tmpPath, path);
+    if (!res) {
+        return Err("Unable to rename temporary file: {}", res.unwrapErr());
     }
 
     return Ok();
 }
 
-Result<> utils::file::createDirectory(std::filesystem::path const& path) {
-    std::error_code ec;
-    std::filesystem::create_directory(path, ec);
-
-    if (ec) {
-        return Err("Unable to create directory: {}", ec.message());
-    }
-    return Ok();
+Result<> utils::file::createDirectory(PathView path) {
+    return asp::fs::createDir(path);
 }
 
-Result<> utils::file::createDirectoryAll(std::filesystem::path const& path) {
-    std::error_code ec;
-    std::filesystem::create_directories(path, ec);
-
-    if (ec) {
-        return Err("Unable to create directory: {}", ec.message());
-    }
-    return Ok();
+Result<> utils::file::createDirectoryAll(PathView path) {
+    return asp::fs::createDirAll(path);
 }
 
-Result<std::vector<std::filesystem::path>> utils::file::readDirectory(
-    std::filesystem::path const& path, bool recursive
+Result<std::vector<Path>> utils::file::readDirectory(
+    PathView path, bool recursive
 ) {
-    std::error_code ec;
-
-    if (!std::filesystem::exists(path, ec) || ec) {
-        return Err("Directory does not exist");
-    }
-
-    if (!std::filesystem::is_directory(path, ec) || ec) {
-        return Err("Path is not a directory");
-    }
-    std::vector<std::filesystem::path> res;
     if (recursive) {
-        for (auto const& file : std::filesystem::recursive_directory_iterator(path)) {
-            res.push_back(file.path());
-        }
+        return GEODE_UNWRAP(asp::fs::iterDirRecursive(path))
+            .map([](auto const& entry) {
+                return entry.map([](auto e) { return e.path; });
+            })
+            .collect<Result<std::vector<Path>>>();
     } else {
-        for (auto const& file : std::filesystem::directory_iterator(path)) {
-            res.push_back(file.path());
-        }
+        return GEODE_UNWRAP(asp::fs::iterDir(path))
+            .map([](auto const& entry) {
+                return entry.map([](auto e) { return e.path; });
+            })
+            .collect<Result<std::vector<Path>>>();
     }
-    return Ok(res);
 }
 
 // Unzip
 
 static constexpr auto MAX_ENTRY_PATH_LEN = 256;
 
-static std::filesystem::path safePathJoin(const std::filesystem::path& path, const std::filesystem::path& suffix) {
-    std::error_code ec;
+static Path safePathJoin(const Path& path, const Path& suffix) {
+    auto joined = path / suffix;
+    auto lrel = joined.lexicallyRelative(path);
+    if (!lrel || lrel->empty() || lrel->components().next() == "..") return {};
 
-    auto dir = std::filesystem::weakly_canonical(path);
-
-    auto rel = std::filesystem::relative(dir / suffix, dir, ec);
-    if (ec || rel.empty() || *rel.begin() == "..") return {};
-
-    auto canonical = std::filesystem::weakly_canonical(dir / rel, ec);
-    if (ec || canonical.empty()) return {};
-
-    return canonical;
+    return joined;
 }
 
 struct ZipEntry {
@@ -341,15 +132,12 @@ struct ZipEntry {
 };
 
 class Zip::Impl final {
-public:
-    using Path = Zip::Path;
-
 private:
     void* m_handle = nullptr;
     void* m_stream = nullptr;
     int32_t m_mode;
     std::variant<Path, ByteVector> m_srcDest;
-    std::unordered_map<Path, ZipEntry, path_hash_t> m_entries;
+    std::unordered_map<Path, ZipEntry> m_entries;
     geode::Function<void(uint32_t, uint32_t)> m_progressCallback;
 
     Result<> init() {
@@ -362,11 +150,9 @@ private:
                 return Err("Unable to open file");
             }
 
-            auto pathstr = utils::string::pathToString(path);
-
             if (mz_stream_os_open(
                 m_stream,
-                pathstr.c_str(),
+                path.c_str(),
                 m_mode
             ) != MZ_OK) {
                 return Err("Unable to read file");
@@ -444,10 +230,10 @@ private:
     }
 
 public:
-    static Result<std::unique_ptr<Impl>> inFile(Path const& path, int32_t mode) {
+    static Result<std::unique_ptr<Impl>> inFile(Path path, int32_t mode) {
         auto ret = std::make_unique<Impl>();
         ret->m_mode = mode;
-        ret->m_srcDest = path;
+        ret->m_srcDest = std::move(path);
         GEODE_UNWRAP(ret->init());
         return Ok(std::move(ret));
     }
@@ -472,7 +258,7 @@ public:
         m_progressCallback = std::move(callback);
     }
 
-    Result<> extractAt(Path const& dir, Path const& name) {
+    Result<> extractAt(PathView dir, PathView name) {
         auto entry = m_entries.at(name);
 
         GEODE_UNWRAP(
@@ -497,7 +283,7 @@ public:
 
         mz_zip_entry_close(m_handle);
 
-        GEODE_UNWRAP(file::createDirectoryAll((dir / name).parent_path()));
+        GEODE_UNWRAP(file::createDirectoryAll((dir / name).parent().value()));
         GEODE_UNWRAP(file::writeBinary(dir / name, res).mapErr([&](auto error) {
             return fmt::format("Unable to write to {}: {}", dir / name, error);
         }));
@@ -505,7 +291,7 @@ public:
         return Ok();
     }
 
-    Result<> extractAllTo(Path const& dir) {
+    Result<> extractAllTo(PathView dir) {
         GEODE_UNWRAP(file::createDirectoryAll(dir));
 
         GEODE_UNWRAP(
@@ -538,7 +324,6 @@ public:
 
             // make sure zip files like root/../../file.txt don't get extracted to
             // avoid zip attacks
-            std::error_code ec;
             auto safePath = safePathJoin(dir, filePath);
 
             if (!safePath.empty()) {
@@ -557,17 +342,13 @@ public:
                     "Zip entry '{}' is not contained within zip bounds",
                     filePath
                 );
-
-                if (ec) {
-                    return Err(fmt::format("Unable to check relative: {}", ec.message()));
-                }
             }
         } while (mz_zip_goto_next_entry(m_handle) == MZ_OK);
 
         return Ok();
     }
 
-    Result<ByteVector> extract(Path const& name) {
+    Result<ByteVector> extract(PathView name) {
         if (!m_entries.count(name)) {
             return Err("Entry not found");
         }
@@ -584,12 +365,10 @@ public:
             })
         );
 
-        auto namestr = utils::string::pathToString(name);
-
         GEODE_UNWRAP(
             mzTry(mz_zip_locate_entry(
                 m_handle,
-                namestr.c_str(),
+                name.string().c_str(),
                 1
             ))
             .mapErr([&](auto error) {
@@ -621,10 +400,10 @@ public:
         return Ok(res);
     }
 
-    Result<> addFolder(Path const& path) {
-        auto strPath = path.u8string();
-        if (!strPath.ends_with(u8"/") && !strPath.ends_with(u8"\\")) {
-            strPath += u8"/";
+    Result<> addFolder(PathView path) {
+        auto strPath = path.string();
+        if (!strPath.ends_with("/") && !strPath.ends_with("\\")) {
+            strPath += "/";
         }
 
         mz_zip_file info = { 0 };
@@ -650,13 +429,11 @@ public:
         return Ok();
     }
 
-    Result<> add(Path const& path, ByteSpan data) {
-        auto namestr = utils::string::pathToString(path);
-
+    Result<> add(Path path, ByteSpan data) {
         mz_zip_file info = { 0 };
         info.version_madeby = MZ_VERSION_MADEBY;
         info.compression_method = MZ_COMPRESS_METHOD_DEFLATE;
-        info.filename = namestr.c_str();
+        info.filename = path.c_str();
         info.uncompressed_size = data.size();
 #ifdef GEODE_IS_WINDOWS
         info.aes_version = MZ_AES_VERSION;
@@ -696,7 +473,7 @@ public:
         return Path();
     }
 
-    std::unordered_map<Path, ZipEntry, path_hash_t> getEntries() const {
+    std::unordered_map<Path, ZipEntry> getEntries() const {
         return m_entries;
     }
 
@@ -720,7 +497,7 @@ Unzip::Unzip(std::unique_ptr<Unzip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
 Unzip::Unzip(Unzip&& other) noexcept = default;
 
-Result<Unzip> Unzip::create(Path const& file) {
+Result<Unzip> Unzip::create(PathView file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_READ));
     return Ok(Unzip(std::move(impl)));
 }
@@ -730,7 +507,7 @@ Result<Unzip> Unzip::create(ByteSpan data) {
     return Ok(Unzip(std::move(impl)));
 }
 
-Unzip::Path Unzip::getPath() const {
+Path Unzip::getPath() const {
     return m_impl->getPath();
 }
 
@@ -740,27 +517,27 @@ void Unzip::setProgressCallback(
     return m_impl->setProgressCallback(std::move(callback));
 }
 
-std::vector<Unzip::Path> Unzip::getEntries() const {
+std::vector<Path> Unzip::getEntries() const {
     return map::keys(m_impl->getEntries());
 }
 
-bool Unzip::hasEntry(Path const& name) {
+bool Unzip::hasEntry(PathView name) {
     return m_impl->getEntries().count(name);
 }
 
-Result<ByteVector> Unzip::extract(Path const& name) {
+Result<ByteVector> Unzip::extract(PathView name) {
     return m_impl->extract(name).mapErr([&](auto error) {
         return fmt::format("Unable to extract entry {}: {}", name, error);
     });
 }
 
-Result<> Unzip::extractTo(Path const& name, Path const& path) {
+Result<> Unzip::extractTo(PathView name, PathView path) {
     GEODE_UNWRAP_INTO(auto bytes, m_impl->extract(name).mapErr([&](auto error) {
         return fmt::format("Unable to extract entry {}: {}", name, error);
     }));
     // create containing directories for target path
-    if (path.has_parent_path()) {
-        GEODE_UNWRAP(file::createDirectoryAll(path.parent_path()));
+    if (auto parent = path.parent()) {
+        GEODE_UNWRAP(file::createDirectoryAll(*parent));
     }
     GEODE_UNWRAP(file::writeBinary(path, bytes).mapErr([&](auto error) {
         return fmt::format("Unable to write file {}: {}", path, error);
@@ -768,13 +545,13 @@ Result<> Unzip::extractTo(Path const& name, Path const& path) {
     return Ok();
 }
 
-Result<> Unzip::extractAllTo(Path const& dir) {
+Result<> Unzip::extractAllTo(PathView dir) {
     return m_impl->extractAllTo(dir);
 }
 
 Result<> Unzip::intoDir(
-    Path const& from,
-    Path const& to,
+    PathView from,
+    PathView to,
     bool deleteZipAfter
 ) {
     // scope to ensure the zip is closed after extracting so the zip can be
@@ -785,24 +562,23 @@ Result<> Unzip::intoDir(
         GEODE_UNWRAP(unzip.extractAllTo(to));
     }
     if (deleteZipAfter) {
-        std::error_code ec;
-        std::filesystem::remove(from, ec);
+        GEODE_UNWRAP(asp::fs::remove(from));
     }
     return Ok();
 }
 
 Result<> Unzip::intoDir(
     geode::Function<void(uint32_t, uint32_t)> progressCallback,
-    Path const& from,
-    Path const& to,
+    PathView from,
+    PathView to,
     bool deleteZipAfter
 ) {
     GEODE_UNWRAP_INTO(auto unzip, Unzip::create(from));
     unzip.setProgressCallback(std::move(progressCallback));
     GEODE_UNWRAP(unzip.extractAllTo(to));
+
     if (deleteZipAfter) {
-        std::error_code ec;
-        std::filesystem::remove(from, ec);
+        GEODE_UNWRAP(asp::fs::remove(from));
     }
     return Ok();
 }
@@ -817,7 +593,7 @@ Zip::Zip(std::unique_ptr<Zip::Impl>&& impl) : m_impl(std::move(impl)) {}
 
 Zip::Zip(Zip&& other) noexcept = default;
 
-Result<Zip> Zip::create(Path const& file) {
+Result<Zip> Zip::create(PathView file) {
     GEODE_UNWRAP_INTO(auto impl, Zip::Impl::inFile(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE));
     return Ok(Zip(std::move(impl)));
 }
@@ -827,7 +603,7 @@ Result<Zip> Zip::create() {
     return Ok(Zip(std::move(impl)));
 }
 
-Zip::Path Zip::getPath() const {
+Path Zip::getPath() const {
     return m_impl->getPath();
 }
 
@@ -835,40 +611,52 @@ ByteVector Zip::getData() const {
     return m_impl->compressedData();
 }
 
-Result<> Zip::add(Path const& path, ByteSpan data) {
+Result<> Zip::add(PathView path, ByteSpan data) {
     return m_impl->add(path, data);
 }
 
-Result<> Zip::add(Path const& path, std::string_view data) {
+Result<> Zip::add(PathView path, std::string_view data) {
     auto vec = ByteVector{data.begin(), data.end()};
     return this->add(path, vec);
 }
 
-Result<> Zip::addFrom(Path const& file, Path const& entryDir) {
+Result<> Zip::addFrom(PathView file, PathView entryDir) {
     GEODE_UNWRAP_INTO(auto data, file::readBinary(file));
-    return this->add(entryDir / file.filename(), data);
+
+    if (auto filename = file.filename()) {
+        return this->add(entryDir / *filename, data);
+    }
+    return Err("no filename in path");
 }
 
-Result<> Zip::addAllFromRecurse(Path const& dir, Path const& entry) {
-    GEODE_UNWRAP(this->addFolder(entry / dir.filename()));
-    for (auto& file : std::filesystem::directory_iterator(dir)) {
-        if (std::filesystem::is_directory(file)) {
-            GEODE_UNWRAP(this->addAllFromRecurse(file, entry / dir.filename()));
+Result<> Zip::addAllFromRecurse(PathView dir, PathView toAdd) {
+    auto filename = dir.filename();
+    if (!filename) {
+        return Err("No filename in path");
+    }
+
+    GEODE_UNWRAP(this->addFolder(toAdd / *filename));
+
+    for (auto res : GEODE_UNWRAP(asp::fs::iterDir(dir))) {
+        auto entry = GEODE_UNWRAP(res);
+
+        if (entry.isDir()) {
+            GEODE_UNWRAP(this->addAllFromRecurse(entry.path, toAdd / *filename));
         } else {
-            GEODE_UNWRAP_INTO(auto data, file::readBinary(file));
-            GEODE_UNWRAP(this->addFrom(file, entry / dir.filename()));
+            GEODE_UNWRAP_INTO(auto data, file::readBinary(entry.path));
+            GEODE_UNWRAP(this->addFrom(entry.path, toAdd / *filename));
         }
     }
     return Ok();
 }
 
-Result<> Zip::addAllFrom(Path const& dir) {
-    if (!std::filesystem::is_directory(dir)) {
+Result<> Zip::addAllFrom(PathView dir) {
+    if (!dir.isDir()) {
         return Err("Path is not a directory");
     }
     return this->addAllFromRecurse(dir, Path());
 }
 
-Result<> Zip::addFolder(Path const& entry) {
+Result<> Zip::addFolder(PathView entry) {
     return m_impl->addFolder(entry);
 }

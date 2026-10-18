@@ -23,7 +23,7 @@ public:
 
     bool init(cocos2d::CCSize size, bool loadingCircle = true);
     void doInitFromBytes(std::vector<uint8_t> data, std::string cacheKey);
-    std::string makeCacheKey(std::filesystem::path const& path);
+    std::string makeCacheKey(asp::fs::PathView path);
     // std::string makeCacheKey(std::string_view url);
 
     cocos2d::CCTexture2D* lookupCache(char const* key);
@@ -83,27 +83,27 @@ void LazySprite::loadFromUrl(std::string url, Format format, bool ignoreCache) {
                 if (errmsg.empty()) {
                     errmsg = resp.string().unwrapOrDefault();
                 }
-    
+
                 if (errmsg.size() > 127) {
                     errmsg.resize(124);
                     errmsg += "...";
                 }
-    
+
                 this->m_impl->onError(fmt::format(
                     "Request failed (code {}): {}",
                     resp.code(),
                     errmsg
                 ));
-    
+
                 return;
             }
-    
+
             this->m_impl->doInitFromBytes(std::move(resp).data(), std::move(cacheKey));
         }
     );
 }
 
-void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, bool ignoreCache) {
+void LazySprite::loadFromFile(asp::fs::Path path, Format format, bool ignoreCache) {
     if (m_impl->m_isLoading || m_impl->m_hasLoaded) {
         return;
     }
@@ -118,7 +118,7 @@ void LazySprite::loadFromFile(const std::filesystem::path& path, Format format, 
 
     async::runtime().spawnBlocking<void>([
         selfref = WeakRef(this),
-        path = path,
+        path = std::move(path),
         cacheKey = std::move(cacheKey)
     ] mutable {
         auto res = utils::file::readBinary(path);
@@ -226,8 +226,8 @@ void LazySprite::Impl::doInitFromBytes(std::vector<uint8_t> data, std::string ca
     });
 }
 
-std::string LazySprite::Impl::makeCacheKey(std::filesystem::path const& path) {
-    return utils::string::pathToString(path);
+std::string LazySprite::Impl::makeCacheKey(asp::fs::PathView path) {
+    return path.string();
 }
 
 CCTexture2D* LazySprite::Impl::lookupCache(char const* key) {

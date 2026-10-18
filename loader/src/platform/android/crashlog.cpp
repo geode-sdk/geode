@@ -5,6 +5,7 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <tulip/TulipHook.hpp>
+#include <asp/fs/fs.hpp>
 #include <thread>
 #include <dlfcn.h>
 #include <cxxabi.h>
@@ -300,7 +301,7 @@ std::vector<Register> CrashContext::getRegisters() {
     return registers;
 }
 
-std::string_view CrashContext::getGeodeBinaryName() {
+asp::fs::PathView CrashContext::getGeodeBinaryName() {
     return "Geode.so";
 }
 
@@ -459,13 +460,13 @@ bool crashlog::setupPlatformHandler() {
         std::thread(&handlerThread).detach();
     }
 
-    std::filesystem::remove(crashlog::getCrashLogDirectory() / "lastSessionDidCrash");
-    std::filesystem::remove(crashlog::getCrashLogDirectory() / "last-pid");
+    (void) asp::fs::remove(crashlog::getCrashLogDirectory() / "lastSessionDidCrash");
+    (void) asp::fs::remove(crashlog::getCrashLogDirectory() / "last-pid");
 
     auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
-    if (std::filesystem::exists(crashIndicatorPath)) {
+    if (crashIndicatorPath.exists()) {
         s_lastLaunchCrashed = true;
-        std::filesystem::remove(crashIndicatorPath);
+        (void) asp::fs::remove(crashIndicatorPath);
     }
 
     return true;
@@ -477,6 +478,6 @@ bool crashlog::didLastLaunchCrash() {
     return s_lastLaunchCrashed;
 }
 
-std::filesystem::path crashlog::getCrashLogDirectory() {
+asp::fs::Path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }

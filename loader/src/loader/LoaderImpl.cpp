@@ -24,6 +24,7 @@
 #include <about.hpp>
 #include <crashlog.hpp>
 #include <fmt/format.h>
+#include <asp/fs/fs.hpp>
 #include <hash.hpp>
 #include <iostream>
 #include <iterator>
@@ -61,17 +62,6 @@ void Loader::Impl::createDirectories() {
 
     if (!ranges::contains(m_modSearchDirectories, dirs::getModsDir())) {
         m_modSearchDirectories.push_back(dirs::getModsDir());
-    }
-}
-
-void Loader::Impl::removeDirectories() {
-    log::debug("Removing unnecessary directories");
-    // clean up of stale data from Geode v2
-    if(std::filesystem::exists(dirs::getGeodeDir() / "index")) {
-        async::runtime().spawnBlocking<void>([] {
-            std::error_code ec;
-            std::filesystem::remove_all(dirs::getGeodeDir() / "index", ec);
-        });
     }
 }
 
@@ -143,7 +133,6 @@ Result<> Loader::Impl::setup() {
     {
         log::NestScope nest;
         this->createDirectories();
-        this->removeDirectories();
         this->addSearchPaths();
     }
 
@@ -161,8 +150,8 @@ Result<> Loader::Impl::setup() {
 
 void Loader::Impl::addSearchPaths() {
     log::debug("Adding search paths");
-    CCFileUtils::get()->addPriorityPath(utils::string::pathToString(dirs::getGeodeResourcesDir()).c_str());
-    CCFileUtils::get()->addPriorityPath(utils::string::pathToString(dirs::getModRuntimeDir()).c_str());
+    CCFileUtils::get()->addPriorityPath(dirs::getGeodeResourcesDir().c_str());
+    CCFileUtils::get()->addPriorityPath(dirs::getModRuntimeDir().c_str());
 }
 
 void Loader::Impl::updateResources(bool forceReload) {
@@ -274,7 +263,7 @@ void Loader::Impl::updateModResources(Mod* mod) {
     if (!mod->isInternal()) {
         // geode.loader resource is stored somewhere else, which is already added anyway
         auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
-        CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
+        CCFileUtils::get()->addSearchPath(searchPathRoot.c_str());
     }
 
     // only thing needs previous setup is spritesheets
@@ -332,31 +321,35 @@ void Loader::Impl::addProblem(LoadProblem const& problem) {
 
 // Dependencies and refreshing
 
-void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
+Result<> Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
     for (auto const& dir : m_modSearchDirectories) {
         log::debug("Searching {}", dir);
         log::NestScope nest;
-        for (auto const& entry : std::filesystem::directory_iterator(dir)) {
-            if (!std::filesystem::is_regular_file(entry) ||
-                entry.path().extension() != GEODE_MOD_EXTENSION)
+
+        for (auto result : GEODE_UNWRAP(asp::fs::iterDir(dir))) {
+            auto entry = GEODE_UNWRAP(result);
+
+            if (!entry.isFile() || entry.path.extension() != GEODE_MOD_EXTENSION)
                 continue;
 
-            log::debug("Found {}", entry.path().filename());
+            log::debug("Found {}", entry.path.filename());
             log::NestScope nest;
 
-            auto modMetadata = ModMetadata::createFromGeodeFile(entry.path());
+            auto modMetadata = ModMetadata::createFromGeodeFile(entry.path);
 
             log::debug("id: {}", modMetadata.getID());
             log::debug("version: {}", modMetadata.getVersion());
             log::debug("early: {}", modMetadata.needsEarlyLoad() ? "yes" : "no");
 
-            if (std::find_if(modQueue.begin(), modQueue.end(), [&](auto& item) {
-                    return modMetadata.getID() == item.getID();
-                }) != modQueue.end()) {
+            bool alreadyQueued = asp::iter::from(modQueue).any([&](auto& item) {
+                return item.getID() == modMetadata.getID();
+            });
+
+            if (alreadyQueued) {
                 log::error("Failed to queue: a mod with the same ID is already queued");
 
                 auto modMetadata = ModMetadataImpl::createInvalidMetadata(
-                    entry.path(),
+                    entry.path,
                     "A mod with the same ID is already present.",
                     // Passing `nullopt` to `createInvalidMetadata` generates a
                     // random non-conflicting ID
@@ -370,6 +363,8 @@ void Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
             modQueue.push_back(modMetadata);
         }
     }
+
+    return Ok();
 }
 
 void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
@@ -827,7 +822,9 @@ void Loader::Impl::refreshModGraph() {
     std::vector<ModMetadata> modQueue;
     {
         log::NestScope nest;
-        this->queueMods(modQueue);
+        if (auto e = this->queueMods(modQueue).err()) {
+            log::error("Failed to queue mods: {}", e);
+        }
     }
 
     m_loadingState = LoadingState::List;
@@ -990,8 +987,9 @@ void Loader::Impl::forceReset() {
     }
     m_mods.clear();
     log::Logger::get()->clear();
-    std::filesystem::remove_all(dirs::getModRuntimeDir());
-    std::filesystem::remove_all(dirs::getTempDir());
+
+    (void) asp::fs::removeDirAll(dirs::getModRuntimeDir());
+    (void) asp::fs::removeDirAll(dirs::getTempDir());
 }
 
 bool Loader::Impl::isReadyToHook() const {
@@ -1021,14 +1019,16 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     auto datePath = tempDir / "modified-at";
     std::string currentHash = file::readString(datePath).unwrapOr("");
 
-    std::error_code ec;
-    auto modifiedDate = std::filesystem::last_write_time(metadata.getPath(), ec);
-    if (ec) {
-        auto message = formatSystemError(ec.value());
-        return Err("Unable to get last modified time of zip: " + message);
+    auto result = asp::fs::metadata(metadata.getPath()).ok().and_then([](auto metadata) {
+        return metadata.modifiedAt;
+    });
+
+    if (!result) {
+        return Err("Unable to get last modified time of zip");
     }
-    auto modifiedCount = std::chrono::duration_cast<std::chrono::milliseconds>(modifiedDate.time_since_epoch());
-    auto modifiedHash = std::to_string(modifiedCount.count());
+
+    auto modifiedDate = *result;
+    auto modifiedHash = std::to_string(modifiedDate.to_time_t());
     // With the id: non-early mods unzip in parallel, so these lines can end up anywhere
     if (currentHash == modifiedHash) {
         log::debug("Same hash detected, skipping unzip of {}", metadata.getID());
@@ -1036,16 +1036,14 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     }
     log::debug("Hash mismatch detected, unzipping {}", metadata.getID());
 
-    std::filesystem::remove_all(tempDir, ec);
-    if (ec) {
-        auto message = formatSystemError(ec.value());
-        return Err("Unable to delete temp dir: " + message GEODE_WINDOWS( + " Try <cg>restarting your PC</c> to fix the issue."));
+    if (auto e = asp::fs::removeDirAll(tempDir).err()) {
+        return Err("Unable to delete temp dir: {} " GEODE_WINDOWS(" Try <cg>restarting your PC</c> to fix the issue."), e);
     }
 
     (void)utils::file::createDirectoryAll(tempDir);
 
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
-    if (!unzip.hasEntry(metadata.getBinaryName())) {
+    if (!unzip.hasEntry(metadata.getBinaryName().view())) {
         return Err(
             fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
         );
@@ -1054,20 +1052,20 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
 
     // Delete binaries for other platforms since they're pointless
     // The if should never fail, but you never know
-    for (auto& entry : std::filesystem::directory_iterator(tempDir)) {
-        if (entry.is_directory()) {
+    for (auto result : GEODE_UNWRAP(asp::fs::iterDir(tempDir))) {
+        auto entry = GEODE_UNWRAP(result);
+        if (entry.isDir()) {
             continue;
         }
 
-        const std::string filename = utils::string::pathToString(entry.path().filename());
+        auto filename = entry.path.filename()->view();
         if (metadata.getBinaryName() == filename || !isPlatformBinary(metadata.getID(), filename)) {
             continue;
         }
 
         // The binary is not for our platform, delete!
         // We don't really care if the deletion succeeds though.
-        std::error_code ec;
-        std::filesystem::remove(entry.path(), ec);
+        (void) asp::fs::remove(entry.path);
     }
 
     // Check if there is a binary that we need to move over from the unzipped binaries dir
@@ -1076,13 +1074,10 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         // auto src = dirs::getModBinariesDir() / metadata.getBinaryName();
         auto src = dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName();
         auto dst = tempDir / metadata.getBinaryName();
-        if (std::filesystem::exists(src)) {
-            std::error_code ec;
-            std::filesystem::rename(src, dst, ec);
-            if (ec) {
-                auto message = formatSystemError(ec.value());
+        if (src.exists()) {
+            if (auto e = asp::fs::move(src, dst).err()) {
                 return Err(fmt::format("Failed to move binary from {} to {}: {}",
-                    src, dst, message
+                    src, dst, *e
                 ));
             }
         }
@@ -1104,14 +1099,14 @@ Result<> Loader::Impl::extractBinary(ModMetadata metadata) {
 
     // Extract the binary from the .geode file
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
-    if (!unzip.hasEntry(metadata.getBinaryName())) {
+    if (!unzip.hasEntry(metadata.getBinaryName().view())) {
         return Err(
             fmt::format("Unable to find platform binary under the name \"{}\"", metadata.getBinaryName())
         );
     }
     // TODO: enable in 4.7.0
     // GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModBinariesDir() / metadata.getBinaryName()));
-    GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName(), dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName()));
+    GEODE_UNWRAP(unzip.extractTo(metadata.getBinaryName().view(), dirs::getModRuntimeDir() / "binaries" / metadata.getBinaryName()));
 
     return Ok();
 }
@@ -1290,7 +1285,7 @@ void Loader::Impl::forceSafeMode() {
     m_forceSafeMode = true;
 }
 
-void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after) {
+void Loader::Impl::installModManuallyFromFile(asp::fs::PathView path, geode::Function<void()> after) {
     auto meta = ModMetadata::createFromGeodeFile(path);
     if (meta.hasErrors()) {
         for (auto const& error : meta.getErrors()) {
@@ -1322,14 +1317,12 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
     }
 
     auto doInstallModFromFile = [this, path, meta, after = std::move(after)]() mutable {
-        std::error_code ec;
-
         static size_t MAX_ATTEMPTS = 10;
 
         // Figure out a free path to install to
         auto installTo = dirs::getModsDir() / fmt::format("{}.geode", meta.getID());
         size_t counter = 0;
-        while (std::filesystem::exists(installTo, ec) && counter < MAX_ATTEMPTS) {
+        while (installTo.exists() && counter < MAX_ATTEMPTS) {
             installTo = dirs::getModsDir() / fmt::format("{}-{}.geode", meta.getID(), counter);
             counter += 1;
         }
@@ -1348,14 +1341,10 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
         }
 
         // Actually copy the file over to the install directory
-        std::filesystem::copy_file(path, installTo, ec);
-        if (ec) {
+        if (auto e = asp::fs::copy(path, installTo).err()) {
             FLAlertLayer::create(
                 "Unable to Install",
-                fmt::format(
-                    "Unable to install mod <co>{}</c>: {} (Error code <cr>{}</c>)",
-                    meta.getID(), ec.message(), ec.value()
-                ),
+                fmt::format("Unable to install mod <co>{}</c>: {}", meta.getID(), *e),
                 "OK"
             )->show();
             return;
@@ -1391,15 +1380,10 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
             "Keep", "Delete",
             [path](auto, bool btn2) {
                 if (btn2) {
-                    std::error_code ec;
-                    std::filesystem::remove(path, ec);
-                    if (ec) {
+                    if (auto e = asp::fs::remove(path).err()) {
                         FLAlertLayer::create(
                             "Unable to Delete",
-                            fmt::format(
-                                "Unable to delete <cy>{}</c>: {} (Error code <cr>{}</c>)",
-                                path, ec.message(), ec.value()
-                            ),
+                            fmt::format("Unable to delete <cy>{}</c>: {}", path, *e),
                             "OK"
                         )->show();
                     }
@@ -1424,22 +1408,17 @@ void Loader::Impl::installModManuallyFromFile(std::filesystem::path const& path,
             ),
             "Cancel", "Replace",
             [doInstallModFromFile = std::move(doInstallModFromFile), path, existing, meta](auto, bool btn2) mutable {
-                if (btn2) {
-                    std::error_code ec;
-                    std::filesystem::remove(existing->getPackagePath(), ec);
-                    if (ec) {
-                        FLAlertLayer::create(
-                            "Unable to Uninstall",
-                            fmt::format(
-                                "Unable to uninstall <cy>{}</c>: {} (Error code <cr>{}</c>)",
-                                existing->getID(), ec.message(), ec.value()
-                            ),
-                            "OK"
-                        )->show();
-                        return;
-                    }
-                    doInstallModFromFile();
+                if (!btn2) return;
+
+                if (auto e = asp::fs::remove(existing->getPackagePath()).err()) {
+                    FLAlertLayer::create(
+                        "Unable to Uninstall",
+                        fmt::format("Unable to uninstall <cy>{}</c>: {}", existing->getID(), *e),
+                        "OK"
+                    )->show();
+                    return;
                 }
+                doInstallModFromFile();
             },
             true,
             false

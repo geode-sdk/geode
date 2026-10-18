@@ -4,8 +4,8 @@
 #include <Geode/utils/string.hpp>
 #include <algorithm>
 
-using Path = std::filesystem::path;
-using Paths = std::vector<std::filesystem::path>;
+using Path = asp::fs::Path;
+using Paths = std::vector<asp::fs::Path>;
 
 static BOOL COMIsInitialized(HRESULT coResult) {
     if (coResult == RPC_E_CHANGED_MODE) {
@@ -85,7 +85,7 @@ static Result<Paths> convShellItems(IShellItemArray* shellItems) {
         return Err("Unable to get shell item count");
     }
 
-    std::vector<std::filesystem::path> paths;
+    std::vector<asp::fs::Path> paths;
     for (DWORD i = 0; i < shellItemCount; i++) {
         IShellItem* shellItem;
         if (!SUCCEEDED(shellItems->GetItemAt(i, &shellItem))) {
@@ -103,7 +103,7 @@ static Result<Paths> convShellItems(IShellItemArray* shellItems) {
         LPWSTR name;
         shellItem->GetDisplayName(SIGDN_FILESYSPATH, &name);
 
-        paths.push_back(name);
+        paths.push_back(GEODE_UNWRAP(asp::fs::Path::fromWideResult(name)));
 
         CoTaskMemFree(name);
     }
@@ -112,11 +112,11 @@ static Result<Paths> convShellItems(IShellItemArray* shellItems) {
 
 static bool setDefaultPath(
     IFileDialog* dialog,
-    std::filesystem::path const& defaultPath
+    asp::fs::PathView defaultPath
 ) {
     IShellItem* folder;
     if (!SUCCEEDED(SHCreateItemFromParsingName(
-        defaultPath.c_str(), nullptr,
+        defaultPath.native().c_str(), nullptr,
         IID_PPV_ARGS(&folder)
     ))) {
         return false;
@@ -128,9 +128,9 @@ static bool setDefaultPath(
 
 static bool setDefaultFile(
     IFileDialog* dialog,
-    std::filesystem::path const& fileName
+    asp::fs::PathView fileName
 ) {
-    dialog->SetFileName(fileName.c_str());
+    dialog->SetFileName(fileName.native().c_str());
     return true;
 }
 
@@ -183,23 +183,25 @@ Result<> nfdPick(
     if (!addFiltersToDialog(dialog, options.filters)) {
         return Err("Unable to add filters to dialog");
     }
-    if (options.defaultPath && options.defaultPath.value().native().size()) {
-        std::filesystem::path path = options.defaultPath.value();
-        path.make_preferred();
+
+
+    if (options.defaultPath) {
+        auto path = *options.defaultPath;
+        path.makePreferred();
         if (mode == NFDMode::OpenFile || mode == NFDMode::SaveFile) {
-            if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
-                if (path.has_filename()) {
-                    setDefaultFile(dialog, path.filename());
+            if (!path.isDir()) {
+                if (auto filename = path.filename()) {
+                    setDefaultFile(dialog, *filename);
                 }
-                if (path.has_parent_path()) {
-                    path = path.parent_path();
+                if (auto parent = path.parent()) {
+                    path = *parent;
                 }
                 else {
                     path = "";
                 }
             }
         }
-        if (path.native().size() && !setDefaultPath(dialog, path)) {
+        if (!path.empty() && !setDefaultPath(dialog, path)) {
             return Err("Unable to set default path to dialog");
         }
     }
@@ -251,7 +253,7 @@ Result<> nfdPick(
                     )) {
                         return Err("Could not get path from result");
                     }
-                    *reinterpret_cast<Path*>(result) = filePath;
+                    *reinterpret_cast<Path*>(result) = GEODE_UNWRAP(Path::fromWideResult(filePath));
                     CoTaskMemFree(filePath);
 
                     return Ok();
@@ -287,7 +289,7 @@ Result<> nfdPick(
                         return Err("Could not get path from result");
                     }
 
-                    *reinterpret_cast<Path*>(result) = filePath;
+                    *reinterpret_cast<Path*>(result) = GEODE_UNWRAP(Path::fromWideResult(filePath));
                     CoTaskMemFree(filePath);
 
                     return Ok();

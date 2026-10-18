@@ -2,9 +2,9 @@
 
 #include <Geode/Result.hpp>
 #include <string_view>
+#include <algorithm>
 #include <ccTypes.h>
 #include <GUI/CCControlExtension/CCControlUtils.h>
-#include <algorithm>
 
 #include <fmt/format.h>
 

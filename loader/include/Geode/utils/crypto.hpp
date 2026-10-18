@@ -1,7 +1,7 @@
 #pragma once
 #include "hash.hpp"
 #include <Geode/Result.hpp>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <span>
 #include <utility>
 
@@ -40,7 +40,7 @@ namespace geode {
 
     /// Reads the binary file at the given path and calculates the SHA256 digest of the contents.
     /// This reads the file lazily and uses C++ iostreams. If the performance of that is unacceptable, use `Sha256Hasher` directly.
-    Result<Sha256> GEODE_DLL sha256File(std::filesystem::path const& path);
+    Result<Sha256> GEODE_DLL sha256File(asp::fs::PathView path);
 
     /// Calculates the SHA256 digest of the given data.
     Sha256 GEODE_DLL sha256(std::span<uint8_t const> data);

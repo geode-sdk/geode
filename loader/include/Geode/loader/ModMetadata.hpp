@@ -5,7 +5,7 @@
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
 #include <unordered_set>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <matjson.hpp>
 #include <memory>
 #include <string>
@@ -135,7 +135,7 @@ namespace geode {
         /**
          * Path to the mod file
          */
-        [[nodiscard]] std::filesystem::path const& getPath() const;
+        [[nodiscard]] asp::fs::PathView getPath() const;
         /**
          * Name of the platform binary within
          * the mod zip
@@ -275,7 +275,7 @@ namespace geode {
         bool wasCompletelyUnparseable() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
-        void setPath(std::filesystem::path value);
+        void setPath(asp::fs::Path value);
         void setBinaryName(std::string value);
         void setVersion(VersionInfo value);
         void setID(std::string value);
@@ -305,7 +305,7 @@ namespace geode {
          * function may fail if the JSON data is wrong; make sure to check
          * `hasErrors()` afterwards on the `ModMetadata`!
          */
-        static ModMetadata createFromGeodeFile(std::filesystem::path const& path);
+        static ModMetadata createFromGeodeFile(asp::fs::PathView path);
         /**
          * Create `ModMetadata` from a parsed json document. Note that this
          * function may fail if the JSON data is wrong; make sure to check
@@ -337,7 +337,7 @@ namespace geode {
         );
 
     private:
-        Result<> addSpecialFiles(std::filesystem::path const& dir);
+        Result<> addSpecialFiles(asp::fs::PathView dir);
         Result<> addSpecialFiles(utils::file::Unzip& zip);
 
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();

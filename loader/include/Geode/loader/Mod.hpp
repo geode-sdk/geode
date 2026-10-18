@@ -99,7 +99,7 @@ namespace geode {
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
-        std::filesystem::path getPackagePath() const;
+        asp::fs::Path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isLoaded() const;
         /**
@@ -114,17 +114,17 @@ namespace geode {
 
         ModMetadata const& getMetadata() const;
 
-        std::filesystem::path getTempDir() const;
+        asp::fs::Path getTempDir() const;
         /**
          * Get the path to the mod's platform binary (.dll on Windows, .dylib
          * on Mac & iOS, .so on Android)
          */
-        std::filesystem::path getBinaryPath() const;
+        asp::fs::Path getBinaryPath() const;
         /**
          * Get the path to the mod's runtime resources directory (contains all
          * of its resources)
          */
-        std::filesystem::path getResourcesDir() const;
+        asp::fs::Path getResourcesDir() const;
 
         /**
          * Get the dependency settings for a specific dependency via its ID. For
@@ -162,18 +162,18 @@ namespace geode {
          * Get the mod's save directory path
          * `geode::dirs::getModsSaveDir()`/{mod_id}/
          */
-        std::filesystem::path getSaveDir() const;
+        asp::fs::Path getSaveDir() const;
         /**
          * Get the mod's config directory path
          * `geode::dirs::getModConfigDir()`/{mod_id}/
          */
-        std::filesystem::path getConfigDir(bool create = true) const;
+        asp::fs::Path getConfigDir(bool create = true) const;
         /**
          * Get the mod's persistent directory path
          * This directory is not deleted even when Geode/mod is uninstalled
          * `geode::dirs::getModPersistentDir()`/{mod_id}/
          */
-        std::filesystem::path getPersistentDir(bool create = true) const;
+        asp::fs::Path getPersistentDir(bool create = true) const;
 
         /**
          * Returns true if this mod has any settings

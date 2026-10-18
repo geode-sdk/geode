@@ -7,6 +7,8 @@
 #include <arc/task/Task.hpp>
 #include <arc/sync/mpsc.hpp>
 #include <arc/task/CancellationToken.hpp>
+#include <asp/fs/BufferedFile.hpp>
+#include <asp/time/Duration.hpp>
 #include <vector>
 #include <deque>
 #include <thread>
@@ -43,8 +45,8 @@ namespace geode::log {
         std::optional<arc::mpsc::Sender<Log>> m_logTx;
         std::optional<arc::mpsc::Receiver<Log>> m_logRx;
         std::atomic<bool> m_initialized = false;
-        std::ofstream m_logStream;
-        std::filesystem::path m_logPath;
+        std::optional<asp::fs::BufferedFile> m_logStream;
+        asp::fs::Path m_logPath;
         std::atomic<Severity> m_consoleLevel{Severity::Debug};
         std::atomic<Severity> m_fileLevel{Severity::Debug};
 
@@ -70,14 +72,9 @@ namespace geode::log {
         Severity getFileLogLevel();
         void clear();
 
-        std::filesystem::path const& getLogPath() const;
+        asp::fs::Path const& getLogPath() const;
 
-        void deleteOldLogs(size_t maxAgeHours);
-
-        template <typename Rep, typename Period>
-        void deleteOldLogs(std::chrono::duration<Rep, Period> const& maxAge) {
-            this->deleteOldLogs(std::chrono::duration_cast<std::chrono::hours>(maxAge).count());
-        }
+        Result<> deleteOldLogs(asp::Duration maxAge);
 
         void shutdownThread();
         void flush();

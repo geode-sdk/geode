@@ -625,11 +625,13 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     // which is clever and good UX but also a hack so I also need to hack to support that
     const auto isTextualDefaultValue = [this, setting = this->getSetting()]() {
         if (this->hasNonDefaultValue()) return false;
-        if (utils::string::pathToString(setting->getDefaultValue()).size() > 20) return false;
-        std::error_code ec;
+
+        auto dvalue = setting->getDefaultValue();
+        if (dvalue.size() > 20) return false;
+
         return setting->isFolder() ?
-            !std::filesystem::is_directory(setting->getDefaultValue(), ec) :
-            !std::filesystem::is_regular_file(setting->getDefaultValue(), ec);
+            !dvalue.isDir() :
+            !dvalue.isFile();
     }();
 
     SettingValueNodeV3::updateState(invoker);
@@ -639,7 +641,7 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     limitNodeSize(m_fileIcon, ccp(10, 10), 1.f, .1f);
     if (this->getValue().empty() || isTextualDefaultValue) {
         if (isTextualDefaultValue) {
-            m_nameLabel->setText(utils::string::pathToString(this->getSetting()->getDefaultValue()));
+            m_nameLabel->setText(this->getSetting()->getDefaultValue().string());
         }
         else {
             m_nameLabel->setText(this->getSetting()->isFolder() ? "No Folder Selected" : "No File Selected");
@@ -648,7 +650,7 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
         m_nameLabel->setOpacity(155);
     }
     else {
-        m_nameLabel->setText(utils::string::pathToString(this->getValue().filename()));
+        m_nameLabel->setText(std::string{this->getValue().filename().value_or("")});
         m_nameLabel->setColor(ccWHITE);
         m_nameLabel->setOpacity(255);
     }
@@ -660,8 +662,6 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
 }
 
 void FileSettingNodeV3::onPickFile(CCObject*) {
-    std::error_code ec;
-
     m_pickListener.spawn(
         file::pick(
             this->getSetting()->isFolder() ?
@@ -669,12 +669,12 @@ void FileSettingNodeV3::onPickFile(CCObject*) {
             this->getSetting()->useSaveDialog() ? file::PickMode::SaveFile : file::PickMode::OpenFile,
             {
                 // Prefer opening the current path directly if possible
-                this->getValue().empty() || !std::filesystem::exists(this->getValue().parent_path(), ec)
+                this->getValue().empty() || !this->getValue().parent().value_or("").exists()
                     ? dirs::getGameDir() : this->getValue(),
                 this->getSetting()->getFilters().value_or(std::vector<file::FilePickOptions::Filter>())
             }
         ),
-        [this](Result<std::optional<std::filesystem::path>> path) {
+        [this](Result<std::optional<asp::fs::Path>> path) {
             if (path.isOk() && path.unwrap().has_value()) {
                 this->setValue(std::move(path).unwrap().value(), nullptr);
             }

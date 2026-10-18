@@ -2,6 +2,7 @@
 
 #include <thread>
 
+#include <asp/fs/fs.hpp>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -12,7 +13,7 @@ using namespace crashlog;
 
 static int s_pipe[2];
 
-std::string_view CrashContext::getGeodeBinaryName() {
+asp::fs::PathView CrashContext::getGeodeBinaryName() {
     return "Geode.ios.dylib";
 }
 
@@ -114,9 +115,9 @@ bool crashlog::setupPlatformHandler() {
     std::thread(&handlerThread).detach();
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-    if (std::filesystem::exists(lastCrashedFile)) {
+    if (lastCrashedFile.exists()) {
         s_lastLaunchCrashed = true;
-        std::filesystem::remove(lastCrashedFile);
+        (void) asp::fs::remove(lastCrashedFile);
     }
     return true;
 }
@@ -127,6 +128,6 @@ bool crashlog::didLastLaunchCrash() {
     return s_lastLaunchCrashed;
 }
 
-std::filesystem::path crashlog::getCrashLogDirectory() {
+asp::fs::Path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }
