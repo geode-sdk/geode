@@ -114,9 +114,9 @@ bool crashlog::setupPlatformHandler() {
     std::thread(&handlerThread).detach();
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-    if (std::filesystem::exists(lastCrashedFile)) {
+    if (lastCrashedFile.exists()) {
         s_lastLaunchCrashed = true;
-        std::filesystem::remove(lastCrashedFile);
+        (void) asp::fs::remove(lastCrashedFile);
     }
     return true;
 }

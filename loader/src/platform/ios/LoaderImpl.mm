@@ -79,11 +79,11 @@ bool Loader::Impl::supportsLaunchArguments() const {
 
 std::string Loader::Impl::getLaunchCommand() const {
     auto launchArgsFile = dirs::getModRuntimeDir() / "launch-args.txt";
-    if (std::filesystem::exists(launchArgsFile)) {
-        log::debug("Reading launch arguments from {}", utils::string::pathToString(launchArgsFile));
+    if (launchArgsFile.exists()) {
+        log::debug("Reading launch arguments from {}", launchArgsFile);
         auto content = file::readString(launchArgsFile);
         if (content.isOk()) {
-            std::filesystem::remove(launchArgsFile);
+            (void) asp::fs::remove(launchArgsFile);
             return content.unwrap();
         }
     }

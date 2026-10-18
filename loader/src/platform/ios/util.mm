@@ -139,7 +139,7 @@ GEODE_DLL arc::Future<file::PickResult> file::pick(file::PickMode mode, file::Fi
         }
 
         NSURL *FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp.file"]];
-        if (options.defaultPath && !options.defaultPath->parent_path().empty()) {
+        if (options.defaultPath && options.defaultPath->parent()) {
             FileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:options.defaultPath->c_str()]];
         }
         else if (options.defaultPath) {

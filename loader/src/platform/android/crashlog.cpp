@@ -459,13 +459,13 @@ bool crashlog::setupPlatformHandler() {
         std::thread(&handlerThread).detach();
     }
 
-    std::filesystem::remove(crashlog::getCrashLogDirectory() / "lastSessionDidCrash");
-    std::filesystem::remove(crashlog::getCrashLogDirectory() / "last-pid");
+    (void) asp::fs::remove(crashlog::getCrashLogDirectory() / "lastSessionDidCrash");
+    (void) asp::fs::remove(crashlog::getCrashLogDirectory() / "last-pid");
 
     auto crashIndicatorPath = crashlog::getCrashLogDirectory() / crashIndicatorFilename;
-    if (std::filesystem::exists(crashIndicatorPath)) {
+    if (crashIndicatorPath.exists()) {
         s_lastLaunchCrashed = true;
-        std::filesystem::remove(crashIndicatorPath);
+        (void) asp::fs::remove(crashIndicatorPath);
     }
 
     return true;

@@ -48,10 +48,8 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
     glDeleteVertexArraysOESEXT = (PFNGLDELETEVERTEXARRAYSOESPROC)eglGetProcAddress("glDeleteVertexArraysOES");
 
     auto updatePath = geode::dirs::getGameDir() / "update";
-    std::error_code ec;
-    std::filesystem::remove_all(updatePath, ec);
-    if (ec) {
-        geode::log::warn("Failed to remove update directory: {}", ec.message());
+    if (auto err = asp::fs::removeDirAll(updatePath).err()) {
+        geode::log::warn("Failed to remove update directory: {}", *err);
     }
 
     {

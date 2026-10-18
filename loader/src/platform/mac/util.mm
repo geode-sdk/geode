@@ -113,12 +113,12 @@ namespace {
     if (options.defaultPath) {
         auto path = options.defaultPath.value();
 
-        if (std::filesystem::is_directory(path) || mode == file::PickMode::OpenFolder) {
-            auto defaultPath = intoNS(options.defaultPath.value());
+        if (path.isDir() || mode == file::PickMode::OpenFolder) {
+            auto defaultPath = intoNS(path);
             [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
         } else {
-            auto defaultPath = intoNS(options.defaultPath->parent_path());
-            auto name = intoNS(options.defaultPath->filename());
+            auto defaultPath = intoNS(path.parent().value());
+            auto name = intoNS(path.filename());
 
             [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
             [panel setNameFieldStringValue: name];
@@ -258,8 +258,7 @@ asp::fs::Path dirs::getGameDir() {
         _NSGetExecutablePath(gddir.data(), &out);
 
         asp::fs::Path gdpath = gddir.data();
-        auto currentPath = std::filesystem::canonical(gdpath.parent_path().parent_path());
-        return currentPath;
+        return gdpath.parent()->parent().value();
     }();
 
     return path;
