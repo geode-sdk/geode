@@ -1,6 +1,7 @@
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <unordered_set>
 
 using namespace geode::prelude;
 

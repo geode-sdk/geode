@@ -4,6 +4,7 @@
 #include "TextInput.hpp"
 #include "../loader/Event.hpp"
 #include <Geode/binding/TextInputDelegate.hpp>
+#include <Geode/mapping/ColorPickerDelegate.hpp>
 #include <Geode/utils/function.hpp>
 
 namespace geode {

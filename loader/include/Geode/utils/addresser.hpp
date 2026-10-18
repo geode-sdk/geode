@@ -4,11 +4,9 @@
  * Adapted from https://gist.github.com/altalk23/29b97969e9f0624f783b673f6c1cd279
  */
 
-#include "../utils/casts.hpp"
 #include "casts.hpp"
 
 #include <Geode/DefaultInclude.hpp>
-#include <cocos-ext.h>
 #include <concepts>
 #include <cstdlib>
 #include <stddef.h>

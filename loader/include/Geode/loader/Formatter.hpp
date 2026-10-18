@@ -2,7 +2,6 @@
 
 #include "../utils/function.hpp"
 #include "../utils/cocos.hpp"
-#include "../utils/addresser.hpp"
 #include "Event.hpp"
 #include <Geode/Result.hpp>
 #include <arc/future/PollableMetadata.hpp>

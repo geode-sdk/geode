@@ -2,6 +2,7 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SliderThumb.hpp>
+#include <Geode/mapping/CCControlColourPicker.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Label.hpp>
