@@ -364,7 +364,7 @@ Result<> Mod::Impl::loadBinary() {
     if (m_loaded)
         return Ok();
 
-    if (this->getBinaryPath().exists()) {
+    if (!this->getBinaryPath().exists()) {
         (void) asp::fs::remove(m_tempDirName / "modified-at");
         return Err(
             fmt::format(
