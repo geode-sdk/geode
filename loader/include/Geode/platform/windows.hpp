@@ -15,7 +15,10 @@
 struct HINSTANCE__;
 using HINSTANCE = HINSTANCE__*;
 using HMODULE = HINSTANCE;
+using FARPROC = __int64 (__stdcall *)();
+using LPCSTR = const char*;
 extern "C" __declspec(dllimport) HMODULE __stdcall GetModuleHandleW(wchar_t const* lpModuleName);
+extern "C" __declspec(dllimport) FARPROC __stdcall GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
 #endif
 
 namespace geode {
