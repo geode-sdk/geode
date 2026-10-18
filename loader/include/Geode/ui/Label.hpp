@@ -9,6 +9,11 @@ namespace geode {
         BitmapFont();
         ~BitmapFont();
 
+        BitmapFont(BitmapFont const&);
+        BitmapFont(BitmapFont&&) noexcept;
+        BitmapFont& operator=(BitmapFont const&);
+        BitmapFont& operator=(BitmapFont&&) noexcept;
+
         /// Loads a bitmap font from a .fnt file. Caches for future reuse.
         /// @param fntFile File name of the .fnt file
         /// @return Pointer to the loaded bitmap font, or nullptr if failed

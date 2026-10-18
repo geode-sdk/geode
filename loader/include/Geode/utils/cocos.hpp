@@ -429,6 +429,14 @@ namespace geode {
     class GEODE_DLL WeakRefPool final {
         std::unordered_map<cocos2d::CCObject*, std::shared_ptr<WeakRefController>> m_pool;
 
+        WeakRefPool();
+        ~WeakRefPool();
+
+        WeakRefPool(WeakRefPool const&) = delete;
+        WeakRefPool(WeakRefPool&&) = delete;
+        WeakRefPool& operator=(WeakRefPool const&) = delete;
+        WeakRefPool& operator=(WeakRefPool&&) = delete;
+
         void check(cocos2d::CCObject* obj);
 
         // Releases the object from the pool, removing the strong reference to it

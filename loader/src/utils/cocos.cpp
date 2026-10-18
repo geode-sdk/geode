@@ -283,6 +283,9 @@ WeakRefPool* WeakRefPool::get() {
     return inst;
 }
 
+WeakRefPool::WeakRefPool() = default;
+WeakRefPool::~WeakRefPool() = default;
+
 void WeakRefPool::check(CCObject* obj) {
     // if this object's only reference is the WeakRefPool aka only weak
     // references exist to it, then release it

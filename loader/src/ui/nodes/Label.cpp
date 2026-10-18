@@ -22,6 +22,10 @@ static StringMap<BitmapFont>& GetBitmapFontsCache() {
 
 BitmapFont::BitmapFont() = default;
 BitmapFont::~BitmapFont() = default;
+BitmapFont::BitmapFont(BitmapFont const&) = default;
+BitmapFont::BitmapFont(BitmapFont&&) noexcept = default;
+BitmapFont& BitmapFont::operator=(BitmapFont const&) = default;
+BitmapFont& BitmapFont::operator=(BitmapFont&&) noexcept = default;
 
 BitmapFont* BitmapFont::load(ZStringView fntFile) {
     auto& cache = GetBitmapFontsCache();
