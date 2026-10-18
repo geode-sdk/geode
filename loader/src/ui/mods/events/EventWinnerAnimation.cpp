@@ -8,6 +8,8 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/cocos/actions/CCActionEase.h>
+#include <Geode/cocos/particle_nodes/CCParticleSystemQuad.h>
 
 static float shakeyNoise(float x) {
     // i wrote some stuff in geogebra until i got a shakey looking function

@@ -1,6 +1,5 @@
 
 #include <Geode/loader/Dirs.hpp>
-#include <cocos2d.h>
 #include <crashlog.hpp>
 #include <filesystem>
 #include "LoaderImpl.hpp"

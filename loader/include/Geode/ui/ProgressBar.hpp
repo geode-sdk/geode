@@ -1,5 +1,4 @@
 #pragma once
-#include <cocos2d.h>
 
 #include <Geode/ui/Label.hpp>
 

@@ -1,8 +1,9 @@
-#include <Geode/ui/PopupManager.hpp>
 #include <Geode/Geode.hpp>
-
-#include <asp/time/SystemTime.hpp>
+#include <Geode/cocos/CCScheduler.h>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
+#include <Geode/ui/PopupManager.hpp>
 #include <asp/data/Cow.hpp>
+#include <asp/time/SystemTime.hpp>
 
 using namespace geode::prelude;
 using namespace asp::time;

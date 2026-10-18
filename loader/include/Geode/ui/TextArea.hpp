@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 #include <Geode/utils/function.hpp>
 #include <Geode/ui/Label.hpp>
 #include <memory>
-#include <cocos2d.h>
 
 namespace geode {
     class SimpleTextAreaImpl;

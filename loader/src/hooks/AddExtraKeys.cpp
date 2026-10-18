@@ -2,7 +2,6 @@
 
 #ifndef GEODE_IS_IOS
 
-#include <Geode/cocos/include/cocos2d.h>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
 
 using namespace geode::prelude;

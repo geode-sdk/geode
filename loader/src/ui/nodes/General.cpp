@@ -1,6 +1,6 @@
 #include "Geode/utils/ColorProvider.hpp"
 #include <Geode/ui/General.hpp>
-#include <cocos-ext.h>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 
 using namespace geode::prelude;
 

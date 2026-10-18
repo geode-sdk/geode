@@ -1,6 +1,5 @@
 #include <Geode/ui/SceneEvent.hpp>
 #include <Geode/modify/CCDirector.hpp>
-#include <cocos2d.h>
 
 using namespace geode::prelude;
 

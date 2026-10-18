@@ -2,8 +2,11 @@
 
 #include <Geode/Result.hpp>
 #include <string_view>
-#include <cocos-ext.h>
 #include <ccTypes.h>
+#include <GUI/CCControlExtension/CCControlUtils.h>
+#include <algorithm>
+
+#include <fmt/format.h>
 
 namespace geode {
     template<typename T>

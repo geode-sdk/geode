@@ -1,7 +1,6 @@
 #include <Geode/utils/AndroidEvent.hpp>
 #include <Geode/utils/Keyboard.hpp>
 #include <Geode/Prelude.hpp>
-#include <cocos2d.h>
 #include <android/keycodes.h>
 #include <android/input.h>
 #include <jni.h>

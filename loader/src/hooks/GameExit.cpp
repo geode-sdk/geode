@@ -2,7 +2,6 @@
 #include <Geode/loader/GameEvent.hpp>
 #include <Geode/modify/CCDirector.hpp>
 #include <Geode/modify/PlatformToolbox.hpp>
-#include <cocos2d.h>
 
 #ifdef GEODE_IS_MACOS
 #include <Geode/utils/ObjcHook.hpp>

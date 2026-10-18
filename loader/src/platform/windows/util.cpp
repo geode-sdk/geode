@@ -4,6 +4,7 @@ using namespace geode::prelude;
 
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/binding/AppDelegate.hpp>
+#include <Geode/cocos/platform/win32/CCEGLView.h>
 #include "nfdwin.hpp"
 #include <Windows.h>
 #include <processthreadsapi.h>

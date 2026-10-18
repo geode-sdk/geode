@@ -3,6 +3,8 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/ModEvent.hpp>
 #include <ranges>
+#include <Geode/cocos/cocoa/CCBool.h>
+#include <Geode/cocos/cocoa/CCInteger.h>
 
 using namespace geode::prelude;
 

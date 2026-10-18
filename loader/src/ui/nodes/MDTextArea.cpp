@@ -23,6 +23,7 @@
 #include <memory>
 #include <server/Server.hpp>
 #include <regex>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 
 using namespace geode::prelude;
 

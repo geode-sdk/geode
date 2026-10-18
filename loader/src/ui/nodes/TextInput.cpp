@@ -1,5 +1,6 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/TextInputDelegate.hpp>
+#include <Geode/cocos/cocoa/CCBool.h>
 #include <Geode/modify/CCTextInputNode.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/TextInput.hpp>

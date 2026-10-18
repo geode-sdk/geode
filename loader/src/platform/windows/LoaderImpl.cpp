@@ -3,6 +3,7 @@
 #include <loader/ModImpl.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <Geode/utils/string.hpp>
+#include <Windows.h>
 #include <processenv.h>
 
 using namespace geode::prelude;

@@ -1,7 +1,6 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/cocos.hpp>
 
-#include <cocos2d.h>
 using namespace cocos2d;
 
 CCObject* CCObject::copy()

@@ -14,6 +14,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/platform/cplatform.h>
+#include <Geode/cocos/platform/CCFileUtils.h>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/string.hpp>

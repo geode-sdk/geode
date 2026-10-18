@@ -1,11 +1,12 @@
 #pragma once
 
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/touch_dispatcher/CCTouchDelegateProtocol.h>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/ZStringView.hpp>
-#include <cocos2d.h>
 
 namespace geode {
     class GEODE_DLL SliderNode : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {

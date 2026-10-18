@@ -3,7 +3,6 @@
 #include "../load.hpp"
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
-#include <cocos2d.h>
 #include <Geode/loader/Log.hpp>
 #include <filesystem>
 #include <Geode/loader/Dirs.hpp>

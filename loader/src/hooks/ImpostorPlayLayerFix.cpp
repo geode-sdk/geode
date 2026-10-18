@@ -1,4 +1,5 @@
 #include <Geode/modify/LevelPage.hpp>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 
 using namespace geode::prelude;
 

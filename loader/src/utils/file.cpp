@@ -13,6 +13,7 @@
 #include <Geode/utils/ranges.hpp>
 
 #ifdef GEODE_IS_WINDOWS
+# include <Windows.h>
 # include <filesystem>
 #else
 # include <unistd.h>

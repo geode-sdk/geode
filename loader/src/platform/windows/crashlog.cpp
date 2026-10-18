@@ -6,11 +6,11 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <DbgHelp.h>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <Windows.h>
+#include <DbgHelp.h>
 #include <ctime>
 #include <errhandlingapi.h>
 #include <iomanip>

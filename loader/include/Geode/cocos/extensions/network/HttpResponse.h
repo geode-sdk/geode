@@ -25,7 +25,7 @@
 #ifndef __HTTP_RESPONSE__
 #define __HTTP_RESPONSE__
 
-#include "../../include/cocos2d.h"
+#include "../../cocoa/CCObject.h"
 #include "../ExtensionMacros.h"
 #include "HttpRequest.h"
 

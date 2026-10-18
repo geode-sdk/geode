@@ -27,7 +27,8 @@
 #define SPINE_CCSKELETON_H_
 
 #include "spine.h"
-#include "../../include/cocos2d.h"
+#include "../../base_nodes/CCNode.h"
+#include "../../textures/CCTextureAtlas.h"
 
 namespace cocos2d { namespace extension {
 

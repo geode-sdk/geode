@@ -5,7 +5,7 @@
 
 #include "pugixml.hpp"
 #include <vector>
-#include "../../include/cocos2d.h"
+#include "../../base_nodes/CCNode.h"
 
 class CC_DLL DS_Dictionary {
 public:

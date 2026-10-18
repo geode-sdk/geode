@@ -1,4 +1,5 @@
 #include "FiltersPopup.hpp"
+#include <GUI/CCControlExtension/CCScale9Sprite.h>
 
 #include <Geode/ui/Label.hpp>
 

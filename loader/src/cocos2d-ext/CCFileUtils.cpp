@@ -1,7 +1,5 @@
-
 #include <Geode/modify/CCFileUtils.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <cocos2d.h>
 
 using namespace geode::prelude;
 

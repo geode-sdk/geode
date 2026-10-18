@@ -12,6 +12,12 @@
 #include <Geode/utils/async.hpp>
 #include <loader/LogImpl.hpp>
 
+#include <Geode/platform/cplatform.h>
+
+#ifdef GEODE_IS_WINDOWS
+#include <Windows.h>
+#endif
+
 #include "internal/about.hpp"
 
 using namespace geode::prelude;

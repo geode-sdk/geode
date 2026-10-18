@@ -7,6 +7,8 @@
 #include <Geode/ui/Label.hpp>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/loader/Priority.hpp>
+#include <GUI/CCControlExtension/CCScale9Sprite.h>
+#include <Geode/cocos/textures/CCTextureCache.h>
 
 $on_mod(Loaded) {
     // todo: these names should probably be shorter so they fit in SSO...

@@ -26,7 +26,7 @@
 #ifndef __CCEditBoxIMPLWIN_H__
 #define __CCEditBoxIMPLWIN_H__
 
-#include "../../../include/cocos2d.h"
+#include "../../../platform/CCPlatformConfig.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
 

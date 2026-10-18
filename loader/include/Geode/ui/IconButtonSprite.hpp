@@ -1,6 +1,8 @@
 #pragma once
 
-#include <cocos2d.h>
+#include <Geode/cocos/include/ccTypes.h>
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
+#include <Geode/cocos/include/CCProtocols.h>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Label.hpp>
 
