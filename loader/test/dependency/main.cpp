@@ -197,6 +197,10 @@ Result<int> api::addNumbers(int a, int b) {
     return Ok(a + b);
 }
 
+Result<int> api::addNumbers(int a, int b, int c) {
+    return Ok(a + b + c);
+}
+
 Result<int> api::Test::addNumbers(int a, int b) {
     return Ok(a + b);
 }

@@ -24,10 +24,11 @@ using namespace geode::prelude;
 namespace api {
     // Important: The function must be declared inline, and return a geode::Result,
     // as it can fail if the api is not available.
-    inline geode::Result<int> addNumbers(int a, int b) GEODE_EVENT_EXPORT(&addNumbers, (a, b));
+    GEODE_EVENT_EXPORT(geode::Result<int>, addNumbers, (int a, int b), (a, b));
+    GEODE_EVENT_EXPORT(geode::Result<int>, addNumbers, (int a, int b, int c), (a, b, c));
 
     struct Test {
-        geode::Result<int> addNumbers(int a, int b) GEODE_EVENT_EXPORT(&Test::addNumbers, (this, a, b));
+        GEODE_EVENT_EXPORT_MEMBER(Test, geode::Result<int>, addNumbers, (int a, int b), (this, a, b));
     };
 }
 
