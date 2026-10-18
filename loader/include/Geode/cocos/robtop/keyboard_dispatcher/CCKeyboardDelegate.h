@@ -258,7 +258,7 @@ public:
 
     virtual void keyUp(enumKeyCodes key, double) {}
 
-    //pretty certain there's no fields, based on initializer
+    virtual bool handleAction(int, bool, double) { return false; }
 };
 
 // @note RobTop Addition
