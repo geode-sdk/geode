@@ -21,16 +21,16 @@ using namespace geode::prelude;
 #undef CommentType
 
 
-NSString* intoNS(std::string const& str) {
-    return [NSString stringWithUTF8String:str.c_str()];
-}
-
 NSString* intoNS(std::string_view str) {
     return [[NSString alloc] initWithBytes:str.data() length:str.size() encoding:NSUTF8StringEncoding];
 }
 
 NSString* intoNS(ZStringView str) {
     return intoNS(std::string_view(str));
+}
+
+NSString* intoNS(asp::fs::PathView str) {
+    return intoNS(str.view());
 }
 
 bool utils::clipboard::write(ZStringView data) {

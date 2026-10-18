@@ -5,7 +5,7 @@
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
 #include <cocos2d.h>
 #include <Geode/loader/Log.hpp>
-#include <asp/fs/Path.hpp>
+#include <asp/fs/fs.hpp>
 #include <Geode/loader/Dirs.hpp>
 
 using namespace geode::prelude;

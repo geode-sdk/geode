@@ -11,6 +11,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <asp/fs/fs.hpp>
 #import <Foundation/Foundation.h>
 
 #include <loader/LogImpl.hpp>

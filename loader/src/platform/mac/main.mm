@@ -33,8 +33,8 @@ void updateFiles() {
 
     if (frameworkDir.exists() && updatesDir.exists()) {
         auto overwrite = [&](std::string_view name) {
-            auto src = updatesDir / bootFile;
-            auto dst = frameworkDir / bootFile;
+            auto src = updatesDir / name;
+            auto dst = frameworkDir / name;
 
             if (!src.exists()) return;
 
@@ -70,7 +70,7 @@ void updateFiles() {
             }
         }
 
-        if (auto e = asp::fs::removeDirAll(updatesDir, error).err()) {
+        if (auto e = asp::fs::removeDirAll(updatesDir).err()) {
             log::warn("Couldn't remove old update directory: {}", *e);
         }
     }
@@ -90,7 +90,7 @@ void updateGeode() {
     asp::fs::Path oldSavePath = "/Users/Shared/Geode/geode";
     auto newSavePath = dirs::getSaveDir() / "geode";
     if (oldSavePath.exists()) {
-        if (auto e = asp::fs::move(oldSavePath, newSavePath, error).err()) {
+        if (auto e = asp::fs::move(oldSavePath, newSavePath).err()) {
             log::warn("Couldn't migrate old save files from {} to {}: {}", oldSavePath, newSavePath, *e);
         }
     }
