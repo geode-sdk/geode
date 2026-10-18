@@ -6,6 +6,7 @@
 #include <arc/task/CancellationToken.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <variant>
 
 namespace geode::async {
 

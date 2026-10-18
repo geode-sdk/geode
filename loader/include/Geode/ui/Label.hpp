@@ -1,6 +1,6 @@
 #pragma once
-
 #include <Geode/utils/cocos.hpp>
+#include <variant>
 
 namespace geode {
     /// A bitmap font cache that acts similarly to cocos2d::CCBMFontConfiguration, but is more performant.

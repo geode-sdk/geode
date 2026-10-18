@@ -19,6 +19,7 @@
 #include <charconv>
 #include <clocale>
 #include <type_traits>
+#include <variant>
 #include <fmt/format.h>
 
 namespace geode {
