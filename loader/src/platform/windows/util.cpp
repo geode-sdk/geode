@@ -14,7 +14,7 @@ using namespace geode::prelude;
 #include <Geode/utils/cocos.hpp>
 #include <Geode/loader/GameEvent.hpp>
 #include <Geode/loader/Log.hpp>
-#include <filesystem>
+#include <asp/fs/fs.hpp>
 #include <Geode/utils/permission.hpp>
 #include <Geode/utils/ObjcHook.hpp>
 #include <Geode/utils/string.hpp>
@@ -91,7 +91,7 @@ std::string utils::clipboard::read() {
     return text;
 }
 
-bool utils::file::openFolder(std::filesystem::path const& path) {
+bool utils::file::openFolder(asp::fs::PathView path) {
     // mods can (and do) keep CoInitializeEx initialized on the main thread
     // which results in this function just not doing anything
     // which is why we're using a separate thread
@@ -100,17 +100,16 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
     auto thread = std::thread([](auto const& path, bool& success) {
         if (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK) {
             // Don't try to open up a file >:(
-            std::error_code whatever;
-            std::filesystem::path dir = path;
-            if (!std::filesystem::is_directory(dir, whatever)) {
-                dir = dir.parent_path();
+            asp::fs::Path dir = path;
+            if (!dir.isDir()) {
+                dir = dir.parent().value_or({});
             }
-            if (auto id = ILCreateFromPathW(dir.c_str())) {
-                std::filesystem::path selectPath = path / ".";
-                if (!std::filesystem::is_directory(path, whatever)) {
+            if (auto id = ILCreateFromPathW(dir.native().c_str())) {
+                asp::fs::Path selectPath = path / ".";
+                if (!path.isDir()) {
                     selectPath = path;
                 }
-                auto selectEntry = ILCreateFromPathW(selectPath.c_str());
+                auto selectEntry = ILCreateFromPathW(selectPath.native().c_str());
                 if (SHOpenFolderAndSelectItems(id, 1, (PCUITEMID_CHILD_ARRAY)(&selectEntry), 0) == S_OK) {
                     success = true;
                 }
@@ -172,7 +171,7 @@ arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options)
             co_return Err("Invalid pick mode");
     }
 
-    std::filesystem::path path;
+    asp::fs::Path path;
     bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, options, &path));
     if (!picked) {
         co_return Ok(std::nullopt);
@@ -182,10 +181,10 @@ arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options)
 }
 
 arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
-    std::vector<std::filesystem::path> paths;
+    std::vector<asp::fs::Path> paths;
     bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
     if (!picked) {
-        co_return Ok(std::vector<std::filesystem::path>{});
+        co_return Ok(std::vector<asp::fs::Path>{});
     }
 
     co_return Ok(std::move(paths));
@@ -204,51 +203,51 @@ CCPoint cocos::getMousePos() {
     return ccp(mouse.x, 1.f - mouse.y) * winSize;
 }
 
-std::filesystem::path dirs::getGameDir() {
+asp::fs::Path dirs::getGameDir() {
     // only fetch the path once, since ofc it'll never change
     // throughout the execution
     static const auto path = [] {
         std::array<WCHAR, MAX_PATH> buffer;
         GetModuleFileNameW(NULL, buffer.data(), MAX_PATH);
 
-        const std::filesystem::path path(buffer.data());
-        return std::filesystem::weakly_canonical(path.parent_path()).wstring();
+        auto path = asp::fs::Path::fromWide(buffer.data());
+        return path.parent().value().weaklyCanonical().unwrap();
     }();
 
     return path;
 }
 
-std::filesystem::path dirs::getSaveDir() {
+asp::fs::Path dirs::getSaveDir() {
     // only fetch the path once, since ofc it'll never change
     // throughout the execution
     static const auto path = [] {
         std::array<WCHAR, MAX_PATH + 1> buffer;
         GetModuleFileNameW(NULL, buffer.data(), MAX_PATH + 1);
 
-        auto executablePath = std::filesystem::path(buffer.data());
-        auto executableName = executablePath.filename().wstring();
+        auto executablePath = asp::fs::Path::fromWide(buffer.data());
+        auto executableName = executablePath.filename()->native();
         executableName = executableName.substr(0, executableName.find_last_of(L"."));
 
         if (SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, buffer.data()) >= 0) {
-            auto appdataPath = std::filesystem::path(buffer.data());
-            auto savePath = appdataPath / executableName;
+            auto appdataPath = asp::fs::Path::fromWide(buffer.data());
+            auto savePath = appdataPath / asp::fs::Path::fromWide(executableName);
 
-            if (SHCreateDirectoryExW(NULL, savePath.c_str(), NULL) >= 0) {
-                return std::filesystem::weakly_canonical(savePath).wstring();
+            if (SHCreateDirectoryExW(NULL, savePath.native().c_str(), NULL) >= 0) {
+                return savePath.weaklyCanonical().unwrap();
             }
         }
 
-        return std::filesystem::weakly_canonical(executablePath.parent_path()).wstring();
+        return executablePath.parent().value().weaklyCanonical().unwrap();
     }();
 
     return path;
 }
 
-std::filesystem::path dirs::getModRuntimeDir() {
+asp::fs::Path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
-std::filesystem::path dirs::getResourcesDir() {
+asp::fs::Path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
 }
 
@@ -289,14 +288,14 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
 
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
-    auto gdName = L"\"" + std::filesystem::path(buffer).filename().native();
+    auto gdName = L"\"" + asp::fs::Path::fromWide(buffer).filename()->native() + L"\"";
     if (safeMode) {
-        gdName += L"\" --geode:safe-mode";
+        gdName += L" --geode:safe-mode";
     }
 
     // launch updater
     auto const updaterPath = workingDir / "GeodeUpdater.exe";
-    ShellExecuteW(nullptr, L"open", updaterPath.c_str(), gdName.c_str(), workingDir.c_str(), false);
+    ShellExecuteW(nullptr, L"open", updaterPath.native().c_str(), gdName.c_str(), workingDir.native().c_str(), false);
 
     exit(saveData);
 }
@@ -304,7 +303,7 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     const auto workingDir = dirs::getGameDir();
 
-    if (!exists((workingDir / "GeodeUninstaller.exe"))) {
+    if (!asp::fs::exists(workingDir / "GeodeUninstaller.exe")) {
         log::error("Uninstaller not found! Not launching.");
         return;
     }
@@ -318,7 +317,7 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
 
     // launch uninstaller
     auto const uninstallerPath = workingDir / "GeodeUninstaller.exe";
-    ShellExecuteW(nullptr, L"open", uninstallerPath.c_str(), params.c_str(), workingDir.c_str(), false);
+    ShellExecuteW(nullptr, L"open", uninstallerPath.native().c_str(), params.c_str(), workingDir.native().c_str(), false);
 }
 
 Result<> geode::hook::addObjcMethod(char const* className, char const* selectorName, void* imp) {

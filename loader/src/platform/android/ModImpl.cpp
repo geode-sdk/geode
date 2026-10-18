@@ -40,6 +40,6 @@ Result<> Mod::Impl::loadPlatformBinary() {
     return Err("Unable to load the SO: dlerror returned (" + err + ")");
 }
 
-void Mod::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
+void Mod::Impl::addNativeBinariesPath(asp::fs::Path const& path) {
     log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path);
 }

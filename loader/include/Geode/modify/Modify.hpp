@@ -475,8 +475,7 @@ namespace geode {
         using Self = Derived;
 
         static inline constexpr std::string_view SELF_NAME = [] {
-            auto [ptr, size] = arc::getTypename<Self>();
-            return std::string_view{ptr, size};
+            return arc::getTypename<Self>();
         }();
 
         // abusing the internal stuff

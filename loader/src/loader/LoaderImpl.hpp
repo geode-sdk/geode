@@ -31,11 +31,11 @@ namespace geode {
         std::string m_gdVersion;
         std::optional<bool> m_forwardCompatMode;
 
-        std::vector<std::filesystem::path> m_modSearchDirectories;
+        std::vector<asp::fs::Path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
         StringMap<Mod*> m_mods;
         std::deque<Mod*> m_modsToLoad;
-        std::vector<std::filesystem::path> m_texturePaths;
+        std::vector<asp::fs::Path> m_texturePaths;
         bool m_isSetup = false;
 
         LoadingState m_loadingState = LoadingState::None;
@@ -91,7 +91,6 @@ namespace geode {
         ~Impl();
 
         void createDirectories();
-        void removeDirectories();
 
         void updateModResources(Mod* mod);
         void addSearchPaths();
@@ -107,7 +106,7 @@ namespace geode {
         VersionInfo maxModVersion();
         bool isModVersionSupported(VersionInfo const& version);
 
-        void queueMods(std::vector<ModMetadata>& modQueue);
+        Result<> queueMods(std::vector<ModMetadata>& modQueue);
         void populateModList(std::vector<ModMetadata>& modQueue);
         void buildModGraph();
         void orderModStack();
@@ -160,7 +159,7 @@ namespace geode {
 
         // This will potentially start a whole sequence of popups that guide the
         // user through installing the specific .geode file
-        void installModManuallyFromFile(std::filesystem::path const& path, geode::Function<void()> after);
+        void installModManuallyFromFile(asp::fs::PathView path, geode::Function<void()> after);
 
         bool isRestartRequired() const;
 

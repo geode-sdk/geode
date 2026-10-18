@@ -113,7 +113,7 @@ UIViewController* getCurrentViewController() {
     return rootViewController;
 }
 
-bool utils::file::openFolder(std::filesystem::path const& path) {
+bool utils::file::openFolder(asp::fs::PathView path) {
     std::string newPath = fmt::format("{}://{}", getenv("GEODEINJECT_LOADED") ? "filza" : "shareddocuments", path);
     NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:newPath.c_str()]];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
@@ -178,7 +178,7 @@ GEODE_DLL arc::Future<file::PickResult> file::pick(file::PickMode mode, file::Fi
         PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls) {
             PickerDelegate_instance = nil;
 
-            std::vector<std::filesystem::path> paths;
+            std::vector<asp::fs::Path> paths;
             if (urls && urls.count > 0) {
                 for (NSURL* url : urls) {
                     if (url && url.path) {
@@ -245,7 +245,7 @@ GEODE_DLL arc::Future<file::PickManyResult> file::pickMany(file::FilePickOptions
             PickerDelegate_instance = nil;
 
             if (urls && urls.count > 0) {
-                std::vector<std::filesystem::path> paths;
+                std::vector<asp::fs::Path> paths;
                 if (urls && urls.count > 0) {
                     for (NSURL* url : urls) {
                         if (url && url.path) {
@@ -255,7 +255,7 @@ GEODE_DLL arc::Future<file::PickManyResult> file::pickMany(file::FilePickOptions
                 }
                 (void)sender.send(Ok(std::move(paths)));
             } else {
-                (void)sender.send(Ok(std::vector<std::filesystem::path>()));
+                (void)sender.send(Ok(std::vector<asp::fs::Path>()));
             }
         }];
 
@@ -375,34 +375,34 @@ CCPoint cocos::getMousePos() {
 namespace {
     std::string s_savedBaseDir = "";
 
-    std::filesystem::path getBaseDir() {
+    asp::fs::Path getBaseDir() {
         if (!s_savedBaseDir.empty()) {
-            return std::filesystem::path(s_savedBaseDir);
+            return asp::fs::Path(s_savedBaseDir);
         }
 
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths firstObject];
 
-        std::filesystem::path documentsPath = [documentsDirectory UTF8String];
+        asp::fs::Path documentsPath = [documentsDirectory UTF8String];
 
         s_savedBaseDir = documentsPath;
-        return std::filesystem::path(documentsPath);
+        return asp::fs::Path(documentsPath);
     }
 }
 
-std::filesystem::path dirs::getGameDir() {
+asp::fs::Path dirs::getGameDir() {
     return getBaseDir() / "game";
 }
 
-std::filesystem::path dirs::getModRuntimeDir() {
+asp::fs::Path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
-std::filesystem::path dirs::getSaveDir() {
+asp::fs::Path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
-std::filesystem::path dirs::getResourcesDir() {
+asp::fs::Path dirs::getResourcesDir() {
     return [[[NSBundle mainBundle] resourcePath] UTF8String];
 }
 

@@ -40,7 +40,7 @@ Result<> Mod::Impl::loadPlatformBinary() {
     return Err("Unable to load the DYLIB: dlerror returned (" + err + ")");
 }
 
-void Mod::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
+void Mod::Impl::addNativeBinariesPath(asp::fs::Path const& path) {
     // this takes advantage of dyld using already loaded binaries when loading relative shared libraries
     // however, this also means that the binaries are loaded, which could have some weird side effects
     // but if you could use dlopen (and thus control when libraries are loaded), then you wouldn't be using this, would you?
@@ -60,7 +60,7 @@ void Mod::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
 
         if (!handle) {
             auto err = dlerror();
-            log::warn("failed to load native binary at {}: dlerror returned ({})", 
+            log::warn("failed to load native binary at {}: dlerror returned ({})",
                 entry_path, err
             );
             continue;

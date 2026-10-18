@@ -1,7 +1,7 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/Result.hpp>
 #include <Geode/utils/general.hpp>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <fmt/format.h>
 #include <fstream>
 #include <matjson.hpp>
@@ -189,10 +189,10 @@ public:
     utils::StringMap<std::vector<std::string>> m_headers;
     RequestTimings m_timings;
 
-    Result<> into(std::filesystem::path const& path) const;
+    Result<> into(asp::fs::PathView path) const;
 };
 
-Result<> WebResponse::Impl::into(std::filesystem::path const& path) const {
+Result<> WebResponse::Impl::into(asp::fs::PathView path) const {
     return utils::file::writeBinary(path, m_data);
 }
 
@@ -288,9 +288,9 @@ MultipartForm& MultipartForm::param(std::string name, std::string value) {
     return *this;
 }
 
-Result<MultipartForm&> MultipartForm::file(std::string name, std::filesystem::path const& path, std::string mime) {
+Result<MultipartForm&> MultipartForm::file(std::string name, asp::fs::PathView path, std::string mime) {
     if (!m_impl->isBuilt()) {
-        std::string filename = utils::string::pathToString(path.filename());
+        std::string filename = path.filename().value_or({}).string();
 
         // according to mdn, filenames should be ascii
         for (unsigned char c : filename) {
@@ -378,7 +378,7 @@ ByteVector WebResponse::data() && {
     return std::move(m_impl->m_data);
 }
 
-Result<> WebResponse::into(std::filesystem::path const& path) const {
+Result<> WebResponse::into(asp::fs::PathView path) const {
     return m_impl->into(path);
 }
 
@@ -611,7 +611,7 @@ public:
         // don't use it by default but allow it to be enabled with a launch flag
         auto useHttp3 = Loader::get()->getLaunchFlag("use-http3");
         if (m_httpVersion == HttpVersion::DEFAULT && useHttp3) {
-            auto cachePath = pathToString(Mod::get()->getSaveDir() / "altsvc_cache.txt");
+            auto cachePath = Mod::get()->getSaveDir() / "altsvc_cache.txt";
             curl_easy_setopt(curl, CURLOPT_ALTSVC_CTRL, CURLALTSVC_H3);
             curl_easy_setopt(curl, CURLOPT_ALTSVC, cachePath.c_str());
         }

@@ -300,7 +300,7 @@ std::vector<Register> CrashContext::getRegisters() {
     return registers;
 }
 
-std::string_view CrashContext::getGeodeBinaryName() {
+asp::fs::PathView CrashContext::getGeodeBinaryName() {
     return "Geode.so";
 }
 
@@ -477,6 +477,6 @@ bool crashlog::didLastLaunchCrash() {
     return s_lastLaunchCrashed;
 }
 
-std::filesystem::path crashlog::getCrashLogDirectory() {
+asp::fs::Path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }

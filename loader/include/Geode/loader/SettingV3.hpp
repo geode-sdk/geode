@@ -299,7 +299,7 @@ namespace geode {
          * setting's value is reset to the default value
          */
         void setValue(V value) {
-            m_impl->value = this->isValid(value) ? value : m_impl->defaultValue;
+            m_impl->value = this->isValid(value) ? T{value} : T{m_impl->defaultValue};
             this->markChanged();
         }
         /**
@@ -498,7 +498,7 @@ namespace geode {
         SettingNodeV3* createNode(float width) override;
     };
 
-    class GEODE_DLL FileSettingV3 final : public SettingBaseValueV3<std::filesystem::path, std::filesystem::path const&> {
+    class GEODE_DLL FileSettingV3 final : public SettingBaseValueV3<asp::fs::Path, asp::fs::PathView> {
     private:
         class Impl;
         std::shared_ptr<Impl> m_impl;
@@ -511,7 +511,7 @@ namespace geode {
         FileSettingV3(PrivateMarker);
         static Result<std::shared_ptr<FileSettingV3>> parse(std::string key, std::string modID, matjson::Value const& json);
 
-        Result<> isValid(std::filesystem::path const& value) const override;
+        Result<> isValid(asp::fs::PathView value) const override;
 
         bool isFolder() const;
         bool useSaveDialog() const;
@@ -814,7 +814,7 @@ namespace geode {
         using SettingType = StringSettingV3;
     };
     template <>
-    struct SettingTypeForValueType<std::filesystem::path> {
+    struct SettingTypeForValueType<asp::fs::Path> {
         using SettingType = FileSettingV3;
     };
     template <>

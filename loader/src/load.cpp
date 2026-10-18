@@ -200,7 +200,9 @@ int geodeEntry(void* platformData) {
     if (logMaxAge > 0) {
         // put it in a task so that it doesn't slow down launch times
         async::runtime().spawnBlocking<void>([logMaxAge] {
-            log::Logger::get()->deleteOldLogs(std::chrono::days{logMaxAge});
+            if (auto e = log::Logger::get()->deleteOldLogs(asp::Duration::fromDays(logMaxAge)).err()) {
+                log::error("Unable to delete old logs: {}", e);
+            }
         });
     }
 

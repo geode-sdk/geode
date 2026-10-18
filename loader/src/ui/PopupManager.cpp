@@ -48,7 +48,7 @@ void ManagedPopup::blockClosingFor(const asp::time::Duration& dur) {
 }
 
 void ManagedPopup::blockClosingFor(float dur) {
-    return this->blockClosingFor(Duration::fromSecsF32(dur).value_or(Duration{}));
+    return this->blockClosingFor(Duration::fromSecsF32(std::max(dur, +0.f)));
 }
 
 void ManagedPopup::showInstant() {

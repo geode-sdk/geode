@@ -53,7 +53,7 @@ void console::log(ZStringView zmsg, Severity severity) {
 void console::openIfClosed() {
     if (s_isOpen) return;
 
-    std::filesystem::path(getpwuid(getuid())->pw_dir);
+    asp::fs::Path(getpwuid(getuid())->pw_dir);
     freopen(utils::string::pathToString(dirs::getGeodeDir() / "geode_log.txt").c_str(), "w", stdout);
     s_isOpen = true;
 }

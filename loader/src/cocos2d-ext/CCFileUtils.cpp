@@ -47,14 +47,14 @@ void CCFileUtils::addPriorityPath(char const* path) {
 }
 
 // cocos adds a trailing / to paths, so we need to check for that
-bool isPathEqual(std::filesystem::path const& cocosPath, std::filesystem::path const& ourPath) {
-    return cocosPath == ourPath || (cocosPath == (ourPath / ""));
+bool isPathEqual(asp::fs::PathView cocosPath, asp::fs::PathView ourPath) {
+    return cocosPath == ourPath || (cocosPath == (ourPath + "/"));
 }
 
 void CCFileUtils::updatePaths() {
     // add search paths that aren't in PATHS or PACKS to PATHS
     for (auto& path : m_searchPathArray) {
-        std::filesystem::path const cocosPath = std::string(path);
+        asp::fs::Path const cocosPath = std::string(path);
         bool isKnown = false;
         for (auto& pack : PACKS) {
             for (auto& packPath : pack.m_paths) {

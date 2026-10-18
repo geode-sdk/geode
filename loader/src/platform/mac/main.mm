@@ -10,7 +10,7 @@
 #include <tulip/TulipHook.hpp>
 #include <Geode/utils/ObjcHook.hpp>
 #include <array>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <Geode/Loader.hpp>
 #include "../../loader/console.hpp"
 #include "../../loader/LoaderImpl.hpp"
@@ -99,7 +99,7 @@ $execute {
 };
 
 void updateGeode() {
-    std::filesystem::path oldSavePath = "/Users/Shared/Geode/geode";
+    asp::fs::Path oldSavePath = "/Users/Shared/Geode/geode";
     auto newSavePath = dirs::getSaveDir() / "geode";
     if (std::filesystem::exists(oldSavePath)) {
         std::error_code error;

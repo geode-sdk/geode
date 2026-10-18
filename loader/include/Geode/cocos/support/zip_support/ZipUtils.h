@@ -25,7 +25,7 @@ THE SOFTWARE.
 #define __SUPPORT_ZIPUTILS_H__
 
 #include <string>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include "../../platform/CCPlatformDefine.h"
 #include "../../platform/CCPlatformConfig.h"
 #include "../../include/ccMacros.h"
@@ -216,7 +216,7 @@ namespace cocos2d
          */
         bool isLoaded() const;
 
-        bool unzipAllTo(std::filesystem::path const& path);
+        bool unzipAllTo(asp::fs::Path const& path);
 
         /**
         * Regenerate accessible file list based on a new filter string.

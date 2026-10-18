@@ -6,6 +6,7 @@
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/file.hpp>
+#include <asp/fs/File.hpp>
 
 namespace geode {
 
@@ -58,22 +59,16 @@ Sha256 Sha256Hasher::finish() const {
     return hash;
 }
 
-Result<Sha256> sha256File(std::filesystem::path const& path) {
+Result<Sha256> sha256File(asp::fs::PathView path) {
     Sha256Hasher hasher;
 
-    std::ifstream file(path, std::ios::binary);
-    if (!file.is_open()) {
-        return Err("Failed to open file '{}' for reading", path);
-    }
+    auto file = GEODE_UNWRAP(asp::fs::File::open(path));
 
-    uint8_t buf[4096];
-    while (file.good()) {
-        file.read(reinterpret_cast<char*>(buf), sizeof(buf));
-        auto read = file.gcount();
+    std::array<uint8_t, 4096> buf;
+    size_t read = 0;
 
-        if (read > 0) {
-            hasher.update(buf, read);
-        }
+    while ((read = GEODE_UNWRAP(file.read(buf)) ) > 0) {
+        hasher.update(buf.data(), read);
     }
 
     return Ok(hasher.finish());

@@ -6,7 +6,7 @@
 #include "internalString.hpp"
 #include <cocos2d.h>
 #include <Geode/loader/Log.hpp>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <Geode/loader/Dirs.hpp>
 
 using namespace geode::prelude;

@@ -9,6 +9,7 @@
 #include <matjson.hpp>
 #include <utility>
 #include <clocale>
+#include <asp/fs/fs.hpp>
 
 #include "ModMetadataImpl.hpp"
 #include "LoaderImpl.hpp"
@@ -511,10 +512,8 @@ Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
     // unzip known MD files
     for (auto& [file, target] : this->getSpecialFiles()) {
         if (unzip.hasEntry(file)) {
-            // reference to local binding 'file' declared in enclosing function
-            std::string_view fileStr(file);
-            GEODE_UNWRAP_INTO(auto data, unzip.extract(fileStr).mapErr([&](auto const& err) {
-                return fmt::format("Unable to extract \"{}\": {}", fileStr, err);
+            GEODE_UNWRAP_INTO(auto data, unzip.extract(file).mapErr([&](auto const& err) {
+                return fmt::format("Unable to extract \"{}\": {}", file, err);
             }));
             *target = sanitizeDetailsData(std::string(data.begin(), data.end()));
         }
@@ -522,13 +521,13 @@ Result<> ModMetadata::Impl::addSpecialFiles(file::Unzip& unzip) {
     return Ok();
 }
 
-Result<> ModMetadata::Impl::addSpecialFiles(std::filesystem::path const& dir) {
+Result<> ModMetadata::Impl::addSpecialFiles(asp::fs::PathView dir) {
     // unzip known MD files
     for (auto& [file, target] : this->getSpecialFiles()) {
-        if (std::filesystem::exists(dir / file)) {
-            auto data = file::readString(dir / file);
+        if (asp::fs::exists(dir / file)) {
+            auto data = utils::file::readString(dir / file);
             if (!data) {
-                return Err("Unable to read \"" + file + "\": " + data.unwrapErr());
+                return Err("Unable to read \"{}\": {}", data.unwrapErr());
             }
             *target = sanitizeDetailsData(std::move(data.unwrap()));
         }
@@ -559,7 +558,7 @@ bool ModMetadata::Impl::operator==(ModMetadata::Impl const& other) const {
     return this->m_id == other.m_id;
 }
 
-std::filesystem::path const& ModMetadata::getPath() const {
+asp::fs::PathView ModMetadata::getPath() const {
     return m_impl->m_path;
 }
 
@@ -718,7 +717,7 @@ Result<> ModMetadata::checkTargetVersions() const {
 }
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
-void ModMetadata::setPath(std::filesystem::path value) {
+void ModMetadata::setPath(asp::fs::Path value) {
     m_impl->m_path = std::move(value);
 }
 void ModMetadata::setBinaryName(std::string value) {
@@ -790,7 +789,7 @@ ModMetadataLinks& ModMetadata::getLinksMut() {
 #endif
 
 ModMetadata ModMetadata::Impl::createInvalidMetadata(
-    std::filesystem::path const& path,
+    asp::fs::PathView path,
     std::string_view error,
     std::optional<std::string_view> guessedID
 ) {
@@ -800,18 +799,18 @@ ModMetadata ModMetadata::Impl::createInvalidMetadata(
         "geode_invalid-{}",
         utils::random::generateString(16, "abcdefghijklmnopqrstuvwxyz0123456789_-")
     );
-    v.m_impl->m_name = utils::string::pathToString(path.filename());
+    v.m_impl->m_name = path.filename().value();
     v.m_impl->m_errors.emplace_back(error);
     v.m_impl->m_developers = { "-" };
     v.m_impl->m_completelyUnparseable = true;
     v.m_impl->m_path = path;
     return v;
 }
-ModMetadata ModMetadata::createFromGeodeFile(std::filesystem::path const& path) {
+ModMetadata ModMetadata::createFromGeodeFile(asp::fs::PathView path) {
     // result code looks weird when you don't want to return a result
 
     // Try guess ID from filename (since usually Geode mods are named `mod.id.geode`)
-    std::optional<std::string> guessedID = utils::string::pathToString(path.stem());
+    std::optional<std::string> guessedID = path.stem().transform([](auto sv) { return std::string{sv}; });
     if (!ModMetadata::validateID(*guessedID)) {
         guessedID = std::nullopt;
     }
@@ -898,7 +897,7 @@ bool ModMetadata::validateID(std::string_view id) {
     return true;
 }
 
-Result<> ModMetadata::addSpecialFiles(std::filesystem::path const& dir) {
+Result<> ModMetadata::addSpecialFiles(asp::fs::PathView dir) {
     return m_impl->addSpecialFiles(dir);
 }
 Result<> ModMetadata::addSpecialFiles(utils::file::Unzip& zip) {

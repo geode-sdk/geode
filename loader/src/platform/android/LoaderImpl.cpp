@@ -1,12 +1,12 @@
 #include <Geode/loader/IPC.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <jni.h>
 
 using namespace geode::prelude;
 
-std::filesystem::path getInternalDir() {
+asp::fs::Path getInternalDir() {
     std::string path = "/data/user/0/com.geode.launcher/files/";
 
     JniMethodInfo t;
@@ -24,7 +24,7 @@ std::filesystem::path getInternalDir() {
         }
     }
 
-    return std::filesystem::path(path);
+    return asp::fs::Path(path);
 }
 
 std::string Loader::Impl::getGameVersion() {

@@ -12,7 +12,7 @@ using namespace crashlog;
 
 static int s_pipe[2];
 
-std::string_view CrashContext::getGeodeBinaryName() {
+asp::fs::PathView CrashContext::getGeodeBinaryName() {
     return "Geode.ios.dylib";
 }
 
@@ -127,6 +127,6 @@ bool crashlog::didLastLaunchCrash() {
     return s_lastLaunchCrashed;
 }
 
-std::filesystem::path crashlog::getCrashLogDirectory() {
+asp::fs::Path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }
