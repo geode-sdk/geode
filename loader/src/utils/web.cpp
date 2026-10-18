@@ -215,16 +215,14 @@ public:
     bool isBoundaryUnique(std::string_view boundary) const {
         // make sure params and files don't contain the boundary
         for (auto const& [name, value] : m_params) {
-            if (name.find(boundary) != std::string::npos || value.find(boundary) != std::string::npos) {
+            if (name.contains(boundary) || value.contains(boundary)) {
                 return false;
             }
         }
 
         // check files
         for (auto const& [name, file] : m_files) {
-            if (name.find(boundary) != std::string::npos
-                || file.filename.find(boundary) != std::string::npos
-                || file.mime.find(boundary) != std::string::npos) {
+            if (name.contains(boundary) || file.filename.contains(boundary) || file.mime.contains(boundary)) {
                 return false;
             }
 
@@ -420,7 +418,7 @@ private:
     Impl* m_impl;
 
     WebRequestsManager();
-    ~WebRequestsManager();
+    ~WebRequestsManager() = default; // leaking m_impl on purpose to avoid destruction order issues
 
 public:
     static WebRequestsManager* get();
@@ -588,7 +586,7 @@ public:
 
         // Add parameters to the URL and pass it to curl
         StringBuffer<> urlBuffer{m_url};
-        bool first = m_url.find('?') == std::string::npos;
+        bool first = !m_url.contains('?');
 
         for (auto& [key, value] : m_urlParameters) {
             urlBuffer.append(first ? '?' : '&');
@@ -1604,7 +1602,6 @@ public:
 };
 
 WebRequestsManager::WebRequestsManager() : m_impl(new Impl()) {}
-WebRequestsManager::~WebRequestsManager() = default; // leaking m_impl on purpose to avoid destruction order issues
 
 WebRequestsManager* WebRequestsManager::get() {
     static WebRequestsManager instance;

@@ -128,7 +128,7 @@ Result<ccColor3B> colorForIdentifier(std::string tag) {
         return cc3bFromHexString(sv.substr(2));
     }
     // Support the old form of <carbitaryletters hex>
-    else if (tag.find(' ') != std::string::npos) {
+    else if (tag.contains(' ')) {
         return cc3bFromHexString(string::trim(tag.substr(tag.find(' ') + 1)));
     }
     else {
@@ -218,7 +218,7 @@ void MDTextArea::onLink(CCObject* pSender) {
 void MDTextArea::onGDProfile(CCObject* pSender) {
     auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto profile = std::string(href->getCString());
-    profile = profile.substr(profile.find(":") + 1);
+    profile = profile.substr(profile.find(':') + 1);
     auto res = numFromString<int>(profile);
     if (res.isErr()) {
         FLAlertLayer::create(
@@ -236,7 +236,7 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
 void MDTextArea::onGDLevel(CCObject* pSender) {
     auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto level = std::string(href->getCString());
-    level = level.substr(level.find(":") + 1);
+    level = level.substr(level.find(':') + 1);
     auto res = numFromString<int>(level);
     if (res.isErr()) {
         FLAlertLayer::create(
@@ -360,7 +360,7 @@ struct MDParser {
                         float spriteWidth = 0.0f;
                         float spriteHeight = 0.0f;
 
-                        for (auto [key, value] : imgArguments) {
+                        for (auto& [key, value] : imgArguments) {
                             if (key == "scale") {
                                 auto scaleRes = utils::numFromString<float>(value);
                                 if (scaleRes) {
@@ -382,7 +382,7 @@ struct MDParser {
                         }
 
                         if (utils::string::startsWith(s_lastImage, "frame:")) {
-                            s_lastImage = s_lastImage.substr(s_lastImage.find(":") + 1);
+                            s_lastImage = s_lastImage.substr(s_lastImage.find(':') + 1);
                             isFrame = true;
                         }
                         CCSprite* spr = nullptr;
@@ -779,9 +779,9 @@ struct MDParser {
     }
 };
 
-std::string MDParser::s_lastLink = "";
+std::string MDParser::s_lastLink;
 bool MDParser::s_lastLinkWasAuto = false;
-std::string MDParser::s_lastImage = "";
+std::string MDParser::s_lastImage;
 bool MDParser::s_isOrderedList = false;
 size_t MDParser::s_orderedListNum = 0;
 bool MDParser::s_isCodeBlock = false;

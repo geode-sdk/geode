@@ -30,7 +30,7 @@ public:
         std::optional<std::string> replacesMod
     )
       : m_id(std::move(id)),
-        m_version(std::move(version)),
+        m_version(version),
         m_dependencyFor(std::move(dependencyFor)),
         m_replacesMod(std::move(replacesMod)),
         m_status(DownloadStatusFetching {
@@ -46,7 +46,7 @@ public:
                     m_version = data.metadata.getVersion();
 
                     // Start downloads for any missing required dependencies
-                    for (auto dep : data.metadata.getDependencies()) {
+                    for (auto& dep : data.metadata.getDependencies()) {
                         if (!dep.getMod() && dep.isRequired()) {
                             ModDownloadManager::get()->startDownload(
                                 dep.getID(), dep.getVersion().getUnderlyingVersion(),

@@ -100,7 +100,7 @@ void crashlog::CrashContext::formatAddress(void const* addr, Buffer& stream, boo
             "{} ({} + {})",
             addr,
             shortName ? image->shortName() : image->name(),
-            reinterpret_cast<void const*>((uintptr_t)addr - (uintptr_t)image->address)
+            reinterpret_cast<void const*>((uintptr_t)addr - image->address)
         );
     } else {
         stream.append("{}", addr);

@@ -11,6 +11,7 @@ Checks: |
   -clang-analyzer-optin.performance.*,
   -clang-analyzer-optin.portability.UnixAPI,
   -clang-analyzer-optin.taint.*,
+  -clang-analyzer-optin.cplusplus.VirtualCall,
 
   # bugs #
   bugprone-*,
@@ -21,6 +22,10 @@ Checks: |
   -bugprone-crtp-constructor-accessibility,
   -bugprone-derived-method-shadowing-base-method,
   -bugprone-throwing-static-initialization,
+  -bugprone-unhandled-exception-at-new,
+  -bugprone-reserved-identifier,
+  -bugprone-parent-virtual-call,
+  -bugprone-assignment-in-if-condition,
   # often not useful
   -bugprone-macro-parentheses,
 
@@ -33,7 +38,6 @@ Checks: |
   # c++ core guidlines #
   # cppcoreguidelines-missing-std-forward, ## too many false positives
   cppcoreguidelines-slicing,
-  cppcoreguidelines-avoid-reference-coroutine-parameters,
   cppcoreguidelines-no-suspend-with-lock,
   cppcoreguidelines-misleading-capture-default-by-value,
   cppcoreguidelines-interfaces-global-init,
@@ -51,7 +55,6 @@ Checks: |
   misc-uniqueptr-reset-release,
   misc-unused-alias-decls,
   misc-unused-using-decls,
-  misc-confusable-identifiers,
   portability-std-allocator-const, # const elements in collections
   google-runtime-operator,
 
@@ -70,7 +73,6 @@ Checks: |
   modernize-make-unique,
   modernize-make-shared,
   modernize-pass-by-value,
-  modernize-raw-string-literal,
   modernize-redundant-void-arg,
 
 
@@ -103,9 +105,14 @@ Checks: |
   -bugprone-unchecked-optional-access, ## this one maybe dont
   -bugprone-branch-clone, ## often harmless
   -readability-redundant-member-init, ## CCPoint{}
+  -readability-simplify-boolean-expr,
+  -modernize-use-using, ## cocos
+  ## this one is a bit inaccurate for arc (refs ok in futures, but bad in tasks)
+  -cppcoreguidelines-avoid-reference-coroutine-parameters,
+  
 
 HeaderFilterRegex: '.*/loader/.*'
-ExcludeHeaderFilterRegex: '.*/Geode/(c\+\+stl/gnustl|cocos|fmod|external)/.*'
+ExcludeHeaderFilterRegex: '.*/(c\+\+stl/gnustl|cocos|fmod|external)/.*'
 
 FormatStyle: file
 

@@ -319,7 +319,7 @@ namespace enable_if_parsing {
             }
             std::string_view ty = "setting";
             std::string_view value = word;
-            if (word.find(':') != std::string::npos) {
+            if (word.contains(':')) {
                 ty = word.substr(0, word.find(':'));
                 value = word.substr(word.find(':') + 1);
             }
@@ -328,11 +328,11 @@ namespace enable_if_parsing {
                     std::string modID = m_defaultModID;
                     std::string settingID = std::string(value);
                     // mod.id/setting-id
-                    if (value.find('/') != std::string::npos) {
+                    if (value.contains('/')) {
                         modID = value.substr(0, value.find('/'));
                         settingID = value.substr(value.find('/') + 1);
                     }
-                    if (!ModMetadata::validateID(std::string(modID))) {
+                    if (!ModMetadata::validateID(modID)) {
                         return Err("Invalid mod ID '{}'", modID);
                     }
                     return Ok(std::make_unique<RequireSettingEnabled>(modID, settingID));
@@ -342,7 +342,7 @@ namespace enable_if_parsing {
                     std::string modID = m_defaultModID;
                     std::string savedValue = std::string(value);
                     // mod.id/setting-id
-                    if (value.find('/') != std::string::npos) {
+                    if (value.contains('/')) {
                         modID = value.substr(0, value.find('/'));
                         savedValue = value.substr(value.find('/') + 1);
                     }
@@ -624,11 +624,11 @@ InfoSettingV3::InfoSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {
 Result<std::shared_ptr<InfoSettingV3>> InfoSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<InfoSettingV3>(PrivateMarker());
     auto root = checkJson(json, "InfoSettingV3");
-    ret->init(std::move(key), std::move(modID), root);
+    ret->init(key, modID, root);
     ret->parseNameAndDescription(root);
 
     if (!ret->getDescription() || ret->getDescription()->empty()) {
-        return Err("Setting '{}' in mod {} - Description must not be empty!", std::move(key), std::move(modID));
+        return Err("Setting '{}' in mod {} - Description must not be empty!", key, modID);
     }
 
     std::optional<std::string> color;

@@ -126,7 +126,7 @@ bool utils::file::openFolder(std::filesystem::path const& path) {
 // If successful, the bool represents whether a file was picked (true) or dialog was cancelled (false)
 static arc::Future<Result<bool>> asyncNfdPick(
     NFDMode mode,
-    file::FilePickOptions const& options,
+    file::FilePickOptions options,
     void* result
 ) {
     auto [tx, rx] = arc::oneshot::channel<Result<>>();
@@ -173,7 +173,7 @@ arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options)
     }
 
     std::filesystem::path path;
-    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, options, &path));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(nfdMode, std::move(options), &path));
     if (!picked) {
         co_return Ok(std::nullopt);
     }
@@ -183,7 +183,7 @@ arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options)
 
 arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
     std::vector<std::filesystem::path> paths;
-    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, options, &paths));
+    bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, std::move(options), &paths));
     if (!picked) {
         co_return Ok(std::vector<std::filesystem::path>{});
     }
@@ -227,7 +227,7 @@ std::filesystem::path dirs::getSaveDir() {
 
         auto executablePath = std::filesystem::path(buffer.data());
         auto executableName = executablePath.filename().wstring();
-        executableName = executableName.substr(0, executableName.find_last_of(L"."));
+        executableName = executableName.substr(0, executableName.find_last_of(L'.'));
 
         if (SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, buffer.data()) >= 0) {
             auto appdataPath = std::filesystem::path(buffer.data());
@@ -480,7 +480,7 @@ PlatformDetails geode::utils::platform::getDetails() {
     details.arch = si.wProcessorArchitecture;
 
     if(HMODULE hntdll = GetModuleHandle("ntdll.dll")) {
-        using WineVersionFunc = char const* (CDECL *)(void);
+        using WineVersionFunc = char const* (CDECL *)();
         static WineVersionFunc getWineVersion = reinterpret_cast<WineVersionFunc>(GetProcAddress(hntdll, "wine_get_version"));
         if (getWineVersion) {
             details.wineVersion = getWineVersion();

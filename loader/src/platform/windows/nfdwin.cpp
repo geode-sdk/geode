@@ -16,7 +16,7 @@ static BOOL COMIsInitialized(HRESULT coResult) {
     return SUCCEEDED(coResult);
 }
 
-static HRESULT COMInit(void) {
+static HRESULT COMInit() {
     return CoInitializeEx(
         nullptr,
         COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE
@@ -40,7 +40,7 @@ static std::pair<std::wstring, std::wstring> transformFilter(
         if (first) {
             first = false;
         } else {
-            extensions += L";";
+            extensions += L';';
         }
         extensions += string::utf8ToWide(ext);
     }

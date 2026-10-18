@@ -395,23 +395,23 @@ void ColorPickPopup::textChanged(CCTextInputNode* input) {
                 break;
 
             case TAG_OPACITY_INPUT: {
-                auto res = numFromString<float>(input->getString().c_str());
+                auto res = numFromString<float>(input->getString());
                 if (res) m_impl->m_color.a = std::clamp(static_cast<int>(res.unwrap() * 255.f), 0, 255);
                 break;
             }
 
             case TAG_R_INPUT: {
-                auto res = numFromString<uint32_t>(input->getString().c_str());
+                auto res = numFromString<uint32_t>(input->getString());
                 if (res) m_impl->m_color.r = std::clamp(res.unwrap(), 0u, 255u);
                 break;
             }
             case TAG_G_INPUT: {
-                auto res = numFromString<uint32_t>(input->getString().c_str());
+                auto res = numFromString<uint32_t>(input->getString());
                 if (res) m_impl->m_color.g = std::clamp(res.unwrap(), 0u, 255u);
                 break;
             }
             case TAG_B_INPUT: {
-                auto res = numFromString<uint32_t>(input->getString().c_str());
+                auto res = numFromString<uint32_t>(input->getString());
                 if (res) m_impl->m_color.b = std::clamp(res.unwrap(), 0u, 255u);
                 break;
             }

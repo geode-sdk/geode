@@ -274,15 +274,14 @@ namespace geode {
         //     return sig;
         // }
 
-        template <class T>
-        T setSettingValue(std::string_view key, T const& value) {
-            using S = typename SettingTypeForValueType<T>::SettingType;
+        template <class T, typename S = typename SettingTypeForValueType<T>::SettingType, typename Ret = typename S::ValueType>
+        Ret setSettingValue(std::string_view key, T const& value) {
             if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
                 auto old = sett->getValue();
                 sett->setValue(value);
                 return old;
             }
-            return T();
+            return Ret{};
         }
 
         bool hasSavedValue(std::string_view key);

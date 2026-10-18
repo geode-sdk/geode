@@ -4,11 +4,11 @@
 bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
     if (!BaseSettingsPopup::init(forceDisableTheme))
         return false;
-    
+
     this->setTitle(fmt::format("Settings for {}", mod->getName()));
 
     m_mod = mod;
-    for (auto key : mod->getSettingKeys()) {
+    for (auto& key : mod->getSettingKeys()) {
         if (auto sett = mod->getSetting(key)) {
             m_settings.push_back(sett->createNode(m_listSize.width));
         }

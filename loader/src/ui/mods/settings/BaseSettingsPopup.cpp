@@ -38,10 +38,10 @@ static bool matchSearch(SettingNode* node, ZStringView query) {
 bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     if (!GeodePopup::init(440, 280, GeodePopupStyle::Default, forceDisableTheme))
         return false;
-    
+
     m_noElasticity = true;
 
-    const auto spacing = spacingForTabs ? 25 : 0;
+    const auto spacing = spacingForTabs ? 25.f : 0.f;
     m_listSize = CCSize(346, 200 - spacing);
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
@@ -241,7 +241,7 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
                     bg = !bg;
                 }
             }
-        }     
+        }
         // Avoid infinite loops
         if (sett == invoker) {
             continue;

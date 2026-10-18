@@ -63,7 +63,7 @@ SliderNode* SliderNode::create(SliderCallback callback, bool alt) {
 }
 
 bool SliderNode::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice* groove, ZStringView bar, SliderCallback callback, CCSize const& barOffset) {
-    if (!CCNode::init()) return false;
+    if (!CCNodeRGBA::init()) return false;
     if (!thumb || !thumbSelected || !groove) return false;
 
     m_impl->m_bar = CCSprite::create(bar.c_str());

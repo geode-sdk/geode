@@ -3,6 +3,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/string.hpp>
+#include <asp/iter.hpp>
 
 using namespace geode::prelude;
 using namespace std::string_literals;
@@ -380,15 +381,18 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
     if (!createLabel()) return {};
 
     bool firstLine = true;
-    for (auto line : utils::string::split(std::move(str), "\n")) {
+    for (auto line : asp::iter::split(str, "\n")) {
         if (!firstLine && !nextLine()) {
             return {};
         }
         firstLine = false;
-        for (auto word : utils::string::split(line, " ")) {
+        for (auto wordView : asp::iter::split(line, " ")) {
+            std::string word{wordView};
             // add extra space in front of word if not on
             // new line
-            if (!newLine) word = " " + word;
+            if (!newLine) {
+                word.insert(0, " ");
+            }
             newLine = false;
 
             // update capitalization

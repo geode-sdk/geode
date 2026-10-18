@@ -422,13 +422,13 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
             // build up all keybinds to look for, starting with the most specific to least specific
             // this is for modifier fallthrough functionality
             std::vector<Keybind> keybindsToCheck;
-            int baseMask = keybind.modifiers.value; 
+            int baseMask = keybind.modifiers.value;
 
             for (int submask = baseMask; ; submask = (submask - 1) & baseMask) {
                 keybindsToCheck.push_back(Keybind(keybind.key, submask));
-                
+
                 if (submask == 0) {
-                    break; 
+                    break;
                 }
             }
 
@@ -436,7 +436,7 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
                 return std::popcount(a.modifiers.value) > std::popcount(b.modifiers.value);
             });
 
-            // now we run the code that already existed before the 
+            // now we run the code that already existed before the
             // modifier fallthrough functionality was added but we
             // loop it through all modifier combinations we just found
             bool imeActive = CCIMEDispatcher::sharedDispatcher()->hasDelegate();
@@ -467,7 +467,7 @@ void Loader::Impl::populateModList(std::vector<ModMetadata>& modQueue) {
                     }
                 }
             }
-            
+
             return ListenerResult::Propagate;
         }).leak();
 
@@ -898,7 +898,7 @@ void Loader::Impl::orderModStack() {
         if (visited.contains(mod))
             return;
         visited.insert(mod);
-        for (auto dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
+        for (auto& dep : mod->m_impl->m_metadata.m_impl->m_dependencies) {
             if (!dep.isRequired()) {
                 continue;
             }
@@ -1240,14 +1240,14 @@ bool Loader::Impl::getLaunchFlag(std::string_view name) const {
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
-    if (!m_handlerHandles.count(address)) {
+    if (!m_handlerHandles.contains(address)) {
         return Err("Handler does not exist at address");
     }
     return Ok(m_handlerHandles[address].first);
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
-    if (m_handlerHandles.count(address) && m_handlerHandles[address].second > 0) {
+    if (m_handlerHandles.contains(address) && m_handlerHandles[address].second > 0) {
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
     }
@@ -1260,7 +1260,7 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
 }
 
 Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* address) {
-    if (!m_handlerHandles.count(address)) {
+    if (!m_handlerHandles.contains(address)) {
         return Err("Handler does not exist at address");
     }
     auto handle = m_handlerHandles[address].first;
@@ -1269,7 +1269,7 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* add
 }
 
 Result<> Loader::Impl::removeHandlerIfNeeded(void* address) {
-    if (!m_handlerHandles.count(address)) {
+    if (!m_handlerHandles.contains(address)) {
         return Err("Handler does not exist at address");
     }
     auto handle = m_handlerHandles[address].first;
