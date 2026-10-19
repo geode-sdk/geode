@@ -128,6 +128,8 @@ public:
     bool m_bMouseControl;
     float m_fAnimationInterval;
     float m_fVsyncInterval;
+    // 2.209+: getVerticalSyncEnabled reads +0xd0 (was 0xc4)
+    char m_unknown2209[0xc];
     CC_SYNTHESIZE_READONLY_NV(bool, m_bVerticalSyncEnabled, VerticalSyncEnabled);
     CC_SYNTHESIZE_READONLY_NV(bool, m_bControllerConnected, ControllerConnected);
     CC_SYNTHESIZE_NV(bool, m_bSleepMode, SleepMode);

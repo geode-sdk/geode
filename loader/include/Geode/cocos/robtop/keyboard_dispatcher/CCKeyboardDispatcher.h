@@ -68,11 +68,21 @@ public:
 	bool m_bToRemove;			// 0x3a
 	ccCArray* m_pHandlersToAdd; // 0x3c
 	ccCArray* m_pHandlersToRemove;	// 0x40
+#ifdef GEODE_IS_WINDOWS
+	// 2.209+: m_bShiftPressed moved from 0x58 to 0x98 (getShiftKeyPressed reads +0x98)
+	char m_unknown2209[0x40];
+#endif
 	bool m_bShiftPressed;		// 0x44
 	bool m_bControlPressed;	// 0x45
 	bool m_bAltPressed;			// 0x46
 	bool m_bCommandPressed;	// 0x47
 	bool m_bBlockRepeat;		// 0x48
+#ifdef GEODE_IS_WINDOWS
+	// 2.209+: getLastRepeat reads +0x9d, getCaptureMode +0x9e, getActionManager +0xa0
+	bool m_bLastRepeat;
+	bool m_bCaptureMode;
+	void* m_pActionManager;
+#endif
 
 	// ~~there's more here, check the initializer~~ no there's not??
 };

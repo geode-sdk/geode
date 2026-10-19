@@ -177,6 +177,10 @@ public:
     float m_fRepeatTime;
     // @note RobTop Addition
     bool m_idk;
+#ifdef GEODE_IS_WINDOWS
+    // 2.209+: getM_fMaxSeg reads +0x1d0 (was 0x1c8), getDontOpacityFade +0x1d4
+    char m_unknown2209[8];
+#endif
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(float, m_fMaxSeg, M_fMaxSeg);
     // @note RobTop Addition

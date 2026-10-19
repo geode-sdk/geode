@@ -353,6 +353,10 @@ public:
     CC_SYNTHESIZE_NV(bool, m_bStartRGBVarSync, StartRGBVarSync);
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bEndRGBVarSync, EndRGBVarSync);
+#ifdef GEODE_IS_WINDOWS
+    // 2.209+: getWasRemoved reads +0x234 (was 0x22f), getStartSize +0x238
+    char m_unknown2209[5];
+#endif
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bWasRemoved, WasRemoved);
     // @note RobTop Addition
