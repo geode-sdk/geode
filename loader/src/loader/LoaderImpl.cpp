@@ -18,7 +18,6 @@
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/cocos/platform/CCFileUtils.h>
-#include <Geode/cocos/platform/win32/CCApplication.h>
 #include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
 #include <Geode/cocos/textures/CCTextureCache.h>
 #include <about.hpp>

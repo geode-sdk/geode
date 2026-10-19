@@ -1,6 +1,10 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+ #ifdef GEODE_IS_WINDOWS
 #include <Geode/cocos/platform/win32/CCEGLView.h>
+#elif defined(GEODE_IS_MACOS)
+#include <Geode/cocos/platform/mac/CCEGLView.h>
+#endif
 #include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
 #include <Geode/ui/SimpleAxisLayout.hpp>
 
