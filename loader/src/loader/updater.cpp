@@ -52,9 +52,7 @@ Result<> updater::extractLoaderResources(ByteSpan data, std::string_view expecte
     auto tempDir = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp", Mod::get()->getID());
     auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
 
-    GEODE_UNWRAP(asp::fs::removeDirAll(tempDir).mapErr([](auto e) {
-        return fmt::format("Unable to remove old temporary directory: {}", e);
-    }));
+    (void) asp::fs::removeDirAll(tempDir);
 
     GEODE_UNWRAP(asp::fs::createDir(tempDir).mapErr([](auto e) {
         return fmt::format("Unable to create temporary directory: {}", e);
