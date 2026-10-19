@@ -25,6 +25,30 @@ using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
 
+static void* getLibHandle() {
+    static void* handle = dlopen("libcocos2dcpp.so", RTLD_LAZY | RTLD_NOLOAD);
+    return handle;
+}
+
+uintptr_t base::get() {
+    static std::uintptr_t basePtr = 0u;
+    if (basePtr == 0u) {
+        auto handle = getLibHandle();
+
+        // JNI_OnLoad is present on all versions of GD
+        auto sym = dlsym(handle, "JNI_OnLoad");
+        assert(sym != nullptr);
+
+        Dl_info p;
+        auto dlAddrRes = dladdr(sym, &p);
+        assert(dlAddrRes != 0);
+
+        basePtr = reinterpret_cast<std::uintptr_t>(p.dli_fbase);
+    }
+
+    return basePtr;
+}
+
 bool utils::clipboard::write(ZStringView data) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "writeClipboard", "(Ljava/lang/String;)V")) {
