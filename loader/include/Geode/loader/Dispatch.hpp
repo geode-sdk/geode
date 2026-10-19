@@ -88,7 +88,7 @@ namespace geode::geode_internal {
             return [] -> R {
                 return Err("Unable to call method");
             }();
-        } else {
+        } else if constexpr (!std::is_void_v<R>) {
             return R{};
         }
     }
