@@ -22,7 +22,6 @@ using namespace geode::prelude;
 #define MY_MOD_ID "geode.testdep"
 
 namespace api {
-    static constexpr bool x = geode::IsResult<geode::Result<int>>;
     // Important: The function must be declared inline, and return a geode::Result,
     // as it can fail if the api is not available.
     GEODE_EVENT_EXPORT(geode::Result<int>, addNumbers, (int a, int b = 0), (a, b));
