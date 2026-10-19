@@ -25,7 +25,7 @@ namespace api {
     static constexpr bool x = geode::IsResult<geode::Result<int>>;
     // Important: The function must be declared inline, and return a geode::Result,
     // as it can fail if the api is not available.
-    GEODE_EVENT_EXPORT(geode::Result<int>, addNumbers, (int a, int b), (a, b));
+    GEODE_EVENT_EXPORT(geode::Result<int>, addNumbers, (int a, int b = 0), (a, b));
     GEODE_EVENT_EXPORT(geode::Result<int>, addNumbers, (int a, int b, int c), (a, b, c));
     GEODE_EVENT_EXPORT(float, addNumbers, (float a, float b), (a, b));
 

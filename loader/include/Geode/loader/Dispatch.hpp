@@ -94,9 +94,16 @@ namespace geode::geode_internal {
     }
 }
 
+#define GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, uniq_name) \
+    decltype([] { \
+        ret uniq_name params; \
+        return &uniq_name; \
+    }())
+
 #define GEODE_EVENT_EXPORT_CALL(ret, name, params, args, eventID)                                       \
     static ret (name) params {                                                                          \
-        static auto storage = geode::geode_internal::callEventExportListener<ret (*) params>(eventID);  \
+        using FnType = GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__)); \
+        static auto storage = geode::geode_internal::callEventExportListener<FnType>(eventID);          \
         if (!storage) return geode::geode_internal::getValueOnFailed<ret>();                            \
         return storage args;                                                                            \
     }
@@ -111,7 +118,10 @@ namespace geode::geode_internal {
 #define GEODE_EVENT_EXPORT_DEFINE(ret, name, params, args, eventID)                                \
     ret name params;                                                                               \
     static bool GEODE_EVENT_EXPORT_UNIQUE(_geode_event_export_reg_, __COUNTER__)                   \
-    = geode::geode_internal::getEventExportListener(static_cast<ret (*) params>(&name), eventID);
+    = geode::geode_internal::getEventExportListener(                                               \
+        static_cast<GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__))>(&name), \
+        eventID                                                                                    \
+    );
 
 #define GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, eventID)                               \
     ret name params;                                                                                            \
