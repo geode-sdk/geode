@@ -448,6 +448,10 @@ double geode::utils::getInputTimestamp() {
     return [[NSProcessInfo processInfo] systemUptime];
 }
 
+bool geode::utils::isGameFocused() {
+    return NSApp != nil && [NSApp isActive];
+}
+
 bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
     uint8_t* data = m_pData;
     bool usePNG = std::string_view(pszFilePath).ends_with(".png");
@@ -596,4 +600,8 @@ std::string geode::utils::platform::getString() {
     auto details = getDetails();
     auto rosettaText = details.rosetta ? " (Rosetta)" : "";
     return fmt::format("MacOS {}{} {}.{}.{}", details.arch, rosettaText, details.majorVersion, details.minorVersion, details.patchVersion);
+}
+
+bool geode::utils::platform::isChromebook() {
+    return false;
 }
