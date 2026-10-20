@@ -5,6 +5,7 @@
 #include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 #include <regex>
 #include <fmt/chrono.h>
+#include <asp/iter.hpp>
 
 class geode::SimpleTextAreaImpl {
 public:
@@ -103,7 +104,8 @@ void geode::SimpleTextAreaImpl::updateLinesNoWrap() {
     m_lines.clear();
 
     while (std::getline(stream, part)) {
-        geode::Label* line = createLabel(std::move(part), top);
+        Label* line = createLabel(std::move(part), top);
+        part.clear();
 
         if (line == nullptr) {
             break;
@@ -119,7 +121,7 @@ void geode::SimpleTextAreaImpl::updateLinesWordWrap(bool spaceWrap) {
     charIteration([this, spaceWrap](geode::Label* line, char c, float top) {
         const std::string_view delimiters(spaceWrap ? " " : " `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
 
-        if (delimiters.find(c) == std::string_view::npos) {
+        if (!delimiters.contains(c)) {
             const std::string& text = line->getString();
             const size_t position = text.find_last_of(delimiters) + 1;
             geode::Label* newLine = createLabel(text.substr(position) + c, top);
@@ -627,7 +629,7 @@ void RichTextArea::RichImpl::formatRichText() {
     while (std::regex_search(begin, end, match, pattern)) {
         int matchStartPos = std::distance(m_text.cbegin(), match[0].first);
 
-        std::string value = "";
+        std::string value;
         if (match.size() >= 4 && match[3].matched) value = match[3];
 
         matches.push_back({matchStartPos, match[0].length(), match[2], value, offset, match[1] == '/'});
@@ -638,9 +640,7 @@ void RichTextArea::RichImpl::formatRichText() {
 
     std::map<int, std::vector<std::shared_ptr<RichTextKeyInstanceBase>>> richTextInstancesBeforeExtraOffset{};
 
-    for (auto it = matches.rbegin(); it != matches.rend(); ++it) {
-        const auto& m = *it;
-
+    for (auto& m : asp::iter::fromReverse(matches)) {
         if (!m_richTextKeys.contains(m.key)) continue;
 
         auto result = m_richTextKeys[m.key]->createInstance(m.value, m.cancellation);
@@ -663,7 +663,7 @@ void RichTextArea::RichImpl::formatRichText() {
     int textAdditionOverallOffset = 0;
     int prevExtraOffset = 0;
 
-    for (const auto& [index, keys] : richTextInstancesBeforeExtraOffset) {
+    for (auto& [index, keys] : richTextInstancesBeforeExtraOffset) {
         for (const auto& keyRef : keys)
         {
             auto currentAddition = keyRef->runStrAddition();

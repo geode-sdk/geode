@@ -434,7 +434,7 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
 
         // Create items
         bool first = true;
-        for (auto item : list) {
+        for (auto& item : list) {
             // Add separators between items after the first one
             if (!first) {
                 // auto separator = CCLayerColor::create(

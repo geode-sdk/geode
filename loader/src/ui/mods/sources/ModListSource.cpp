@@ -22,7 +22,7 @@ std::string ModListSource::getNoModsFoundError() const {
 ModListSource::ProviderTask ModListSource::loadPage(size_t page, bool forceUpdate) {
     m_cachedPages.erase(page);
     auto data = ARC_CO_UNWRAP(co_await this->fetchPage(page, forceUpdate));
-    
+
     if (data.totalModCount == 0 || data.mods.empty()) {
         co_return Err(LoadPageError(this->getNoModsFoundError()));
     }
@@ -116,10 +116,10 @@ bool modFuzzyMatch(ModMetadata const& metadata, ZStringView kw, double& weighted
     for (auto& dev : metadata.getDevelopers()) {
         addToList |= weightedFuzzyMatch(dev, kw, 0.25, weighted);
     }
-    if (auto details = metadata.getDetails()) {
+    if (auto& details = metadata.getDetails()) {
         addToList |= weightedFuzzyMatch(*details, kw, 0.005, weighted);
     }
-    if (auto desc = metadata.getDescription()) {
+    if (auto& desc = metadata.getDescription()) {
         addToList |= weightedFuzzyMatch(*desc, kw, 0.02, weighted);
     }
     if (weighted < 2) {

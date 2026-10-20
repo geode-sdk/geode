@@ -9,7 +9,6 @@
 #include <Geode/loader/Event.hpp>
 #include <Geode/Result.hpp>
 #include <ccTypes.h>
-#include <chrono>
 #include <asp/fs/Path.hpp>
 #include <asp/time/SystemTime.hpp>
 #include "Formatter.hpp"

@@ -9,9 +9,8 @@
 #include <Geode/utils/StringMap.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/ModEvent.hpp>
-#include <iostream>
 #include <tulip/TulipHook.hpp>
-#include <arc/future/PollableMetadata.hpp>
+#include <arc/util/Typename.hpp>
 
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(AddressInline_, Convention_, ClassName_, FunctionName_, ...)          \
     do {                                                                                                      \

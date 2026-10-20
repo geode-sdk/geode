@@ -22,7 +22,6 @@
 #include <asp/fs/fs.hpp>
 #include <optional>
 #include <string>
-#include <system_error>
 #include <vector>
 #include <string_view>
 
@@ -200,19 +199,15 @@ bool Mod::Impl::needsEarlyLoad(std::vector<Mod*>& checked) const {
 }
 
 std::vector<Hook*> Mod::Impl::getHooks() const {
-    std::vector<Hook*> ret;
-    for (auto& hook : m_hooks) {
-        ret.push_back(hook.get());
-    }
-    return ret;
+    return asp::iter::from(m_hooks)
+        .map([](auto& hook) { return hook.get(); })
+        .collect();
 }
 
 std::vector<Patch*> Mod::Impl::getPatches() const {
-    std::vector<Patch*> ret;
-    for (auto& patch : m_patches) {
-        ret.push_back(patch.get());
-    }
-    return ret;
+    return asp::iter::from(m_patches)
+        .map([](auto& patch) { return patch.get(); })
+        .collect();
 }
 
 // Settings and saved values
@@ -384,8 +379,8 @@ Result<> Mod::Impl::loadBinary() {
     if (!res) {
         // disable hooks/patches the mod managed to register before failure
         // note that this will not save from any other side effects (i.e. registering an event listener)
-        for (auto patch : m_patches) { (void) patch->disable(); }
-        for (auto hook : m_hooks) { (void) hook->disable(); }
+        for (auto& patch : m_patches) { (void) patch->disable(); }
+        for (auto& hook : m_hooks) { (void) hook->disable(); }
         m_patches.clear();
         m_hooks.clear();
 
@@ -574,7 +569,7 @@ Result<> Mod::Impl::disownHook(Hook* hook) {
                    "A hook that was getting disowned had its owner set but the owner "
                    "didn't have the hook in m_hooks.");
 
-    auto sharedHook = *foundIt;
+    auto sharedHook = std::move(*foundIt);
     m_hooks.erase(foundIt);
 
     if (!this->isLoaded() || !sharedHook->getAutoEnable())
@@ -667,7 +662,7 @@ Result<> Mod::Impl::createTempDir() {
     }
 
     // Mark temp dir creation as successful
-    m_tempDirName = tempPath;
+    m_tempDirName = std::move(tempPath);
 
     return Ok();
 }
@@ -697,11 +692,11 @@ ModJson Mod::Impl::getRuntimeInfo() const {
 
     auto obj = matjson::Value::object();
     obj["hooks"] = matjson::Value::array();
-    for (auto hook : m_hooks) {
+    for (auto& hook : m_hooks) {
         obj["hooks"].push(ModJson(hook->getRuntimeInfo()));
     }
     obj["patches"] = matjson::Value::array();
-    for (auto patch : m_patches) {
+    for (auto& patch : m_patches) {
         obj["patches"].push(ModJson(patch->getRuntimeInfo()));
     }
     obj["loaded"] = m_loaded;

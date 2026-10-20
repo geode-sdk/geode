@@ -1,14 +1,9 @@
 #include <Geode/cocos/CCDirector.h>
 #include <Geode/cocos/CCScheduler.h>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCScene.h>
+#include <Geode/cocos/platform/CCApplication.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/platform/CCFileUtils.h>
-#ifdef GEODE_IS_WINDOWS
-#include <Geode/cocos/platform/win32/CCApplication.h>
-#include <Geode/cocos/platform/win32/CCEGLView.h>
-#elif defined(GEODE_IS_MACOS)
-#include <Geode/cocos/platform/mac/CCApplication.h>
-#include <Geode/cocos/platform/mac/CCEGLView.h>
-#endif
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
 #include <Geode/cocos/sprite_nodes/CCSpriteFrameCache.h>
 #include <Geode/cocos/textures/CCTextureCache.h>

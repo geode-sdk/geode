@@ -1,8 +1,7 @@
 #include <Geode/utils/random.hpp>
-#include <random>
 
 namespace geode::utils::random {
-    
+
 Generator& _getGenerator() {
     static thread_local Generator generator;
     return generator;
@@ -69,7 +68,7 @@ void fillBytes(void* buffer, size_t size) {
         buf += 8;
         size -= 8;
     }
-    
+
     if (size > 0) {
         uint64_t val = gen.next();
         std::memcpy(buf, &val, size);

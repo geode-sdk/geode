@@ -17,6 +17,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/cocos/platform/CCApplication.h>
 #include <Geode/cocos/platform/CCFileUtils.h>
 #include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
 #include <Geode/cocos/textures/CCTextureCache.h>
