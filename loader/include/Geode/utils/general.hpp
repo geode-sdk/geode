@@ -434,11 +434,4 @@ namespace geode::utils::platform {
      * @return The platform string
      */
     GEODE_DLL std::string getString();
-
-    /**
-     * Returns if the game is running on a chromebook
-     * 
-     * @return True if its a chromebook, false if not, or if not on Android
-    */
-    GEODE_DLL bool isChromebook();
 }

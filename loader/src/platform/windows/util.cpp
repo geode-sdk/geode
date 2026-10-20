@@ -517,7 +517,3 @@ std::string geode::utils::platform::getString() {
     }
     return versionStr;
 }
-
-bool geode::utils::platform::isChromebook() {
-    return false;
-}

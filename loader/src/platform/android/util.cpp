@@ -588,17 +588,3 @@ std::string geode::utils::platform::getString() {
     return fmt::format("Android {} {} (SDK {}{})",
         details.releaseVersion, details.arch, details.sdkVersion, hostStr);
 }
-
-bool geode::utils::platform::isChromebook() {
-    static bool chromebook = ([]{
-        std::array<char, PROP_VALUE_MAX+1> buffer;
-        int deviceLength = __system_property_get("ro.product.device", buffer.data());
-
-        std::string s(buffer.data(), deviceLength);
-
-        return s.find("_cheets") != std::string::npos ||
-            s.find("cheets_") != std::string::npos;
-    })();
-
-    return chromebook;
-}

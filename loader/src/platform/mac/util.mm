@@ -601,7 +601,3 @@ std::string geode::utils::platform::getString() {
     auto rosettaText = details.rosetta ? " (Rosetta)" : "";
     return fmt::format("MacOS {}{} {}.{}.{}", details.arch, rosettaText, details.majorVersion, details.minorVersion, details.patchVersion);
 }
-
-bool geode::utils::platform::isChromebook() {
-    return false;
-}

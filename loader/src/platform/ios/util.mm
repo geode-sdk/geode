@@ -674,7 +674,3 @@ std::string geode::utils::platform::getString() {
     auto details = getDetails();
     return fmt::format("iOS {} {}.{}.{} ({})", details.arch, details.majorVersion, details.minorVersion, details.patchVersion, details.launchMethod);
 }
-
-bool geode::utils::platform::isChromebook() {
-    return false;
-}
