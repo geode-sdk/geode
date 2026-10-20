@@ -527,7 +527,7 @@ std::vector<Path> Unzip::getEntries() const {
 }
 
 bool Unzip::hasEntry(PathView name) {
-    return m_impl->getEntries().count(name);
+    return m_impl->getEntries().contains(name);
 }
 
 Result<ByteVector> Unzip::extract(PathView name) {

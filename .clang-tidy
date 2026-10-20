@@ -26,6 +26,10 @@ Checks: |
   -bugprone-reserved-identifier,
   -bugprone-parent-virtual-call,
   -bugprone-assignment-in-if-condition,
+  -bugprone-optional-value-conversion,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-nondeterministic-pointer-iteration-order,
+  -bugprone-casting-through-void, ## HASH_FIND_INT
   # often not useful
   -bugprone-macro-parentheses,
 
@@ -104,6 +108,8 @@ Checks: |
   -modernize-use-nullptr,
   -bugprone-unchecked-optional-access, ## this one maybe dont
   -bugprone-branch-clone, ## often harmless
+  -performance-faster-string-find,
+  -performance-prefer-single-char-overloads,
   -readability-redundant-member-init, ## CCPoint{}
   -readability-simplify-boolean-expr,
   -modernize-use-using, ## cocos

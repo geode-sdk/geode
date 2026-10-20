@@ -25,7 +25,7 @@ bool canCatchImpl(const std::type_info* self, const std::type_info* thrown, void
 
 $execute {
     // we get the __class_type_info::can_catch address from the typeinfo of a dummy class
-    geode::cast::DummyClass dummyClass;
+    geode::cast::DummyClass dummyClass{};
     auto vtable = reinterpret_cast<geode::cast::VtableType*>(*(intptr_t*)&dummyClass);
     auto complete = static_cast<geode::cast::CompleteVtableType*>(vtable);
     auto typeinfo = complete->m_typeinfo;

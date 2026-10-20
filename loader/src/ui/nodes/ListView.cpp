@@ -29,11 +29,11 @@ public:
     ListView* m_self = nullptr;
     cocos2d::ccColor3B m_primaryCellColor;
     cocos2d::ccColor3B m_secondaryCellColor;
-    GLubyte m_cellOpacity;
+    GLubyte m_cellOpacity = 0xff;
     cocos2d::ccColor4B m_cellBorderColor;
 
     Impl(ListView* self) : m_self(self), m_primaryCellColor(ccc3(0xa1, 0x58, 0x2c)),
-        m_secondaryCellColor(ccc3(0xc2, 0x72, 0x3e)), m_cellOpacity(0xff),
+        m_secondaryCellColor(ccc3(0xc2, 0x72, 0x3e)),
         m_cellBorderColor(ccc4(0x00, 0x00, 0x00, 0x4B)) {}
 
     void setupList(float);
@@ -144,33 +144,33 @@ GenericListCell* GenericListCell::create(char const* key, CCSize size) {
     return ret;
 }
 
-void GenericListCell::updateBGColor(int index) { 
-    m_impl->updateBGColor(index); 
+void GenericListCell::updateBGColor(int index) {
+    m_impl->updateBGColor(index);
 }
-void GenericListCell::setPrimaryColor(cocos2d::ccColor3B color) { 
-    m_impl->setPrimaryColor(color); 
+void GenericListCell::setPrimaryColor(cocos2d::ccColor3B color) {
+    m_impl->setPrimaryColor(color);
 }
-void GenericListCell::setSecondaryColor(cocos2d::ccColor3B color) { 
-    m_impl->setSecondaryColor(color); 
+void GenericListCell::setSecondaryColor(cocos2d::ccColor3B color) {
+    m_impl->setSecondaryColor(color);
 }
-void GenericListCell::setOpacity(GLubyte opacity) { 
-    m_impl->setOpacity(opacity); 
+void GenericListCell::setOpacity(GLubyte opacity) {
+    m_impl->setOpacity(opacity);
 }
-void GenericListCell::setBorderColor(cocos2d::ccColor4B color) { 
-    m_impl->setBorderColor(color); 
+void GenericListCell::setBorderColor(cocos2d::ccColor4B color) {
+    m_impl->setBorderColor(color);
 }
 
 ListView::ListView() : m_impl(std::make_unique<ListView::Impl>(this)) {}
 ListView::~ListView() = default;
 
-void ListView::setupList(float arg) { 
-    m_impl->setupList(arg); 
+void ListView::setupList(float arg) {
+    m_impl->setupList(arg);
 }
-TableViewCell* ListView::getListCell(char const* key) { 
-    return m_impl->getListCell(key); 
+TableViewCell* ListView::getListCell(char const* key) {
+    return m_impl->getListCell(key);
 }
-void ListView::loadCell(TableViewCell* cell, int index) { 
-    m_impl->loadCell(cell, index); 
+void ListView::loadCell(TableViewCell* cell, int index) {
+    m_impl->loadCell(cell, index);
 }
 
 ListView* ListView::create(CCArray* items, float itemHeight, float width, float height) {
@@ -190,18 +190,18 @@ ListView* ListView::create(CCArray* items, float itemHeight, float width, float 
     return nullptr;
 }
 
-void ListView::setPrimaryCellColor(cocos2d::ccColor3B color) { 
-    m_impl->setPrimaryCellColor(color); 
+void ListView::setPrimaryCellColor(cocos2d::ccColor3B color) {
+    m_impl->setPrimaryCellColor(color);
 }
-void ListView::setSecondaryCellColor(cocos2d::ccColor3B color) { 
-    m_impl->setSecondaryCellColor(color); 
+void ListView::setSecondaryCellColor(cocos2d::ccColor3B color) {
+    m_impl->setSecondaryCellColor(color);
 }
-void ListView::setCellOpacity(GLubyte opacity) { 
-    m_impl->setCellOpacity(opacity); 
+void ListView::setCellOpacity(GLubyte opacity) {
+    m_impl->setCellOpacity(opacity);
 }
-void ListView::setCellBorderColor(cocos2d::ccColor4B color) { 
-    m_impl->setCellBorderColor(color); 
+void ListView::setCellBorderColor(cocos2d::ccColor4B color) {
+    m_impl->setCellBorderColor(color);
 }
-void ListView::updateAllCells() { 
-    m_impl->updateAllCells(); 
+void ListView::updateAllCells() {
+    m_impl->updateAllCells();
 }

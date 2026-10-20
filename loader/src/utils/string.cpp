@@ -167,11 +167,11 @@ std::vector<char> utils::string::split(std::string_view str) {
 }
 
 bool utils::string::contains(std::string_view str, std::string_view subs) {
-    return str.find(subs) != std::string::npos;
+    return str.contains(subs);
 }
 
 bool utils::string::contains(std::string_view str, std::string::value_type c) {
-    return str.find(c) != std::string::npos;
+    return str.contains(c);
 }
 
 bool utils::string::containsAny(std::string_view str, std::span<std::string const> subs) {
@@ -263,7 +263,7 @@ std::string utils::string::filter(std::string_view str, std::string_view allowed
     std::string ret;
     ret.reserve(str.size());
     for (char c : str) {
-        if (allowed.find(c) != std::string::npos) {
+        if (allowed.contains(c)) {
             ret.push_back(c);
         }
     }
@@ -274,7 +274,7 @@ std::string utils::string::remove(std::string_view str, std::string_view disallo
     std::string ret;
     ret.reserve(str.size());
     for (char c : str) {
-        if (disallowed.find(c) == std::string::npos) {
+        if (!disallowed.contains(c)) {
             ret.push_back(c);
         }
     }

@@ -216,7 +216,7 @@ namespace geode::utils::coro {
         Result<void, E> result;
 
         bool await_ready() const noexcept { return result.isOk(); }
-        void await_resume() const noexcept { return; }
+        void await_resume() const noexcept {}
 
         template <std::convertible_to<Result<void, E>> Q>
         ResultAwaiter(Q&& res) : result(std::forward<Q>(res)) {}
