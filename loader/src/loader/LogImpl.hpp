@@ -9,15 +9,9 @@
 #include <arc/task/CancellationToken.hpp>
 #include <asp/fs/BufferedFile.hpp>
 #include <asp/time/Duration.hpp>
-#include <vector>
-#include <deque>
-#include <thread>
-#include <fstream>
 #include <string>
-#include <chrono>
 #include <semaphore>
 #include <atomic>
-#include <condition_variable>
 
 namespace geode::log {
     struct BorrowedLog;

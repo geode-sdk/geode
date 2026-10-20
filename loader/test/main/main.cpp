@@ -1,7 +1,6 @@
 #include <Geode/Loader.hpp>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <chrono>
 #include "../dependency/main.hpp"
 #include "Geode/utils/general.hpp"
 #include <Geode/utils/VMTHookManager.hpp>
@@ -30,7 +29,7 @@ $on_mod(Loaded) {
         val += 10;
         return val > 0;
     });
-    
+
     auto handle2 = Dispatch<int>("test2").listen([](int val) {
         geode::log::info("Received dispatched int2: {}", val);
     });
