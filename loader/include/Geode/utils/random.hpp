@@ -5,10 +5,16 @@
 #include <type_traits>
 #include <cstring>
 #include <array>
+#include <random>
 
 namespace geode::utils::random {
     /// Generates a secure random 64-bit integer from the OS
-    GEODE_DLL uint64_t secureU64();
+    inline uint64_t secureU64() {
+        std::random_device rd;
+        uint32_t a = rd();
+        uint32_t b = rd();
+        return (static_cast<uint64_t>(a) << 32) | static_cast<uint64_t>(b);
+    }
 
     /// A PRNG engine using the RomuTrio algorithm.
     /// This engine is fully inlined, requires small amount of storage and is very fast and reseedable.
