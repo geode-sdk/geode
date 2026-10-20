@@ -450,6 +450,10 @@ double geode::utils::getInputTimestamp() {
     return static_cast<double>(counter.QuadPart) / static_cast<double>(freq.QuadPart);
 }
 
+bool geode::utils::isGameFocused() {
+    return GetActiveWindow() == WindowFromDC(wglGetCurrentDC());
+}
+
 bool geode::utils::platform::isWine() {
     auto details = getDetails();
     return details.wineVersion.has_value();
@@ -512,4 +516,8 @@ std::string geode::utils::platform::getString() {
         versionStr += fmt::format(" (Wine {})", *details.wineVersion);
     }
     return versionStr;
+}
+
+bool geode::utils::platform::isChromebook() {
+    return false;
 }
