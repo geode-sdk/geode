@@ -677,6 +677,21 @@ public:
      * @returns A pointer to the parnet node
      */
     virtual CCNode* getParent();
+    
+    /**
+     * Util function to add multiple children in one call
+     * @note Geode addition
+     */
+    GEODE_DLL void addChildren(const std::vector<cocos2d::CCNode*>& children);
+    /**
+     * Util function to add multiple children in one call
+     * @note Geode addition
+     */
+    template <typename... Args>
+    GEODE_DLL void addChildren(cocos2d::CCNode* child, Args... others) {
+        addChild(child);
+        (addChild(others), ...);
+    }
 
 
     ////// REMOVES //////
