@@ -13,6 +13,8 @@ using namespace geode::prelude;
 #include <arc/sync/oneshot.hpp>
 #include <mach-o/utils.h>
 #include <sys/sysctl.h>
+#include <Geode/cocos/platform/mac/CCApplication.h>
+#include <Geode/cocos/actions/CCActionManager.h>
 
 #define CommentType CommentTypeDummy
 #import <AppKit/AppKit.h>
@@ -108,10 +110,10 @@ namespace {
         auto path = options.defaultPath.value();
 
         if (path.isDir() || mode == file::PickMode::OpenFolder) {
-            auto defaultPath = intoNS(path);
+            auto defaultPath = intoNS(path.string());
             [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
         } else {
-            auto defaultPath = intoNS(path.parent().value());
+            auto defaultPath = intoNS(path.parent().value().string());
             auto name = intoNS(path.filename().value());
 
             [panel setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
@@ -245,7 +247,7 @@ CCPoint cocos::getMousePos() {
 }
 
 asp::fs::Path dirs::getGameDir() {
-    static auto path = [] {
+    static auto path = [] -> asp::fs::Path {
         std::array<char, PATH_MAX> gddir;
 
         uint32_t out = PATH_MAX;
