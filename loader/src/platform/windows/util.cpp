@@ -252,7 +252,7 @@ asp::fs::Path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
 }
 
-asp::fs::path dirs::getGeodeResourcesDir() {
+asp::fs::Path dirs::getGeodeResourcesDir() {
     return dirs::getGeodeDir() / "resources";
 }
 
