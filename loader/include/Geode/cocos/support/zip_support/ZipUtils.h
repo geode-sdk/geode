@@ -156,7 +156,7 @@ namespace cocos2d
         static std::string base64URLEncode(std::string const&);
         static int ccDeflateMemory(unsigned char* data, unsigned int size, unsigned char** out, int unk);
         static int ccDeflateMemoryWithHint(unsigned char*, unsigned int, unsigned char**, unsigned int);
-        static std::string compressString(std::string const& data, bool encrypt, int encryptionKey, int unk);
+        static std::string compressString(std::string const& data, bool encrypt, int level, int encryptionKey);
         static std::string decompressString(std::string const& data, bool encrypt, int encryptionKey);
         static std::string decompressString2(unsigned char* data, bool encrypt, int size, int encryptionKey);
         static std::string encryptDecrypt(std::string const& data, int encryptionKey);
