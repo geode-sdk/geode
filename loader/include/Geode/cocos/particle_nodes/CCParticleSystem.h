@@ -353,6 +353,8 @@ public:
     CC_SYNTHESIZE_NV(bool, m_bStartRGBVarSync, StartRGBVarSync);
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bEndRGBVarSync, EndRGBVarSync);
+    // @note RobTop Addition. Getter multiplies by 0.078539819
+    float m_particleDrawCost;
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bWasRemoved, WasRemoved);
     // @note RobTop Addition
