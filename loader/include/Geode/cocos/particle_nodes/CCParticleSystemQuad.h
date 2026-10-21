@@ -161,6 +161,8 @@ public:
     GLushort m_uParticleIdx;
     // @note Robtop Addition
     GLubyte m_uOpacity;
+    // @note Robtop Addition
+    void* m_pUnk;
 
 public:
     /**
