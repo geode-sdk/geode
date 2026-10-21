@@ -14,10 +14,6 @@ asp::fs::Path dirs::getGeodeSaveDir() {
     return dirs::getSaveDir() / "geode";
 }
 
-asp::fs::Path dirs::getGeodeResourcesDir() {
-    return dirs::getGeodeDir() / "resources";
-}
-
 asp::fs::Path dirs::getGeodeLogDir() {
     return dirs::getGeodeDir() / "logs";
 }
