@@ -21,7 +21,8 @@
 
 using namespace geode::prelude;
 using namespace geode::utils::file;
-using namespace asp::fs;
+using asp::fs::Path;
+using asp::fs::PathView;
 
 Result<std::string> utils::file::readString(PathView path) {
     return asp::fs::readToString(path);

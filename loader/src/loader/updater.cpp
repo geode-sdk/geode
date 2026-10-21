@@ -68,12 +68,12 @@ Result<> updater::extractLoaderResources(ByteSpan data, std::string_view expecte
     }));
 
     GEODE_UNWRAP(asp::fs::removeDirAll(resourcesDir).mapErr([](auto e) {
-        return "Unable to remove old resources directory: " + e;
+        return "Unable to remove old resources directory: " + e.toString();
     }));
 
     // society if we could just access /data/media/0/ directly...
     GEODE_UNWRAP(asp::fs::move(tempDir, resourcesDir).mapErr([](auto e) {
-        return "Unable to move new resources into place: " + e;
+        return "Unable to move new resources into place: " + e.toString();
     }));
 
     updater::updateSpecialFiles();
