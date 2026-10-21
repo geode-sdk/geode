@@ -1053,7 +1053,12 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     auto tempResDir = tempDir / "resources" / metadata.getID();
     if(tempResDir.exists() && tempResDir.isDir()) {
         // Move tempResDir contents to resDir
-        GEODE_UNWRAP(asp::fs::move(tempResDir, resourceDir));
+        for (auto result : GEODE_UNWRAP(asp::fs::iterDir(tempResDir))) {
+            auto path = GEODE_UNWRAP(result).path;
+            if(auto filename = path.filename()) {
+                GEODE_UNWRAP(asp::fs::move(path, resourceDir / path.filename().value()));
+            }
+        }
     }
 
     // Delete binaries for other platforms since they're pointless
