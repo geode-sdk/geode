@@ -1051,14 +1051,9 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
 
     auto tempResDir = tempDir / "resources" / metadata.getID();
-    if(asp::fs::isDirectory(tempResDir)) {
+    if(tempResDir.exists() && tempResDir.isDir()) {
         // Move tempResDir contents to resDir
-        std::error_code ec;
-        for (auto& entry : std::filesystem::directory_iterator(tempResDir, ec)) {
-            std::error_code ec;
-            std::filesystem::rename(entry.path(), resourceDir / entry.path().filename(), ec);
-        }
-        // TODO: error handling
+        GEODE_UNWRAP(asp::fs::move(tempResDir, resourceDir));
     }
 
     // Delete binaries for other platforms since they're pointless
