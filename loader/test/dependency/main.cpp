@@ -208,3 +208,9 @@ float api::addNumbers(float a, float b) {
 Result<int> api::Test::addNumbers(int a, int b) {
     return Ok(a + b);
 }
+
+int api::randomNumber() {
+    // chosen by fair dice roll.
+    // guaranteed to be random.
+    return 4;
+}

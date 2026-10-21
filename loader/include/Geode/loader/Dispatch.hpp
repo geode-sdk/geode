@@ -94,9 +94,12 @@ namespace geode::geode_internal {
     }
 }
 
+/// A hacky way to turn return type & parameters of a function into a function pointer type.
+/// Unlike a simple `ret (*)(params)`, this allows specifying default arguments because it uses a function declaration
+/// The `noexcept(false)` here is to avoid the Clang warning "Empty parantheses interpreted as a function declaration"
 #define GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, uniq_name) \
     decltype([] { \
-        ret uniq_name params; \
+        ret uniq_name params noexcept(false); \
         return &uniq_name; \
     }())
 
