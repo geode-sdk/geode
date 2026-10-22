@@ -195,6 +195,7 @@ set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
+include(cmake/AIAgentDetection.cmake)
 
 # there is now a script that runs over these lines to determine the gd version
 # so please update them when you set the game version
