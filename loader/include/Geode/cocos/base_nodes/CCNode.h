@@ -1217,7 +1217,7 @@ public:
         // start from end for negative index
         if (index < 0) {
             index = -index - 1;
-            for (size_t i = this->getChildrenCount() - 1; i >= 0; i--) {
+            for (size_t i = this->getChildrenCount() - 1;; i--) {
                 auto obj = geode::cast::typeinfo_cast<T*>(this->getChildren()->objectAtIndex(i));
                 if (obj != nullptr) {
                     if (indexCounter == index) {
