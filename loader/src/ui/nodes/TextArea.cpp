@@ -142,9 +142,11 @@ void geode::SimpleTextAreaImpl::updateLinesCutoffWrap() {
         const std::string& text = line->getString();
         const char back = text.back();
         const bool lastIsSpace = back == ' ';
-        cocos2d::CCLabelBMFont* newLine = createLabel(std::string(!lastIsSpace, back).append(std::string(c != ' ', c)).c_str(), top);
+        cocos2d::CCLabelBMFont* newLine = createLabel(std::string(!lastIsSpace, back).append(1, c).c_str(), top);
 
-        if (newLine == nullptr && !lastIsSpace) {
+        if (newLine != nullptr && !lastIsSpace) {
+            line->setString(text.substr(0, text.size() - 1).c_str());
+        } else if (newLine == nullptr && !lastIsSpace) {
             if (text[text.size() - 2] == ' ') {
                 line->setString(text.substr(0, text.size() - 1).c_str());
             } else {
@@ -370,6 +372,7 @@ public:
 
     std::map<std::string, std::shared_ptr<RichTextKeyBase>> m_richTextKeys;
     std::map<int, std::vector<std::shared_ptr<RichTextKeyInstanceBase>>> m_richTextInstances;
+    std::map<int, std::set<std::string>> m_specialExitCancellations;
     std::map<std::shared_ptr<RichTextKeyInstanceBase>, std::set<CCFontSprite*>> m_charactersForButton{};
     std::shared_ptr<RichTextKeyInstanceBase> m_currentlyHeldButton = nullptr;
 
@@ -582,31 +585,76 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
     m_lines = { line };
 
     std::map<std::string, std::shared_ptr<RichTextKeyInstanceBase>> appliedRichTextInstances{};
+    std::map<std::string, size_t> activationOrder;
+    size_t nextActivationOrder = 0;
 
     std::map<std::shared_ptr<RichTextKeyInstanceBase>, int> m_charIndexForInstance{};
 
+    using CharacterEffect = std::pair<std::shared_ptr<RichTextKeyInstanceBase>, int>;
+
+    std::vector<std::vector<CharacterEffect>> effectsForCharacter;
+    std::map<cocos2d::CCLabelBMFont*, std::vector<size_t>> characterIndicesForLine{};
+    characterIndicesForLine[line] = {};
+
     m_charactersForButton.clear();
 
-    int index = 0;
+    size_t index = 0;
     for (const char& c : m_text) {
-        if (m_richTextInstances.contains(index)){
-            for (const auto& instancePtr : m_richTextInstances[index]) {
-                if (appliedRichTextInstances.contains(instancePtr->getKey())) {
-                    if (instancePtr->isCancellation()){
-                        appliedRichTextInstances.erase(instancePtr->getKey());
-                        m_charIndexForInstance.erase(instancePtr);
+        if (m_richTextInstances.contains(index)) {
+            auto instances = m_richTextInstances[index];
+
+            for (const auto& instance : instances) {
+                auto key = instance->getKey();
+
+                if (instance->isCancellation()) {
+                    auto active = appliedRichTextInstances.find(key);
+                    
+                    if (active != appliedRichTextInstances.end()) {
+                        m_charIndexForInstance.erase(active->second);
+                        appliedRichTextInstances.erase(active);
+                        activationOrder.erase(key);
                     }
-                    else{
-                        appliedRichTextInstances[instancePtr->getKey()] = instancePtr;
-                        m_charIndexForInstance[instancePtr] = 0;
-                    }
-                } else {
-                    appliedRichTextInstances.insert({instancePtr->getKey(), instancePtr});
-                    m_charIndexForInstance[instancePtr] = 0;
+
+                    continue;
                 }
+
+                appliedRichTextInstances[key] = instance;
+                m_charIndexForInstance[instance] = 0;
+                activationOrder[key] = nextActivationOrder++;
             }
         }
 
+        if (m_specialExitCancellations.contains(index)) {
+            const std::string* latestKey = nullptr;
+            size_t latestOrder = 0;
+            
+            for (const auto& key : m_specialExitCancellations[index]) {
+                auto active = appliedRichTextInstances.find(key);
+                auto order = activationOrder.find(key);
+                
+                if (active != appliedRichTextInstances.end() && order != activationOrder.end() && (latestKey == nullptr || order->second > latestOrder)) {
+                    latestKey = &key;
+                    latestOrder = order->second;
+                }
+            }
+
+            if (latestKey != nullptr) {
+                auto active = appliedRichTextInstances.find(*latestKey);
+                m_charIndexForInstance.erase(active->second);
+                appliedRichTextInstances.erase(active);
+                activationOrder.erase(*latestKey);
+            }
+        }
+
+        std::vector<CharacterEffect> characterEffects{};
+        characterEffects.reserve(appliedRichTextInstances.size());
+
+        for (const auto& [key, instancePtr] : appliedRichTextInstances) {
+            characterEffects.emplace_back(instancePtr, m_charIndexForInstance[instancePtr]);
+        }
+        
+        effectsForCharacter.push_back(std::move(characterEffects));
+        auto characterIndex = index;
         index++;
 
         if (c == '\n') {
@@ -614,42 +662,95 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
 
             if (line == nullptr) {
                 break;
-            } else {
-                m_lines.push_back(line);
             }
-        } else if (m_artificialWidth && line->getContentWidth() * m_scale >= m_self->getWidth()) {
+            else {
+                m_lines.push_back(line);
+                characterIndicesForLine[line] = {};
+            }
+        }
+        else if (m_artificialWidth && line->getContentWidth() * m_scale >= m_self->getWidth()) {
+            cocos2d::CCLabelBMFont* oldLine = line;
+            std::string oldText = line->getString();
+            auto oldCharacterIndices = characterIndicesForLine[line];
             line = overflowHandling(line, c, top -= this->calculateOffset(line));
 
             if (line == nullptr) {
                 break;
-            } else {
-                m_lines.push_back(line);
             }
-        } else {
-            line->setString((std::string(line->getString()) + c).c_str());
-        }
+            else {
+                m_lines.push_back(line);
 
-        if (line->getChildren()->lastObject() != nullptr){
-            for (const auto& [key, instancePtr] : appliedRichTextInstances) {
-                auto lastChar = static_cast<cocos2d::CCFontSprite*>(line->getChildren()->lastObject());
+                std::string newText = line->getString();
+                bool currentCharacterWasRendered = c != ' ' && !newText.empty() && newText.back() == c;
 
-                instancePtr->applyChangesToSprite(lastChar, m_charIndexForInstance[instancePtr], index);
+                auto movedText = newText;
+                
+                if (currentCharacterWasRendered) {
+                    movedText.pop_back();
+                }
 
-                if (instancePtr->isButton()){
-                    if (!instancePtr->isCancellation()){
-                        if (m_charactersForButton.contains(instancePtr)){
-                            m_charactersForButton[instancePtr].insert(lastChar);
-                        }
-                        else{
-                            m_charactersForButton.insert({instancePtr, {lastChar}});
+                auto movedCharacterCount = std::min(oldText.size(), movedText.size());
+                while (movedCharacterCount > 0 && oldText.compare(oldText.size() - movedCharacterCount, movedCharacterCount, movedText, 0, movedCharacterCount) != 0) {
+                    movedCharacterCount--;
+                }
+                movedCharacterCount = std::min(movedCharacterCount, oldCharacterIndices.size());
+
+                std::vector<size_t>& remainingCharacterIndices = characterIndicesForLine[oldLine];
+                remainingCharacterIndices.resize(std::min(oldCharacterIndices.size(), std::string(oldLine->getString()).size()));
+
+                std::vector<size_t>& newCharacterIndices = characterIndicesForLine[line];
+                newCharacterIndices.insert(
+                    newCharacterIndices.end(),
+                    oldCharacterIndices.end() - movedCharacterCount,
+                    oldCharacterIndices.end()
+                );
+
+                if (currentCharacterWasRendered) {
+                    newCharacterIndices.push_back(characterIndex);
+                }
+
+                size_t characterIndexInLine = 0;
+                for (auto sprite : CCArrayExt<cocos2d::CCFontSprite*>(line->getChildren())) {
+                    if (characterIndexInLine >= newCharacterIndices.size()) {
+                        break;
+                    }
+
+                    auto sourceCharacterIndex = newCharacterIndices[characterIndexInLine++];
+                    
+                    for (const auto& [instancePtr, localIndex] : effectsForCharacter[sourceCharacterIndex]) {
+                        instancePtr->applyChangesToSprite(sprite, localIndex, static_cast<int>(sourceCharacterIndex + 1));
+
+                        if (instancePtr->isButton() && !instancePtr->isCancellation()) {
+                            m_charactersForButton[instancePtr].insert(sprite);
                         }
                     }
                 }
 
+                if (currentCharacterWasRendered) {
+                    for (const auto& [key, instancePtr] : appliedRichTextInstances) {
+                        m_charIndexForInstance[instancePtr]++;
+                    }
+                }
             }
+        }
+        else {
+            line->setString((std::string(line->getString()) + c).c_str());
 
-            for (const auto& [instancePtr, _] : appliedRichTextInstances) {
-                m_charIndexForInstance[_]++;
+            characterIndicesForLine[line].push_back(characterIndex);
+            if (line->getChildren()->lastObject() != nullptr) {
+                auto lastChar = static_cast<cocos2d::CCFontSprite*>(line->getChildren()->lastObject());
+
+                for (const auto& [instancePtr, localIndex] : effectsForCharacter[characterIndex]) {
+                    instancePtr->applyChangesToSprite(lastChar, localIndex, static_cast<int>(characterIndex + 1));
+
+                    if (instancePtr->isButton() && !instancePtr->isCancellation()) {
+                        m_charactersForButton[instancePtr].insert(lastChar);
+                    }
+                }
+
+                for (const auto& [key, instancePtr] : appliedRichTextInstances) {
+                    m_charIndexForInstance[instancePtr]++;
+                }
             }
         }
     }
@@ -660,6 +761,7 @@ void RichTextArea::RichImpl::formatRichText() {
     std::smatch match;
 
     m_richTextInstances.clear();
+    m_specialExitCancellations.clear();
 
     // theres probably a better way to do this lol idk aa
     struct MatchInfo {
@@ -692,51 +794,30 @@ void RichTextArea::RichImpl::formatRichText() {
     }
 
     std::map<int, std::vector<std::shared_ptr<RichTextKeyInstanceBase>>> richTextInstancesBeforeExtraOffset{};
+    std::map<int, std::set<std::string>> specialExitCancellationsBeforeExtraOffset{};
 
     for (auto& m : asp::iter::fromReverse(matches)) {
         bool keyIsContained = m_richTextKeys.contains(m.key);
 
-        std::set<std::string> keysToEffect{};
-
-        if (!keyIsContained && m.cancellation){
-            for (const auto& [keyStr, keyBaseRef] : m_richTextKeys)
-            {
-                if (!keyBaseRef) continue;
-
-                if (!keyBaseRef->getSpecialExits().contains(m.key)){
-                    continue;
+        if (!keyIsContained && m.cancellation) {
+            const int effectIndex = m.position - m.overallOffset;
+            for (const auto& [keyStr, keyBaseRef] : m_richTextKeys) {
+                if (keyBaseRef && keyBaseRef->getSpecialExits().contains(m.key)) {
+                    specialExitCancellationsBeforeExtraOffset[effectIndex].insert(keyStr);
                 }
-
-                keysToEffect.insert(keyStr);
             }
         }
-        else if (!keyIsContained){
+        else if (!keyIsContained) {
             continue;
         }
-
-        if (!keysToEffect.contains(m.key)) {
-            keysToEffect.insert(m.key);
-        }
-
-        for (const auto& keyStr : keysToEffect)
-        {
-            auto it = m_richTextKeys.find(keyStr);
-            if (it == m_richTextKeys.end() || !it->second) {
-                continue;
-            }
-
-            auto result = it->second->createInstance(m.value, m.cancellation);
-
-            if (result.isErr()) continue;
-
+        else {
             int effectIndex = m.position - m.overallOffset;
-
-            auto keyRef = result.unwrap();
-
-            if (richTextInstancesBeforeExtraOffset.contains(effectIndex)) {
-                richTextInstancesBeforeExtraOffset[effectIndex].push_back(keyRef);
-            } else {
-                richTextInstancesBeforeExtraOffset[effectIndex] = {keyRef};
+            auto it = m_richTextKeys.find(m.key);
+            if (it != m_richTextKeys.end() && it->second) {
+                auto result = it->second->createInstance(m.value, m.cancellation);
+                if (result.isOk()) {
+                    richTextInstancesBeforeExtraOffset[effectIndex].push_back(result.unwrap());
+                }
             }
         }
 
@@ -746,16 +827,31 @@ void RichTextArea::RichImpl::formatRichText() {
     int textAdditionOverallOffset = 0;
     int prevExtraOffset = 0;
 
+    std::set<int> effectIndices;
     for (const auto& [index, keys] : richTextInstancesBeforeExtraOffset) {
-        for (const auto& keyRef : keys)
-        {
-            auto currentAddition = keyRef->runStrAddition();
-            if (currentAddition == "") continue;
-            textToModify.insert(index + textAdditionOverallOffset, currentAddition);
-            textAdditionOverallOffset += currentAddition.length();
+        effectIndices.insert(index);
+    }
+    for (const auto& [index, keys] : specialExitCancellationsBeforeExtraOffset) {
+        effectIndices.insert(index);
+    }
+
+    for (const int index : effectIndices) {
+        auto keyInstances = richTextInstancesBeforeExtraOffset.find(index);
+        if (keyInstances != richTextInstancesBeforeExtraOffset.end()) {
+            for (const auto& keyRef : keyInstances->second) {
+                auto currentAddition = keyRef->runStrAddition();
+                if (currentAddition.empty()) continue;
+                textToModify.insert(index + textAdditionOverallOffset, currentAddition);
+                textAdditionOverallOffset += currentAddition.length();
+            }
+
+            m_richTextInstances[index + prevExtraOffset] = std::move(keyInstances->second);
         }
 
-        m_richTextInstances[index + prevExtraOffset] = std::move(keys);
+        auto specialExit = specialExitCancellationsBeforeExtraOffset.find(index);
+        if (specialExit != specialExitCancellationsBeforeExtraOffset.end()) {
+            m_specialExitCancellations[index + prevExtraOffset] = std::move(specialExit->second);
+        }
 
         prevExtraOffset = textAdditionOverallOffset;
     }
