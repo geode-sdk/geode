@@ -308,10 +308,9 @@ bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width
     this->getDescriptionButton()->setVisible(false);
 
     auto label =
-        BoxedLabel::create(setting->getDescription().value_or(""), "chatFont.fnt", width - 32.5f);
+        BoxedLabel::create(setting->getDescription().value_or(""), "chatFont.fnt", width - 25);
     label->lockBGWidth(true);
     label->setTextScale(.65f);
-    label->setPadding(12.5f);
     label->setBGOpacity(100);
     label->setBGColor(setting->getColor().value_or(ccc3(255, 135, 88)));
 

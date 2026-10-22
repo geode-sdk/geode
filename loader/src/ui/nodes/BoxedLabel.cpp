@@ -7,12 +7,10 @@ class BoxedLabel::Impl final {
 public:
     float m_width = .0f;
     float m_padding = 10.0f;
-    bool m_lockWidth = false;
+    bool m_lockBoxWidth = false;
 
     Label* m_label = nullptr;
     NineSlice* m_bg = nullptr;
-
-    bool m_labelDirty = true;
 };
 
 BoxedLabel::BoxedLabel() : m_impl(std::make_unique<Impl>()) {};
@@ -44,18 +42,16 @@ bool BoxedLabel::init(std::string text, ZStringView font, float width) {
 };
 
 void BoxedLabel::resize() {
-    if (m_impl->m_labelDirty) {
-        m_impl->m_label->setMaxWidth(
-            (m_impl->m_width - (m_impl->m_lockWidth ? m_impl->m_padding : .0f)) /
-            m_impl->m_label->getScale()
-        );
-
-        m_impl->m_labelDirty = false;
+    if (m_impl->m_width > .0f) {
+        float pad = m_impl->m_lockBoxWidth ? m_impl->m_padding : .0f;
+        m_impl->m_label->setMaxWidth((m_impl->m_width - pad) / m_impl->m_label->getScale());
     }
 
+    bool mustLockWidth = m_impl->m_lockBoxWidth && m_impl->m_width > .0f;
+
     this->setContentSize({
-        (m_impl->m_lockWidth ? m_impl->m_width : m_impl->m_label->getScaledContentWidth()) +
-            m_impl->m_padding,
+        mustLockWidth ? m_impl->m_width :
+                        (m_impl->m_label->getScaledContentWidth() + m_impl->m_padding),
         m_impl->m_label->getScaledContentHeight() + m_impl->m_padding,
     });
 
@@ -65,7 +61,6 @@ void BoxedLabel::resize() {
 };
 
 void BoxedLabel::setText(std::string text) {
-    m_impl->m_labelDirty = true;
     m_impl->m_label->setRichText(std::move(text));
     this->resize();
 };
@@ -76,7 +71,6 @@ void BoxedLabel::setFont(ZStringView font) {
 };
 
 void BoxedLabel::setTextScale(float scale) {
-    m_impl->m_labelDirty = true;
     m_impl->m_label->setScale(scale);
     this->resize();
 };
@@ -108,7 +102,7 @@ void BoxedLabel::setBGScale(float scale) {
 };
 
 void BoxedLabel::lockBGWidth(bool lock) {
-    m_impl->m_lockWidth = lock;
+    m_impl->m_lockBoxWidth = lock;
     this->resize();
 };
 
@@ -121,7 +115,7 @@ float BoxedLabel::getPadding() const noexcept {
 };
 
 bool BoxedLabel::isBGWidthLocked() const noexcept {
-    return m_impl->m_lockWidth;
+    return m_impl->m_lockBoxWidth;
 };
 
 Label* BoxedLabel::getLabelNode() const noexcept {
