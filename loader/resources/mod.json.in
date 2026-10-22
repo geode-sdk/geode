@@ -1,20 +1,20 @@
 {
     "geode": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
     "gd": {
-        "win": "*",
-        "mac": "*",
-        "android": "*",
-        "ios": "*"
+        "win": "2.21",
+        "mac": "2.21",
+        "android": "2.21",
+        "ios": "2.21"
     },
     "id": "geode.loader",
     "version": "@PROJECT_VERSION@@PROJECT_VERSION_SUFFIX@",
-    "name": "Geode",
-    "developer": "Geode Team",
-    "description": "The Geode mod loader",
+    "name": "Amber Modloader",
+    "developer": "ambersignal14",
+    "description": "The Amber SDK",
     "links": {
         "community": "https://discord.com/invite/9e43WMKzhp",
         "homepage": "https://geode-sdk.org",
-        "source": "https://github.com/geode-sdk/geode"
+        "source": "https://github.com/ambersignal14/geode"
     },
     "resources": {
         "fonts": {
