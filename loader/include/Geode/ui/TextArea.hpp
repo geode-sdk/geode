@@ -127,15 +127,39 @@ namespace geode {
         virtual ~RichTextKeyBase() = default;
         virtual Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(std::string const& value, bool cancellation) = 0;
         virtual std::string getKey() const = 0;
+        virtual std::set<std::string> getSpecialExits() const = 0;
     };
 
     template <class T>
     class RichTextKey final : public RichTextKeyBase {
     public:
         /**
-            @param key The identifier name for this rich text key
-            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
-            @param applyToSprite Function to apply the parsed value to a font sprite (optional)
+            @param key The identifier name for this rich text key.
+            @param validCheck Function used to validate and parse the value string into type `T`.
+            @param buttonFunctionallity Function called when the tagged text is clicked.
+
+            validCheck Parameters:
+
+                - `value`: Raw string value from the rich text tag.
+
+            validCheck Returns:
+
+                - `Result<T>` containing the parsed value.
+                - If an error is returned, the key will not be processed.
+
+            buttonFunctionallity Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+
+                - `keyDown`:
+                Whether the click is currently in the pressed/down state.
+
+                - `specificSpriteClicked`:
+                The exact `CCFontSprite` that was clicked.
+
+                - `wordClicked`:
+                All sprites belonging to the clicked segment.
         */
         RichTextKey(
             std::string key,
@@ -148,10 +172,34 @@ namespace geode {
         ) : m_key(std::move(key)),
             m_validCheck(std::move(validCheck)),
             m_buttonFunctionallity(std::move(buttonFunctionallity)) {}
+        
         /**
-            @param key The identifier name for this rich text key
-            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
-            @param applyToSprite Function to apply the parsed value to a font sprite (optional)
+            @param key The identifier name for this rich text key.
+            @param validCheck Function used to validate and parse the value string into type `T`.
+            @param applyToSprite Function to apply the parsed value to a font sprite. this function gets called for each letter in the range.
+
+            validCheck Parameters:
+
+                - `value`: Raw string value from the rich text tag.
+
+            validCheck Returns:
+
+                - `Result<T>` containing the parsed value.
+                - If an error is returned, the key will not be processed.
+
+            applyToSprite Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+
+                - `sprite`:
+                The current sprite of the current letter we iterate over
+
+                - `localIndex`:
+                The index of the current letter within the range of the key
+
+                - `charIndex`:
+                The index of the current letter within the entire text area
         */
         RichTextKey(
             std::string key,
@@ -160,10 +208,30 @@ namespace geode {
         ) : m_key(std::move(key)),
             m_validCheck(std::move(validCheck)),
             m_applyToSprite(std::move(applyToSprite)) {}
+        
         /**
-            @param key The identifier name for this rich text key
-            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
-            @param stringAddition Function to add a new string at the point where the key is (optional)
+            @param key The identifier name for this rich text key.
+            @param validCheck Function used to validate and parse the value string into type `T`.
+            @param applyToSprite Function to apply the parsed value to a font sprite. this function gets called for each letter in the range.
+            @param stringAddition Function to add a new string at the point where the key is.
+
+            validCheck Parameters:
+
+                - `value`: Raw string value from the rich text tag.
+
+            validCheck Returns:
+
+                - `Result<T>` containing the parsed value.
+                - If an error is returned, the key will not be processed.
+
+            stringAddition Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+            
+            stringAddition Returns:
+
+                - `std::string` the string to add at the point of the key.
         */
         RichTextKey(
             std::string key,
@@ -173,10 +241,41 @@ namespace geode {
             m_validCheck(std::move(validCheck)),
             m_stringAddition(std::move(stringAddition)) {}
         /**
-            @param key The identifier name for this rich text key
-            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
-            @param applyToSprite Function to apply the parsed value to a font sprite (optional)
-            @param stringAddition Function to add a new string at the point where the key is (optional)
+            @param key The identifier name for this rich text key.
+            @param validCheck Function used to validate and parse the value string into type `T`.
+            @param stringAddition Function to add a new string at the point where the key is.
+
+            validCheck Parameters:
+
+                - `value`: Raw string value from the rich text tag.
+
+            validCheck Returns:
+
+                - `Result<T>` containing the parsed value.
+                - If an error is returned, the key will not be processed.
+
+            applyToSprite Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+
+                - `sprite`:
+                The current sprite of the current letter we iterate over
+
+                - `localIndex`:
+                The index of the current letter within the range of the key
+
+                - `charIndex`:
+                The index of the current letter within the entire text area
+
+            stringAddition Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+            
+            stringAddition Returns:
+
+                - `std::string` the string to add at the point of the key.
         */
         RichTextKey(
             std::string key,
@@ -211,8 +310,17 @@ namespace geode {
             return m_key;
         }
 
+        std::set<std::string> getSpecialExits() const override {
+            return m_specialExits;
+        }
+
+        void setSpecialExits(std::set<std::string> specialExists) {
+            m_specialExits = std::move(specialExists);
+        }
+
     private:
         std::string m_key;
+        std::set<std::string> m_specialExits{};
 
     public:
         geode::Function<Result<T>(std::string const& value)> m_validCheck = NULL;
@@ -233,7 +341,12 @@ namespace geode {
 
         std::string getRawText();
 
+        void updateContent();
+
+        std::vector<std::shared_ptr<RichTextKeyBase>> getTextKeys();
+
         void registerRichTextKey(std::shared_ptr<RichTextKeyBase> key);
+        void unregisterRichTextKey(std::string const& keyName);
     protected:
         RichTextArea();
         ~RichTextArea();
