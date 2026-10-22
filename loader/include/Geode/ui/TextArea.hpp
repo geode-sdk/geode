@@ -51,7 +51,7 @@ namespace geode {
         float getScale() override;
         void setLinePadding(float padding);
         float getLinePadding();
-        std::vector<geode::Label*> getLines();
+        std::vector<cocos2d::CCLabelBMFont*> getLines();
         float getHeight();
         float getLineHeight();
 
