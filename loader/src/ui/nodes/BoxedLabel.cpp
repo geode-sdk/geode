@@ -1,0 +1,144 @@
+#include <Geode/ui/BoxedLabel.hpp>
+#include <Geode/utils/cocos.hpp>
+
+using namespace geode::prelude;
+
+class BoxedLabel::Impl final {
+public:
+    float m_width = .0f;
+    float m_padding = 10.0f;
+    bool m_lockWidth = false;
+
+    Label* m_label = nullptr;
+    NineSlice* m_bg = nullptr;
+
+    bool m_labelDirty = true;
+};
+
+BoxedLabel::BoxedLabel() : m_impl(std::make_unique<Impl>()) {};
+BoxedLabel::~BoxedLabel() {};
+
+bool BoxedLabel::init(std::string text, ZStringView font, float width) {
+    if (!CCNode::init()) return false;
+
+    m_impl->m_width = width;
+
+    this->setAnchorPoint({.5f, .5f});
+
+    m_impl->m_label = Label::createRich(std::move(text), font);
+
+    m_impl->m_label->setAlignment(Label::Alignment::Center);
+    m_impl->m_label->setBreakWords(true);
+
+    m_impl->m_bg = NineSlice::create("white-square.png"_spr);
+    m_impl->m_bg->setZOrder(-1);
+    m_impl->m_bg->setOpacity(125);
+    m_impl->m_bg->setColor({0, 0, 0});
+
+    this->resize();
+
+    this->addChildAtPosition(m_impl->m_label, Anchor::Center);
+    this->addChildAtPosition(m_impl->m_bg, Anchor::Center);
+
+    return true;
+};
+
+void BoxedLabel::resize() {
+    if (m_impl->m_labelDirty) {
+        m_impl->m_label->setMaxWidth(
+            (m_impl->m_width - (m_impl->m_lockWidth ? m_impl->m_padding : .0f)) /
+            m_impl->m_label->getScale()
+        );
+
+        m_impl->m_labelDirty = false;
+    }
+
+    this->setContentSize({
+        (m_impl->m_lockWidth ? m_impl->m_width : m_impl->m_label->getScaledContentWidth()) +
+            m_impl->m_padding,
+        m_impl->m_label->getScaledContentHeight() + m_impl->m_padding,
+    });
+
+    m_impl->m_bg->setContentSize(this->getScaledContentSize());
+
+    this->updateLayout();
+};
+
+void BoxedLabel::setText(std::string text) {
+    m_impl->m_labelDirty = true;
+    m_impl->m_label->setRichText(std::move(text));
+    this->resize();
+};
+
+void BoxedLabel::setFont(ZStringView font) {
+    m_impl->m_label->setFont(font);
+    this->resize();
+};
+
+void BoxedLabel::setTextScale(float scale) {
+    m_impl->m_labelDirty = true;
+    m_impl->m_label->setScale(scale);
+    this->resize();
+};
+
+void BoxedLabel::setTextAlignment(Label::Alignment alignment) {
+    m_impl->m_label->setAlignment(alignment);
+};
+
+void BoxedLabel::setMaxLabelWidth(float width) {
+    m_impl->m_width = width;
+    this->resize();
+};
+
+void BoxedLabel::setPadding(float padding) {
+    m_impl->m_padding = padding;
+    this->resize();
+};
+
+void BoxedLabel::setBGColor(ccColor3B const& color) {
+    m_impl->m_bg->setColor(color);
+};
+
+void BoxedLabel::setBGOpacity(GLubyte opacity) {
+    m_impl->m_bg->setOpacity(opacity);
+};
+
+void BoxedLabel::setBGScale(float scale) {
+    m_impl->m_bg->setScaleMultiplier(scale);
+};
+
+void BoxedLabel::lockBGWidth(bool lock) {
+    m_impl->m_lockWidth = lock;
+    this->resize();
+};
+
+float BoxedLabel::getMaxLabelWidth() const noexcept {
+    return m_impl->m_width;
+};
+
+float BoxedLabel::getPadding() const noexcept {
+    return m_impl->m_padding;
+};
+
+bool BoxedLabel::isBGWidthLocked() const noexcept {
+    return m_impl->m_lockWidth;
+};
+
+Label* BoxedLabel::getLabelNode() const noexcept {
+    return m_impl->m_label;
+};
+
+NineSlice* BoxedLabel::getBGSprite() const noexcept {
+    return m_impl->m_bg;
+};
+
+BoxedLabel* BoxedLabel::create(std::string text, ZStringView font, float width) {
+    auto ret = new BoxedLabel();
+    if (ret->init(std::move(text), font, width)) {
+        ret->autorelease();
+        return ret;
+    }
+
+    delete ret;
+    return nullptr;
+};
