@@ -1,6 +1,15 @@
 #include <Geode/utils/random.hpp>
+#include <random>
+#include <cstring>
 
 namespace geode::utils::random {
+
+uint64_t secureU64() {
+    std::random_device rd;
+    uint32_t a = rd();
+    uint32_t b = rd();
+    return (static_cast<uint64_t>(a) << 32) | static_cast<uint64_t>(b);
+}
 
 Generator& _getGenerator() {
     static thread_local Generator generator;
