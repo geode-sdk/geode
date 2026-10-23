@@ -31,3 +31,7 @@ $on_mod(Loaded) {
         CCDirector::get()->m_pNotificationNode = OverlayManager::get();
     });
 }
+
+$on_game(TexturesUnloaded) {
+    OverlayManager::get()->removeAllChildren();
+}
