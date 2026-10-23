@@ -14,9 +14,9 @@ namespace geode {
         Alt2,
     };
 
-    bool isGeodeTheme(bool forceDisableTheme = false);
+    GEODE_DLL bool isGeodeTheme(bool forceDisableTheme = false);
 
-    class GeodePopup : public Popup {
+    class GEODE_DLL GeodePopup : public Popup {
     protected:
         bool m_forceDisableTheme = false;
 
@@ -26,7 +26,7 @@ namespace geode {
         );
     };
 
-    class GeodeSquareSprite final : public cocos2d::CCSprite {
+    class GEODE_DLL GeodeSquareSprite final : public cocos2d::CCSprite {
         class Impl;
         std::unique_ptr<Impl> m_impl;
 
@@ -51,7 +51,9 @@ namespace geode {
         void setState(bool state);
     };
 
-    cocos2d::CCNode* createLoadingCircle(float sideLength, ZStringView id = "loading-spinner");
+    GEODE_DLL cocos2d::CCNode* createLoadingCircle(
+        float sideLength, ZStringView id = "loading-spinner"
+    );
 
     enum class GeodeButtonSprite {
         Default,
@@ -60,32 +62,37 @@ namespace geode {
         Enable,
         Gray,
     };
-    ZStringView getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme = false);
-    IconButtonSprite* createGeodeButton(
+
+    GEODE_DLL ZStringView
+    getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme = false);
+
+    GEODE_DLL IconButtonSprite* createGeodeButton(
         cocos2d::CCNode* icon, ZStringView text, GeodeButtonSprite bg = GeodeButtonSprite::Default,
         bool forceDisableTheme = false
     );
-    IconButtonSprite* createGeodeButton(
+    GEODE_DLL IconButtonSprite* createGeodeButton(
         cocos2d::CCNode* icon, ZStringView text, bool gold,
         GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false
     );
-    ButtonSprite* createGeodeButton(
+    GEODE_DLL ButtonSprite* createGeodeButton(
         ZStringView text, int width, bool absolute = false, bool gold = false,
         GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false
     );
-    ButtonSprite* createGeodeButton(
+    GEODE_DLL ButtonSprite* createGeodeButton(
         ZStringView text, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default,
         bool forceDisableTheme = false
     );
 
-    CircleButtonSprite* createGeodeCircleButton(
+    GEODE_DLL CircleButtonSprite* createGeodeCircleButton(
         cocos2d::CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium,
         bool altColor = false, bool forceDisableTheme = false
     );
 
-    ListBorders* createGeodeListBorders(cocos2d::CCSize const& size, bool forceDisableTheme = false);
+    GEODE_DLL ListBorders* createGeodeListBorders(
+        cocos2d::CCSize const& size, bool forceDisableTheme = false
+    );
 
-    class GeodeTabSprite final : public cocos2d::CCNode {
+    class GEODE_DLL GeodeTabSprite final : public cocos2d::CCNode {
         class Impl;
         std::unique_ptr<Impl> m_impl;
 
