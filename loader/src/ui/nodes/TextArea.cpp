@@ -902,12 +902,18 @@ void RichTextArea::registerRichTextKey(std::shared_ptr<RichTextKeyBase> key){
     if (this->castedImpl()->m_richTextKeys.contains(key->getKey())) return;
 
     this->castedImpl()->m_richTextKeys.insert({key->getKey(), key});
+
+    this->castedImpl()->formatRichText();
+    this->castedImpl()->updateContainer();
 }
 
 void RichTextArea::unregisterRichTextKey(std::string const& keyName) {
     if (!this->castedImpl()->m_richTextKeys.contains(keyName)) return;
 
     this->castedImpl()->m_richTextKeys.erase(keyName);
+    
+    this->castedImpl()->formatRichText();
+    this->castedImpl()->updateContainer();
 }
 
 bool RichTextArea::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
