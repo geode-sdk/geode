@@ -1,34 +1,35 @@
-#include <Geode/ui/ProgressBar.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/ProgressBar.hpp>
 #include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
 
 class ProgressBar::Impl final {
 public:
-    // Progress bar outline
-    Ref<CCSprite> progressBar = nullptr;
-    // Progress bar fill
-    CCSprite* progressBarFill = nullptr;
-    // The text label displaying the percentage
-    Ref<Label> progressPercentLabel = nullptr;
+    CCSprite* m_progressBar = nullptr;
+    CCSprite* m_progressBarFill = nullptr;
+    Label* m_progressPercentLabel = nullptr;
+
+    ProgressBarStyle m_style = ProgressBarStyle::Level;
 
     // Current progress bar fill percentage ranging from 0 to 100
-    float progress = 0.0f;
+    float m_progress = .0f;
 
-    // Style of the progress bar
-    ProgressBarStyle style = ProgressBarStyle::Level;
     // Color of the filled progress bar
-    ccColor3B progressBarFillColor = { 255, 255, 255 };
+    ccColor3B m_progressBarFillColor = {255, 255, 255};
     // Whether to show the label showing the percentage of the current progress
-    bool showProgressPercentLabel = false;
+    bool m_showProgressPercentLabel = false;
     // Precision of the percentage on the progress percent label
-    size_t precision = 0;
+    size_t m_precision = 0;
 
-    // Max width for the progress fill bar node
-    float progressBarFillMaxWidth = 0.0f;
-    // Max height for the progress fill bar node
-    float progressBarFillMaxHeight = 0.0f;
+    float m_progressBarFillMaxWidth = .0f;
+    float m_progressBarFillMaxHeight = .0f;
+
+    float m_animDuration = .0f;
+    float m_animElapsed = .0f;
+    float m_animProgressFrom = .0f;
+    float m_animProgressTo = 100.0f;
+    EasingType m_animEase = EasingType::None;
 
     /**
      * Set up `Level`/`Slider` progress bar style
@@ -36,102 +37,159 @@ public:
      * @param barSpr Sprite of the bar
      * @param fillSpr Sprite of the fill
      */
-    void setupBarStyle(const char* barSpr, const char* fillSpr) {
-        progressBar = CCSprite::create(barSpr);
-        progressBar->setID("progress-bar");
-        progressBar->setAnchorPoint({ 0.5, 0.5 });
-        progressBar->setPosition({ progressBar->getScaledContentWidth() / 2.0f, progressBar->getScaledContentHeight() / 2.0f });
-        progressBar->setZOrder(1);
+    void setupBarStyle(ZStringView barSpr, ZStringView fillSpr) {
+        m_progressBar = CCSprite::create(barSpr.c_str());
+        m_progressBar->setID("progress-bar");
+        m_progressBar->setAnchorPoint({.5, .5});
+        m_progressBar->setPosition({
+            m_progressBar->getScaledContentWidth() / 2.0f,
+            m_progressBar->getScaledContentHeight() / 2.0f,
+        });
+        m_progressBar->setZOrder(1);
 
-        progressBarFill = CCSprite::create(fillSpr);
-        progressBarFill->setID("progress-bar-fill");
-        progressBarFill->setAnchorPoint({ 0, 0.5 });
-        progressBarFill->setPosition({ 2.0f, progressBar->getScaledContentHeight() / 2.0f });
-        progressBarFill->setColor(progressBarFillColor);
-        progressBarFill->setZOrder(-1);
+        m_progressBarFill = CCSprite::create(fillSpr.c_str());
+        m_progressBarFill->setID("progress-bar-fill");
+        m_progressBarFill->setAnchorPoint({0, .5});
+        m_progressBarFill->setPosition({2.0f, m_progressBar->getScaledContentHeight() / 2.0f});
+        m_progressBarFill->setColor(m_progressBarFillColor);
+        m_progressBarFill->setZOrder(-1);
 
-        progressBarFillMaxWidth = progressBar->getScaledContentWidth() - 4.0f;
-        progressBarFillMaxHeight = progressBarFill->getScaledContentHeight() - 0.5f;
+        auto params = ccTexParams{GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT};
+        m_progressBarFill->getTexture()->setTexParameters(&params);
 
-        progressPercentLabel = Label::create("0%", "bigFont.fnt");
-        progressPercentLabel->setID("progress-percent-label");
-        progressPercentLabel->setScale(0.5f);
-        progressPercentLabel->setAnchorPoint({ 0, 0.5 });
-        progressPercentLabel->setPosition({ progressBar->getScaledContentWidth() + 2.5f, progressBar->getScaledContentHeight() / 2.0f });
-        progressPercentLabel->setAlignment(Label::Alignment::Left);
-        progressPercentLabel->setVisible(showProgressPercentLabel);
-        progressPercentLabel->setZOrder(1);
+        m_progressBarFillMaxWidth = m_progressBar->getScaledContentWidth() - 4.0f;
+        m_progressBarFillMaxHeight = m_progressBarFill->getScaledContentHeight() - .5f;
+
+        m_progressPercentLabel = Label::create("0%", "bigFont.fnt");
+        m_progressPercentLabel->setID("progress-percent-label");
+        m_progressPercentLabel->setScale(.5f);
+        m_progressPercentLabel->setAnchorPoint({0, .5});
+        m_progressPercentLabel->setPosition({
+            m_progressBar->getScaledContentWidth() + 2.5f,
+            m_progressBar->getScaledContentHeight() / 2.0f,
+        });
+        m_progressPercentLabel->setAlignment(Label::Alignment::Left);
+        m_progressPercentLabel->setVisible(m_showProgressPercentLabel);
+        m_progressPercentLabel->setZOrder(1);
     };
 
     // Set up `Solid` progress bar style
     void setupSolidStyle() {
-        progressBar = CCSprite::create("GJ_progressBar_001.png");
-        progressBar->setID("progress-bar");
-        progressBar->setAnchorPoint({ 0.5, 0.5 });
-        progressBar->setPosition({ progressBar->getScaledContentWidth() / 2.0f, progressBar->getScaledContentHeight() / 2.0f });
-        progressBar->setColor({ 0, 0, 0 });
-        progressBar->setOpacity(125);
-        progressBar->setZOrder(-1);
+        m_progressBar = CCSprite::create("GJ_progressBar_001.png");
+        m_progressBar->setID("progress-bar");
+        m_progressBar->setAnchorPoint({.5, .5});
+        m_progressBar->setPosition({
+            m_progressBar->getScaledContentWidth() / 2.0f,
+            m_progressBar->getScaledContentHeight() / 2.0f,
+        });
+        m_progressBar->setColor({0, 0, 0});
+        m_progressBar->setOpacity(125);
+        m_progressBar->setZOrder(-1);
 
-        progressBarFill = CCSprite::create("GJ_progressBar_001.png");
-        progressBarFill->setID("progress-bar-fill");
-        progressBarFill->setScale(0.992f);
-        progressBarFill->setScaleY(0.86f);
-        progressBarFill->setAnchorPoint({ 0, 0.5 });
-        progressBarFill->setPosition({ 1.36f, progressBar->getScaledContentHeight() / 2.0f });
-        progressBarFill->setColor(progressBarFillColor);
-        progressBarFill->setZOrder(0);
+        m_progressBarFill = CCSprite::create("GJ_progressBar_001.png");
+        m_progressBarFill->setID("progress-bar-fill");
+        m_progressBarFill->setScale(.992f);
+        m_progressBarFill->setScaleY(.86f);
+        m_progressBarFill->setAnchorPoint({0, .5});
+        m_progressBarFill->setPosition({
+            1.36f,
+            m_progressBar->getScaledContentHeight() / 2.0f,
+        });
+        m_progressBarFill->setColor(m_progressBarFillColor);
+        m_progressBarFill->setZOrder(0);
 
-        progressBarFillMaxWidth = progressBar->getScaledContentWidth();
-        progressBarFillMaxHeight = 20.0f;
+        m_progressBarFillMaxWidth = m_progressBar->getScaledContentWidth();
+        m_progressBarFillMaxHeight = 20.0f;
 
-        progressPercentLabel = Label::create("0%", "bigFont.fnt");
-        progressPercentLabel->setID("progress-percent-label");
-        progressPercentLabel->setScale(0.5f);
-        progressPercentLabel->setAnchorPoint({ 0.5, 0.5 });
-        progressPercentLabel->setPosition({ progressBar->getScaledContentWidth() / 2.0f, progressBar->getScaledContentHeight() / 2.0f });
-        progressPercentLabel->setAlignment(Label::Alignment::Center);
-        progressPercentLabel->setVisible(showProgressPercentLabel);
-        progressPercentLabel->setZOrder(1);
+        m_progressPercentLabel = Label::create("0%", "bigFont.fnt");
+        m_progressPercentLabel->setID("progress-percent-label");
+        m_progressPercentLabel->setScale(.5f);
+        m_progressPercentLabel->setAnchorPoint({.5, .5});
+        m_progressPercentLabel->setPosition({
+            m_progressBar->getScaledContentWidth() / 2.0f,
+            m_progressBar->getScaledContentHeight() / 2.0f,
+        });
+        m_progressPercentLabel->setAlignment(Label::Alignment::Center);
+        m_progressPercentLabel->setVisible(m_showProgressPercentLabel);
+        m_progressPercentLabel->setZOrder(1);
+    };
+
+    void updateBar(float value) {
+        if (value > 100.0f) value = 100.0f;
+        if (value < .0f) value = .0f;
+
+        m_progress = value;
+
+        float width = m_progressBarFillMaxWidth * (m_progress / 100.0f);
+        m_progressBarFill->setTextureRect({.0f, .0f, width, m_progressBarFillMaxHeight});
+
+        if (m_showProgressPercentLabel) {
+            auto percentString = (m_precision > 0) ?
+                fmt::format("{}%", numToString(value, m_precision)) :
+                fmt::format("{:.0f}%", value);
+            m_progressPercentLabel->setText(std::move(percentString));
+        };
     };
 };
 
 ProgressBar::ProgressBar() : m_impl(std::make_unique<Impl>()) {};
-
 ProgressBar::~ProgressBar() {};
 
 void ProgressBar::reloadStyle() {
-    switch (m_impl->style) {
+    switch (m_impl->m_style) {
         default: [[fallthrough]];
 
-        case ProgressBarStyle::Level: m_impl->setupBarStyle("slidergroove2.png", "sliderBar2.png"); break;
-        case ProgressBarStyle::Slider: m_impl->setupBarStyle("slidergroove.png", "sliderBar.png"); break;
+        case ProgressBarStyle::Level:
+            m_impl->setupBarStyle("slidergroove2.png", "sliderBar2.png");
+            break;
+
+        case ProgressBarStyle::Slider:
+            m_impl->setupBarStyle("slidergroove.png", "sliderBar.png");
+            break;
+
         case ProgressBarStyle::Solid: m_impl->setupSolidStyle(); break;
     };
 
-    this->setContentSize(m_impl->progressBar->getContentSize());
+    this->setContentSize(m_impl->m_progressBar->getContentSize());
 
-    m_impl->progressBar->addChild(m_impl->progressBarFill);
+    m_impl->m_progressBar->addChild(m_impl->m_progressBarFill);
 
-    this->addChild(m_impl->progressBar);
-    this->addChild(m_impl->progressPercentLabel);
+    this->addChild(m_impl->m_progressBar);
+    this->addChild(m_impl->m_progressPercentLabel);
 
-    this->updateProgress(m_impl->progress);
+    this->updateProgress(m_impl->m_progress);
 };
 
 bool ProgressBar::init(ProgressBarStyle style) {
     if (!CCNode::init()) return false;
 
-    m_impl->style = style;
+    m_impl->m_style = style;
+
+    this->setAnchorPoint({.5f, .5f});
 
     this->reloadStyle();
 
     return true;
 };
 
+void ProgressBar::onAnimate(float dt) {
+    m_impl->m_animElapsed += dt;
+    float t = std::min(m_impl->m_animElapsed / m_impl->m_animDuration, 1.0f);
+
+    float eased = GameToolbox::getEasedValue(t, static_cast<int>(m_impl->m_animEase), 2.0f);
+    m_impl->updateBar(
+        m_impl->m_animProgressFrom + (m_impl->m_animProgressTo - m_impl->m_animProgressFrom) * eased
+    );
+
+    if (t >= 1.0f) {
+        m_impl->updateBar(m_impl->m_animProgressTo);
+        this->unschedule(schedule_selector(ProgressBar::onAnimate));
+    };
+};
+
 void ProgressBar::setStyle(ProgressBarStyle style) {
-    if (m_impl->style != style) {
-        m_impl->style = style;
+    if (m_impl->m_style != style) {
+        m_impl->m_style = style;
 
         this->removeAllChildren();
         this->reloadStyle(); // recreate nodes with new style
@@ -139,55 +197,74 @@ void ProgressBar::setStyle(ProgressBarStyle style) {
 };
 
 void ProgressBar::setFillColor(ccColor3B color) {
-    m_impl->progressBarFillColor = color;
-    if (m_impl->progressBarFill) m_impl->progressBarFill->setColor(color);
+    m_impl->m_progressBarFillColor = color;
+    m_impl->m_progressBarFill->setColor(color);
 };
 
 void ProgressBar::setPrecision(size_t precision) {
-    m_impl->precision = precision;
-    this->updateProgress(m_impl->progress); // update label with new precision
+    m_impl->m_precision = precision;
+    this->updateProgress(m_impl->m_progress); // update label with new precision
 };
 
 void ProgressBar::updateProgress(float value) {
-    if (value > 100.0f) value = 100.0f;
-    if (value < 0.0f) value = 0.0f;
+    this->stopProgressAnimation();
+    m_impl->updateBar(value);
+};
 
-    m_impl->progress = value;
+void ProgressBar::updateProgress(float value, float duration, EasingType ease) {
+    this->stopProgressAnimation();
 
-    if (m_impl->progressBarFill) {
-        float width = m_impl->progressBarFillMaxWidth * (m_impl->progress / 100.0f);
-        m_impl->progressBarFill->setTextureRect({ 0.0f, 0.0f, width, m_impl->progressBarFillMaxHeight });
+    value = std::clamp(value, .0f, 100.0f);
+
+    if (duration <= .0f) {
+        this->updateProgress(value);
+        return;
     };
 
-    if (m_impl->progressPercentLabel) {
-        auto percentString = fmt::format("{}%", geode::utils::numToString(m_impl->progress, m_impl->precision));
-        m_impl->progressPercentLabel->setText(std::move(percentString));
-    };
+    m_impl->m_animProgressFrom = m_impl->m_progress;
+    m_impl->m_animProgressTo = value;
+    m_impl->m_animEase = ease;
+    m_impl->m_animDuration = duration;
+    m_impl->m_animElapsed = .0f;
+
+    this->schedule(schedule_selector(ProgressBar::onAnimate));
+};
+
+void ProgressBar::stopProgressAnimation() {
+    this->unschedule(schedule_selector(ProgressBar::onAnimate));
+
+    m_impl->m_animProgressFrom = m_impl->m_progress;
+    m_impl->m_animDuration = .0f;
+    m_impl->m_animElapsed = .0f;
 };
 
 void ProgressBar::showProgressLabel(bool show) {
-    m_impl->showProgressPercentLabel = show;
-    if (m_impl->progressPercentLabel) m_impl->progressPercentLabel->setVisible(show);
+    m_impl->m_showProgressPercentLabel = show;
+    m_impl->m_progressPercentLabel->setVisible(show);
 };
 
 float ProgressBar::getProgress() const noexcept {
-    return m_impl->progress;
+    return m_impl->m_progress;
 };
 
 Label* ProgressBar::getProgressLabel() const noexcept {
-    return m_impl->progressPercentLabel;
+    return m_impl->m_progressPercentLabel;
+};
+
+CCSprite* ProgressBar::getBarFill() const noexcept {
+    return m_impl->m_progressBarFill;
 };
 
 ProgressBarStyle ProgressBar::getStyle() const noexcept {
-    return m_impl->style;
+    return m_impl->m_style;
 };
 
 ccColor3B ProgressBar::getFillColor() const noexcept {
-    return m_impl->progressBarFillColor;
+    return m_impl->m_progressBarFillColor;
 };
 
 size_t ProgressBar::getPrecision() const noexcept {
-    return m_impl->precision;
+    return m_impl->m_precision;
 };
 
 ProgressBar* ProgressBar::create(ProgressBarStyle style) {

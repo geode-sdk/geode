@@ -22,6 +22,8 @@ namespace geode {
         // Reloads the style of the progress bar
         void reloadStyle();
 
+        void onAnimate(float);
+
         bool init(ProgressBarStyle style);
 
     public:
@@ -61,6 +63,20 @@ namespace geode {
         virtual void updateProgress(float value);
 
         /**
+         * Update the size of the fill of the bar with an animation
+         *
+         * @param value A float from 0 to 100
+         * @param duration Amount of seconds the animation will last
+         * @param ease Animation easing type
+         */
+        virtual void updateProgress(float value, float duration, EasingType ease = EasingType::None);
+
+        /**
+         * Stop the running progress animation, if any
+         */
+        void stopProgressAnimation();
+
+        /**
          * Show the label displaying the current percentage of progress
          *
          * @param bool Whether to toggle visibility
@@ -73,9 +89,14 @@ namespace geode {
         float getProgress() const noexcept;
 
         /**
-         * Get the progress percentage text label node
+         * Get the progress percentage text label node directly
          */
         geode::Label* getProgressLabel() const noexcept;
+
+        /**
+         * Get the progress bar fill node directly
+         */
+        cocos2d::CCSprite* getBarFill() const noexcept;
 
         /**
          * Get the current style of the progress bar
