@@ -274,13 +274,13 @@ void GeodeSquareSprite::setState(bool state) {
     }
 }
 
-CCNode* createLoadingCircle(float sideLength, ZStringView id) {
+CCNode* geode::createLoadingCircle(float sideLength, ZStringView id) {
     auto spinner = LoadingSpinner::create(sideLength);
     spinner->setID(id);
     return spinner;
 }
 
-ZStringView getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme) {
+ZStringView geode::getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme) {
     if (isGeodeTheme(forceDisableTheme)) {
         switch (spr) {
             default:
