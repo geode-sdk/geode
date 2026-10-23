@@ -112,11 +112,20 @@ namespace server {
         static Result<ServerModsList> parse(matjson::Value json);
     };
 
+    struct ServerLoaderDownload final {
+        std::string url;
+        std::string hash; // may be empty
+
+        static Result<ServerLoaderDownload> parse(matjson::Value json);
+    };
+
     struct ServerLoaderVersion final {
         std::string version;
         std::string tag;
         std::string commitHash;
         std::string gameVersion;
+        ServerLoaderDownload download;
+        ServerLoaderDownload resources;
 
         static Result<ServerLoaderVersion> parse(matjson::Value json);
     };

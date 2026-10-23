@@ -130,6 +130,13 @@ function(setup_geode_mod proname)
         set(DONT_UPDATE_INDEX_ARG "")
     endif()
 
+    # Zstd option for smaller .geode file sizes
+    if (GEODE_PACKAGE_ZSTD)
+        set(ZSTD_ARG "--zstd")
+    else()
+        set(ZSTD_ARG "")
+    endif()
+
     # Check dependencies using CLI
     if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "3.2.0")
         execute_process(
@@ -183,7 +190,7 @@ function(setup_geode_mod proname)
                 COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                     --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}> $<TARGET_PDB_FILE:${proname}>
                     --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                    ${INSTALL_ARG} ${PDB_ARG}
+                    ${INSTALL_ARG} ${PDB_ARG} ${ZSTD_ARG}
                 VERBATIM USES_TERMINAL
             )
         else()
@@ -192,7 +199,7 @@ function(setup_geode_mod proname)
                 COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                     --binary $<TARGET_FILE:${proname}> $<TARGET_PDB_FILE:${proname}>
                     --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                    ${INSTALL_ARG} ${PDB_ARG}
+                    ${INSTALL_ARG} ${PDB_ARG} ${ZSTD_ARG}
                 VERBATIM USES_TERMINAL
             )
         endif()
@@ -203,7 +210,7 @@ function(setup_geode_mod proname)
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}>
                 --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                ${INSTALL_ARG}
+                ${INSTALL_ARG} ${ZSTD_ARG}
             VERBATIM USES_TERMINAL
         )
     else()
@@ -212,7 +219,7 @@ function(setup_geode_mod proname)
             COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
                 --binary $<TARGET_FILE:${proname}>
                 --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
-                ${INSTALL_ARG}
+                ${INSTALL_ARG} ${ZSTD_ARG}
             VERBATIM USES_TERMINAL
         )
     endif()

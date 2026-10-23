@@ -24,6 +24,9 @@ public:
 
 	virtual bool init();
 
+	ObjectDecoderDelegate* getDelegate() const { return m_delegate; }
+	void setDelegate(ObjectDecoderDelegate* delegate) { m_delegate = delegate; }
+
 public:
 	ObjectDecoderDelegate* m_delegate;
 };

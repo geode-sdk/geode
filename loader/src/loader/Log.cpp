@@ -313,22 +313,31 @@ void Logger::deleteOldLogs(size_t maxAgeHours) {
 
     std::error_code ec;
     auto iterator = std::filesystem::directory_iterator(logDir, ec);
+    std::filesystem::directory_iterator end;
+
     if (ec != std::error_code{}) {
         log::error("Failed to delete old logs: {}", ec.message());
         return;
     }
 
-    for (auto const& entry : iterator) {
-        if (entry.is_regular_file() && entry.path().extension() == ".log") {
+    while (iterator != end) {
+        auto& entry = *iterator;
+        if (entry.is_regular_file(ec) && entry.path().extension() == ".log") {
             auto time = std::filesystem::last_write_time(entry, ec);
-            if (ec != std::error_code{}) {
-                continue;
+            if (ec == std::error_code{}) {
+                auto diff = now - time;
+                if (diff > std::chrono::hours(maxAgeHours)) {
+                    std::filesystem::remove(entry, ec);
+                }
             }
 
-            auto diff = now - time;
-            if (diff > std::chrono::hours(maxAgeHours)) {
-                std::filesystem::remove(entry, ec);
-            }
+        }
+
+        ec.clear();
+        iterator.increment(ec);
+        if (ec != std::error_code{}) {
+            log::error("Failed to iterate log directory: {}", ec.message());
+            return;
         }
     }
 }

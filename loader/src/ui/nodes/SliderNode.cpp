@@ -114,8 +114,8 @@ bool SliderNode::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice*
 }
 
 bool SliderNode::initStandard(SliderCallback callback, bool alt) {
-    auto thumb = CCSprite::create("sliderthumb.png");
-    auto thumbSel = CCSprite::create("sliderthumbsel.png");
+    auto thumb = CCSprite::create("sliderthumb.png"_spr);
+    auto thumbSel = CCSprite::create("sliderthumbsel.png"_spr);
     
     if (alt) {
         auto groove = geode::NineSlice::create("slider-groove-2.png"_spr);
@@ -363,7 +363,7 @@ void SliderNode::updateFromTouch(CCTouch* touch) {
 }
 
 bool SliderNode::ccTouchBegan(CCTouch* touch, CCEvent* event) {
-    if (!m_impl->m_enabled || !m_impl->m_thumb->isVisible() || m_impl->m_readOnly) return false;
+    if (!nodeIsVisible(this) || !m_impl->m_enabled || !m_impl->m_thumb->isVisible() || m_impl->m_readOnly) return false;
 
     auto location = m_impl->m_thumb->convertToNodeSpace(touch->getLocation());
     auto bounds = CCRect{0.f, 0.f, m_impl->m_thumb->getContentWidth(), m_impl->m_thumb->getContentHeight()};

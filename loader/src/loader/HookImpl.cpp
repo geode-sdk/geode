@@ -86,7 +86,14 @@ Result<> Hook::Impl::disable() {
     tulip::hook::removeHook(handler, m_handle);
     m_enabled = false;
     GEODE_UNWRAP(LoaderImpl::get()->removeHandlerIfNeeded(m_address));
-    log::debug("Disabled {} hook", m_displayName);
+
+    if (m_owner) {
+        log::debug("Disabled {} hook for {}", m_displayName, m_owner->getID());
+    }
+    else {
+        log::debug("Disabled {} hook", m_displayName);
+    }
+
     return Ok();
 }
 
@@ -142,6 +149,16 @@ void Hook::Impl::setPriority(int32_t priority) {
     if (!res) {
         log::error("Failed to update hook priority: {}", res.unwrapErr());
     }
+}
+
+std::optional<std::string_view> Hook::Impl::getModifyClassName() const {
+    return m_modifyClassName.transform([](auto& s) {
+        return std::string_view{s};
+    });
+}
+
+void Hook::Impl::setModifyClassName(std::string name) {
+    m_modifyClassName = std::move(name);
 }
 
 Result<> Hook::Impl::updateHookMetadata() {

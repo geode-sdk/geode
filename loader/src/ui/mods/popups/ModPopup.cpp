@@ -88,9 +88,9 @@ bool ModPopup::init(ModSource&& src) {
     m_source = std::move(src);
     m_noElasticity = true;
 
-    this->setID(Mod::get()->expandSpriteName(fmt::format("popup-{}", src.getID())));
+    this->setID(Mod::get()->expandSpriteName(fmt::format("popup-{}", m_source.getID())));
 
-    auto isGeode = src.asMod() == Mod::get();
+    auto isGeode = m_source.asMod() == Mod::get();
     if (isGeode) {
         // Display commit hashes
         auto loaderHash = about::getLoaderCommitHash();
@@ -303,6 +303,7 @@ bool ModPopup::init(ModSource&& src) {
     auto tagsTitle = CCLabelBMFont::create("Tags", "bigFont.fnt");
     tagsTitle->limitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
     tagsTitle->setOpacity(195);
+    tagsTitle->setID("tags-title");
     leftColumn->addChild(tagsTitle);
 
     auto tagsContainer = CCNode::create();
@@ -344,6 +345,7 @@ bool ModPopup::init(ModSource&& src) {
     auto manageTitle = CCLabelBMFont::create("Manage", "bigFont.fnt");
     manageTitle->setScale(.25f);
     manageTitle->setOpacity(195);
+    manageTitle->setID("manage-title");
     manageContainer->addChildAtPosition(manageTitle, Anchor::Left, ccp(0, 0), ccp(0, .5f));
 
     m_restartRequiredLabel = createTagLabel(
@@ -359,6 +361,7 @@ bool ModPopup::init(ModSource&& src) {
     m_enabledStatusLabel = CCLabelBMFont::create("", "bigFont.fnt");
     m_enabledStatusLabel->setScale(.25f);
     m_enabledStatusLabel->setOpacity(140);
+    m_enabledStatusLabel->setID("enabled-status");
     manageContainer->addChildAtPosition(m_enabledStatusLabel, Anchor::Right, ccp(0, 0), ccp(1, .5f));
 
     leftColumn->addChild(manageContainer);
@@ -387,6 +390,7 @@ bool ModPopup::init(ModSource&& src) {
     m_updateBtn = CCMenuItemSpriteExtra::create(
         updateModSpr, this, menu_selector(ModPopup::onInstall)
     );
+    m_updateBtn->setID("update-button");
     m_installMenu->addChild(m_updateBtn);
 
     auto enableModOffSpr = createGeodeButton(
@@ -408,6 +412,7 @@ bool ModPopup::init(ModSource&& src) {
         this, menu_selector(ModPopup::onEnable)
     );
     m_enableBtn->m_notClickable = true;
+    m_enableBtn->setID("enable-button");
     m_installMenu->addChild(m_enableBtn);
 
     auto reenableModOffSpr = createGeodeButton(
@@ -428,6 +433,7 @@ bool ModPopup::init(ModSource&& src) {
         this, menu_selector(ModPopup::onEnable)
     );
     m_reenableBtn->m_notClickable = true;
+    m_reenableBtn->setID("reenable-button");
     m_installMenu->addChild(m_reenableBtn);
 
     auto unavailableSpr = createGeodeButton(
@@ -441,6 +447,7 @@ bool ModPopup::init(ModSource&& src) {
     m_unavailableBtn = CCMenuItemSpriteExtra::create(
         unavailableSpr, this, nullptr
     );
+    m_unavailableBtn->setID("unavailable-button");
     m_unavailableBtn->setEnabled(false);
     m_installMenu->addChild(m_unavailableBtn);
 
@@ -454,6 +461,7 @@ bool ModPopup::init(ModSource&& src) {
     m_installBtn = CCMenuItemSpriteExtra::create(
         installModSpr, this, menu_selector(ModPopup::onInstall)
     );
+    m_installBtn->setID("install-button");
     m_installMenu->addChild(m_installBtn);
 
     auto uninstallModSpr = createGeodeButton(
@@ -466,6 +474,7 @@ bool ModPopup::init(ModSource&& src) {
     m_uninstallBtn = CCMenuItemSpriteExtra::create(
         uninstallModSpr, this, menu_selector(ModPopup::onUninstall)
     );
+    m_uninstallBtn->setID("uninstall-button");
     m_installMenu->addChild(m_uninstallBtn);
 
     auto cancelDownloadSpr = createGeodeButton(
@@ -478,6 +487,7 @@ bool ModPopup::init(ModSource&& src) {
     m_cancelBtn = CCMenuItemSpriteExtra::create(
         cancelDownloadSpr, this, menu_selector(ModPopup::onCancelDownload)
     );
+    m_cancelBtn->setID("cancel-button");
     m_installMenu->addChild(m_cancelBtn);
 
     m_installStatusLabel = CCLabelBMFont::create("", "bigFont.fnt");
@@ -516,13 +526,6 @@ bool ModPopup::init(ModSource&& src) {
     linksMenu->setContentSize(linksContainer->getContentSize() - ccp(10, 10));
     linksMenu->setAnchorPoint({ .5f, .5f });
     linksMenu->setID("links-container");
-
-    // auto linksLabel = CCLabelBMFont::create("Links", "bigFont.fnt");
-    // linksLabel->setLayoutOptions(
-    //     AxisLayoutOptions::create()
-    //         ->setRelativeScale(.35f)
-    // );
-    // linksMenu->addChild(linksLabel);
 
     auto useGithubIcon = m_source.getMetadata().getLinks().getSourceURL()
         .transform([](auto const& url) {
@@ -589,10 +592,6 @@ bool ModPopup::init(ModSource&& src) {
 
     leftColumn->addChild(linksContainer);
 
-    // auto bottomPadding = CCNode::create();
-    // bottomPadding->setContentHeight(13);
-    // leftColumn->addChild(bottomPadding);
-
     leftColumn->setLayout(
         ColumnLayout::create()
             ->setAxisReverse(true)
@@ -602,6 +601,7 @@ bool ModPopup::init(ModSource&& src) {
             ->setCrossAxisLineAlignment(AxisAlignment::Start)
             ->setGap(4)
     );
+    leftColumn->setID("left-column");
     mainContainer->addChild(leftColumn);
 
     m_rightColumn = CCNode::create();
@@ -622,7 +622,6 @@ bool ModPopup::init(ModSource&& src) {
     for (auto mdTab : std::initializer_list<std::tuple<const char*, const char*, const char*, Tab>> {
         { "message.png"_spr,   "Description", "description", Tab::Details },
         { "changelog.png"_spr, "Changelog",   "changelog",   Tab::Changelog }
-        // { "version.png"_spr,   "Versions",    Tab::Versions },
     }) {
         auto spr = GeodeTabSprite::create(std::get<0>(mdTab), std::get<1>(mdTab), 140, m_source.asServer());
         auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModPopup::onTab));
@@ -651,6 +650,7 @@ bool ModPopup::init(ModSource&& src) {
     tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
     m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
 
+    m_rightColumn->setID("right-column");
     mainContainer->addChildAtPosition(m_rightColumn, Anchor::Right, ccp(-20, 0));
 
     mainContainer->updateLayout();

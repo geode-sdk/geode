@@ -655,6 +655,13 @@ std::vector<std::string> const& ModMetadata::getErrors() const {
 bool ModMetadata::wasCompletelyUnparseable() const {
     return m_impl->m_completelyUnparseable;
 }
+Result<> ModMetadata::checkPlatformSupported() const {
+    if(m_impl->m_gdVersion == "0.000") {
+        return Err(fmt::format("This mod ({}) doesn't support the current platform.", m_impl->m_id));
+    }
+
+    return Ok();
+}
 Result<> ModMetadata::checkGameVersion() const {
     if (!m_impl->m_gdVersion.empty() && m_impl->m_gdVersion != "*") {
         auto const ver = m_impl->m_gdVersion;
@@ -666,7 +673,7 @@ Result<> ModMetadata::checkGameVersion() const {
         double modTargetVer = res.unwrap();
 
         if (modTargetVer == 0.0) { // O.o
-            return Err(fmt::format("This mod ({}) doesn't support the current platform.", m_impl->m_id));
+            return Err(fmt::format("This mod ({}) doesn't support {}.", m_impl->m_id, GEODE_PLATFORM_NAME));
         }
 
         if (LoaderImpl::get()->isForwardCompatMode()) {

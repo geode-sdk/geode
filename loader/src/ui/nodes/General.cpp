@@ -239,6 +239,13 @@ float ListBorders::getBottomPadding() {
     return m_impl->bottomPadding;
 }
 
+void geode::pushSceneWithLayer(cocos2d::CCLayer *layer) {
+    auto scene = CCScene::create();
+    scene->addChild(layer);
+
+    CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(.5f, scene));
+}
+
 CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, BackButtonStyle style) {
     return geode::addBackButton(to, [](cocos2d::CCMenuItem*) { CCDirector::get()->popSceneWithTransition(.5f, PopTransition::kPopTransitionFade); }, style);
 }

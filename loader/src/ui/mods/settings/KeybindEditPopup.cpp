@@ -4,7 +4,7 @@
 #include <Geode/ui/SimpleAxisLayout.hpp>
 
 CCNode* createKeybindButton(Keybind const& keybind) {
-    if (keybind.key >= CONTROLLER_A && keybind.key <= CONTROLLER_RTHUMBSTICK_RIGHT) {
+    if ((keybind.key >= CONTROLLER_A && keybind.key <= CONTROLLER2_RTHUMBSTICK_RIGHT) || (keybind.key >= CONTROLLER_L3 && keybind.key <= CONTROLLER2_R3)) {
         return createGeodeButton(keybind.createNode(), "");
     }
     return createGeodeButton(nullptr, keybind.toString(), true);

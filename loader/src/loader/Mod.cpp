@@ -45,6 +45,14 @@ matjson::Value& Mod::getSaveContainer() {
     return m_impl->getSaveContainer();
 }
 
+matjson::Value& Mod::getSaveContainerTemp() {
+    return m_impl->getSaveContainerTemp();
+}
+
+matjson::Value const& Mod::getSaveContainerConst() const {
+    return m_impl->getSaveContainerConst();
+}
+
 matjson::Value& Mod::getSavedSettingsData() {
     return m_impl->m_settings->getSaveData();
 }

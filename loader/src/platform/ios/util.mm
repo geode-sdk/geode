@@ -28,11 +28,20 @@ using namespace geode::prelude;
 using geode::utils::permission::Permission;
 
 bool utils::clipboard::write(ZStringView data) {
-    [UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:data.c_str()];
+    NSString* str = [[NSString alloc] initWithBytes:data.data()
+                                              length:data.size()
+                                            encoding:NSUTF8StringEncoding];
+    if (!str) return false;
+    [UIPasteboard generalPasteboard].string = str;
     return true;
 }
+
 std::string utils::clipboard::read() {
-    return std::string([[UIPasteboard generalPasteboard].string UTF8String]);
+    NSString* str = [UIPasteboard generalPasteboard].string;
+    if (!str) return "";
+    NSData* data = [str dataUsingEncoding:NSUTF8StringEncoding];
+    if (!data) return "";
+    return std::string(static_cast<const char*>(data.bytes), data.length);
 }
 
 void utils::web::openLinkUnsafe(ZStringView url) {
@@ -398,10 +407,22 @@ void geode::utils::permission::requestPermission(Permission permission, geode::F
 
 #include "../../utils/thread.hpp"
 
+static std::optional<std::string> getNameFromOs() {
+    char buf[64];
+    int result = pthread_getname_np(pthread_self(), buf, sizeof(buf));
+    if (result != 0 || buf[0] == '\0') return std::nullopt;
+
+    return buf;
+}
+
 std::string geode::utils::thread::getDefaultName() {
+    // try to request name from the OS first, fallback to a simple format if fails
+    if (auto name = getNameFromOs()) {
+        return *name;
+    }
+
     uint64_t tid = 0ul;
     pthread_threadid_np(nullptr, &tid);
-
     return fmt::format("Thread #{}", tid);
 }
 
@@ -600,14 +621,14 @@ PlatformDetails geode::utils::platform::getDetails() {
     bool isPatchless = geode::Loader::get()->isPatchless();
     std::string launchMethod = "Unknown";
     if (getenv("GAME")) {
-        if (getenv("TXM_JIT")) {
-            launchMethod = "JIT [TXM]";
-        } else {
-            if (!isPatchless) {
-                launchMethod = "JIT";
+        if (!isPatchless) {
+            if (getenv("TXM_JIT")) {
+                launchMethod = "JIT [TXM]";
             } else {
-                launchMethod = "JIT-Less";
+                launchMethod = "JIT";
             }
+        } else {
+            launchMethod = "JIT-Less";
         }
     } else {
         if (isPatchless) {

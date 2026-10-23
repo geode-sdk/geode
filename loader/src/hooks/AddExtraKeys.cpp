@@ -18,6 +18,50 @@ class $modify(CCKeyboardDispatcher) {
         }
 
         switch (key) {
+            case CONTROLLER2_A:
+                return "Controller2_A";
+            case CONTROLLER2_B:
+                return "Controller2_B";
+            case CONTROLLER2_Y:
+                return "Controller2_Y";
+            case CONTROLLER2_X:
+                return "Controller2_X";
+            case CONTROLLER2_Start:
+                return "Controller2_Start";
+            case CONTROLLER2_Back:
+                return "Controller2_Back";
+            case CONTROLLER2_RB:
+                return "Controller2_RB";
+            case CONTROLLER2_LB:
+                return "Controller2_LB";
+            case CONTROLLER2_RT:
+                return "Controller2_RT";
+            case CONTROLLER2_LT:
+                return "Controller2_LT";
+            case CONTROLLER2_Up:
+                return "Controller2_Up";
+            case CONTROLLER2_Down:
+                return "Controller2_Down";
+            case CONTROLLER2_Left:
+                return "Controller2_Left";
+            case CONTROLLER2_Right:
+                return "Controller2_Right";
+            case CONTROLLER2_LTHUMBSTICK_UP:
+                return "Controller2_LTHUMBSTICK_UP";
+            case CONTROLLER2_LTHUMBSTICK_DOWN:
+                return "Controller2_LTHUMBSTICK_DOWN";
+            case CONTROLLER2_LTHUMBSTICK_LEFT:
+                return "Controller2_LTHUMBSTICK_LEFT";
+            case CONTROLLER2_LTHUMBSTICK_RIGHT:
+                return "Controller2_LTHUMBSTICK_RIGHT";
+            case CONTROLLER2_RTHUMBSTICK_UP:
+                return "Controller2_RTHUMBSTICK_UP";
+            case CONTROLLER2_RTHUMBSTICK_DOWN:
+                return "Controller2_RTHUMBSTICK_DOWN";
+            case CONTROLLER2_RTHUMBSTICK_LEFT:
+                return "Controller2_RTHUMBSTICK_LEFT";
+            case CONTROLLER2_RTHUMBSTICK_RIGHT:
+                return "Controller2_RTHUMBSTICK_RIGHT";
             case CONTROLLER_LTHUMBSTICK_UP:
                 return "Controller_LTHUMBSTICK_UP";
             case CONTROLLER_LTHUMBSTICK_DOWN:
@@ -68,6 +112,14 @@ class $modify(CCKeyboardDispatcher) {
                 return "Mouse 7";
             case MOUSE_8:
                 return "Mouse 8";
+            case CONTROLLER_L3:
+                return "Controller_L3";
+            case CONTROLLER2_L3:
+                return "Controller2_L3";
+            case CONTROLLER_R3:
+                return "Controller_R3";
+            case CONTROLLER2_R3:
+                return "Controller2_R3";
             default:
                 return CCKeyboardDispatcher::keyToString(KEY_Unknown);
         }

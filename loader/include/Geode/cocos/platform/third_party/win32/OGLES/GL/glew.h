@@ -1165,9 +1165,9 @@ GLAPI void GLAPIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei heigh
 #    include <OpenGL/glu.h>
 #  else
 #    if defined(__linux__)
-#      include <gl/GLU.h>
-#    else
 #      include <GL/glu.h>
+#    else
+#      include <gl/GLU.h>
 #    endif
 #  endif
 #endif

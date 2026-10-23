@@ -79,16 +79,6 @@ Result<> Mod::Impl::setup() {
             CCFileUtils::get()->addSearchPath(utils::string::pathToString(searchPathRoot).c_str());
         });
 
-        // binaries on macos are merged, so make the platform binaries merged as well
-        auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
-
-        auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
-
-        std::error_code code;
-        if (std::filesystem::exists(binariesDir, code) && !code) {
-            LoaderImpl::get()->addNativeBinariesPath(binariesDir);
-        }
-
         m_resourcesLoaded = true;
     }
 
@@ -165,6 +155,24 @@ VersionInfo Mod::Impl::getVersion() const {
 }
 
 matjson::Value& Mod::Impl::getSaveContainer() {
+    // saved value taken, so we need to save it every time
+    // since we dont know what the caller will do with the container
+    m_saveRequestState = SaveRequestState::SaveUntilExit;
+
+    return m_saved;
+}
+
+matjson::Value& Mod::Impl::getSaveContainerTemp() {
+    // saved value dirty - caller promises to get rid
+    // of its ref before next save
+    if(m_saveRequestState == SaveRequestState::Clean) {
+        m_saveRequestState = SaveRequestState::SaveOnce;
+    }
+
+    return m_saved;
+}
+
+matjson::Value const& Mod::Impl::getSaveContainerConst() const {
     return m_saved;
 }
 
@@ -176,11 +184,15 @@ bool Mod::Impl::isInternal() const {
     return m_metadata.getID() == "geode.loader";
 }
 
+bool Mod::Impl::isInvalid() const {
+    return m_metadata.getID().view().starts_with("geode_invalid");
+}
+
 bool Mod::Impl::needsEarlyLoad(std::vector<Mod*>& checked) const {
     checked.push_back(m_self);
     if (this->getMetadata().needsEarlyLoad()) return true;
     for (auto& dep : m_dependants) {
-        if(std::find(checked.begin(), checked.end(), dep) != checked.end()) continue;
+        if (std::find(checked.begin(), checked.end(), dep) != checked.end()) continue;
         if (dep->m_impl->needsEarlyLoad(checked)) return true;
     }
     return false;
@@ -209,11 +221,19 @@ Result<> Mod::Impl::loadData() {
     // Check if settings exist
     auto settingPath = m_saveDirPath / "settings.json";
     if (std::filesystem::exists(settingPath)) {
-        GEODE_UNWRAP_INTO(auto json, utils::file::readJson(settingPath));
-        auto load = m_settings->load(json);
-        if (!load) {
-            log::warn("Unable to load settings: {}", load.unwrapErr());
+        if (auto json = utils::file::readJson(settingPath)) {
+            auto load = m_settings->load(json.unwrap());
+            if (!load) {
+                m_settings->queueSave();
+                log::warn("Unable to load settings: {}", load.unwrapErr());
+            }
+        } else {
+            // this used to early return but skipping saved values is not great behavior here imo
+            m_settings->queueSave();
+            log::warn("Unable to load settings: {}", json.unwrapErr());
         }
+    } else {
+        m_settings->queueSave();
     }
 
     // Saved values
@@ -243,18 +263,36 @@ Result<> Mod::Impl::saveData() {
     }
 
     // ModSettingsManager keeps track of the whole savedata
-    matjson::Value json = m_settings->save();
+    if (m_settings->shouldSave()) {
+        log::debug("Saving settings for mod {}", m_metadata.getID());
 
-    // saveData is expected to be synchronous, and always called from GD thread
-    ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
+        matjson::Value json = m_settings->save();
 
-    auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
-    if (!res) {
-        log::error("Unable to save settings: {}", res.unwrapErr());
+        // saveData is expected to be synchronous, and always called from GD thread
+        ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
+
+        auto res = utils::file::writeStringSafe(m_saveDirPath / "settings.json", json.dump());
+        if (!res) {
+            log::error("Unable to save settings: {}", res.unwrapErr());
+        } else {
+            m_settings->saveFinished();
+        }
+    } else {
+        // duplicated line to retain old expectations of saveData being called after json dump but before file write
+        ModStateEvent(ModEventType::DataSaved, std::move(m_self)).send();
     }
-    auto res2 = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
-    if (!res2) {
-        log::error("Unable to save values: {}", res2.unwrapErr());
+
+    if (m_saveRequestState != SaveRequestState::Clean) {
+        log::debug("Saving values for mod {}", m_metadata.getID());
+
+        auto res = utils::file::writeStringSafe(m_saveDirPath / "saved.json", m_saved.dump());
+        if (!res) {
+            log::error("Unable to save values: {}", res.unwrapErr());
+        }
+
+        if(m_saveRequestState == SaveRequestState::SaveOnce) {
+            m_saveRequestState = SaveRequestState::Clean;
+        }
     }
 
     return Ok();
@@ -699,7 +737,7 @@ void Mod::Impl::setLogLevel(Severity level) {
 }
 
 bool Mod::Impl::shouldLoad() const {
-    return Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true) || this->isInternal();
+    return !this->isInvalid() && (this->isInternal() || Mod::get()->getSavedValue<bool>("should-load-" + m_metadata.getID(), true));
 }
 
 bool Mod::Impl::isCurrentlyLoading() const {
@@ -711,11 +749,26 @@ int Mod::Impl::getLoadPriority() const {
 }
 
 bool Mod::Impl::isPinned() const {
-    return Mod::get()->getSavedValue<bool>("is-pinned-" + m_metadata.getID(), false);
+    return !this->isInvalid() && Mod::get()->getSavedValue<bool>("is-pinned-" + m_metadata.getID(), false);
 }
 
 void Mod::Impl::setPinned(bool pinned) {
     Mod::get()->setSavedValue<bool>("is-pinned-" + m_metadata.getID(), pinned);
+}
+
+void Mod::Impl::loadNativeModBinaries() {
+    auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
+
+    // binaries on macos are merged, so make the platform binaries merged as well
+    auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
+
+    auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
+
+    std::error_code code;
+    if (std::filesystem::exists(binariesDir, code) && !code) {
+        geode::log::info("Loaded binaries from path {}", binariesDir);
+        ModImpl::get()->addNativeBinariesPath(binariesDir);
+    }
 }
 
 static Result<ModMetadata> getModImplInfo() {

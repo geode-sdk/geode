@@ -1,5 +1,99 @@
 # Geode Changelog
 
+## v5.11.2
+ * Fix 2.209 crashes (note that this release is still primarily for 2.2081)
+ * Fix text inputs in forward compat mode on 2.209
+
+## v5.11.1
+ * Revert Force UTF-8 for character conversion functions instead of system locale, most importantly fixing `fs::path::string()` throwing exceptions (ac72778)
+
+## v5.11.0
+ * Force UTF-8 for character conversion functions instead of system locale, most importantly fixing `fs::path::string()` throwing exceptions (6da9d75)
+ * Add `Modify::getModifyClassName`, `Modify::getAllHooks` (#2181, 7e314fa)
+ * Fix `matjson::Value` not being formattable (e992b2b)
+ * Fix loader/resource downloads raising parse errors on Android (6add223)
+ * Fix `Button` and `SliderNode` swallowing touches when disabled/invisible (#2208)
+ * Fix rare wrapper crash caused by calling a GD/Cocos function from multiple threads (7d9aa0d)
+ * Improve parallelization for mod unzipping (e93da46)
+ * Add fix for `CCDirector` undefined behavior during destruction, causing crashes when a node is autoreleased during game exit (c1ca042)
+ * Add formatter for `geode::Color` (#2199)
+ * Add `CCFileUtils::getTexturePackCount` (ce35a1f)
+ * Bump arc to fix IPC crashes & memory errors (d12590e, 545b017, 17acdeb)
+ * Fix crashes with no crashlog due to a Wine bug (36e4105)
+ * Fix progress bar for mod downloads showing progress of a single mod instead of the entire download (#2182)
+ * Fix `Label::setMaxWidth` not setting the right dirty flag (5473ed4)
+ * Fix `Label::setFitBox` being too eager to wrap lines for short strings (5ff0423)
+ * Fix crashes caused by mods not cleaning up `Label` after texture reload (e92c895)
+ * Update libcurl and other network dependencies, enable ECH for web requests (f3afcf7)
+
+## v5.10.1
+ * Fix custom settings not loading properly (60f4df1)
+ * Update `arc` to v1.5.9, improving performance of blocking tasks
+
+## v5.10.0
+ * Use CDN for downloading updates & resources (#2155)
+ * Add CMake option `GEODE_PACKAGE_ZSTD` to produce Zstd compressed `.geode` files (#2156)
+ * Optimize setting / saved values to not save when no changes were made (#2152)
+ * Add `CCScene` overloads to `switchToScene` and `reloadTextures` (3f3721b, e30a5fa)
+ * Fix issues with `geode::Label` rendering / scaling, add methods for changing fonts (93f48a3, 7d213a6, 140098a)
+ * Automatically add modifier to modifier keys (f6de44f)
+ * Attempt to fix the "File exists" error when updating resources (fbbbb75)
+ * Trim queries when searching mods (e9c0b03)
+ * Fix `numToAbbreviatedString` mishandling negative numbers and losing precision due to float usage (#2160)
+ * Fix runtime `.dll` dependency binaries not being loaded the first time a mod is unzipped (#2167)
+ * Fix thread crashes causing info to be duplicated in crashlogs (645b53a)
+ * Fix hash utils not being exported (5fbfba5)
+
+## v5.9.0
+ * Add SHA256 hashing utils (#2139)
+ * Add `WebRequest::getBodyRef()` for accessing the body without copying (#2123)
+ * Add `LoaderUpdateModResourcesEvent` for overriding mod resource loading (#2134)
+ * Add Zstd support to `file::Unzip` (#2135)
+ * Add `geode::Label` as a replacement for `CCLabelBMFont` (#2144)
+ * Add Left/RightAlt as a valid alias to Left/RightMenu for keybind defaults (22a7a30)
+ * Make `CCNode::getChildByType` have a default index of 0 (600804a)
+ * Use a faster SHA256 hash implementation (cd30080, 154c0d4)
+ * Small improvements to file downloads (3432431)
+ * Fix game bug caused by `CCConfiguration` holding a dangling pointer to GL extensions (#2142)
+ * Fix getting the thread name on Android, macOS and iOS (2464d9a, d97de37)
+ * Fix launch method detection on iOS (5104368)
+ * Fix clipboard::read/write crash on empty strings on iOS (#2122)
+ * Fix file unzipper path sanitization (4b32831)
+ * Fix node potentially being destroyed on non-main thread in `geode::openInfoPopup` (37eeb0b)
+ * Fix server request cancellation causing competing requests to hang (cd878d9)
+ * Fix mod labels (e.g. "Deprecated", "Restart Required") getting overlapped (70e0fd6)
+ * Fix "Show" button being misaligned when there are deprecated mods (20be177)
+ * Fix "(!)" button not appearing for deprecated mods (8a2935a)
+ * Fix typos in error messages and about (b610e6d, 464a129)
+ * Fix crash when mods remove the Geode menu button (5e40a5f)
+ * Fix `fmt` linking to system library on macOS on some systems (757cf95)
+ * Improve error message for mods that don't support current platform (5cfb0f3)
+
+## v5.8.2
+ * Potentially fix several TulipHook crashes (there is a chance this breaks everything) (c2e155f)
+
+## v5.8.1
+ * Fix safe area offsetting being incorrectly enabled on some iOS devices (#2121)
+
+## v5.8.0
+ * Add `PopupManager` for queueing popups & various other popup utilities (#2106)
+ * Add `geode::Color` for convenient handling of colors (#2117)
+ * Add `geode::pushSceneWithLayer` (#2076)
+ * Add `geode::Button::setDisplayNode`, fix `Button` Z order issues (#2114)
+ * Add `geode::utils::random::choice` (8ba0aca)
+ * Add 2nd player controller keys (#2087)
+ * Update SliderNode to not use the ugly GD slider thumbs (#2066)
+ * Fix `fmt` deprecation warning (418422a, dd04a9f, 1088bbe, 6d99c25)
+ * Fix duplicate web requests in the mod list (78ef124)
+ * Fix `utils::random::Generator` not being well seeded (f6fa836)
+ * Fix game bug causing a hang on game exit (2ecda5b)
+ * Fix pin button appearing outside of mod lists, fix `MDTextArea` culling (#2104)
+ * Fix rare crash due to GL callbacks after window destruction (d9fe02b)
+ * Fix profile button disappearing after logging in (e00d00a)
+ * Fix Safe Areas not working on iOS (#2075)
+ * Fix `GameEventType::Exiting` being sent more than once (5e96dba)
+ * Fix alignment of nodes in MenuLayer (fd0fc2d)
+
 ## v5.7.1
  * Revert fallthrough for keybind modifiers because some mods rely on that not happening (df9df11)
 

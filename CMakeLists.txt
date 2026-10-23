@@ -259,16 +259,16 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.4.1")
-CPMAddPackage("gh:geode-sdk/json@3.3.0")
+CPMAddPackage("gh:geode-sdk/json@3.3.1")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
-CPMAddPackage("gh:fmtlib/fmt#12.1.0")
+CPMAddPackage("gh:fmtlib/fmt#5ac44cd") # commit between 12.1.0 and 12.2.0 that fixes nodiscard warning
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
-	set(GEODE_ARC_VERSION "@1.5.5" CACHE STRING "")
+	set(GEODE_ARC_VERSION "@1.5.11" CACHE STRING "")
 endif()
 if (NOT DEFINED GEODE_ASP_VERSION)
-	set(GEODE_ASP_VERSION "#51d3773" CACHE STRING "")
+	set(GEODE_ASP_VERSION "#ecea33b" CACHE STRING "")
 endif()
 
 CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")
@@ -292,7 +292,7 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE MAT_JSON_DYNAMIC=1)
 # since fmtlib will fail to compile otherwise
 if (GEODE_DISABLE_FMT_CONSTEVAL)
 	message(VERBOSE "Disabling FMT_CONSTEVAL")
-	target_compile_definitions(fmt PUBLIC -DFMT_CONSTEVAL=)
+	target_compile_definitions(fmt::fmt PUBLIC -DFMT_CONSTEVAL=)
 endif()
 
 # throw an error if the compiler is too old, for async we require Clang 19 and MSVC 19.44+
@@ -324,7 +324,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.11")
+	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.15")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 
@@ -363,7 +363,7 @@ else()
 	)
 endif()
 target_link_directories(GeodeBindings PUBLIC ${GEODE_LOADER_PATH}/include/link)
-target_link_libraries(GeodeBindings PUBLIC fmt TulipHookInclude mat-json std23::nontype_functional GeodeResult asp arc)
+target_link_libraries(GeodeBindings PUBLIC fmt::fmt TulipHookInclude mat-json std23::nontype_functional GeodeResult asp arc)
 if (TARGET debase-rt)
   debase_depends(${PROJECT_NAME} GeodeBindings)
 else()

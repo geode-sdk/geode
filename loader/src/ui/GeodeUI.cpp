@@ -192,13 +192,16 @@ std::optional<arc::TaskHandle<bool>> geode::openInfoPopup(std::string modID) {
     }
 
     auto popup = LoadServerModLayer::create(std::move(modID));
-    return async::runtime().spawn([popup = Ref(popup)] -> arc::Future<bool> {
+    return async::spawn([popup = Ref(popup)] mutable -> arc::Future<bool> {
         auto ret = co_await popup->listen();
         if (ret) {
-            geode::queueInMainThread([popup] {
+            geode::queueInMainThread([popup = std::move(popup)] {
                 popup->show();
             });
         }
+
+        // move it again to avoid destroying in async code, yes this is a potential double move but it doesn't really matter
+        geode::queueInMainThread([popup = std::move(popup)] {});
 
         co_return ret;
     });

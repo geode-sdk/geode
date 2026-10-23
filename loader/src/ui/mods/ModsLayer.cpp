@@ -11,6 +11,7 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/ui/PopupManager.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SetTextPopup.hpp>
 #include <Geode/binding/SetIDPopup.hpp>
@@ -230,15 +231,18 @@ void ModsStatusNode::updateState() {
 
         case DownloadState::SomeDownloading: {
             size_t totalProgress = 0;
-            size_t totalDownloading = 0;
+
             for (auto& download : downloads) {
                 auto status = download.getStatus();
-                if (auto loading = std::get_if<server::DownloadStatusDownloading>(&status)) {
-                    totalProgress += loading->percentage;
-                    totalDownloading += 1;
+                
+                if (std::holds_alternative<server::DownloadStatusDone>(status)) {
+                    totalProgress += 100;
+                } else if (auto downloading = std::get_if<server::DownloadStatusDownloading>(&status)) {
+                    totalProgress += downloading->percentage;
                 }
             }
-            auto percentage = totalProgress / static_cast<float>(totalDownloading);
+            auto totalDownloads = downloads.size();
+            auto percentage = totalProgress / static_cast<float>(totalDownloads);
 
             m_statusPercentage->setString(fmt::format("{}%", static_cast<size_t>(percentage)).c_str());
             m_statusPercentage->setVisible(true);
@@ -465,7 +469,7 @@ bool ModsLayer::init() {
 
     auto topListener = NodeProvidingEvent("geode-mods-list-top"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
         if (nodeOut) return; // someone overrode it already
-        
+
         if (theme == "sapphire") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-sapphire.png"_spr);
         else if (theme == "geometry-dash") nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-gd.png"_spr);
         else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top.png"_spr);
@@ -674,14 +678,13 @@ bool ModsLayer::init() {
         label->setScale(0.55f);
         this->addChild(label);
         static int _ = [this] {
-            auto* alert = FLAlertLayer::create(
+            auto alert = PopupManager::get().alert(
                 "Safe Mode Enabled",
                 "Safe Mode has been enabled. This means no mods will be loaded to prevent crashes. Feel free to manage any problematic mods.",
                 "OK"
             );
-            alert->m_scene = this;
             alert->m_noElasticity = true;
-            alert->show();
+            alert.showQueue();
             return 0;
         }();
     }

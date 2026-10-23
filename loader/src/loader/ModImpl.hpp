@@ -8,6 +8,12 @@
 #include <Geode/loader/Signal.hpp>
 
 namespace geode {
+    enum class SaveRequestState {
+        Clean,
+        SaveOnce,
+        SaveUntilExit,
+    };
+
     class Mod::Impl {
     public:
         Mod* m_self;
@@ -49,6 +55,11 @@ namespace geode {
          * Saved values
          */
         matjson::Value m_saved = matjson::Value();
+        /**
+         * Whether the saved values need to be saved to disk one time
+         * (container dirty)
+         */
+        SaveRequestState m_saveRequestState = SaveRequestState::Clean;
         /**
          * Setting values. This is behind unique_ptr for interior mutability
          */
@@ -93,6 +104,7 @@ namespace geode {
         VersionInfo getVersion() const;
         bool isLoaded() const;
         bool isInternal() const;
+        bool isInvalid() const;
         bool needsEarlyLoad(std::vector<Mod*>& checked) const;
         ModMetadata const& getMetadata() const;
         std::filesystem::path getTempDir() const;
@@ -105,6 +117,8 @@ namespace geode {
         bool isEphemeral() const;
 
         matjson::Value& getSaveContainer();
+        matjson::Value& getSaveContainerTemp();
+        matjson::Value const& getSaveContainerConst() const;
 
 #if defined(GEODE_EXPOSE_SECRET_INTERNALS_IN_HEADERS_DO_NOT_DEFINE_PLEASE)
         void setMetadata(ModMetadata const& metadata);
@@ -168,6 +182,10 @@ namespace geode {
 
         bool isPinned() const;
         void setPinned(bool pinned);
+
+        // native binary loading
+        void addNativeBinariesPath(std::filesystem::path const& path);
+        void loadNativeModBinaries();
     };
 
     class ModImpl : public Mod::Impl {

@@ -63,6 +63,7 @@ protected:
     ButtonSprite* m_restartRequiredLabel;
     ButtonSprite* m_outdatedLabel;
     ButtonSprite* m_deprecatedLabel;
+    CCNode* m_modLabelsContainer;
     CCNode* m_downloadWaiting;
     CCNode* m_downloadBarContainer;
     Slider* m_downloadBar;
@@ -83,7 +84,7 @@ protected:
      * @warning Make sure `getMetadata` and `createModLogo` are callable
      * before calling `init`!
     */
-    bool init(ModSource&& source);
+    bool init(ModSource&& source, bool listItem);
 
     void updateState();
 
@@ -97,7 +98,7 @@ protected:
     void onDevelopers(CCObject*);
 
 public:
-    static ModItem* create(ModSource&& source);
+    static ModItem* create(ModSource&& source, bool listItem = true);
 
     ModSource& getSource() &;
 };

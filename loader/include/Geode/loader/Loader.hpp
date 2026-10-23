@@ -165,4 +165,8 @@ namespace geode {
     inline Mod* takeNextLoaderMod() {
         return Loader::get()->takeNextMod();
     }
+
+    struct LoaderUpdateModResourcesEvent final : Event<LoaderUpdateModResourcesEvent, bool(std::vector<Mod*>)> {
+        using Event::Event;
+    };
 }

@@ -20,7 +20,7 @@
 #include <ui/mods/sources/ModListSource.hpp>
 #include "../ModsLayer.hpp"
 
-bool ModItem::init(ModSource&& source) {
+bool ModItem::init(ModSource&& source, bool listItem) {
     if (!ModListItem::init())
         return false;
 
@@ -111,6 +111,18 @@ bool ModItem::init(ModSource&& source) {
 
     m_infoContainer->addChildAtPosition(m_description, Anchor::Left);
 
+    m_modLabelsContainer = CCNode::create();
+    m_modLabelsContainer->setID("labels-container");
+    m_modLabelsContainer->setLayout(
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setMainAxisScaling(AxisScaling::Grow)
+            ->setCrossAxisScaling(AxisScaling::Grow)
+            ->setCrossAxisAlignment(CrossAxisAlignment::End)
+            ->setGap(5.f)
+    );
+    m_infoContainer->addChildAtPosition(m_modLabelsContainer, Anchor::Left);
+
     m_restartRequiredLabel = createTagLabel(
         "Restart Required",
         {
@@ -120,7 +132,7 @@ bool ModItem::init(ModSource&& source) {
     );
     m_restartRequiredLabel->setID("restart-required-label");
     m_restartRequiredLabel->setScale(.75f);
-    m_infoContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Left);
+    m_modLabelsContainer->addChild(m_restartRequiredLabel);
 
     m_outdatedLabel = createTagLabel(
         "Outdated",
@@ -131,7 +143,7 @@ bool ModItem::init(ModSource&& source) {
     );
     m_outdatedLabel->setID("outdated-label");
     m_outdatedLabel->setScale(.75f);
-    m_infoContainer->addChildAtPosition(m_outdatedLabel, Anchor::Left);
+    m_modLabelsContainer->addChild(m_outdatedLabel);
 
     m_deprecatedLabel = createTagLabel(
         "Deprecated",
@@ -142,7 +154,7 @@ bool ModItem::init(ModSource&& source) {
     );
     m_deprecatedLabel->setID("deprecated-label");
     m_deprecatedLabel->setScale(.75f);
-    m_infoContainer->addChildAtPosition(m_deprecatedLabel, Anchor::Left);
+    m_modLabelsContainer->addChild(m_deprecatedLabel);
 
     m_downloadBarContainer = CCNode::create();
     m_downloadBarContainer->setID("download-bar-container");
@@ -215,7 +227,7 @@ bool ModItem::init(ModSource&& source) {
 
     // Handle source-specific stuff
     m_source.visit(makeVisitor {
-        [this](Mod* mod) {
+        [this, listItem](Mod* mod) {
             // Add an enable button if the mod is enablable
             if (!mod->isInternal()) {
                 m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
@@ -231,7 +243,10 @@ bool ModItem::init(ModSource&& source) {
                 m_enableToggle->m_notClickable = true;
                 m_viewMenu->addChild(m_enableToggle);
                 m_viewMenu->updateLayout();
+            }
 
+            // Add a pin button if the mod is in a list and enablable
+            if (listItem && !mod->isInternal()) {
                 auto pinOff = CCSprite::createWithSpriteFrameName("pin.png"_spr);
                 pinOff->setOpacity(105);
                 auto pinOn = CCSprite::createWithSpriteFrameName("pin.png"_spr);
@@ -258,9 +273,10 @@ bool ModItem::init(ModSource&& source) {
                 m_viewMenu->addChild(m_pinToggle);
                 m_viewMenu->updateLayout();
             }
-            if (mod->getLoadProblem()) {
+
+            if (mod->getLoadProblem() || m_source.hasUpdates().deprecation.has_value()) {
                 auto viewErrorSpr = CircleButtonSprite::create(
-                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr), 
+                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
                     CircleBaseColor::Red, CircleBaseSize::Small
                 );
                 auto viewErrorBtn = CCMenuItemSpriteExtra::create(
@@ -701,10 +717,17 @@ void ModItem::updateState() {
             m_outdatedLabel->setVisible(true);
             elementToReplaceWithOtherAbnormalElement->setVisible(false);
             if (m_display == ModListDisplay::Grid) {
-                m_outdatedLabel->setString("Outdated");
+                if (!m_source.getMetadata().checkPlatformSupported()) {
+                    m_outdatedLabel->setString("Unsupported");
+                } else {
+                    m_outdatedLabel->setString("Outdated");
+                }
             }
             else {
-                if (!m_source.getMetadata().checkGameVersion()) {
+                if (!m_source.getMetadata().checkPlatformSupported()) {
+                    m_outdatedLabel->setString("Unsupported Platform");
+                }
+                else if (!m_source.getMetadata().checkGameVersion()) {
                     m_outdatedLabel->setString(fmt::format(
                         "Outdated (GD {})", *m_source.getMetadata().getGameVersion()
                     ).c_str());
@@ -762,9 +785,7 @@ void ModItem::updateState() {
             limitNodeWidth(m_titleLabel, m_titleContainer->getContentWidth(), .8f, .1f);
             m_titleContainer->updateAnchoredPosition(Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
             m_developers->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
-            m_restartRequiredLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
-            m_outdatedLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
-            m_deprecatedLabel->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
+            m_modLabelsContainer->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_downloadWaiting->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
 
@@ -784,9 +805,7 @@ void ModItem::updateState() {
                 );
             // m_description is hidden
             m_developers->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_restartRequiredLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_outdatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_deprecatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
+            m_modLabelsContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
 
@@ -806,8 +825,7 @@ void ModItem::updateState() {
             m_developers->updateAnchoredPosition(Anchor::Left, ccp(0, 0), ccp(0, .5f));
 
             m_description->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
-            m_restartRequiredLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
-            m_outdatedLabel->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
+            m_modLabelsContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
             m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
 
@@ -822,6 +840,7 @@ void ModItem::updateState() {
 
     m_titleContainer->updateLayout();
     m_viewMenu->updateLayout();
+    m_modLabelsContainer->updateLayout();
 
     // Highlight item via BG if it wants to restart for extra UI attention
     if (wantsRestart) {
@@ -975,9 +994,9 @@ void ModItem::onDevelopers(CCObject*) {
     DevListPopup::create(m_source)->show();
 }
 
-ModItem* ModItem::create(ModSource&& source) {
+ModItem* ModItem::create(ModSource&& source, bool listItem) {
     auto ret = new ModItem();
-    if (ret->init(std::move(source))) {
+    if (ret->init(std::move(source), listItem)) {
         ret->autorelease();
         return ret;
     }
@@ -1033,7 +1052,7 @@ bool AnyModItem::init(ZStringView modID) {
     return true;
 }
 void AnyModItem::gotSrc(ModSource&& src) {
-    m_item = ModItem::create(std::move(src));
+    m_item = ModItem::create(std::move(src), false);
     m_item->updateDisplay(m_targetWidth, m_display);
     this->addChildAtPosition(m_item, Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
     m_bg->setVisible(false);

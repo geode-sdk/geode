@@ -319,6 +319,20 @@ Result<std::vector<std::filesystem::path>> utils::file::readDirectory(
 
 static constexpr auto MAX_ENTRY_PATH_LEN = 256;
 
+static std::filesystem::path safePathJoin(const std::filesystem::path& path, const std::filesystem::path& suffix) {
+    std::error_code ec;
+
+    auto dir = std::filesystem::weakly_canonical(path);
+
+    auto rel = std::filesystem::relative(dir / suffix, dir, ec);
+    if (ec || rel.empty() || *rel.begin() == "..") return {};
+
+    auto canonical = std::filesystem::weakly_canonical(dir / rel, ec);
+    if (ec || canonical.empty()) return {};
+
+    return canonical;
+}
+
 struct ZipEntry {
     bool isDirectory;
     int64_t compressedSize;
@@ -524,9 +538,11 @@ public:
             // make sure zip files like root/../../file.txt don't get extracted to
             // avoid zip attacks
             std::error_code ec;
-            if (!std::filesystem::relative(dir / filePath, dir, ec).empty()) {
+            auto safePath = safePathJoin(dir, filePath);
+
+            if (!safePath.empty()) {
                 if (m_entries.at(filePath).isDirectory) {
-                    GEODE_UNWRAP(file::createDirectoryAll(dir / filePath));
+                    GEODE_UNWRAP(file::createDirectoryAll(safePath));
                 }
                 else {
                     GEODE_UNWRAP(this->extractAt(dir, filePath));
@@ -538,7 +554,7 @@ public:
             else {
                 log::error(
                     "Zip entry '{}' is not contained within zip bounds",
-                    dir / filePath
+                    filePath
                 );
 
                 if (ec) {

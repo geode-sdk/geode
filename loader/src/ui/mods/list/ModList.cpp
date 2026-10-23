@@ -229,7 +229,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         CCSequence* seq = CCSequence::create(
             CCDelayTime::create(bufferTime),
             CallFuncExt::create([this] {
-                m_source->search(m_searchInput->getString());
+                m_source->search(string::trim(m_searchInput->getString()));
             }),
             nullptr
         );
@@ -512,7 +512,15 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
 
     m_hasDeprecations = check.modsWithDeprecations.size() > 0;
 
-    m_toggleUpdatesOnlyBtn->setContentSize(m_showUpdatesSpr->getScaledContentSize());
+    // Fix "Show Update" / "Show" button positioning
+    auto btnSize = m_showUpdatesSpr->getScaledContentSize();
+    m_toggleUpdatesOnlyBtn->setContentSize(btnSize);
+    m_toggleUpdatesOnlyBtn->m_onButton->setContentSize(btnSize);
+    m_toggleUpdatesOnlyBtn->m_offButton->setContentSize(btnSize);
+    m_toggleUpdatesOnlyBtn->m_onButton->setPosition(btnSize * 0.5f);
+    m_toggleUpdatesOnlyBtn->m_offButton->setPosition(btnSize * 0.5f);
+    m_showUpdatesSpr->setPosition(btnSize * 0.5f);
+    m_hideUpdatesSpr->setPosition(btnSize * 0.5f);
 
     // Recreate the menu with the updated label
     m_updateAllMenu->removeChild(m_updateAllBtn, true);

@@ -2,7 +2,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <chrono>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <loader/ModMetadataImpl.hpp>
 #include <fmt/chrono.h>
 #include <arc/sync/Mutex.hpp>
@@ -11,6 +11,9 @@
 #include "Geode/loader/Loader.hpp"
 
 using namespace server;
+
+static constexpr size_t MAX_UPDATE_BATCH_SIZE = 200u; // this affects 0.03% of users
+// also make sure to update the server limit if this is increased for some reason
 
 #define GEODE_GD_VERSION_STR GEODE_STR(GEODE_GD_VERSION)
 
@@ -116,14 +119,15 @@ public:
 
 private:
     asp::Mutex<CacheMap<CacheKey, Value>> m_cache;
+    asp::Mutex<std::vector<std::pair<CacheKey, std::shared_ptr<arc::Semaphore>>>> m_syncMap;
 
 public:
     FunCache() = default;
     FunCache(FunCache const&) = delete;
     FunCache(FunCache&&) = delete;
 
-    template <class... Args>
-    arc::Future<Result<Value, ServerError>> get(Args&&... args) {
+    template <bool Sync, class... Args>
+    arc::Future<Result<Value, ServerError>> getInner(Args&&... args) {
         ARC_FRAME();
         auto key = Extract::key(args...);
 
@@ -133,15 +137,63 @@ public:
         }
         cache.unlock();
 
+        std::shared_ptr<arc::Semaphore> notify;
+        if constexpr (Sync) {
+            auto sm = m_syncMap.lock();
+            auto it = std::find_if(sm->begin(), sm->end(), [&key](auto const& q) {
+                return q.first == key;
+            });
+
+            if (it != sm->end()) {
+                // another task is already fetching this resource, synchronize with it
+                auto n = it->second;
+                sm.unlock();
+
+                co_await n->acquire(1);
+
+                // check cache again
+                auto cache = m_cache.lock();
+                if (auto v = cache->get(key)) {
+                    co_return Ok(std::move(*v));
+                }
+            } else {
+                // we are the first to fetch this resource, tell all future fetchers to wait
+                notify = std::make_shared<arc::Semaphore>(0);
+                sm->emplace_back(key, notify);
+            }
+        }
+
+        // notify all waiters once the scope is over, this is a bit messy but done this way
+        // because we want to run this upon all three outcomes: success, error or cancellation
+        auto _scope = arc::scopeDtor([&] {
+            if (notify) {
+                notify->release(1'000'000'000);
+                auto sm = m_syncMap.lock();
+                ranges::remove(*sm, [&](auto const& q) { return q.second.get() == notify.get(); });
+            }
+        });
+
         auto f = ARC_CO_UNWRAP(co_await Extract::invoke(F, std::forward<Args>(args)...));
 
         cache.relock();
-        if (cache->has(key)) {
-            co_return Ok(std::move(f)); // don't save to cache if someone beat us
-        }
-        cache->add(std::move(key), Value{f});
 
-        co_return Ok(f);
+        // only save to cache if no one beat us
+        if (!cache->has(key)) {
+            cache->add(std::move(key), Value{f});
+        }
+        cache.unlock();
+
+        co_return Ok(std::move(f));
+    }
+
+    template <class... Args>
+    arc::Future<Result<Value, ServerError>> getSynchronized(Args&&... args) {
+        return this->getInner<true>(std::forward<Args>(args)...);
+    }
+
+    template <class... Args>
+    arc::Future<Result<Value, ServerError>> get(Args&&... args) {
+        return this->getInner<false>(std::forward<Args>(args)...);
     }
 
     template <class... Args>
@@ -568,6 +620,14 @@ Result<ServerModsList> ServerModsList::parse(matjson::Value raw) {
     return payload.ok(std::move(list));
 }
 
+Result<ServerLoaderDownload> ServerLoaderDownload::parse(matjson::Value json) {
+    auto root = checkJson(std::move(json), "ServerLoaderDownload");
+    auto res = ServerLoaderDownload();
+    root.needs("url").into(res.url);
+    root.hasNullable("hash").into(res.hash);
+    return root.ok(std::move(res));
+}
+
 Result<ServerLoaderVersion> ServerLoaderVersion::parse(matjson::Value raw) {
     auto root = checkJson(std::move(raw), "ServerLoaderVersion");
 
@@ -578,6 +638,20 @@ Result<ServerLoaderVersion> ServerLoaderVersion::parse(matjson::Value raw) {
 
     auto gd_obj = root.needs("gd");
     gd_obj.needs(GEODE_PLATFORM_SHORT_IDENTIFIER).into(res.gameVersion);
+
+    auto downloads = root.needs("downloads");
+
+    // the loader downloads object differentiates android32 and android64, but not mac-arm and mac-intel (they're just mac),
+    // we have no unified macro for this so use either of those 2
+#ifdef GEODE_IS_ANDROID
+    auto key = GEODE_PLATFORM_SHORT_IDENTIFIER;
+#else
+    auto key = GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH;
+#endif
+    auto dlobj = downloads.needs(key);
+    auto rsobj = downloads.needs("resources");
+    res.download = GEODE_UNWRAP(ServerLoaderDownload::parse(dlobj.takeJson()));
+    res.resources = GEODE_UNWRAP(ServerLoaderDownload::parse(rsobj.takeJson()));
 
     return root.ok(std::move(res));
 }
@@ -685,7 +759,7 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
 ServerFuture<ServerModMetadata> server::getMod(std::string id, bool useCache) {
     ARC_FRAME();
     if (useCache) {
-        co_return co_await getCache<getMod>().get(std::move(id));
+        co_return co_await getCache<getMod>().getSynchronized(std::move(id));
     }
 
     auto req = web::WebRequest();
@@ -882,15 +956,14 @@ ServerFuture<ServerModUpdateAllCheck> server::checkAllUpdates(bool useCache) {
 
     std::vector<std::vector<std::string>> modBatches;
     auto modCount = modIDs.size();
-    std::size_t maxMods = 200u; // this affects 0.03% of users
 
-    if (modCount <= maxMods) {
+    if (modCount <= MAX_UPDATE_BATCH_SIZE) {
         // no tricks needed
         co_return co_await batchedCheckUpdates(modIDs);
     }
 
     // even out the mod count, so a request with 230 mods sends two 115 mod requests
-    auto batchCount = modCount / maxMods + 1;
+    auto batchCount = modCount / MAX_UPDATE_BATCH_SIZE + 1;
     auto maxBatchSize = modCount / batchCount + 1;
 
     for (std::size_t i = 0u; i < modCount; i += maxBatchSize) {

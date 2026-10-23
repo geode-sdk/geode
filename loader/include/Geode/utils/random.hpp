@@ -33,7 +33,21 @@ namespace geode::utils::random {
 
         /// Re-seeds the generator with the given seed
         void seed(uint64_t seed) {
-            m_x = m_y = m_z = seed;
+            // use SplitMix64 to generate a good, random initial state from the seed
+            std::array<uint64_t, 3> state;
+
+            uint64_t x = seed;
+            for (size_t i = 0; i < 3; i++) {
+                x += 0x9E3779B97F4A7C15ull;
+                uint64_t z = x;
+                z = (z ^ (z >> 30ull)) * 0xBF58476D1CE4E5B9ull;
+                z = (z ^ (z >> 27ull)) * 0x94D049BB133111EBull;
+                state[i] = z ^ (z >> 31ull);
+            }
+
+            m_x = state[0];
+            m_y = state[1];
+            m_z = state[2];
         }
 
         /// Generates the next random 64-bit integer
@@ -153,6 +167,16 @@ namespace geode::utils::random {
     void shuffle(Cont& cont) {
         using std::begin, std::end;
         shuffle(begin(cont), end(cont));
+    }
+
+    /// Returns a reference to a random element in the given collection.
+    /// Undefined behavior if the collection is empty.
+    template <typename Cont>
+    auto& choice(Cont& cont) {
+        using std::begin, std::end;
+        auto it = begin(cont);
+        std::advance(it, generate<size_t>(0, std::distance(begin(cont), end(cont))));
+        return *it;
     }
 
     /// Returns a boolean with a specified probability of being true, in the range [0.0, 1.0]

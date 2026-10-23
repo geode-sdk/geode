@@ -138,7 +138,7 @@ public:
     SimpleAxisLayout* setAxis(Axis axis);
     /**
      * Sets the scaling behaviour of the main axis
-     * The default is set to AxisScaling::None
+     * The default is set to AxisScaling::ScaleDownGaps
      */
     SimpleAxisLayout* setMainAxisScaling(AxisScaling scaling);
     /**

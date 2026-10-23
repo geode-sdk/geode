@@ -103,6 +103,12 @@ namespace geode {
         float getBottomPadding();
     };
 
+    /**
+     * Push a scene with a CCLayer with a fade transition
+     * @param layer CCLayer to push scene with
+     */
+    GEODE_DLL void pushSceneWithLayer(cocos2d::CCLayer* layer);
+
     enum class BackButtonStyle {
         Green,
         Blue,

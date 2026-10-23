@@ -894,7 +894,7 @@ public:
      * @note Geode addition
      */
     GEODE_DLL void removeTether(CCObject* object);
-    
+
     /**
      * Set (or clear) a boolean flag on this node with a specific ID.
      *
@@ -1120,7 +1120,7 @@ public:
     // @note Geode addition
     GEODE_DLL void setContentWidth(float width);
     // @note Geode addition
-    GEODE_DLL void setContentHeight(float width);
+    GEODE_DLL void setContentHeight(float height);
     // @note Geode addition
     GEODE_DLL float getContentWidth() const;
     // @note Geode addition
@@ -1216,7 +1216,7 @@ public:
      * or nullptr if index exceeds bounds
      */
     template <class InpT = CCNode*, class T = std::remove_pointer_t<InpT>>
-    T* getChildByType(int index) {
+    T* getChildByType(int index = 0) {
         size_t indexCounter = 0;
         if (this->getChildrenCount() == 0) return nullptr;
         // start from end for negative index

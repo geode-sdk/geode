@@ -329,30 +329,52 @@ const char* CCKeyboardDispatcher::keyToString(enumKeyCodes key)
         case KEY_ArrowLeft: return "ArrowLeft";
         case KEY_ArrowRight: return "ArrowRight";
         case CONTROLLER_A: return "Controller_A";
+        case CONTROLLER2_A: return "Controller2_A";
         case CONTROLLER_B: return "Controller_B";
+        case CONTROLLER2_B: return "Controller2_B";
         case CONTROLLER_Y: return "Controller_Y";
+        case CONTROLLER2_Y: return "Controller2_Y";
         case CONTROLLER_X: return "Controller_X";
+        case CONTROLLER2_X: return "Controller2_X";
         case CONTROLLER_Start: return "Controller_Start";
+        case CONTROLLER2_Start: return "Controller2_Start";
         case CONTROLLER_Back: return "Controller_Back";
+        case CONTROLLER2_Back: return "Controller2_Back";
         case CONTROLLER_RB: return "Controller_RB";
+        case CONTROLLER2_RB: return "Controller2_RB";
         case CONTROLLER_LB: return "Controller_LB";
+        case CONTROLLER2_LB: return "Controller2_LB";
         case CONTROLLER_RT: return "Controller_RT";
+        case CONTROLLER2_RT: return "Controller2_RT";
         case CONTROLLER_LT: return "Controller_LT";
+        case CONTROLLER2_LT: return "Controller2_LT";
         case CONTROLLER_Up: return "Controller_Up";
+        case CONTROLLER2_Up: return "Controller2_Up";
         case CONTROLLER_Down: return "Controller_Down";
+        case CONTROLLER2_Down: return "Controller2_Down";
         case CONTROLLER_Left: return "Controller_Left";
+        case CONTROLLER2_Left: return "Controller2_Left";
         case CONTROLLER_Right: return "Controller_Right";
+        case CONTROLLER2_Right: return "Controller2_Right";
 
         // Geode Additions
 
         case CONTROLLER_LTHUMBSTICK_UP: return "Controller_LTHUMBSTICK_UP";
+        case CONTROLLER2_LTHUMBSTICK_UP: return "Controller2_LTHUMBSTICK_UP";
         case CONTROLLER_LTHUMBSTICK_DOWN: return "Controller_LTHUMBSTICK_DOWN";
+        case CONTROLLER2_LTHUMBSTICK_DOWN: return "Controller2_LTHUMBSTICK_DOWN";
         case CONTROLLER_LTHUMBSTICK_LEFT: return "Controller_LTHUMBSTICK_LEFT";
+        case CONTROLLER2_LTHUMBSTICK_LEFT: return "Controller2_LTHUMBSTICK_LEFT";
         case CONTROLLER_LTHUMBSTICK_RIGHT: return "Controller_LTHUMBSTICK_RIGHT";
+        case CONTROLLER2_LTHUMBSTICK_RIGHT: return "Controller2_LTHUMBSTICK_RIGHT";
         case CONTROLLER_RTHUMBSTICK_UP: return "Controller_RTHUMBSTICK_UP";
+        case CONTROLLER2_RTHUMBSTICK_UP: return "Controller2_RTHUMBSTICK_UP";
         case CONTROLLER_RTHUMBSTICK_DOWN: return "Controller_RTHUMBSTICK_DOWN";
+        case CONTROLLER2_RTHUMBSTICK_DOWN: return "Controller2_RTHUMBSTICK_DOWN";
         case CONTROLLER_RTHUMBSTICK_LEFT: return "Controller_RTHUMBSTICK_LEFT";
+        case CONTROLLER2_RTHUMBSTICK_LEFT: return "Controller2_RTHUMBSTICK_LEFT";
         case CONTROLLER_RTHUMBSTICK_RIGHT: return "Controller_RTHUMBSTICK_RIGHT";
+        case CONTROLLER2_RTHUMBSTICK_RIGHT: return "Controller2_RTHUMBSTICK_RIGHT";
         case KEY_GraveAccent: return "`";
         case KEY_OEMEqual: return "=";
         case KEY_LeftBracket: return "[";
@@ -369,6 +391,10 @@ const char* CCKeyboardDispatcher::keyToString(enumKeyCodes key)
         case MOUSE_6: return "Mouse 6";
         case MOUSE_7: return "Mouse 7";
         case MOUSE_8: return "Mouse 8";
+        case CONTROLLER_L3: return "Controller_L3";
+        case CONTROLLER2_L3: return "Controller2_L3";
+        case CONTROLLER_R3: return "Controller_R3";
+        case CONTROLLER2_R3: return "Controller2_R3";
 
         case KEY_None:
         case KEY_Unknown:

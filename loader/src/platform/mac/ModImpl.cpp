@@ -39,3 +39,33 @@ Result<> Mod::Impl::loadPlatformBinary() {
     std::string err = (char const*)dlerror();
     return Err("Unable to load the DYLIB: dlerror returned (" + err + ")");
 }
+
+void Mod::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
+    // this takes advantage of dyld using already loaded binaries when loading relative shared libraries
+    // however, this also means that the binaries are loaded, which could have some weird side effects
+    // but if you could use dlopen (and thus control when libraries are loaded), then you wouldn't be using this, would you?
+
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        if (!entry.is_regular_file()) {
+            continue;
+        }
+
+        auto& entry_path = entry.path();
+
+        if (entry_path.extension() != ".dylib") {
+            continue;
+        }
+
+        auto handle = dlopen(utils::string::pathToString(entry_path).c_str(), RTLD_LAZY);
+
+        if (!handle) {
+            auto err = dlerror();
+            log::warn("failed to load native binary at {}: dlerror returned ({})", 
+                entry_path, err
+            );
+            continue;
+        }
+
+        dlclose(handle);
+    }
+}

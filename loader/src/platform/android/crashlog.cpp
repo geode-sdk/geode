@@ -340,7 +340,7 @@ void CrashContext::writeInfo(Buffer& stream) {
     stream.append("Faulty Lib: {}\n", image ? image->name() : "<Unknown>");
     stream.append("Faulty Mod: {}\n", faultyMod ? faultyMod->getID() : "<Unknown>");
     stream.append("Instruction Address: ");
-    this->formatAddress(crashAddr, infoStream);
+    this->formatAddress(crashAddr, stream);
 
     stream.append("\nSignal: {}, code {} ({})\n", s_siginfo->si_signo, s_siginfo->si_code, getSignalCodeString(s_signal, s_siginfo));
 
