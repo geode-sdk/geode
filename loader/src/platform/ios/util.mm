@@ -535,10 +535,6 @@ double geode::utils::getInputTimestamp() {
     return [[NSProcessInfo processInfo] systemUptime];
 }
 
-bool geode::utils::isGameFocused() {
-    return true;
-}
-
 bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
     uint8_t* data = m_pData;
     bool usePNG = std::string_view(pszFilePath).ends_with(".png");
@@ -673,8 +669,4 @@ PlatformDetails geode::utils::platform::getDetails() {
 std::string geode::utils::platform::getString() {
     auto details = getDetails();
     return fmt::format("iOS {} {}.{}.{} ({})", details.arch, details.majorVersion, details.minorVersion, details.patchVersion, details.launchMethod);
-}
-
-bool geode::utils::platform::isChromebook() {
-    return false;
 }
