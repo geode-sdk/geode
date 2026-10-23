@@ -46,7 +46,7 @@ bool CCNode::hasAncestor(CCNode* ancestor) {
     return false;
 }
 
-void CCNode::addChildren(const std::vector<cocos2d::CCNode*>& children) {
+void CCNode::addChildren(std::span<cocos2d::CCNode* const> children) {
     for (auto& child : children) {
         addChild(child);
     }

@@ -41,6 +41,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/ZStringView.hpp>
+#include <span>
 
 namespace geode {
     class Layout;
@@ -682,15 +683,14 @@ public:
      * Util function to add multiple children in one call
      * @note Geode addition
      */
-    GEODE_DLL void addChildren(const std::vector<cocos2d::CCNode*>& children);
+    GEODE_DLL void addChildren(std::span<cocos2d::CCNode* const> children);
     /**
      * Util function to add multiple children in one call
      * @note Geode addition
      */
     template <typename... Args>
-    GEODE_DLL void addChildren(cocos2d::CCNode* child, Args... others) {
-        addChild(child);
-        (addChild(others), ...);
+    void addChildren(Args... children) {
+        (addChild(children), ...);
     }
 
 
