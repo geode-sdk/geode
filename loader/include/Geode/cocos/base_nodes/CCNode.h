@@ -41,6 +41,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/ZStringView.hpp>
+#include <span>
 
 namespace geode {
     class Layout;
@@ -677,6 +678,20 @@ public:
      * @returns A pointer to the parnet node
      */
     virtual CCNode* getParent();
+    
+    /**
+     * Util function to add multiple children in one call
+     * @note Geode addition
+     */
+    GEODE_DLL void addChildren(std::span<cocos2d::CCNode* const> children);
+    /**
+     * Util function to add multiple children in one call
+     * @note Geode addition
+     */
+    template <typename... Args>
+    void addChildren(Args... children) {
+        (addChild(children), ...);
+    }
 
 
     ////// REMOVES //////
