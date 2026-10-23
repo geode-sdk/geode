@@ -23,7 +23,7 @@ namespace geode {
         // Reloads the style of the progress bar
         void reloadStyle();
 
-        void onAnimate(float);
+        void onAnimate(float dt);
 
         bool init(ProgressBarStyle style);
 
