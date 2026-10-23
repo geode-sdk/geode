@@ -1,11 +1,12 @@
 #pragma once
 
+#include "../../GeodeStyle.hpp"
+#include "../sources/ModListSource.hpp"
+
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include "../sources/ModListSource.hpp"
-#include "../GeodeStyle.hpp"
-#include <server/Server.hpp>
 #include <Geode/utils/async.hpp>
+#include <server/Server.hpp>
 
 using namespace geode::prelude;
 
@@ -22,7 +23,7 @@ protected:
 
     bool init(ModListSource* src);
     void updateTags();
-    
+
     void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
     void onResetTags(CCObject*);
     void onResetDevName(CCObject*);
