@@ -11,6 +11,8 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/cocos.hpp>
 
+using namespace geode::prelude;
+
 $on_mod(Loaded) {
     // todo: these names should probably be shorter so they fit in SSO...
     ColorProvider::get()->define("mod-list-bg"_spr, {25, 17, 37, 255});
@@ -147,7 +149,7 @@ $on_mod(Loaded) {
         .leak();
 }
 
-bool isGeodeTheme(bool forceDisableTheme) {
+bool geode::isGeodeTheme(bool forceDisableTheme) {
     if (forceDisableTheme) return false;
     if (Mod::get()->getSettingValue<bool>("enable-geode-theme")) return true;
     std::string theme;
@@ -188,15 +190,26 @@ bool GeodePopup::init(float width, float height, GeodePopupStyle style, bool for
     return true;
 }
 
+class GeodeSquareSprite::Impl final {
+public:
+    bool* m_stateSrc = nullptr;
+    bool m_state = false;
+    bool m_forceDisableTheme = false;
+    CCSprite* m_topSprite;
+};
+
+GeodeSquareSprite::GeodeSquareSprite() : m_impl(std::make_unique<Impl>()) {};
+GeodeSquareSprite::~GeodeSquareSprite() {};
+
 bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme) {
     if (!CCSprite::initWithFile(
             isGeodeTheme(forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png"
         ))
         if (!CCSprite::initWithFile("GJ_button_01.png")) return false;
 
-    m_stateSrc = state;
-    m_topSprite = top;
-    m_forceDisableTheme = forceDisableTheme;
+    m_impl->m_stateSrc = state;
+    m_impl->m_topSprite = top;
+    m_impl->m_forceDisableTheme = forceDisableTheme;
 
     limitNodeSize(top, m_obContentSize * .65f, 2.f, .1f);
     this->addChildAtPosition(top, Anchor::Center);
@@ -212,9 +225,9 @@ bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme)
 void GeodeSquareSprite::updateImage() {
     this->setTexture(
         CCTextureCache::get()->addImage(
-            (m_state ?
-                 "GJ_button_02.png" :
-                 (isGeodeTheme(m_forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png")),
+            (m_impl->m_state ? "GJ_button_02.png" :
+                               (isGeodeTheme(m_impl->m_forceDisableTheme) ? "GE_button_05.png"_spr :
+                                                                            "GJ_button_01.png")),
             false
         )
     );
@@ -222,8 +235,8 @@ void GeodeSquareSprite::updateImage() {
 
 void GeodeSquareSprite::update(float dt) {
     CCSprite::update(dt);
-    if (m_stateSrc && m_state != *m_stateSrc) {
-        m_state = *m_stateSrc;
+    if (m_impl->m_stateSrc && m_impl->m_state != *m_impl->m_stateSrc) {
+        m_impl->m_state = *m_impl->m_stateSrc;
         this->updateImage();
     }
 }
@@ -251,12 +264,12 @@ GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(
 }
 
 CCSprite* GeodeSquareSprite::getTopSprite() const {
-    return m_topSprite;
+    return m_impl->m_topSprite;
 }
 
 void GeodeSquareSprite::setState(bool state) {
-    if (!m_stateSrc) {
-        m_state = state;
+    if (!m_impl->m_stateSrc) {
+        m_impl->m_state = state;
         this->updateImage();
     }
 }
@@ -290,7 +303,7 @@ ZStringView getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableThe
     }
 }
 
-IconButtonSprite* createGeodeButton(
+IconButtonSprite* geode::createGeodeButton(
     CCNode* icon, ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme
 ) {
     return IconButtonSprite::create(
@@ -301,13 +314,13 @@ IconButtonSprite* createGeodeButton(
     );
 }
 
-IconButtonSprite* createGeodeButton(
+IconButtonSprite* geode::createGeodeButton(
     CCNode* icon, ZStringView text, GeodeButtonSprite bg, bool forceDisableTheme
 ) {
     return createGeodeButton(icon, text, false, bg, forceDisableTheme);
 }
 
-ButtonSprite* createGeodeButton(
+ButtonSprite* geode::createGeodeButton(
     ZStringView text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme
 ) {
     return ButtonSprite::create(
@@ -321,7 +334,9 @@ ButtonSprite* createGeodeButton(
     );
 }
 
-ButtonSprite* createGeodeButton(ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
+ButtonSprite* geode::createGeodeButton(
+    ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme
+) {
     return ButtonSprite::create(
         text.c_str(),
         gold ? "goldFont.fnt" : "bigFont.fnt",
@@ -330,7 +345,7 @@ ButtonSprite* createGeodeButton(ZStringView text, bool gold, GeodeButtonSprite b
     );
 }
 
-CircleButtonSprite* createGeodeCircleButton(
+CircleButtonSprite* geode::createGeodeCircleButton(
     CCSprite* top, float scale, CircleBaseSize size, bool altColor, bool forceDisableTheme
 ) {
     auto const geodeTheme = isGeodeTheme(forceDisableTheme);
@@ -381,7 +396,7 @@ std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag) {
     return TAG_COLORS[hash(tag.name) % 5932 % TAG_COLORS.size()];
 }
 
-ListBorders* createGeodeListBorders(CCSize const& size, bool forceDisableTheme) {
+ListBorders* geode::createGeodeListBorders(CCSize const& size, bool forceDisableTheme) {
     auto ret = ListBorders::create();
     bool const geodeTheme = isGeodeTheme(forceDisableTheme);
     if (geodeTheme) {
@@ -394,6 +409,17 @@ ListBorders* createGeodeListBorders(CCSize const& size, bool forceDisableTheme) 
     return ret;
 }
 
+class GeodeTabSprite::Impl final {
+public:
+    NineSlice* m_deselectedBG = nullptr;
+    NineSlice* m_selectedBG = nullptr;
+    cocos2d::CCSprite* m_icon = nullptr;
+    Label* m_label = nullptr;
+};
+
+GeodeTabSprite::GeodeTabSprite() : m_impl(std::make_unique<Impl>()) {};
+GeodeTabSprite::~GeodeTabSprite() {};
+
 bool GeodeTabSprite::init(ZStringView iconFrame, std::string text, float width, bool altColor) {
     if (!CCNode::init()) return false;
 
@@ -403,33 +429,33 @@ bool GeodeTabSprite::init(ZStringView iconFrame, std::string text, float width, 
     this->setContentSize(itemSize);
     this->setAnchorPoint({.5f, .5f});
 
-    m_deselectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
-    m_deselectedBG->setScale(.8f);
-    m_deselectedBG->setContentSize(itemSize / .8f);
-    m_deselectedBG->setColor("mod-list-tab-deselected-bg"_cc3b);
-    this->addChildAtPosition(m_deselectedBG, Anchor::Center);
+    m_impl->m_deselectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
+    m_impl->m_deselectedBG->setScale(.8f);
+    m_impl->m_deselectedBG->setContentSize(itemSize / .8f);
+    m_impl->m_deselectedBG->setColor("mod-list-tab-deselected-bg"_cc3b);
+    this->addChildAtPosition(m_impl->m_deselectedBG, Anchor::Center);
 
-    m_selectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
-    m_selectedBG->setScale(.8f);
-    m_selectedBG->setContentSize(itemSize / .8f);
-    m_selectedBG->setColor(to3B(
+    m_impl->m_selectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
+    m_impl->m_selectedBG->setScale(.8f);
+    m_impl->m_selectedBG->setContentSize(itemSize / .8f);
+    m_impl->m_selectedBG->setColor(to3B(
         ColorProvider::get()->color(
             altColor ? "mod-list-tab-selected-bg-alt"_spr : "mod-list-tab-selected-bg"_spr
         )
     ));
-    this->addChildAtPosition(m_selectedBG, Anchor::Center);
+    this->addChildAtPosition(m_impl->m_selectedBG, Anchor::Center);
 
-    m_icon = CCSprite::createWithSpriteFrameName(iconFrame.c_str());
-    limitNodeSize(m_icon, iconSize, 3.f, .1f);
-    this->addChildAtPosition(m_icon, Anchor::Left, ccp(16, 0), false);
+    m_impl->m_icon = CCSprite::createWithSpriteFrameName(iconFrame.c_str());
+    limitNodeSize(m_impl->m_icon, iconSize, 3.f, .1f);
+    this->addChildAtPosition(m_impl->m_icon, Anchor::Left, ccp(16, 0), false);
 
-    m_label = Label::create(std::move(text), "bigFont.fnt");
-    m_label->setLimitLabelWidth(
+    m_impl->m_label = Label::create(std::move(text), "bigFont.fnt");
+    m_impl->m_label->setLimitLabelWidth(
         this->getContentWidth() - 45, std::clamp(width * .0045f, .35f, .55f), .1f
     );
-    m_label->setAnchorPoint({.5f, .5f});
+    m_impl->m_label->setAnchorPoint({.5f, .5f});
     this->addChildAtPosition(
-        m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false
+        m_impl->m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false
     );
 
     return true;
@@ -448,14 +474,14 @@ GeodeTabSprite* GeodeTabSprite::create(
 }
 
 void GeodeTabSprite::select(bool selected) {
-    m_deselectedBG->setVisible(!selected);
-    m_selectedBG->setVisible(selected);
+    m_impl->m_deselectedBG->setVisible(!selected);
+    m_impl->m_selectedBG->setVisible(selected);
 }
 
 void GeodeTabSprite::disable(bool disabled) {
     auto color = disabled ? ccc3(95, 95, 95) : ccc3(255, 255, 255);
-    m_deselectedBG->setColor(color);
-    m_selectedBG->setColor(color);
-    m_icon->setColor(color);
-    m_label->setColor(color);
+    m_impl->m_deselectedBG->setColor(color);
+    m_impl->m_selectedBG->setColor(color);
+    m_impl->m_icon->setColor(color);
+    m_impl->m_label->setColor(color);
 }

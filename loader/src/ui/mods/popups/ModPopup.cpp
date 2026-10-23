@@ -1128,13 +1128,15 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
         // If the build times from the cool popup become too long then we can
         // probably move that to a normal FLAlert that explains "Modtober was
         // this contest blah blah this mod was made for it"
-        else if (auto tag = ranges::find(
-                     data,
-                     [](auto const& tag) {
-                         return tag.name.starts_with("modtober");
-                     }
-                 );
-                 tag.has_value()) {
+        else if (
+            auto tag = ranges::find(
+                data,
+                [](auto const& tag) {
+                    return tag.name.starts_with("modtober");
+                }
+            );
+            tag.has_value()
+        ) {
             auto year = tag->name.substr(tag->name.size() - 2);
             auto menu = CCMenu::create();
             menu->setID("modtober-banner");
