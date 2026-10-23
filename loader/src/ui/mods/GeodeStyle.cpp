@@ -1,18 +1,19 @@
 #include "GeodeStyle.hpp"
-#include <Geode/utils/cocos.hpp>
-#include <Geode/utils/ColorProvider.hpp>
+
+#include <GUI/CCControlExtension/CCScale9Sprite.h>
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/ui/LoadingSpinner.hpp>
-#include <Geode/ui/NineSlice.hpp>
-#include <Geode/ui/Label.hpp>
+#include <Geode/cocos/textures/CCTextureCache.h>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/loader/Priority.hpp>
-#include <GUI/CCControlExtension/CCScale9Sprite.h>
-#include <Geode/cocos/textures/CCTextureCache.h>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui/NineSlice.hpp>
+#include <Geode/utils/ColorProvider.hpp>
+#include <Geode/utils/cocos.hpp>
 
 $on_mod(Loaded) {
     // todo: these names should probably be shorter so they fit in SSO...
-    ColorProvider::get()->define("mod-list-bg"_spr, { 25, 17, 37, 255 });
+    ColorProvider::get()->define("mod-list-bg"_spr, {25, 17, 37, 255});
     ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(112, 235, 41));
     ColorProvider::get()->define("mod-list-version-bg-updates-available"_spr, ccc3(88, 202, 255));
     ColorProvider::get()->define("mod-list-version-label-updates-available"_spr, ccc3(88, 202, 255));
@@ -23,63 +24,65 @@ $on_mod(Loaded) {
     ColorProvider::get()->define("mod-list-outdated-label-bg"_spr, ccc3(156, 123, 163));
     ColorProvider::get()->define("mod-list-deprecated-label"_spr, ccc3(255, 135, 88));
     ColorProvider::get()->define("mod-list-deprecated-label-bg"_spr, ccc3(175, 93, 60));
-    ColorProvider::get()->define("mod-list-search-bg"_spr, { 83, 65, 109, 255 });
-    ColorProvider::get()->define("mod-list-updates-available-bg"_spr, { 139, 89, 173, 255 });
-    ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, { 45, 110, 222, 255 });
-    ColorProvider::get()->define("mod-list-errors-found"_spr, { 235, 35, 112, 255 });
-    ColorProvider::get()->define("mod-list-errors-found-2"_spr, { 245, 27, 27, 255 });
-    ColorProvider::get()->define("mod-list-gray"_spr, { 205, 205, 205, 255 });
-    ColorProvider::get()->define("mod-list-tab-deselected-bg"_spr, { 26, 24, 29, 255 });
-    ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, { 168, 147, 185, 255 });
-    ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, { 147, 163, 185, 255 });
-    ColorProvider::get()->define("mod-list-featured-color"_spr, { 240, 211, 42, 255 });
-    ColorProvider::get()->define("mod-list-enabled"_spr, { 120, 255, 100, 255 });
-    ColorProvider::get()->define("mod-list-disabled"_spr, { 255, 120, 100, 255 });
+    ColorProvider::get()->define("mod-list-search-bg"_spr, {83, 65, 109, 255});
+    ColorProvider::get()->define("mod-list-updates-available-bg"_spr, {139, 89, 173, 255});
+    ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, {45, 110, 222, 255});
+    ColorProvider::get()->define("mod-list-errors-found"_spr, {235, 35, 112, 255});
+    ColorProvider::get()->define("mod-list-errors-found-2"_spr, {245, 27, 27, 255});
+    ColorProvider::get()->define("mod-list-gray"_spr, {205, 205, 205, 255});
+    ColorProvider::get()->define("mod-list-tab-deselected-bg"_spr, {26, 24, 29, 255});
+    ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, {168, 147, 185, 255});
+    ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, {147, 163, 185, 255});
+    ColorProvider::get()->define("mod-list-featured-color"_spr, {240, 211, 42, 255});
+    ColorProvider::get()->define("mod-list-enabled"_spr, {120, 255, 100, 255});
+    ColorProvider::get()->define("mod-list-disabled"_spr, {255, 120, 100, 255});
     ColorProvider::get()->define("mod-list-recommended-bg"_spr, ccc3(25, 255, 167));
     ColorProvider::get()->define("mod-list-recommended-by"_spr, ccc3(25, 255, 167));
     ColorProvider::get()->define("mod-list-recommended-by-2"_spr, ccc3(47, 255, 255));
-    ColorProvider::get()->define("mod-problems-item-bg"_spr, { 255, 255, 255, 15 });
-    ColorProvider::get()->define("mod-developer-item-bg"_spr, { 255, 255, 255, 15 });
-    ColorProvider::get()->define("mod-list-paid-color"_spr, { 0, 255, 63, 255 });
+    ColorProvider::get()->define("mod-problems-item-bg"_spr, {255, 255, 255, 15});
+    ColorProvider::get()->define("mod-developer-item-bg"_spr, {255, 255, 255, 15});
+    ColorProvider::get()->define("mod-list-paid-color"_spr, {0, 255, 63, 255});
 
     ColorProvider::get()->define("keybinds-list-category-label"_spr, ccc3(148, 116, 155));
 
     // Only used when GD theme is active
-    ColorProvider::get()->define("mods-layer-gd-bg"_spr, { 0, 102, 255, 255 });
+    ColorProvider::get()->define("mods-layer-gd-bg"_spr, {0, 102, 255, 255});
 
-    ColorProvider::get()->define("swelvy-bg-0"_spr, { 244, 212, 142, 255 });
-    ColorProvider::get()->define("swelvy-bg-1"_spr, { 245, 174, 125, 255 });
-    ColorProvider::get()->define("swelvy-bg-2"_spr, { 236, 137, 124, 255 });
-    ColorProvider::get()->define("swelvy-bg-3"_spr, { 213, 105, 133, 255 });
-    ColorProvider::get()->define("swelvy-bg-4"_spr, { 173, 84, 146, 255 });
-    ColorProvider::get()->define("swelvy-bg-5"_spr, { 113, 74, 154, 255 });
+    ColorProvider::get()->define("swelvy-bg-0"_spr, {244, 212, 142, 255});
+    ColorProvider::get()->define("swelvy-bg-1"_spr, {245, 174, 125, 255});
+    ColorProvider::get()->define("swelvy-bg-2"_spr, {236, 137, 124, 255});
+    ColorProvider::get()->define("swelvy-bg-3"_spr, {213, 105, 133, 255});
+    ColorProvider::get()->define("swelvy-bg-4"_spr, {173, 84, 146, 255});
+    ColorProvider::get()->define("swelvy-bg-5"_spr, {113, 74, 154, 255});
 
     auto updateColors = +[](std::string_view themeName) {
         std::string theme;
         ThemeIDProvidingEvent().send(theme);
         if (theme == "geometry-dash") {
-            ColorProvider::get()->override("mod-list-bg"_spr, { 168, 85, 44, 255 });
-            ColorProvider::get()->override("mod-list-version-bg-updates-available"_spr, { 220, 190, 0, 120 });
-            ColorProvider::get()->override("mod-list-search-bg"_spr, { 114, 63, 31, 255 });
-            ColorProvider::get()->override("mod-list-tab-deselected-bg"_spr, { 54, 31, 16, 255 });
-            ColorProvider::get()->override("mod-list-tab-selected-bg"_spr, { 248, 200, 43, 255 });
-            ColorProvider::get()->override("mod-list-tab-selected-bg-alt"_spr, { 156, 185, 147, 255 });
+            ColorProvider::get()->override("mod-list-bg"_spr, {168, 85, 44, 255});
+            ColorProvider::get()->override(
+                "mod-list-version-bg-updates-available"_spr, {220, 190, 0, 120}
+            );
+            ColorProvider::get()->override("mod-list-search-bg"_spr, {114, 63, 31, 255});
+            ColorProvider::get()->override("mod-list-tab-deselected-bg"_spr, {54, 31, 16, 255});
+            ColorProvider::get()->override("mod-list-tab-selected-bg"_spr, {248, 200, 43, 255});
+            ColorProvider::get()->override("mod-list-tab-selected-bg-alt"_spr, {156, 185, 147, 255});
             ColorProvider::get()->override("mod-list-restart-required-label"_spr, ccc3(10, 226, 255));
             ColorProvider::get()->override("mod-list-restart-required-label-bg"_spr, ccc3(0, 174, 180));
-            ColorProvider::get()->override("mod-list-errors-found"_spr, { 255, 0, 0, 255 });
-            ColorProvider::get()->override("mod-list-errors-found-2"_spr, { 235, 35, 112, 255 });
-            ColorProvider::get()->override("mod-problems-item-bg"_spr, { 0, 0, 0, 75 });
-            ColorProvider::get()->override("mod-developer-item-bg"_spr, { 0, 0, 0, 75 });
+            ColorProvider::get()->override("mod-list-errors-found"_spr, {255, 0, 0, 255});
+            ColorProvider::get()->override("mod-list-errors-found-2"_spr, {235, 35, 112, 255});
+            ColorProvider::get()->override("mod-problems-item-bg"_spr, {0, 0, 0, 75});
+            ColorProvider::get()->override("mod-developer-item-bg"_spr, {0, 0, 0, 75});
             ColorProvider::get()->override("keybinds-list-category-label"_spr, ccc3(156, 185, 147));
         }
         else {
             if (theme == "rainbow") {
-                ColorProvider::get()->override("swelvy-bg-0"_spr, { 216, 132, 132, 255 });
-                ColorProvider::get()->override("swelvy-bg-1"_spr, { 210, 189, 119, 255 });
-                ColorProvider::get()->override("swelvy-bg-2"_spr, { 195, 212, 136, 255 });
-                ColorProvider::get()->override("swelvy-bg-3"_spr, { 95, 184, 134, 255 });
-                ColorProvider::get()->override("swelvy-bg-4"_spr, { 100, 174, 189, 255 });
-                ColorProvider::get()->override("swelvy-bg-5"_spr, { 118, 90, 148, 255 });
+                ColorProvider::get()->override("swelvy-bg-0"_spr, {216, 132, 132, 255});
+                ColorProvider::get()->override("swelvy-bg-1"_spr, {210, 189, 119, 255});
+                ColorProvider::get()->override("swelvy-bg-2"_spr, {195, 212, 136, 255});
+                ColorProvider::get()->override("swelvy-bg-3"_spr, {95, 184, 134, 255});
+                ColorProvider::get()->override("swelvy-bg-4"_spr, {100, 174, 189, 255});
+                ColorProvider::get()->override("swelvy-bg-5"_spr, {118, 90, 148, 255});
             }
             else if (theme == "geode") {
                 ColorProvider::get()->reset("swelvy-bg-0"_spr);
@@ -107,8 +110,9 @@ $on_mod(Loaded) {
     listenForSettingChanges<std::string_view>("used-theme", updateColors);
 
     Loader::get()->queueInMainThread([updateColors = updateColors] {
-        // this code is ran during static init, where settings aren't loaded yet, and getSettingValue will always return false.
-        // because of that, we have to delay it until next frame.
+        // this code is ran during static init, where settings aren't loaded yet, and
+        // getSettingValue will always return false. because of that, we have to delay it until next
+        // frame.
         updateColors(Mod::get()->getSettingValue<std::string_view>("used-theme"));
 
         if (Mod::get()->getSettingValue<bool>("enable-geode-theme")) {
@@ -117,26 +121,30 @@ $on_mod(Loaded) {
         }
     });
 
-    ThemeIDProvidingEvent().listen([](std::string& idOut) {
-        if (!idOut.empty()) return; // someone overrode it already
+    ThemeIDProvidingEvent()
+        .listen(
+            [](std::string& idOut) {
+                if (!idOut.empty()) return; // someone overrode it already
 
-        auto theme = Mod::get()->getSettingValue<std::string_view>("used-theme");
-        static std::unordered_map<std::string_view, std::string> themeMap = {
-            { "Geode", "geode" },
-            { "Geometry Dash", "geometry-dash" },
-            { "Rainbow", "rainbow" },
-            { "Sapphire", "sapphire" },
-        };
-        if (themeMap.contains(theme)) {
-            idOut = themeMap[theme];
-        }
-        else {
-            // default fallback provided by us
-            idOut = "geode";
-        }
-        return;
-
-    }, Priority::Last).leak();
+                auto theme = Mod::get()->getSettingValue<std::string_view>("used-theme");
+                static std::unordered_map<std::string_view, std::string> themeMap = {
+                    {"Geode", "geode"},
+                    {"Geometry Dash", "geometry-dash"},
+                    {"Rainbow", "rainbow"},
+                    {"Sapphire", "sapphire"},
+                };
+                if (themeMap.contains(theme)) {
+                    idOut = themeMap[theme];
+                }
+                else {
+                    // default fallback provided by us
+                    idOut = "geode";
+                }
+                return;
+            },
+            Priority::Last
+        )
+        .leak();
 }
 
 bool isGeodeTheme(bool forceDisableTheme) {
@@ -150,25 +158,30 @@ bool isGeodeTheme(bool forceDisableTheme) {
 bool GeodePopup::init(float width, float height, GeodePopupStyle style, bool forceDisableTheme) {
     m_forceDisableTheme = forceDisableTheme;
 
-    const bool geodeTheme = isGeodeTheme(forceDisableTheme);
-    const char* bg;
+    bool const geodeTheme = isGeodeTheme(forceDisableTheme);
+    ZStringView bg;
     switch (style) {
         default:
-        case GeodePopupStyle::Default: bg = geodeTheme ? "GE_square01.png"_spr : "GJ_square01.png"; break;
-        case GeodePopupStyle::Alt:     bg = geodeTheme ? "GE_square02.png"_spr : "GJ_square02.png"; break;
-        case GeodePopupStyle::Alt2:    bg = geodeTheme ? "GE_square03.png"_spr : "GJ_square02.png"; break;
+        case GeodePopupStyle::Default:
+            bg = geodeTheme ? "GE_square01.png"_spr : "GJ_square01.png";
+            break;
+        case GeodePopupStyle::Alt:
+            bg = geodeTheme ? "GE_square02.png"_spr : "GJ_square02.png";
+            break;
+        case GeodePopupStyle::Alt2:
+            bg = geodeTheme ? "GE_square03.png"_spr : "GJ_square02.png";
+            break;
     }
 
-    if (!Popup::init(width, height, bg))
-        return false;
+    if (!Popup::init(width, height, bg.c_str())) return false;
 
     this->setCloseButtonSpr(
         CircleButtonSprite::createWithSpriteFrameName(
-            "close.png"_spr, .85f,
-            (geodeTheme ?
-                (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple : CircleBaseColor::DarkAqua) :
-                CircleBaseColor::Green
-            )
+            "close.png"_spr,
+            .85f,
+            (geodeTheme ? (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple :
+                                                               CircleBaseColor::DarkAqua) :
+                          CircleBaseColor::Green)
         )
     );
 
@@ -176,9 +189,10 @@ bool GeodePopup::init(float width, float height, GeodePopupStyle style, bool for
 }
 
 bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme) {
-    if (!CCSprite::initWithFile(isGeodeTheme(forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png"))
-        if (!CCSprite::initWithFile("GJ_button_01.png"))
-            return false;
+    if (!CCSprite::initWithFile(
+            isGeodeTheme(forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png"
+        ))
+        if (!CCSprite::initWithFile("GJ_button_01.png")) return false;
 
     m_stateSrc = state;
     m_topSprite = top;
@@ -196,11 +210,16 @@ bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme)
 }
 
 void GeodeSquareSprite::updateImage() {
-    this->setTexture(CCTextureCache::get()->addImage(
-        (m_state ? "GJ_button_02.png" : (isGeodeTheme(m_forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png")),
-        false
-    ));
+    this->setTexture(
+        CCTextureCache::get()->addImage(
+            (m_state ?
+                 "GJ_button_02.png" :
+                 (isGeodeTheme(m_forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png")),
+            false
+        )
+    );
 }
+
 void GeodeSquareSprite::update(float dt) {
     CCSprite::update(dt);
     if (m_stateSrc && m_state != *m_stateSrc) {
@@ -209,18 +228,21 @@ void GeodeSquareSprite::update(float dt) {
     }
 }
 
-GeodeSquareSprite* GeodeSquareSprite::create(const char* top, bool* state, bool forceDisableTheme) {
+GeodeSquareSprite* GeodeSquareSprite::create(ZStringView top, bool* state, bool forceDisableTheme) {
     auto ret = new GeodeSquareSprite();
-    if (ret->init(CCSprite::create(top), state, forceDisableTheme)) {
+    if (ret->init(CCSprite::create(top.c_str()), state, forceDisableTheme)) {
         ret->autorelease();
         return ret;
     }
     delete ret;
     return nullptr;
 }
-GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(const char* top, bool* state, bool forceDisableTheme) {
+
+GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(
+    ZStringView top, bool* state, bool forceDisableTheme
+) {
     auto ret = new GeodeSquareSprite();
-    if (ret->init(CCSprite::createWithSpriteFrameName(top), state, forceDisableTheme)) {
+    if (ret->init(CCSprite::createWithSpriteFrameName(top.c_str()), state, forceDisableTheme)) {
         ret->autorelease();
         return ret;
     }
@@ -239,13 +261,13 @@ void GeodeSquareSprite::setState(bool state) {
     }
 }
 
-CCNode* createLoadingCircle(float sideLength, const char* id) {
+CCNode* createLoadingCircle(float sideLength, ZStringView id) {
     auto spinner = LoadingSpinner::create(sideLength);
     spinner->setID(id);
     return spinner;
 }
 
-const char* getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme) {
+ZStringView getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme) {
     if (isGeodeTheme(forceDisableTheme)) {
         switch (spr) {
             default:
@@ -268,27 +290,55 @@ const char* getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableThe
     }
 }
 
-IconButtonSprite* createGeodeButton(CCNode* icon, ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
+IconButtonSprite* createGeodeButton(
+    CCNode* icon, ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme
+) {
     return IconButtonSprite::create(
-        getGeodeButtonSpriteName(bg, forceDisableTheme),
-        icon, text.c_str(),
+        getGeodeButtonSpriteName(bg, forceDisableTheme).c_str(),
+        icon,
+        text.c_str(),
         gold ? "goldFont.fnt" : "bigFont.fnt"
     );
 }
-IconButtonSprite* createGeodeButton(CCNode* icon, ZStringView text, GeodeButtonSprite bg, bool forceDisableTheme) {
+
+IconButtonSprite* createGeodeButton(
+    CCNode* icon, ZStringView text, GeodeButtonSprite bg, bool forceDisableTheme
+) {
     return createGeodeButton(icon, text, false, bg, forceDisableTheme);
 }
-ButtonSprite* createGeodeButton(ZStringView text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme) {
-    return ButtonSprite::create(text.c_str(), width, absolute, gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg, forceDisableTheme), 0.0f, .8f);
-}
-ButtonSprite* createGeodeButton(ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
-    return ButtonSprite::create(text.c_str(), gold ? "goldFont.fnt" : "bigFont.fnt", getGeodeButtonSpriteName(bg, forceDisableTheme), .8f);
+
+ButtonSprite* createGeodeButton(
+    ZStringView text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme
+) {
+    return ButtonSprite::create(
+        text.c_str(),
+        width,
+        absolute,
+        gold ? "goldFont.fnt" : "bigFont.fnt",
+        getGeodeButtonSpriteName(bg, forceDisableTheme).c_str(),
+        0.0f,
+        .8f
+    );
 }
 
-CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale, CircleBaseSize size, bool altColor, bool forceDisableTheme) {
-    const auto geodeTheme = isGeodeTheme(forceDisableTheme);
+ButtonSprite* createGeodeButton(ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme) {
+    return ButtonSprite::create(
+        text.c_str(),
+        gold ? "goldFont.fnt" : "bigFont.fnt",
+        getGeodeButtonSpriteName(bg, forceDisableTheme).c_str(),
+        .8f
+    );
+}
+
+CircleButtonSprite* createGeodeCircleButton(
+    CCSprite* top, float scale, CircleBaseSize size, bool altColor, bool forceDisableTheme
+) {
+    auto const geodeTheme = isGeodeTheme(forceDisableTheme);
     auto ret = CircleButtonSprite::create(
-        top, geodeTheme ? (altColor ? CircleBaseColor::DarkAqua : CircleBaseColor::DarkPurple) : CircleBaseColor::Green, size
+        top,
+        geodeTheme ? (altColor ? CircleBaseColor::DarkAqua : CircleBaseColor::DarkPurple) :
+                     CircleBaseColor::Green,
+        size
     );
     ret->setTopRelativeScale(scale);
     return ret;
@@ -300,17 +350,22 @@ ButtonSprite* createTagLabel(ZStringView text, std::pair<ccColor3B, ccColor3B> c
     label->m_BGSprite->setColor(color.second);
     return label;
 }
-IconButtonSprite* createTagLabelWithIcon(CCNode* icon, ZStringView text, std::pair<ccColor3B, ccColor3B> const& color) {
+
+IconButtonSprite* createTagLabelWithIcon(
+    CCNode* icon, ZStringView text, std::pair<ccColor3B, ccColor3B> const& color
+) {
     auto label = IconButtonSprite::create("white-square.png"_spr, icon, text.c_str(), "bigFont.fnt");
     label->getLabel()->setColor(color.first);
     label->getBg()->setColor(color.second);
     return label;
 }
+
 ButtonSprite* createGeodeTagLabel(server::ServerTag const& tag) {
     return createTagLabel(tag.displayName, geodeTagColors(tag));
 }
+
 std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag) {
-    static std::array TAG_COLORS {
+    static std::array TAG_COLORS{
         std::make_pair(ccc3(240, 233, 255), ccc3(130, 123, 163)),
         std::make_pair(ccc3(234, 255, 245), ccc3(123, 163, 136)),
         std::make_pair(ccc3(240, 252, 255), ccc3(123, 152, 163)),
@@ -328,25 +383,25 @@ std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag) {
 
 ListBorders* createGeodeListBorders(CCSize const& size, bool forceDisableTheme) {
     auto ret = ListBorders::create();
-    const bool geodeTheme = isGeodeTheme(forceDisableTheme);
+    bool const geodeTheme = isGeodeTheme(forceDisableTheme);
     if (geodeTheme) {
         ret->setSpriteFrames("geode-list-top.png"_spr, "geode-list-side.png"_spr, 2);
         ret->setContentSize(size);
-    } else {
+    }
+    else {
         ret->setContentSize(size + ccp(5, 5));
     }
     return ret;
 }
 
-bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, bool altColor) {
-    if (!CCNode::init())
-        return false;
+bool GeodeTabSprite::init(ZStringView iconFrame, std::string text, float width, bool altColor) {
+    if (!CCNode::init()) return false;
 
-    const CCSize itemSize { width, 35 };
-    const CCSize iconSize { 18, 18 };
+    CCSize const itemSize{width, 35};
+    CCSize const iconSize{18, 18};
 
     this->setContentSize(itemSize);
-    this->setAnchorPoint({ .5f, .5f });
+    this->setAnchorPoint({.5f, .5f});
 
     m_deselectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
     m_deselectedBG->setScale(.8f);
@@ -357,28 +412,34 @@ bool GeodeTabSprite::init(const char* iconFrame, const char* text, float width, 
     m_selectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
     m_selectedBG->setScale(.8f);
     m_selectedBG->setContentSize(itemSize / .8f);
-    m_selectedBG->setColor(to3B(ColorProvider::get()->color(
-        altColor ?
-            "mod-list-tab-selected-bg-alt"_spr :
-            "mod-list-tab-selected-bg"_spr
-    )));
+    m_selectedBG->setColor(to3B(
+        ColorProvider::get()->color(
+            altColor ? "mod-list-tab-selected-bg-alt"_spr : "mod-list-tab-selected-bg"_spr
+        )
+    ));
     this->addChildAtPosition(m_selectedBG, Anchor::Center);
 
-    m_icon = CCSprite::createWithSpriteFrameName(iconFrame);
+    m_icon = CCSprite::createWithSpriteFrameName(iconFrame.c_str());
     limitNodeSize(m_icon, iconSize, 3.f, .1f);
     this->addChildAtPosition(m_icon, Anchor::Left, ccp(16, 0), false);
 
-    m_label = Label::create(text, "bigFont.fnt");
-    m_label->setLimitLabelWidth(this->getContentWidth() - 45, std::clamp(width * .0045f, .35f, .55f), .1f);
-    m_label->setAnchorPoint({ .5f, .5f });
-    this->addChildAtPosition(m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false);
+    m_label = Label::create(std::move(text), "bigFont.fnt");
+    m_label->setLimitLabelWidth(
+        this->getContentWidth() - 45, std::clamp(width * .0045f, .35f, .55f), .1f
+    );
+    m_label->setAnchorPoint({.5f, .5f});
+    this->addChildAtPosition(
+        m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false
+    );
 
     return true;
 }
 
-GeodeTabSprite* GeodeTabSprite::create(const char* iconFrame, const char* text, float width, bool altColor) {
+GeodeTabSprite* GeodeTabSprite::create(
+    ZStringView iconFrame, std::string text, float width, bool altColor
+) {
     auto ret = new GeodeTabSprite();
-    if (ret->init(iconFrame, text, width, altColor)) {
+    if (ret->init(iconFrame, std::move(text), width, altColor)) {
         ret->autorelease();
         return ret;
     }

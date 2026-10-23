@@ -2,15 +2,15 @@
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
-#include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/NineSlice.hpp>
-#include <Geode/ui/Label.hpp>
 #include <Geode/utils/ZStringView.hpp>
-#include <Geode/loader/Mod.hpp>
 #include <server/Server.hpp>
 
 using namespace geode::prelude;
@@ -27,7 +27,10 @@ class GeodePopup : public Popup {
 protected:
     bool m_forceDisableTheme = false;
 
-    bool init(float width, float height, GeodePopupStyle style = GeodePopupStyle::Default, bool forceDisableTheme = false);
+    bool init(
+        float width, float height, GeodePopupStyle style = GeodePopupStyle::Default,
+        bool forceDisableTheme = false
+    );
 };
 
 class GeodeSquareSprite : public CCSprite {
@@ -43,14 +46,18 @@ protected:
     void updateImage();
 
 public:
-    static GeodeSquareSprite* create(const char* top, bool* state = nullptr, bool forceDisableTheme = false);
-    static GeodeSquareSprite* createWithSpriteFrameName(const char* top, bool* state = nullptr, bool forceDisableTheme = false);
+    static GeodeSquareSprite* create(
+        ZStringView top, bool* state = nullptr, bool forceDisableTheme = false
+    );
+    static GeodeSquareSprite* createWithSpriteFrameName(
+        ZStringView top, bool* state = nullptr, bool forceDisableTheme = false
+    );
 
     CCSprite* getTopSprite() const;
     void setState(bool state);
 };
 
-CCNode* createLoadingCircle(float sideLength, const char* id = "loading-spinner");
+CCNode* createLoadingCircle(float sideLength, ZStringView id = "loading-spinner");
 
 enum class GeodeButtonSprite {
     Default,
@@ -59,39 +66,33 @@ enum class GeodeButtonSprite {
     Enable,
     Gray,
 };
-const char* getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme = false);
+ZStringView getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme = false);
 IconButtonSprite* createGeodeButton(
-    CCNode* icon,
-    ZStringView text,
-    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    CCNode* icon, ZStringView text, GeodeButtonSprite bg = GeodeButtonSprite::Default,
     bool forceDisableTheme = false
 );
 IconButtonSprite* createGeodeButton(
-    CCNode* icon,
-    ZStringView text,
-    bool gold,
-    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    CCNode* icon, ZStringView text, bool gold, GeodeButtonSprite bg = GeodeButtonSprite::Default,
     bool forceDisableTheme = false
 );
 ButtonSprite* createGeodeButton(
-    ZStringView text,
-    int width,
-    bool absolute = false,
-    bool gold = false,
-    GeodeButtonSprite bg = GeodeButtonSprite::Default,
-    bool forceDisableTheme = false
+    ZStringView text, int width, bool absolute = false, bool gold = false,
+    GeodeButtonSprite bg = GeodeButtonSprite::Default, bool forceDisableTheme = false
 );
 ButtonSprite* createGeodeButton(
-    ZStringView text,
-    bool gold = false,
-    GeodeButtonSprite bg = GeodeButtonSprite::Default,
+    ZStringView text, bool gold = false, GeodeButtonSprite bg = GeodeButtonSprite::Default,
     bool forceDisableTheme = false
 );
 
-CircleButtonSprite* createGeodeCircleButton(CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium, bool altColor = false, bool forceDisableTheme = false);
+CircleButtonSprite* createGeodeCircleButton(
+    CCSprite* top, float scale = 1.f, CircleBaseSize size = CircleBaseSize::Medium,
+    bool altColor = false, bool forceDisableTheme = false
+);
 
 ButtonSprite* createTagLabel(ZStringView text, std::pair<ccColor3B, ccColor3B> const& color);
-IconButtonSprite* createTagLabelWithIcon(CCNode* icon, ZStringView text, std::pair<ccColor3B, ccColor3B> const& color);
+IconButtonSprite* createTagLabelWithIcon(
+    CCNode* icon, ZStringView text, std::pair<ccColor3B, ccColor3B> const& color
+);
 ButtonSprite* createGeodeTagLabel(server::ServerTag const& tag);
 std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag);
 
@@ -102,12 +103,14 @@ protected:
     NineSlice* m_deselectedBG;
     NineSlice* m_selectedBG;
     CCSprite* m_icon;
-    geode::Label* m_label;
+    Label* m_label;
 
-    bool init(const char* iconFrame, const char* text, float width, bool altColor);
+    bool init(ZStringView iconFrame, std::string text, float width, bool altColor);
 
 public:
-    static GeodeTabSprite* create(const char* iconFrame, const char* text, float width, bool altColor = false);
+    static GeodeTabSprite* create(
+        ZStringView iconFrame, std::string text, float width, bool altColor = false
+    );
 
     void select(bool selected);
     void disable(bool disabled);

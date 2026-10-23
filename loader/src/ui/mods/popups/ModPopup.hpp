@@ -1,12 +1,13 @@
 #pragma once
 
-#include <Geode/ui/Popup.hpp>
-#include <Geode/ui/MDTextArea.hpp>
-#include <Geode/ui/NineSlice.hpp>
-#include <Geode/ui/Label.hpp>
-#include "../sources/ModSource.hpp"
 #include "../GeodeStyle.hpp"
 #include "../UpdateModListState.hpp"
+#include "../sources/ModSource.hpp"
+
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/MDTextArea.hpp>
+#include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Popup.hpp>
 #include <server/DownloadManager.hpp>
 
 using namespace geode::prelude;
@@ -55,9 +56,9 @@ protected:
     bool init(ModSource&& src);
     void updateState();
 
-    void setStatIcon(CCNode* stat, const char* spr);
-    void setStatLabel(CCNode* stat, ZStringView value, bool noValue = false, ccColor3B color = ccWHITE);
-    void setStatValue(CCNode* stat, std::optional<std::string> const& value);
+    void setStatIcon(CCNode* stat, ZStringView spr);
+    void setStatLabel(CCNode* stat, std::string value, bool noValue = false, ccColor3B color = ccWHITE);
+    void setStatValue(CCNode* stat, std::optional<std::string> value);
 
     void onLoadServerInfo(server::ServerResult<server::ServerModMetadata> result);
     void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
@@ -71,7 +72,6 @@ protected:
 
     void onSettings(CCObject*);
     void onLink(CCObject*);
-    void onSupport(CCObject*);
     void onModtober24Info(CCObject*);
     void onModtober25Info(CCObject*);
 
