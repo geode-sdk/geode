@@ -1,11 +1,12 @@
 #pragma once
 
 #include <Geode/ui/Label.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
     // Enum for progress bar style
     enum class ProgressBarStyle {
-        Level = 0, // Style commonly seen inside classic levels
+        Level = 0, // Style commonly seen in classic levels
         Slider = 1, // Style commonly seen as sliders
         Solid = 2, // Style commonly seen in level progression UI
     };
@@ -27,6 +28,8 @@ namespace geode {
         bool init(ProgressBarStyle style);
 
     public:
+        using AnimationCallback = Function<void(ProgressBar* self, bool complete)>;
+
         /**
          * Create a custom progress bar
          *
@@ -68,8 +71,12 @@ namespace geode {
          * @param value A float from 0 to 100
          * @param duration Amount of seconds the animation will last
          * @param ease Animation easing type
+         * @param callback Optional callback that fires when the animation ends
          */
-        virtual void updateProgress(float value, float duration, EasingType ease = EasingType::None);
+        virtual void updateProgress(
+            float value, float duration, EasingType ease = EasingType::None,
+            AnimationCallback callback = nullptr
+        );
 
         /**
          * Stop the running progress animation, if any
@@ -91,7 +98,7 @@ namespace geode {
         /**
          * Get the progress percentage text label node directly
          */
-        geode::Label* getProgressLabel() const noexcept;
+        Label* getProgressLabel() const noexcept;
 
         /**
          * Get the progress bar fill node directly

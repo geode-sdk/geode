@@ -30,6 +30,7 @@ public:
     float m_animProgressFrom = .0f;
     float m_animProgressTo = 100.0f;
     EasingType m_animEase = EasingType::None;
+    AnimationCallback m_animCallback = nullptr;
 
     /**
      * Set up `Level`/`Slider` progress bar style
@@ -184,6 +185,8 @@ void ProgressBar::onAnimate(float dt) {
     if (t >= 1.0f) {
         m_impl->updateBar(m_impl->m_animProgressTo);
         this->unschedule(schedule_selector(ProgressBar::onAnimate));
+
+        if (m_impl->m_animCallback) m_impl->m_animCallback(this, true);
     };
 };
 
@@ -207,12 +210,12 @@ void ProgressBar::setPrecision(size_t precision) {
 };
 
 void ProgressBar::updateProgress(float value) {
-    this->stopProgressAnimation();
+    if (this->isScheduled(schedule_selector(ProgressBar::onAnimate))) this->stopProgressAnimation();
     m_impl->updateBar(value);
 };
 
-void ProgressBar::updateProgress(float value, float duration, EasingType ease) {
-    this->stopProgressAnimation();
+void ProgressBar::updateProgress(float value, float duration, EasingType ease, AnimationCallback callback) {
+    if (this->isScheduled(schedule_selector(ProgressBar::onAnimate))) this->stopProgressAnimation();
 
     value = std::clamp(value, .0f, 100.0f);
 
@@ -227,6 +230,8 @@ void ProgressBar::updateProgress(float value, float duration, EasingType ease) {
     m_impl->m_animDuration = duration;
     m_impl->m_animElapsed = .0f;
 
+    if (callback) m_impl->m_animCallback = std::move(callback);
+
     this->schedule(schedule_selector(ProgressBar::onAnimate));
 };
 
@@ -236,6 +241,8 @@ void ProgressBar::stopProgressAnimation() {
     m_impl->m_animProgressFrom = m_impl->m_progress;
     m_impl->m_animDuration = .0f;
     m_impl->m_animElapsed = .0f;
+
+    if (m_impl->m_animCallback) m_impl->m_animCallback(this, false);
 };
 
 void ProgressBar::showProgressLabel(bool show) {
