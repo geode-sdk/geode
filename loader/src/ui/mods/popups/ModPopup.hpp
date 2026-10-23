@@ -32,10 +32,10 @@ protected:
     CCMenuItemSpriteExtra* m_unavailableBtn;
     CCMenuItemSpriteExtra* m_updateBtn;
     CCMenuItemSpriteExtra* m_cancelBtn;
-    geode::Label* m_installStatusLabel;
+    Label* m_installStatusLabel;
     NineSlice* m_installBG;
     NineSlice* m_settingsBG;
-    geode::Label* m_enabledStatusLabel;
+    Label* m_enabledStatusLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
@@ -54,6 +54,7 @@ protected:
     ListenerHandle m_downloadListener;
 
     bool init(ModSource&& src);
+    CCNode* createContainer(CCSize const& size);
     void updateState();
 
     void setStatIcon(CCNode* stat, ZStringView spr);
