@@ -6,9 +6,9 @@
 namespace geode {
     // Enum for progress bar style
     enum class ProgressBarStyle : uint8_t {
-        Level = 0, // Style commonly seen in classic levels
-        Slider = 1, // Style commonly seen as sliders
-        Solid = 2, // Style commonly seen in level progression UI
+        Level, // Style commonly seen in classic levels
+        Slider, // Style commonly seen as sliders
+        Solid, // Style commonly seen in level progression UI
     };
 
     class GEODE_DLL ProgressBar final : public cocos2d::CCNode {
@@ -23,10 +23,15 @@ namespace geode {
 
         void onAnimate(float dt);
 
-        bool init(ProgressBarStyle style);
+        bool init(float progress, ProgressBarStyle style);
 
     public:
         using AnimationCallback = Function<void(ProgressBar* self, bool completed)>;
+
+        /// Create a custom progress bar with a pre-determined progress state
+        /// @param style Style of the progress bar
+        /// @param progress A float from 0 to 100 for the amount of progress to start the bar with upon creation
+        static ProgressBar* create(float progress, ProgressBarStyle style = ProgressBarStyle::Level);
 
         /// Create a custom progress bar
         /// @param style Style of the progress bar

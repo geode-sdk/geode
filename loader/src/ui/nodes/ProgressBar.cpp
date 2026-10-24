@@ -32,12 +32,6 @@ public:
     EasingType m_animEase = EasingType::None;
     AnimationCallback m_animCallback = nullptr;
 
-    /**
-     * Set up `Level`/`Slider` progress bar style
-     *
-     * @param barSpr Sprite of the bar
-     * @param fillSpr Sprite of the fill
-     */
     void setupBarStyle(ZStringView barSpr, ZStringView fillSpr) {
         m_bar = CCSprite::create(barSpr.c_str());
         m_bar->setID("progress-bar");
@@ -74,7 +68,6 @@ public:
         m_percentLabel->setZOrder(1);
     };
 
-    // Set up `Solid` progress bar style
     void setupSolidStyle() {
         m_bar = CCSprite::create("GJ_progressBar_001.png");
         m_bar->setID("progress-bar");
@@ -163,9 +156,10 @@ void ProgressBar::reloadStyle() {
     this->updateProgress(m_impl->m_progress);
 };
 
-bool ProgressBar::init(ProgressBarStyle style) {
+bool ProgressBar::init(float progress, ProgressBarStyle style) {
     if (!CCNode::init()) return false;
 
+    m_impl->m_progress = progress;
     m_impl->m_style = style;
 
     this->setAnchorPoint({.5f, .5f});
@@ -283,8 +277,12 @@ size_t ProgressBar::getPrecision() const noexcept {
 };
 
 ProgressBar* ProgressBar::create(ProgressBarStyle style) {
+    return create(.0f, style);
+};
+
+ProgressBar* ProgressBar::create(float progress, ProgressBarStyle style) {
     auto ret = new ProgressBar();
-    if (ret->init(style)) {
+    if (ret->init(progress, style)) {
         ret->autorelease();
         return ret;
     };
