@@ -1,10 +1,11 @@
 #include "BaseSettingsPopup.hpp"
+
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/cocos.hpp>
+#include <Geode/loader/Setting.hpp>
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/Scrollbar.hpp>
-#include <Geode/loader/Setting.hpp>
+#include <Geode/utils/cocos.hpp>
 // needed for weightedFuzzyMatch
 #include <ui/mods/sources/ModListSource.hpp>
 
@@ -24,7 +25,8 @@ static bool matchSearch(SettingNode* node, ZStringView query) {
     }
     // keybinds popup titles dont have a setting theyre labels are js set to mod names
     else if (auto asTitle = typeinfo_cast<TitleSettingNode*>(node); asTitle && asTitle->getNameLabel()) {
-        addToList |= weightedFuzzyMatch(asTitle->getNameLabel()->getString(), trimmedQuery, 1, weighted);
+        addToList |=
+            weightedFuzzyMatch(asTitle->getNameLabel()->getString(), trimmedQuery, 1, weighted);
     }
     else {
         return false;
@@ -36,21 +38,20 @@ static bool matchSearch(SettingNode* node, ZStringView query) {
 }
 
 bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
-    if (!GeodePopup::init(440, 280, GeodePopupStyle::Default, forceDisableTheme))
-        return false;
+    if (!GeodePopup::init(440, 280, GeodePopupStyle::Default, forceDisableTheme)) return false;
 
     m_noElasticity = true;
 
-    const auto spacing = spacingForTabs ? 25.f : 0.f;
+    auto const spacing = spacingForTabs ? 25.f : 0.f;
     m_listSize = CCSize(346, 200 - spacing);
 
-    auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
+    auto layerBG = CCLayerColor::create({0, 0, 0, 75});
     layerBG->setContentSize(m_listSize);
     layerBG->ignoreAnchorPointForPosition(false);
-    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, ccp(0, -spacing / 2));
+    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, {.0f, -spacing / 2.f});
 
     auto searchContainer = CCMenu::create();
-    searchContainer->setContentSize({ m_listSize.width, 30 });
+    searchContainer->setContentSize({m_listSize.width, 30});
 
     m_searchInput = TextInput::create((m_listSize.width - 15) / .7f - 40, "Search settings...");
     m_searchInput->setTextAlign(TextInputAlign::Left);
@@ -60,41 +61,41 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
         m_list->moveToTop();
     });
     m_searchInput->setID("search-input");
-    searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0), ccp(0, .5f));
+    searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, {7.5f, .0f}, {.0f, .5f});
 
-    auto searchClearSpr = GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png", nullptr, m_forceDisableTheme);
+    auto searchClearSpr = GeodeSquareSprite::createWithSpriteFrameName(
+        "GJ_deleteIcon_001.png", nullptr, m_forceDisableTheme
+    );
     searchClearSpr->setScale(.45f);
     m_searchClearBtn = CCMenuItemSpriteExtra::create(
         searchClearSpr, this, menu_selector(BaseSettingsPopup::onClearSearch)
     );
     m_searchClearBtn->setID("clear-search-button");
-    searchContainer->addChildAtPosition(m_searchClearBtn, Anchor::Right, ccp(-20, 0));
+    searchContainer->addChildAtPosition(m_searchClearBtn, Anchor::Right, {-20.f, .0f});
 
-    layerBG->addChildAtPosition(searchContainer, Anchor::Top, ccp(0, 0), ccp(.5f, 1));
+    layerBG->addChildAtPosition(searchContainer, Anchor::Top, CCPointZero, {.5f, 1.f});
 
-    m_list = ScrollLayer::create(m_listSize - ccp(0, searchContainer->getContentHeight()));
+    m_list = ScrollLayer::create(m_listSize - CCSize{.0f, searchContainer->getContentHeight()});
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
     m_list->setTouchEnabled(true);
     m_list->moveToTop();
 
-    const int buttonPriority = m_list->getTouchPriority() - 1;
+    int const buttonPriority = m_list->getTouchPriority() - 1;
 
     m_buttonMenu->setTouchPriority(buttonPriority);
     searchContainer->setTouchPriority(buttonPriority);
 
-    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
+    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft, CCPointZero, CCPointZero);
 
     // layer borders
 
     m_mainLayer->addChildAtPosition(
-        createGeodeListBorders(m_listSize, m_forceDisableTheme),
-        Anchor::Center, ccp(0, -spacing / 2)
+        createGeodeListBorders(m_listSize, m_forceDisableTheme), Anchor::Center, {0.f, -spacing / 2.f}
     );
 
     auto scrollBar = Scrollbar::create(m_list);
     m_mainLayer->addChildAtPosition(
-        scrollBar, Anchor::Center,
-        ccp(layerBG->getContentWidth() / 2 + 10, -spacing / 2)
+        scrollBar, Anchor::Center, {layerBG->getContentWidth() / 2.f + 10.f, -spacing / 2.f}
     );
 
     // buttons
@@ -104,35 +105,37 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_applyMenu->setLayout(RowLayout::create());
     m_applyMenu->setTouchPriority(buttonPriority);
 
-    auto restartBtnSpr = createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme);
+    auto restartBtnSpr =
+        createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme);
     restartBtnSpr->setScale(.6f);
     m_restartBtn = CCMenuItemSpriteExtra::create(
         restartBtnSpr, this, menu_selector(BaseSettingsPopup::onRestart)
     );
     m_restartBtn->setVisible(false);
-    m_applyMenu->addChildAtPosition(m_restartBtn, Anchor::Bottom, ccp(0, 20));
+    m_applyMenu->addChildAtPosition(m_restartBtn, Anchor::Bottom, {.0f, 20.f});
 
     m_applyBtnSpr = createGeodeButton("Apply", true, GeodeButtonSprite::Default, m_forceDisableTheme);
     m_applyBtnSpr->setScale(.6f);
-    m_applyBtn = CCMenuItemSpriteExtra::create(
-        m_applyBtnSpr, this, menu_selector(BaseSettingsPopup::onApply)
-    );
-    m_applyMenu->addChildAtPosition(m_applyBtn, Anchor::Bottom, ccp(0, 20));
+    m_applyBtn =
+        CCMenuItemSpriteExtra::create(m_applyBtnSpr, this, menu_selector(BaseSettingsPopup::onApply));
+    m_applyMenu->addChildAtPosition(m_applyBtn, Anchor::Bottom, {.0f, 20.f});
 
-    m_mainLayer->addChildAtPosition(m_applyMenu, Anchor::Bottom, ccp(0, 20));
+    m_mainLayer->addChildAtPosition(m_applyMenu, Anchor::Bottom, {.0f, 20.f});
 
-    auto resetBtnSpr = createGeodeButton("Reset All", true, GeodeButtonSprite::Default, m_forceDisableTheme);
+    auto resetBtnSpr =
+        createGeodeButton("Reset All", true, GeodeButtonSprite::Default, m_forceDisableTheme);
     resetBtnSpr->setScale(.6f);
 
-    auto resetBtn = CCMenuItemSpriteExtra::create(
-        resetBtnSpr, this, menu_selector(BaseSettingsPopup::onResetAll)
-    );
-    m_buttonMenu->addChildAtPosition(resetBtn, Anchor::BottomLeft, ccp(45, 20));
+    auto resetBtn =
+        CCMenuItemSpriteExtra::create(resetBtnSpr, this, menu_selector(BaseSettingsPopup::onResetAll));
+    m_buttonMenu->addChildAtPosition(resetBtn, Anchor::BottomLeft, {45.f, 20.f});
 
-    m_changeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
-        this->updateState(node);
-        return ListenerResult::Propagate;
-    });
+    m_changeHandle = SettingNodeValueChangeEvent().listen(
+        [this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
+            this->updateState(node);
+            return ListenerResult::Propagate;
+        }
+    );
 
     return true;
 }
@@ -149,6 +152,7 @@ void BaseSettingsPopup::onApply(CCObject*) {
         FLAlertLayer::create("Info", "No changes have been made.", "OK")->show();
     }
 }
+
 void BaseSettingsPopup::onRestart(CCObject*) {
     // Update button state to let user know it's restarting but it might take a bit
     m_restartBtn->setEnabled(false);
@@ -164,12 +168,14 @@ void BaseSettingsPopup::onRestart(CCObject*) {
         });
     });
 }
+
 void BaseSettingsPopup::onResetAll(CCObject*) {
     createQuickPopup(
         "Reset All",
         "Are you sure you want to <cr>reset</c> ALL settings "
         "to <cy>default</c>?",
-        "Cancel", "Reset",
+        "Cancel",
+        "Reset",
         [this](auto, bool btn2) {
             if (btn2) {
                 for (auto& sett : m_settings) {
@@ -179,6 +185,7 @@ void BaseSettingsPopup::onResetAll(CCObject*) {
         }
     );
 }
+
 void BaseSettingsPopup::onClearSearch(CCObject*) {
     m_searchInput->setString("");
     this->updateState();
@@ -254,8 +261,7 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
 
     // Preserve relative list position if something has been collapsed
     m_list->m_contentLayer->setPositionY(
-        listPosBefore +
-            (listHeightBefore - m_list->m_contentLayer->getContentHeight())
+        listPosBefore + (listHeightBefore - m_list->m_contentLayer->getContentHeight())
     );
 
     m_applyBtnSpr->setCascadeColorEnabled(true);
@@ -294,7 +300,8 @@ void BaseSettingsPopup::onClose(CCObject* sender) {
             "Unsaved Changes",
             "You have <cr>unsaved changes</c>! Are you sure you "
             "want to exit?",
-            "Cancel", "Discard",
+            "Cancel",
+            "Discard",
             [this](FLAlertLayer*, bool btn2) {
                 if (btn2) {
                     GeodePopup::onClose(nullptr);

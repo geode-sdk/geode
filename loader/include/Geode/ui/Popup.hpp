@@ -2,12 +2,12 @@
 
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
-#include <Geode/utils/cocos.hpp>
-#include <Geode/utils/ZStringView.hpp>
-#include <Geode/utils/function.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/Layout.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/utils/ZStringView.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/function.hpp>
 
 namespace geode {
     class GEODE_DLL Popup : public FLAlertLayer {
@@ -21,6 +21,7 @@ namespace geode {
         };
 
         virtual void onClose(CCObject*);
+
     protected:
         cocos2d::CCSize m_size;
         NineSlice* m_bgSprite;
@@ -29,29 +30,22 @@ namespace geode {
 
         ~Popup();
         void registerWithTouchDispatcher() override;
-        
+
         /**
          * Init with AnchorLayout and the content size of `m_buttonMenu` and
          * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than
          * being the size of the window)
          */
         bool init(
-            float width, float height, char const* bg = "GJ_square01.png",
-            cocos2d::CCRect bgRect = {}
+            float width, float height, ZStringView bg = "GJ_square01.png", cocos2d::CCRect bgRect = {}
         );
-        bool init(
-            cocos2d::CCSize size, char const* bg = "GJ_square01.png",
-            cocos2d::CCRect bgRect = {}
-        );
+        bool init(cocos2d::CCSize size, ZStringView bg = "GJ_square01.png", cocos2d::CCRect bgRect = {});
 
         void keyBackClicked() override;
         void keyDown(cocos2d::enumKeyCodes key, double p1) override;
 
         void setTitle(
-            ZStringView title,
-            const char* font = "goldFont.fnt",
-            float scale = .7f,
-            float offset = 20.f
+            ZStringView title, ZStringView font = "goldFont.fnt", float scale = .7f, float offset = 20.f
         );
 
         void setCloseButtonSpr(cocos2d::CCSprite* spr, float scale = 1.f);
@@ -63,12 +57,14 @@ namespace geode {
     };
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
-        char const* title, std::string content, char const* btn1, char const* btn2,
-        geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow = true, bool cancelledByEscape = false
+        ZStringView title, std::string content, ZStringView btn1, ZStringView btn2 = "",
+        geode::Function<void(FLAlertLayer*, bool)> selected = nullptr, bool doShow = true,
+        bool cancelledByEscape = false
     );
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
-        char const* title, std::string content, char const* btn1, char const* btn2,
-        float width, geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow = true, bool cancelledByEscape = false
+        ZStringView title, std::string content, ZStringView btn1, ZStringView btn2, float width,
+        geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow = true,
+        bool cancelledByEscape = false
     );
 }

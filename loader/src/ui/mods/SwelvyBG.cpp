@@ -1,27 +1,29 @@
 #include "SwelvyBG.hpp"
+
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/random.hpp>
 
 bool SwelvyBG::init() {
-    if (!CCNode::init())
-        return false;
+    if (!CCNode::init()) return false;
 
     this->setID("SwelvyBG");
 
     auto winSize = CCDirector::get()->getWinSize();
     this->setContentSize(winSize);
-    this->setAnchorPoint({ 0.f, 0.f });
+    this->setAnchorPoint({0.f, 0.f});
 
-    float y = m_obContentSize.height + 5;
-    int idx = 0;
-    for (auto layer : std::initializer_list<const char*> {
+    static constexpr auto swelveLayers = std::array{
         "swelve-layer3.png"_spr,
         "swelve-layer0.png"_spr,
         "swelve-layer1.png"_spr,
         "swelve-layer2.png"_spr,
         "swelve-layer1.png"_spr,
-        "swelve-layer0.png"_spr
-    }) {
+        "swelve-layer0.png"_spr,
+    };
+
+    float y = m_obContentSize.height + 5;
+    int idx = 0;
+    for (auto layer : swelveLayers) {
         float speed = utils::random::generate<float>(3.f, 9.f);
         if (utils::random::generate<bool>()) {
             speed = -speed;
@@ -33,13 +35,14 @@ bool SwelvyBG::init() {
         sprite->setUserObject("width", CCFloat::create(rect.size.width));
         rect.size = CCSize{winSize.width, rect.size.height};
 
-        std::string layerID = fmt::format("layer-{}", idx);
-        auto colorID = fmt::format("swelvy-bg-{}"_spr, idx);
-        sprite->setID(layerID);
+        sprite->setID(fmt::format("layer-{}", idx));
         sprite->getTexture()->setTexParameters(&params);
         sprite->setTextureRect(rect);
-        sprite->setAnchorPoint({ 0, 1 });
+        sprite->setAnchorPoint({0, 1});
         sprite->setContentSize({winSize.width, sprite->getContentSize().height});
+
+        auto colorID = fmt::format("swelvy-bg-{}"_spr, idx);
+
         sprite->setColor(ColorProvider::get()->color3b(colorID));
         sprite->setPosition({0, y});
         sprite->schedule(schedule_selector(SwelvyBG::updateSpritePosition));
@@ -64,7 +67,7 @@ void SwelvyBG::updateSpritePosition(float dt) {
     auto rect = sprite->getTextureRect();
 
     float dX = rect.origin.x - speed * dt;
-    if(dX >= std::abs(width)) {
+    if (dX >= std::abs(width)) {
         dX = 0;
     }
 

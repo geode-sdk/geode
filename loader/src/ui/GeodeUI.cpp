@@ -1,18 +1,19 @@
+#include "GeodeStyle.hpp"
 #include "mods/ModsLayer.hpp"
+#include "mods/popups/ModPopup.hpp"
+#include "mods/settings/KeybindsPopup.hpp"
+#include "mods/settings/ModSettingsPopup.hpp"
+
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/GeodeUI.hpp>
-#include <Geode/ui/MDPopup.hpp>
-#include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/LazySprite.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
-#include "mods/GeodeStyle.hpp"
-#include "mods/settings/ModSettingsPopup.hpp"
-#include "mods/settings/KeybindsPopup.hpp"
-#include "mods/popups/ModPopup.hpp"
 
 class LoadServerModLayer : public Popup {
 protected:

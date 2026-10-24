@@ -1,9 +1,10 @@
 #pragma once
 
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
+#include "SettingNode.hpp"
+
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include "SettingNode.hpp"
 
 using namespace geode::prelude;
 

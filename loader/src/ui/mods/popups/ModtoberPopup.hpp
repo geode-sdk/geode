@@ -1,7 +1,8 @@
 #pragma once
 
+#include "../../GeodeStyle.hpp"
+
 #include <Geode/ui/Popup.hpp>
-#include "../GeodeStyle.hpp"
 
 using namespace geode::prelude;
 

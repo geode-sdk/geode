@@ -1,12 +1,13 @@
 #pragma once
 
-#include <Geode/ui/Popup.hpp>
+#include "../../GeodeStyle.hpp"
+#include "../UpdateModListState.hpp"
+#include "../sources/ModSource.hpp"
+
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/NineSlice.hpp>
-#include <Geode/ui/Label.hpp>
-#include "../sources/ModSource.hpp"
-#include "../GeodeStyle.hpp"
-#include "../UpdateModListState.hpp"
+#include <Geode/ui/Popup.hpp>
 #include <server/DownloadManager.hpp>
 
 using namespace geode::prelude;
@@ -31,10 +32,10 @@ protected:
     CCMenuItemSpriteExtra* m_unavailableBtn;
     CCMenuItemSpriteExtra* m_updateBtn;
     CCMenuItemSpriteExtra* m_cancelBtn;
-    geode::Label* m_installStatusLabel;
+    Label* m_installStatusLabel;
     NineSlice* m_installBG;
     NineSlice* m_settingsBG;
-    geode::Label* m_enabledStatusLabel;
+    Label* m_enabledStatusLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
@@ -53,27 +54,23 @@ protected:
     ListenerHandle m_downloadListener;
 
     bool init(ModSource&& src);
+    CCNode* createContainer(CCSize const& size);
     void updateState();
 
-    void setStatIcon(CCNode* stat, const char* spr);
-    void setStatLabel(CCNode* stat, ZStringView value, bool noValue = false, ccColor3B color = ccWHITE);
-    void setStatValue(CCNode* stat, std::optional<std::string> const& value);
+    void setStatIcon(CCNode* stat, ZStringView spr);
+    void setStatLabel(CCNode* stat, std::string value, bool noValue = false, ccColor3B color = ccWHITE);
+    void setStatValue(CCNode* stat, std::optional<std::string> value);
 
     void onLoadServerInfo(server::ServerResult<server::ServerModMetadata> result);
     void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
     void onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result);
 
-    void onTab(CCObject* sender);
     void onEnable(CCObject*);
     void onInstall(CCObject*);
     void onUninstall(CCObject*);
     void onCancelDownload(CCObject*);
 
     void onSettings(CCObject*);
-    void onLink(CCObject*);
-    void onSupport(CCObject*);
-    void onModtober24Info(CCObject*);
-    void onModtober25Info(CCObject*);
 
     bool availableForInstall() const;
 

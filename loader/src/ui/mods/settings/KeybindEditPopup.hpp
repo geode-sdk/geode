@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 
 using namespace geode::prelude;
 
 CCNode* createKeybindButton(Keybind const& keybind);
 
-// If these are ever exposed then they probably need to be rewritten to not 
-// contain the KeybindSettingV3 directly and instead take a title, subtitle, 
+// If these are ever exposed then they probably need to be rewritten to not
+// contain the KeybindSettingV3 directly and instead take a title, subtitle,
 // etc.
 
 class KeybindEditPopup : public GeodePopup {
@@ -20,8 +20,7 @@ protected:
     Function<void(Keybind const&)> m_callback;
 
     bool init(
-        std::shared_ptr<KeybindSettingV3> setting,
-        Keybind const& keybind,
+        std::shared_ptr<KeybindSettingV3> setting, Keybind const& keybind,
         Function<void(Keybind const&)> callback
     );
     void doSet();
@@ -35,8 +34,7 @@ protected:
 
 public:
     static KeybindEditPopup* create(
-        std::shared_ptr<KeybindSettingV3> setting,
-        Keybind const& keybind,
+        std::shared_ptr<KeybindSettingV3> setting, Keybind const& keybind,
         Function<void(Keybind const&)> callback
     );
 };
@@ -50,8 +48,7 @@ protected:
     bool m_hasChanged;
 
     bool init(
-        std::shared_ptr<KeybindSettingV3> setting,
-        std::vector<Keybind> const& keybinds,
+        std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds,
         Function<void(std::vector<Keybind>)> callback
     );
     void updateKeybinds();
@@ -62,8 +59,7 @@ protected:
 
 public:
     static KeybindListPopup* create(
-        std::shared_ptr<KeybindSettingV3> setting,
-        std::vector<Keybind> const& keybinds,
+        std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds,
         Function<void(std::vector<Keybind>)> callback
     );
 };
