@@ -1,4 +1,4 @@
-set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
+set(GEODE_CLI_MINIMUM_VERSION 3.9.0)
 
 # Find Geode CLI
 if (NOT DEFINED GEODE_CLI OR GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
@@ -20,7 +20,6 @@ else()
     # Remove program name
     string(REPLACE "geode " "" GEODE_CLI_VERSION ${GEODE_CLI_VERSION})
 
-    # Need at least v1.0.5 (--shut-up arg in geode package resources)
     if (${GEODE_CLI_VERSION} VERSION_LESS ${GEODE_CLI_MINIMUM_VERSION})
         message(FATAL_ERROR
             "Found Geode CLI: ${GEODE_CLI}, however it is version ${GEODE_CLI_VERSION} "
@@ -89,7 +88,6 @@ function(setup_geode_mod proname)
     string(JSON TARGET_GEODE_VERSION GET "${MOD_JSON}" "geode")
     string(JSON TARGET_GD_VERSION GET "${MOD_JSON}" "gd" "${GEODE_TARGET_PLATFORM_JSON}")
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
-    string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
 
     string(REGEX REPLACE "([0-9]+\\.[0-9]+)\\.[0-9]+" "\\1" TARGET_GEODE_VERSION_SHORT ${TARGET_GEODE_VERSION})
     string(REGEX REPLACE "([0-9]+\\.[0-9]+)\\.[0-9]+" "\\1" GEODE_VERSION_SHORT ${GEODE_VERSION_FULL})
@@ -122,14 +120,6 @@ function(setup_geode_mod proname)
         list(APPEND GEODE_MODS_BEING_BUILT ${SETUP_GEODE_MOD_EXTERNALS})
     endif()
 
-    # For CLI >=v2.4.0, there's an option to disable updating index because 
-    # Github Actions on Mac just returns 403 for no reason
-    if (GEODE_DONT_UPDATE_INDEX AND (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.4.0"))
-        set(DONT_UPDATE_INDEX_ARG "--dont-update-index")
-    else()
-        set(DONT_UPDATE_INDEX_ARG "")
-    endif()
-
     # Zstd option for smaller .geode file sizes
     if (GEODE_PACKAGE_ZSTD)
         set(ZSTD_ARG "--zstd")
@@ -138,35 +128,14 @@ function(setup_geode_mod proname)
     endif()
 
     # Check dependencies using CLI
-    if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "3.2.0")
-        execute_process(
-            COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
-                --externals ${GEODE_MODS_BEING_BUILT} ${DONT_UPDATE_INDEX_ARG}
-                --platform ${GEODE_TARGET_PLATFORM_SHORT}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMAND_ERROR_IS_FATAL ANY
-        )
-    elseif (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.0.0")
-        message(WARNING "If you use platform-specific dependencies, upgrade Geode CLI to version 3.2.0 or greater!")
-        execute_process(
-            COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
-                --externals ${GEODE_MODS_BEING_BUILT} ${DONT_UPDATE_INDEX_ARG}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMAND_ERROR_IS_FATAL ANY
-        )
-    elseif (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")
-        execute_process(
-            COMMAND ${GEODE_CLI} package setup ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-                --externals ${GEODE_MODS_BEING_BUILT}
-            COMMAND_ERROR_IS_FATAL ANY
-        )
-    elseif (MOD_HAS_DEPS)
-        message(FATAL_ERROR
-            "CLI is version ${GEODE_CLI_VERSION}, but using dependencies "
-            "requires at least 1.4.0 - please update your CLI"
-        )
-    endif()
-    
+    execute_process(
+        COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
+            --externals ${GEODE_MODS_BEING_BUILT}
+            --platform ${GEODE_TARGET_PLATFORM_SHORT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+
     # Check if --install should be passed
     if (SETUP_GEODE_MOD_DONT_INSTALL OR GEODE_DONT_INSTALL_MODS)
         message(STATUS "Skipping installing ${proname}")
@@ -234,23 +203,14 @@ function(setup_geode_mod proname)
         # Iterate dependency directories
         foreach(dir ${dirs})
             if (IS_DIRECTORY ${dir})
-                
-                # v1.4.1 fixes optional dependencies
-                if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.1")
-                    # Read dep info
-                    file(READ "${dir}/geode-dep-options.json" DEP_JSON)
-                    string(JSON required GET "${DEP_JSON}" "required")
 
-                    # If this is not a required dependency, don't link it
-                    if (NOT ${required})
-                        continue()
-                    endif()
-                else()
-                    message(WARNING
-                        "You are using CLI v1.4.0, which has a bug with optional "
-                        "dependencies - update to v1.4.1 if you want to use "
-                        "optional dependencies!"
-                    )
+                # Read dep info
+                file(READ "${dir}/geode-dep-options.json" DEP_JSON)
+                string(JSON required GET "${DEP_JSON}" "required")
+
+                # If this is not a required dependency, don't link it
+                if (NOT ${required})
+                    continue()
                 endif()
 
                 # Otherwise add all .libs or whatever the platform's library type is
