@@ -1036,7 +1036,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     }
     log::debug("Hash mismatch detected, unzipping {}", metadata.getID());
 
-    if (auto e = asp::fs::removeDirAll(tempDir).err()) {
+    if (auto e = asp::fs::removeDirAll(tempDir, false).err()) {
         return Err("Unable to delete temp dir: {} " GEODE_WINDOWS(" Try <cg>restarting your PC</c> to fix the issue."), e);
     }
 
