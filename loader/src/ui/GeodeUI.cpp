@@ -34,7 +34,8 @@ protected:
     std::optional<server::ServerModMetadata> m_loadedMod;
 
     bool init(std::string id) {
-        if (!Popup::init(180.f, 100.f, "square01_001.png")) return false;
+        if (!Popup::init(180.f, 100.f, "square01_001.png"))
+            return false;
 
         m_closeBtn->setVisible(false);
 
@@ -45,9 +46,12 @@ protected:
 
         m_id = std::move(id);
 
-        m_listener.spawn(server::getMod(m_id), [this](auto result) {
-            this->onModRequest(std::move(result));
-        });
+        m_listener.spawn(
+            server::getMod(m_id),
+            [this](auto result) {
+                this->onModRequest(std::move(result));
+            }
+        );
 
         return true;
     }
@@ -60,9 +64,12 @@ protected:
 
             m_metadataLoadedState.store(MetadataLoaded::Loaded);
 
-            m_versionListener.spawn(server::getModVersion(m_id), [this](auto result) {
-                this->onVersionRequest(std::move(result));
-            });
+            m_versionListener.spawn(
+                server::getModVersion(m_id),
+                [this](auto result) {
+                    this->onVersionRequest(std::move(result));
+                }
+            );
         }
         else {
             this->onClose(nullptr);
@@ -70,8 +77,7 @@ protected:
                 "Error Loading Mod",
                 fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
                 "OK"
-            )
-                ->show();
+            )->show();
 
             m_metadataLoadedState.store(MetadataLoaded::Error);
         }
@@ -125,14 +131,13 @@ void geode::openIssueReportPopup(Mod* mod) {
     if (mod->getMetadata().getIssues()) {
         MDPopup::create(
             "Issue Report",
-            fmt::format(
-                "Please report the issue to the mod that caused the crash.\n"
-                "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-                "latest crash log(s) from `{}`",
-                dirs::getCrashlogsDir()
-            ),
-            "OK",
-            "Open Folder",
+                fmt::format(
+                    "Please report the issue to the mod that caused the crash.\n"
+                    "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
+                    "latest crash log(s) from `{}`",
+                    dirs::getCrashlogsDir()
+                ),
+            "OK", "Open Folder",
             [mod](bool btn2) {
                 if (btn2) {
                     file::openFolder(dirs::getCrashlogsDir());
@@ -159,8 +164,7 @@ void geode::openIssueReportPopup(Mod* mod) {
                 dirs::getCrashlogsDir()
             ),
             "OK"
-        )
-            ->show();
+        )->show();
     }
 }
 
@@ -177,14 +181,12 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
             "to show them thanks for all their hard work <3"
         ),
         "OK"
-    )
-        ->show();
+    )->show();
 }
 
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
-
 std::optional<arc::TaskHandle<bool>> geode::openInfoPopup(std::string modID) {
     if (auto mod = Loader::get()->getInstalledMod(modID)) {
         openInfoPopup(mod);
@@ -216,7 +218,6 @@ void geode::openChangelogPopup(Mod* mod) {
 void geode::openSettingsPopup(Mod* mod) {
     openSettingsPopup(mod, true);
 }
-
 Popup* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
     if (mod->hasSettings()) {
         auto popup = ModSettingsPopup::create(mod, disableGeodeTheme);
@@ -229,10 +230,10 @@ Popup* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
 Popup* geode::openKeybindsPopup(std::optional<KeybindCategory> category, Mod* mod) {
     auto tab = KeybindsPopupTab::All;
     if (category) switch (*category) {
-            case KeybindCategory::Universal: tab = KeybindsPopupTab::Universal; break;
-            case KeybindCategory::Gameplay: tab = KeybindsPopupTab::Gameplay; break;
-            case KeybindCategory::Editor: tab = KeybindsPopupTab::Editor; break;
-        }
+        case KeybindCategory::Universal: tab = KeybindsPopupTab::Universal; break;
+        case KeybindCategory::Gameplay: tab = KeybindsPopupTab::Gameplay; break;
+        case KeybindCategory::Editor: tab = KeybindsPopupTab::Editor; break;
+    }
 
     auto popup = KeybindsPopup::create(tab, mod);
     popup->show();
@@ -248,89 +249,79 @@ protected:
     async::TaskHolder<Result<ByteVector, server::ServerError>> m_listener;
 
     bool init(ModLogoSrc&& src) {
-        if (!CCNode::init()) return false;
+        if (!CCNode::init())
+            return false;
 
-        this->setAnchorPoint({.5f, .5f});
-        this->setContentSize({50, 50});
+        this->setAnchorPoint({ .5f, .5f });
+        this->setContentSize({ 50, 50 });
 
         m_sprite = LazySprite::create(this->getContentSize());
         this->addChildAtPosition(m_sprite, Anchor::Center);
 
-        std::visit(
-            makeVisitor{
-                [this](Mod* mod) {
-                    m_modID = mod->getID();
+        std::visit(makeVisitor {
+            [this](Mod* mod) {
+                m_modID = mod->getID();
 
-                    m_sprite->setLoadCallback([this](Result<> res) {
-                        this->onLoaded(std::move(res));
-                    });
+                m_sprite->setLoadCallback([this](Result<> res) {
+                    this->onLoaded(std::move(res));
+                });
 
-                    // Load from Resources
-                    if (!mod->isInternal()) {
-                        m_sprite->loadFromFile(dirs::getModRuntimeDir() / mod->getID() / "logo.png");
-                    }
-                    else {
-                        // We only support lazySprite for this because i have no idea how to better integrate this
-                        auto listener =
-                            NodeProvidingEvent("geode-mod-logo-sprite"_spr)
-                                .listen(
-                                    [this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
-                                        auto sprite = typeinfo_cast<LazySprite*>(nodeOut);
-                                        if (!sprite)
-                                            return; // someone overrode it, which will probably break maybe
+                // Load from Resources
+                if (!mod->isInternal()) {
+                    m_sprite->loadFromFile(dirs::getModRuntimeDir() / mod->getID() / "logo.png");
+                } else {
+                    // We only support lazySprite for this because i have no idea how to better integrate this
+                    auto listener = NodeProvidingEvent("geode-mod-logo-sprite"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
+                        auto sprite = typeinfo_cast<LazySprite*>(nodeOut);
+                        if (!sprite) return; // someone overrode it, which will probably break maybe
 
-                                        if (theme == "rainbow") {
-                                            m_sprite->initWithSpriteFrameName(
-                                                "geode-logo-alternate.png"_spr
-                                            );
-                                        }
-                                        else if (theme == "sapphire") {
-                                            m_sprite->initWithSpriteFrameName(
-                                                "sapphire-logo.png"_spr
-                                            );
-                                        }
-                                        else {
-                                            m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
-                                        }
-                                    },
-                                    Priority::Last
-                                );
-                        CCNode* ptr = m_sprite;
-                        NodeProvidingEvent("geode-mod-logo-sprite"_spr).send(ptr);
-
-                        // fallback
-                        if (ptr != m_sprite) {
+                        if (theme == "rainbow") {
+                            m_sprite->initWithSpriteFrameName("geode-logo-alternate.png"_spr);
+                        }
+                        else if (theme == "sapphire") {
+                            m_sprite->initWithSpriteFrameName("sapphire-logo.png"_spr);
+                        }
+                        else {
                             m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
                         }
-                    }
-                },
-                [this](std::string const& id) {
-                    m_modID = id;
+                    }, Priority::Last);
+                    CCNode* ptr = m_sprite;
+                    NodeProvidingEvent("geode-mod-logo-sprite"_spr).send(ptr);
 
-                    // Asynchronously fetch from server
-                    m_listener.spawn(server::getModLogo(id), [this](auto result) {
-                        this->onFetch(std::move(result));
-                    });
-                },
-                [this](asp::fs::Path const& path) {
-                    m_sprite->setLoadCallback([this](Result<> res) {
-                        this->onLoaded(std::move(res));
-                    });
-
-                    if (auto unzip = file::Unzip::create(path)) {
-                        if (auto logo = unzip.unwrap().extract("logo.png")) {
-                            m_sprite->loadFromData(std::move(logo).unwrap());
-                        }
+                    // fallback
+                    if (ptr != m_sprite) {
+                        m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
                     }
-
-                    // if the logo.png was not found then switch to fallback label
-                    if (!m_sprite->isLoading()) {
-                        this->onLoadFailed(true);
-                    }
-                },
+                }
             },
-            src
-        );
+            [this](std::string const& id) {
+                m_modID = id;
+
+                // Asynchronously fetch from server
+                m_listener.spawn(
+                    server::getModLogo(id),
+                    [this](auto result) {
+                        this->onFetch(std::move(result));
+                    }
+                );
+            },
+            [this](asp::fs::Path const& path) {
+                m_sprite->setLoadCallback([this](Result<> res) {
+                    this->onLoaded(std::move(res));
+                });
+
+                if (auto unzip = file::Unzip::create(path)) {
+                    if (auto logo = unzip.unwrap().extract("logo.png")) {
+                        m_sprite->loadFromData(std::move(logo).unwrap());
+                    }
+                }
+
+                // if the logo.png was not found then switch to fallback label
+                if (!m_sprite->isLoading()) {
+                    this->onLoadFailed(true);
+                }
+            },
+        }, src);
 
         // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
         this->setID(Mod::get()->expandSpriteName(fmt::format("sprite-{}", m_modID)));
