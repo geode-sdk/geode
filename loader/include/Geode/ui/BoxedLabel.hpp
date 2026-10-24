@@ -14,14 +14,26 @@ namespace geode {
 
         void resize();
 
-        bool init(std::string text, ZStringView font, float width);
+        bool init(std::string text, ZStringView font, ZStringView bg, float width);
 
     public:
+        /// Create a label visually encased by a NineSlice
+        /// @param text Text to display on the label
+        /// @param font Name of the label's font `.fnt` file
+        static BoxedLabel* create(std::string text, ZStringView font);
+
         /// Create a label visually encased by a NineSlice with a width limit
         /// @param text Text to display on the label
         /// @param font Name of the label's font `.fnt` file
         /// @param width Text label width limit, set to 0 for dynamic width
-        static BoxedLabel* create(std::string text, ZStringView font, float width = .0f);
+        static BoxedLabel* create(std::string text, ZStringView font, float width);
+
+        /// Create a label visually encased by a NineSlice with a distinct background and width limit
+        /// @param text Text to display on the label
+        /// @param font Name of the label's font `.fnt` file
+        /// @param bg Sprite name for the box background
+        /// @param width Text label width limit, set to 0 for dynamic width
+        static BoxedLabel* create(std::string text, ZStringView font, ZStringView bg, float width = .0f);
 
         /// Change the label text
         /// @param text Text to display on the label
@@ -44,6 +56,9 @@ namespace geode {
 
         /// Change the padding between the edges of the box and the text label
         void setPadding(float padding);
+
+        /// Change the sprite of the NineSlice surrounding the text label
+        void setBGSprite(ZStringView spriteName);
 
         /// Change the color of the NineSlice surrounding the text label
         void setBGColor(cocos2d::ccColor3B const& color);
