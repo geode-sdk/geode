@@ -402,6 +402,10 @@ asp::fs::Path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
+asp::fs::Path dirs::getGeodeResourcesDir() {
+    return dirs::getGeodeDir() / "resources";
+}
+
 asp::fs::Path dirs::getResourcesDir() {
     return [[[NSBundle mainBundle] resourcePath] UTF8String];
 }
