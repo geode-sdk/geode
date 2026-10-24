@@ -301,6 +301,12 @@ namespace geode {
          * Gets the current input timestamp in seconds.
          */
         GEODE_DLL double getInputTimestamp();
+
+        /**
+         * Gets if the game is currently focused.
+         * Always returns true on mobile.
+        */
+        GEODE_DLL bool isGameFocused();
     }
 
     /**
@@ -403,20 +409,29 @@ namespace geode::utils::thread {
 }
 
 namespace geode::utils::platform {
-    /// Returns whether the game is running under Wine. Returns false for
-    /// every non-Windows platforms, and for Windows if returns true if the
-    /// game is running under Wine, and false otherwise.
-    /// @return True if the game is running under Wine, false otherwise.
+    /**
+     * Returns whether the game is running under Wine. Returns false for
+     * every non-Windows platforms, and for Windows if returns true if the
+     * game is running under Wine, and false otherwise.
+     * 
+     * @return True if the game is running under Wine, false otherwise.
+     */ 
     GEODE_DLL bool isWine();
 
-    /// Returns the platform details of the current process. This is a struct
-    /// that is different for each platform, so accessing its members should
-    /// be done under platform-specific code.
-    /// @return The platform details struct
+    /**
+     * Returns the platform details of the current process. This is a struct
+     * that is different for each platform, so accessing its members should
+     * be done under platform-specific code.
+     * 
+     * @return The platform details struct
+     */
     GEODE_DLL PlatformDetails getDetails();
 
-    /// Returns a human-readable string describing the platform the game is
-    /// running on. This is used in crash logs and mod compatibility checks.
-    /// @return The platform string
+    /**
+     * Returns a human-readable string describing the platform the game is
+     * running on. This is used in crash logs and mod compatibility checks.
+     * 
+     * @return The platform string
+     */
     GEODE_DLL std::string getString();
 }

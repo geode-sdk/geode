@@ -450,6 +450,10 @@ double geode::utils::getInputTimestamp() {
     return [[NSProcessInfo processInfo] systemUptime];
 }
 
+bool geode::utils::isGameFocused() {
+    return NSApp != nil && [NSApp isActive];
+}
+
 bool cocos2d::CCImage::saveToFile(const char* pszFilePath, bool bIsToRGB) {
     uint8_t* data = m_pData;
     bool usePNG = std::string_view(pszFilePath).ends_with(".png");

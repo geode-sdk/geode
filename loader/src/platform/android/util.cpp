@@ -537,6 +537,9 @@ double geode::utils::getInputTimestamp() {
     return JniHelper::getPlatformTimestamp();
 }
 
+bool geode::utils::isGameFocused() {
+    return true;
+}
 
 bool geode::utils::platform::isWine() {
     return false;
