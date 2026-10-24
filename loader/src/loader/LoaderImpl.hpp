@@ -190,6 +190,8 @@ namespace geode {
         std::shared_ptr<KeybindSettingV3> keybindSettingForActionId(int action);
         std::optional<ZStringView> keybindNameForActionId(int action);
         int actionForKeybindSetting(KeybindSettingV3* setting);
+
+        std::vector<int> getActionsForKeybindCategory(std::optional<KeybindCategory> category);
     };
 
     class LoaderImpl : public Loader::Impl {

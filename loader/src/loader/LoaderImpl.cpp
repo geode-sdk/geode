@@ -24,6 +24,7 @@
 #include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
 #include <Geode/cocos/textures/CCTextureCache.h>
 #include <about.hpp>
+#include <algorithm>
 #include <crashlog.hpp>
 #include <fmt/format.h>
 #include <asp/fs/fs.hpp>
@@ -1540,4 +1541,35 @@ int Loader::Impl::actionForKeybindSetting(KeybindSettingV3* setting) {
     }
 
     return 0;
+}
+
+std::vector<int> Loader::Impl::getActionsForKeybindCategory(std::optional<KeybindCategory> category) {
+    auto mods = this->getAllMods();
+    std::erase_if(mods, [](Mod* mod) { return !mod->isLoaded(); });
+    std::ranges::sort(mods, [](Mod* a, Mod* b) {
+        auto order = utils::string::caseInsensitiveCompare(a->getName(), b->getName());
+        if (order != 0) {
+            return order < 0;
+        }
+        return a->getID() < b->getID();
+    });
+
+    std::vector<int> result;
+    for (auto* mod : mods) {
+        for (auto const& key : mod->getSettingKeys()) {
+            auto setting = typeinfo_pointer_cast<KeybindSettingV3>(mod->getSetting(key));
+            if (!setting) {
+                continue;
+            }
+            if (category && setting->getCategory() != category) {
+                continue;
+            }
+            int id = this->actionForKeybindSetting(setting.get());
+            if (id == 0) {
+                continue;
+            }
+            result.push_back(id);
+        }
+    }
+    return result;
 }
