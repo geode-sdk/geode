@@ -1,10 +1,12 @@
 #include "LoaderImpl.hpp"
 
+#include "Geode/loader/SettingV3.hpp"
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
 #include "LogImpl.hpp"
 #include "console.hpp"
 
+#include <Geode/Enums.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/IPC.hpp>
@@ -1473,4 +1475,69 @@ void Loader::Impl::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> set
             }), setting);
         }
     }
+
+    if (!m_keybindSettingToActionId.contains(setting.get())) {
+        auto getNextActionId = [this, &setting](int group, int& nextId) {
+            int actionId = nextId;
+
+            if ((actionId / 10000) > group) {
+                actionId = m_nextMiscActionId;
+                m_nextMiscActionId++;
+                log::warn(
+                    "No free action IDs in group {} for {}:{}, using fallback {}",
+                    group,
+                    setting->getModID(),
+                    setting->getKey(),
+                    actionId
+                );
+            } else {
+                nextId++;
+            }
+
+            return actionId;
+        };
+
+        KeybindCategory category = setting->getCategory().value_or(KeybindCategory::Universal);
+        int actionId = 0;
+
+        switch (category) {
+            case KeybindCategory::Universal:
+                actionId = getNextActionId(static_cast<int>(GJActionGroup::Global), m_nextUniversalActionId);
+                break;
+            case KeybindCategory::Gameplay:
+                actionId = getNextActionId(static_cast<int>(GJActionGroup::Gameplay), m_nextGameplayActionId);
+                break;
+            case KeybindCategory::Editor:
+                actionId = getNextActionId(static_cast<int>(GJActionGroup::Editor), m_nextEditorActionId);
+                break;
+        }
+
+        m_keybindSettingToActionId[setting.get()] = actionId;
+        m_actionIdToKeybindSetting[actionId] = setting;
+        m_actionIdToKeybindSettingName[actionId] = setting->getDisplayName();
+    }
+}
+
+std::shared_ptr<KeybindSettingV3> Loader::Impl::keybindSettingForActionId(int action) {
+    if (auto it = m_actionIdToKeybindSetting.find(action); it != m_actionIdToKeybindSetting.end()) {
+        return it->second;
+    }
+
+    return nullptr;
+}
+
+std::optional<ZStringView> Loader::Impl::keybindNameForActionId(int action) {
+    if (auto it = m_actionIdToKeybindSettingName.find(action); it != m_actionIdToKeybindSettingName.end()) {
+        return it->second;
+    }
+
+    return std::nullopt;
+}
+
+int Loader::Impl::actionForKeybindSetting(KeybindSettingV3* setting) {
+    if (auto it = m_keybindSettingToActionId.find(setting); it != m_keybindSettingToActionId.end()) {
+        return it->second;
+    }
+
+    return 0;
 }

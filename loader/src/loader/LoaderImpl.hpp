@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/Enums.hpp>
 #include <matjson.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -10,10 +11,13 @@
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/StringMap.hpp>
+#include "Geode/utils/ZStringView.hpp"
 #include "ModImpl.hpp"
 #include <crashlog.hpp>
+#include <memory>
 #include <mutex>
 #include <optional>
+#include <string>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -23,6 +27,11 @@
 
 namespace geode {
     static constexpr std::string_view LAUNCH_ARG_PREFIX = "--geode:";
+    // TODO: update these whenever GD updates if needed
+    static constexpr int LAST_ROBTOP_GLOBAL_ACTION_ID = static_cast<int>(GJActionID::SFXVolumeDown);
+    static constexpr int LAST_ROBTOP_GAMEPLAY_ACTION_ID = static_cast<int>(GJActionID::ToggleHitboxTrailOnDeath);
+    static constexpr int LAST_ROBTOP_EDITOR_ACTION_ID = static_cast<int>(GJActionID::ObjectOptions);
+    static constexpr int FIRST_FALLBACK_ACTION_ID = 90000;
 
     class Loader::Impl {
     public:
@@ -168,7 +177,19 @@ namespace geode {
 
         std::unordered_map<Keybind, std::vector<std::shared_ptr<KeybindSettingV3>>> m_keybindSettings;
         std::unordered_map<KeybindSettingV3*, Keybind> m_activeKeybinds;
+        std::unordered_map<KeybindSettingV3*, int> m_keybindSettingToActionId;
+        std::unordered_map<int, std::shared_ptr<KeybindSettingV3>> m_actionIdToKeybindSetting;
+        std::unordered_map<int, std::string> m_actionIdToKeybindSettingName;
+
+        int m_nextUniversalActionId = LAST_ROBTOP_GLOBAL_ACTION_ID + 1;
+        int m_nextGameplayActionId = LAST_ROBTOP_GAMEPLAY_ACTION_ID + 1;
+        int m_nextEditorActionId = LAST_ROBTOP_EDITOR_ACTION_ID + 1;
+        int m_nextMiscActionId = FIRST_FALLBACK_ACTION_ID;
+
         void onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds);
+        std::shared_ptr<KeybindSettingV3> keybindSettingForActionId(int action);
+        std::optional<ZStringView> keybindNameForActionId(int action);
+        int actionForKeybindSetting(KeybindSettingV3* setting);
     };
 
     class LoaderImpl : public Loader::Impl {
