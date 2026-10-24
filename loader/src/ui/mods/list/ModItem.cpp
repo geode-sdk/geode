@@ -150,7 +150,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     m_downloadBar->setID("download-bar");
     m_downloadBar->m_touchLogic->m_thumb->setVisible(false);
     m_downloadBar->setScale(1.5f);
-    m_downloadBarContainer->addChildAtPosition(m_downloadBar, Anchor::Center, ccp(0, 0), ccp(0, 0));
+    m_downloadBarContainer->addChildAtPosition(m_downloadBar, Anchor::Center, {}, {});
 
     m_infoContainer->addChildAtPosition(m_downloadBarContainer, Anchor::Left);
 
@@ -792,7 +792,7 @@ void ModItem::updateState() {
                 AnchorLayoutOptions::create()->setAnchor(Anchor::Top)->setOffset(ccp(0, -10))
             );
             limitNodeWidth(m_titleLabel, m_titleContainer->getContentWidth(), .8f, .1f);
-            m_titleContainer->updateAnchoredPosition(Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
+            m_titleContainer->updateAnchoredPosition(Anchor::Center, {}, ccp(.5f, .5f));
             m_developers->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_modLabelsContainer->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
             m_downloadBarContainer->updateAnchoredPosition(Anchor::Bottom, ccp(0, 10), ccp(.5f, .5f));
@@ -813,13 +813,13 @@ void ModItem::updateState() {
                 SimpleAxisLayoutOptions::create()->setMinRelativeScale(.5f)->setMaxRelativeScale(1.f)
             );
             // m_description is hidden
-            m_developers->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_modLabelsContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
+            m_developers->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), {});
+            m_modLabelsContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), {});
+            m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), {});
+            m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), {});
 
             if (m_recommendedBy) {
-                m_recommendedBy->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
+                m_recommendedBy->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), {});
             }
         } break;
 
@@ -827,19 +827,19 @@ void ModItem::updateState() {
             m_infoContainer->updateAnchoredPosition(
                 Anchor::Left, ccp(m_obContentSize.height + 10, 0), ccp(0, .5f)
             );
-            m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, ccp(0, 0), ccp(0, 1));
+            m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, {}, ccp(0, 1));
             m_titleLabel->setLayoutOptions(
                 SimpleAxisLayoutOptions::create()->setMinRelativeScale(.5f)->setMaxRelativeScale(1.f)
             );
-            m_developers->updateAnchoredPosition(Anchor::Left, ccp(0, 0), ccp(0, .5f));
+            m_developers->updateAnchoredPosition(Anchor::Left, {}, ccp(0, .5f));
 
-            m_description->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
-            m_modLabelsContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), ccp(0, 0));
-            m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
-            m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
+            m_description->updateAnchoredPosition(Anchor::BottomLeft, {}, {});
+            m_modLabelsContainer->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 3), {});
+            m_downloadBarContainer->updateAnchoredPosition(Anchor::BottomLeft, {}, {});
+            m_downloadWaiting->updateAnchoredPosition(Anchor::BottomLeft, {}, {});
 
             if (m_recommendedBy) {
-                m_recommendedBy->updateAnchoredPosition(Anchor::BottomLeft, ccp(0, 0), ccp(0, 0));
+                m_recommendedBy->updateAnchoredPosition(Anchor::BottomLeft, {}, {});
             }
         } break;
     }
@@ -1084,7 +1084,7 @@ bool AnyModItem::init(ZStringView modID) {
 void AnyModItem::gotSrc(ModSource&& src) {
     m_item = ModItem::create(std::move(src), false);
     m_item->updateDisplay(m_targetWidth, m_display);
-    this->addChildAtPosition(m_item, Anchor::Center, ccp(0, 0), ccp(.5f, .5f));
+    this->addChildAtPosition(m_item, Anchor::Center, {}, ccp(.5f, .5f));
     m_bg->setVisible(false);
     m_loading->setVisible(false);
 }

@@ -378,8 +378,10 @@ bool ModPopup::init(ModSource&& src) {
 
     m_restartRequiredLabel = createTagLabel(
         "Restart Required",
-        {to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
-         to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))}
+        {
+            to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
+            to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr)),
+        }
     );
     m_restartRequiredLabel->setScale(.3f);
     manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, {}, {1.f, .5f});
@@ -1153,15 +1155,34 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             label->setScale(.35f);
             menu->addChildAtPosition(label, Anchor::Left, {10.f, .0f}, {.0f, .5f});
 
+            static std::map<std::string_view, std::pair<std::string_view, std::string_view>>
+                modtoberYears = {
+                    {"24", {"The Sky's the Limit", "<cl>"}},
+                    {"25", {"What The Heck", "<co>"}},
+            };
+
             auto aboutSpr =
                 createGeodeButton("About", false, GeodeButtonSprite::Default, m_forceDisableTheme);
+
             aboutSpr->setScale(.35f);
-            auto aboutBtn = CCMenuItemSpriteExtra::create(
-                aboutSpr,
-                this,
-                year == "24" ? menu_selector(ModPopup::onModtober24Info) :
-                               menu_selector(ModPopup::onModtober25Info)
-            );
+            auto aboutBtn = CCMenuItemExt::createSpriteExtra(aboutSpr, [year](auto) {
+                auto const it = modtoberYears.find(year);
+                if (it != modtoberYears.end()) {
+                    createQuickPopup(
+                        fmt::format("Modtober 20{}", year),
+                        fmt::format(
+                            "This mod was an entry for {}Modtober 20{}</c>, a contest to create "
+                            "the best mod with the theme <cc>\"{}\"</c>",
+                            year,
+                            it->second,
+                            it->first
+                        ),
+                        "OK",
+                        nullptr,
+                        nullptr
+                    );
+                };
+            });
             menu->addChildAtPosition(aboutBtn, Anchor::Right, {-25.f, .0f});
 
             m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, {}, {.5f, .0f});
