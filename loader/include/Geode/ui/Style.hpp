@@ -9,7 +9,7 @@
 #include <Geode/utils/ZStringView.hpp>
 
 namespace geode {
-    enum class GeodePopupStyle {
+    enum class GeodePopupStyle : uint8_t {
         Default,
         Alt,
         Alt2,
@@ -48,7 +48,7 @@ namespace geode {
             ZStringView top, bool* state = nullptr, bool forceDisableTheme = false
         );
 
-        cocos2d::CCSprite* getTopSprite() const;
+        CCSprite* getTopSprite() const;
         void setState(bool state);
     };
 
@@ -56,7 +56,7 @@ namespace geode {
         float sideLength, ZStringView id = "loading-spinner"
     );
 
-    enum class GeodeButtonSprite {
+    enum class GeodeButtonSprite : uint8_t {
         Default,
         Install,
         Delete,
