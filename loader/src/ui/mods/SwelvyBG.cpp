@@ -35,13 +35,14 @@ bool SwelvyBG::init() {
         sprite->setUserObject("width", CCFloat::create(rect.size.width));
         rect.size = CCSize{winSize.width, rect.size.height};
 
-        std::string layerID = fmt::format("layer-{}", idx);
-        auto colorID = fmt::format("swelvy-bg-{}"_spr, idx);
-        sprite->setID(layerID);
+        sprite->setID(fmt::format("layer-{}", idx));
         sprite->getTexture()->setTexParameters(&params);
         sprite->setTextureRect(rect);
         sprite->setAnchorPoint({0, 1});
         sprite->setContentSize({winSize.width, sprite->getContentSize().height});
+
+        auto colorID = fmt::format("swelvy-bg-{}"_spr, idx);
+
         sprite->setColor(ColorProvider::get()->color3b(colorID));
         sprite->setPosition({0, y});
         sprite->schedule(schedule_selector(SwelvyBG::updateSpritePosition));
