@@ -142,6 +142,7 @@ namespace geode {
         KeyboardModifier modifiers = KeyboardModifier::None;
 
         Keybind() = default;
+
         Keybind(cocos2d::enumKeyCodes key, KeyboardModifier modifiers) noexcept :
             key(key), modifiers(modifiers) {}
 
