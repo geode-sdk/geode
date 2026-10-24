@@ -56,9 +56,9 @@ Toggler* Toggler::createWithStandardSprites(
 ) {
     return createScaled(
         CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
-                        CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
-                        scale,
-                        std::move(toggleCallback)
+        CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
+        scale,
+        std::move(toggleCallback)
     );
 }
 
@@ -78,9 +78,9 @@ Toggler* Toggler::createWithSprites(
 ) {
     return createScaled(
         CCSprite::create(offFileName.c_str()),
-                        CCSprite::create(onFileName.c_str()),
-                        scale,
-                        std::move(toggleCallback)
+        CCSprite::create(onFileName.c_str()),
+        scale,
+        std::move(toggleCallback)
     );
 }
 
@@ -102,9 +102,9 @@ Toggler* Toggler::createWithSpriteFrameNames(
 ) {
     return createScaled(
         CCSprite::createWithSpriteFrameName(offFrameName.c_str()),
-                        CCSprite::createWithSpriteFrameName(onFrameName.c_str()),
-                        scale,
-                        std::move(toggleCallback)
+        CCSprite::createWithSpriteFrameName(onFrameName.c_str()),
+        scale,
+        std::move(toggleCallback)
     );
 }
 
@@ -117,11 +117,11 @@ bool Toggler::init(
         offNode == onNode ||
         offNode->getParent() || onNode->getParent()) {
         return false;
-        }
+    }
 
-        if (!Button::init(nullptr)) return false;
+    if (!Button::init(nullptr)) return false;
 
-        this->setAnchorPoint({0.5f, 0.5f});
+    this->setAnchorPoint({0.5f, 0.5f});
 
     offNode->setAnchorPoint({0.5f, 0.5f});
     onNode->setAnchorPoint({0.5f, 0.5f});
@@ -165,9 +165,9 @@ void Toggler::setOffNode(CCNode* node) {
     if (!node || node == m_impl->m_offNode ||
         node == m_impl->m_onNode || node->getParent()) {
         return;
-        }
+    }
 
-        node->setAnchorPoint({0.5f, 0.5f});
+    node->setAnchorPoint({0.5f, 0.5f});
 
     m_impl->m_offNode->removeFromParent();
     m_impl->m_offNode = node;
@@ -184,9 +184,9 @@ void Toggler::setOnNode(CCNode* node) {
     if (!node || node == m_impl->m_offNode ||
         node == m_impl->m_onNode || node->getParent()) {
         return;
-        }
+    }
 
-        node->setAnchorPoint({0.5f, 0.5f});
+    node->setAnchorPoint({0.5f, 0.5f});
 
     m_impl->m_onNode->removeFromParent();
     m_impl->m_onNode = node;
@@ -214,7 +214,7 @@ void Toggler::updateDisplay() {
 
     CCSize size(
         std::max(std::abs(offSize.width), std::abs(onSize.width)),
-                std::max(std::abs(offSize.height), std::abs(onSize.height))
+        std::max(std::abs(offSize.height), std::abs(onSize.height))
     );
 
     auto center = size * 0.5f;
