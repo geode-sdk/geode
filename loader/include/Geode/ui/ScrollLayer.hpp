@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/binding/CCContentLayer.hpp>
 #include <Geode/binding/CCScrollLayerExt.hpp>
 #include <memory>
@@ -32,6 +33,7 @@ namespace geode {
         void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
         void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
         void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
+        bool touchInsideClip(cocos2d::CCPoint const&) override;
 
         void visit() override;
 

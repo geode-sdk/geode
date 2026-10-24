@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
 #include <Geode/utils/cocos.hpp>
@@ -208,6 +209,16 @@ void ScrollLayer::ccTouchEnded(CCTouch* touch, CCEvent* event) {
 
 void ScrollLayer::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
     m_impl->ccTouchCancelled(touch, event);
+}
+
+bool ScrollLayer::touchInsideClip(cocos2d::CCPoint const& worldPoint) {
+    if (!m_cutContent) {
+        return true;
+    }
+
+    auto local = this->convertToNodeSpace(worldPoint);
+
+    return CCRect{ CCPointZero, this->getContentSize() }.containsPoint(local);
 }
 
 float ScrollLayer::getScrollFromTop() const {
