@@ -24,7 +24,7 @@ else()
         message(FATAL_ERROR
             "Found Geode CLI: ${GEODE_CLI}, however it is version ${GEODE_CLI_VERSION} "
             "while minimum required is version ${GEODE_CLI_MINIMUM_VERSION}. Please update: "
-            "https://github.com/geode-sdk/cli/releases/latest"
+            "https://docs.geode-sdk.org/getting-started/geode-cli"
         )
     endif()
 
