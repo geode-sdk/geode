@@ -338,7 +338,9 @@ if (SUPPORTS_W_NO_EVERYTHING)
 	endif()
 endif()
 
-target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
+if (NOT GEODE_NO_ENTRY)
+	target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
+endif()
 
 add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
 
