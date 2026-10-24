@@ -300,19 +300,13 @@ const char* CCKeyboardDispatcher::keyToString(enumKeyCodes key)
         case KEY_SelectMedia: return "SelectMedia";
         case KEY_LaunchApp1: return "LaunchApp1";
         case KEY_LaunchApp2: return "LaunchApp2";
-        case KEY_OEM1: return "OEM1";
-        case KEY_OEMPlus: return "OEMPlus";
+        // OEM1-7, OEMPlus and OEM102 are named by the geode aliases below
         case KEY_OEMComma: return "OEMComma";
         case KEY_OEMMinus: return "OEMMinus";
         case KEY_OEMPeriod: return "OEMPeriod";
-        case KEY_OEM2: return "OEM2";
-        case KEY_OEM3: return "OEM3";
-        case KEY_OEM4: return "OEM4";
-        case KEY_OEM5: return "OEM5";
-        case KEY_OEM6: return "OEM6";
-        case KEY_OEM7: return "OEM7";
+        case KEY_ABNT1: return "ABNT1";
+        case KEY_ABNT2: return "ABNT2";
         case KEY_OEM8: return "OEM8";
-        case KEY_OEM102: return "OEM102";
         case KEY_Process: return "Process";
         case KEY_Packet: return "Packet";
         case KEY_Attn: return "Attn";
@@ -382,7 +376,8 @@ const char* CCKeyboardDispatcher::keyToString(enumKeyCodes key)
         case KEY_Semicolon: return ";";
         case KEY_Apostrophe: return "'";
         case KEY_Slash: return "/";
-        case KEY_NumEnter: return "=";
+        case KEY_Equal: return "NumEqual";
+        case KEY_NumEnter: return "NumEnter";
         case KEY_World1: return "INTL-1";
         case KEY_World2: return "INTL-2";
         case MOUSE_4: return "Mouse 4";

@@ -127,7 +127,7 @@ enumKeyCodes convertKeyCode(NSEvent* event) {
         case kVK_ANSI_4: return KEY_Four;
         case kVK_ANSI_6: return KEY_Six;
         case kVK_ANSI_5: return KEY_Five;
-        case kVK_ANSI_Equal: return KEY_Equal;
+        case kVK_ANSI_Equal: return KEY_OEMEqual;
         case kVK_ANSI_9: return KEY_Nine;
         case kVK_ANSI_7: return KEY_Seven;
         case kVK_ANSI_Minus: return KEY_Subtract;
@@ -166,7 +166,7 @@ enumKeyCodes convertKeyCode(NSEvent* event) {
         case kVK_F17: return KEY_F17;
         case kVK_ANSI_KeypadDecimal: return KEY_Decimal;
         case kVK_ANSI_KeypadMultiply: return KEY_Multiply;
-        case kVK_ANSI_KeypadPlus: return KEY_OEMPlus;
+        case kVK_ANSI_KeypadPlus: return KEY_Add;
         case kVK_ANSI_KeypadClear: return KEY_Clear;
         case kVK_VolumeUp: return KEY_VolumeUp;
         case kVK_VolumeDown: return KEY_VolumeDown;
@@ -463,6 +463,23 @@ void rightMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
     [self performSelector:sel withObject:event];
 }
 
+static void dispatchMouseButtonAsKey(MouseInputData const& data) {
+    auto key = MouseInputData::buttonToKeyCode(data.button);
+    if (key == KEY_None) return;
+
+    bool isDown = data.action == MouseInputData::Action::Press;
+    if (isDown && CCIMEDispatcher::sharedDispatcher()->hasDelegate()) return;
+
+    auto* keyboardDispatcher = CCKeyboardDispatcher::get();
+    keyboardDispatcher->updateModifierKeys(
+        data.modifiers & KeyboardModifier::Shift,
+        data.modifiers & KeyboardModifier::Control,
+        data.modifiers & KeyboardModifier::Alt,
+        data.modifiers & KeyboardModifier::Super
+    );
+    keyboardDispatcher->dispatchKeyboardMSG(key, isDown, false, data.timestamp);
+}
+
 void otherMouseDownHook(EAGLView* self, SEL sel, NSEvent* event) {
     KeyboardModifier modifiers = extractModifiersFromNSEvent(event);
 
@@ -474,7 +491,9 @@ void otherMouseDownHook(EAGLView* self, SEL sel, NSEvent* event) {
     );
 
     Loader::get()->queueInMainThread([data = std::move(data)] mutable {
-        MouseInputEvent().send(data);
+        if (MouseInputEvent().send(data) == ListenerResult::Propagate) {
+            dispatchMouseButtonAsKey(data);
+        }
     });
 
     [self performSelector:sel withObject:event];
@@ -501,7 +520,9 @@ void otherMouseUpHook(EAGLView* self, SEL sel, NSEvent* event) {
     );
 
     Loader::get()->queueInMainThread([data = std::move(data)] mutable {
-        MouseInputEvent().send(data);
+        if (MouseInputEvent().send(data) == ListenerResult::Propagate) {
+            dispatchMouseButtonAsKey(data);
+        }
     });
 
     [self performSelector:sel withObject:event];

@@ -3,9 +3,12 @@
 
 #include "CCKeyboardDelegate.h"
 #include "../../cocoa/CCArray.h"
+#include <unordered_map>
 
 
 NS_CC_BEGIN
+
+class CCKeyboardActionManager;
 
 // @note RobTop Addition
 class CC_DLL CCKeyboardDispatcher : public CCObject
@@ -53,28 +56,34 @@ public:
 	}
 
 	void flushPendingDelegates();
-	bool getLastRepeat() const;
-	bool getCaptureMode() const;
+	inline bool getLastRepeat() const {
+		return m_bLastRepeat;
+	}
+	inline bool getCaptureMode() const {
+		return m_bCaptureMode;
+	}
 
 	void releaseAllKeys(double);
 
 protected:
-	void dispatchToTopDelegate(enumKeyCodes key, bool unk, std::vector<int> const& unk2, double unk3);
+	void dispatchToTopDelegate(enumKeyCodes key, bool down, std::vector<int> const& actions, double timestamp);
 
 public:
-	CCArray* m_pHandlers;	// 0x34
-	bool m_bLocked;			// 0x38
-	bool m_bToAdd;      // 0x39
-	bool m_bToRemove;			// 0x3a
-	ccCArray* m_pHandlersToAdd; // 0x3c
-	ccCArray* m_pHandlersToRemove;	// 0x40
-	bool m_bShiftPressed;		// 0x44
-	bool m_bControlPressed;	// 0x45
-	bool m_bAltPressed;			// 0x46
-	bool m_bCommandPressed;	// 0x47
-	bool m_bBlockRepeat;		// 0x48
-
-	// ~~there's more here, check the initializer~~ no there's not??
+	CCArray* m_pHandlers;	// 0x38
+	bool m_bLocked;			// 0x40
+	bool m_bToAdd;      // 0x41
+	bool m_bToRemove;			// 0x42
+	ccCArray* m_pHandlersToAdd; // 0x48
+	ccCArray* m_pHandlersToRemove;	// 0x50
+	std::unordered_map<enumKeyCodes, std::vector<int>> m_pressedKeyActions; // 0x58
+	bool m_bShiftPressed;		// 0x98
+	bool m_bControlPressed;	// 0x99
+	bool m_bAltPressed;			// 0x9a
+	bool m_bCommandPressed;	// 0x9b
+	bool m_bBlockRepeat;		// 0x9c
+	bool m_bLastRepeat;		// 0x9d
+	bool m_bCaptureMode;		// 0x9e
+	CCKeyboardActionManager* m_pActionManager;	// 0xa0
 };
 
 NS_CC_END
