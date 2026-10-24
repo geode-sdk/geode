@@ -1,10 +1,10 @@
-#include <algorithm>
-#include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <algorithm>
 
 using namespace geode::prelude;
 
@@ -180,7 +180,6 @@ void GenericContentLayer::setPosition(CCPoint const& pos) {
     m_impl->setPosition(pos);
 }
 
-
 void ScrollLayer::visit() {
     m_impl->visit();
 }
@@ -218,7 +217,7 @@ bool ScrollLayer::touchInsideClip(cocos2d::CCPoint const& worldPoint) {
 
     auto local = this->convertToNodeSpace(worldPoint);
 
-    return CCRect{ CCPointZero, this->getContentSize() }.containsPoint(local);
+    return CCRect{CCPointZero, this->getContentSize()}.containsPoint(local);
 }
 
 float ScrollLayer::getScrollFromTop() const {
@@ -231,7 +230,9 @@ void ScrollLayer::scrollToFromTop(float offset) {
     float viewHeight = this->getContentHeight();
     float contentHeight = this->m_contentLayer->getContentHeight();
     float maxOffset = std::max(0.f, contentHeight - viewHeight);
-    this->m_contentLayer->setPositionY((viewHeight - contentHeight) + std::clamp(offset, 0.f, maxOffset));
+    this->m_contentLayer->setPositionY(
+        (viewHeight - contentHeight) + std::clamp(offset, 0.f, maxOffset)
+    );
 }
 
 void ScrollLayer::scrollToTop() {

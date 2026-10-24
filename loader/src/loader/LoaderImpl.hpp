@@ -1,35 +1,37 @@
 #pragma once
 
+#include "Geode/utils/ZStringView.hpp"
+#include "ModImpl.hpp"
+
 #include <Geode/Enums.hpp>
-#include <matjson.hpp>
+#include <Geode/Result.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/Result.hpp>
+#include <Geode/utils/StringMap.hpp>
+#include <Geode/utils/function.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <Geode/utils/function.hpp>
-#include <Geode/utils/StringMap.hpp>
-#include "Geode/utils/ZStringView.hpp"
-#include "ModImpl.hpp"
 #include <crashlog.hpp>
+#include <matjson.hpp>
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <queue>
 #include <string>
 #include <thread>
+#include <tulip/TulipHook.hpp>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <queue>
-#include <tulip/TulipHook.hpp>
 
 namespace geode {
     static constexpr std::string_view LAUNCH_ARG_PREFIX = "--geode:";
     // TODO: update these whenever GD updates if needed
     static constexpr int LAST_ROBTOP_GLOBAL_ACTION_ID = static_cast<int>(GJActionID::SFXVolumeDown);
-    static constexpr int LAST_ROBTOP_GAMEPLAY_ACTION_ID = static_cast<int>(GJActionID::ToggleHitboxTrailOnDeath);
+    static constexpr int LAST_ROBTOP_GAMEPLAY_ACTION_ID =
+        static_cast<int>(GJActionID::ToggleHitboxTrailOnDeath);
     static constexpr int LAST_ROBTOP_EDITOR_ACTION_ID = static_cast<int>(GJActionID::ObjectOptions);
     static constexpr int FIRST_FALLBACK_ACTION_ID = 90000;
 

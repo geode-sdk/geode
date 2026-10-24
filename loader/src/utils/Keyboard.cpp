@@ -1,10 +1,12 @@
 #include "Geode/utils/Keyboard.hpp"
-#include <Geode/loader/Mod.hpp>
-#include <Geode/utils/StringMap.hpp>
-#include <Geode/ui/Label.hpp>
-#include <optional>
+
 #include "Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h"
 #include "KeyboardImpl.hpp"
+
+#include <Geode/loader/Mod.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/utils/StringMap.hpp>
+#include <optional>
 
 using namespace geode::prelude;
 
@@ -363,7 +365,8 @@ std::optional<int> Keybind::toVanillaChord() const {
     int chord = key & 0xffff;
 
     // No modifiers for controller
-    if ((key >= CONTROLLER_A && key <= CONTROLLER2_RTHUMBSTICK_RIGHT) || (key >= CONTROLLER_L3 && key <= CONTROLLER2_R3)) {
+    if ((key >= CONTROLLER_A && key <= CONTROLLER2_RTHUMBSTICK_RIGHT) ||
+        (key >= CONTROLLER_L3 && key <= CONTROLLER2_R3)) {
         return chord;
     }
 

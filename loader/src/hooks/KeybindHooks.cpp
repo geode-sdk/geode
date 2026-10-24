@@ -1,25 +1,16 @@
-#include <algorithm>
-#include <memory>
-#include <numeric>
-#include <optional>
-#include <string_view>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-
-#include <fmt/format.h>
+#include "LoaderImpl.hpp"
+#include "ui/mods/GeodeStyle.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/GameSettingsLayer.hpp>
 #include <Geode/binding/GJKeybindManager.hpp>
-#include <Geode/binding/KeybindingsLayer.hpp>
+#include <Geode/binding/GameSettingsLayer.hpp>
 #include <Geode/binding/KeybindSource.hpp>
+#include <Geode/binding/KeybindingsLayer.hpp>
 #include <Geode/binding/LevelBindingsLayer.hpp>
-#include <Geode/binding/TabbedPopupLayer.hpp>
 #include <Geode/binding/ScrollableContentLayer.hpp>
-#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/binding/TabbedPopupLayer.hpp>
 #include <Geode/cocos/CCDirector.h>
+#include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/include/ccTypes.h>
 #include <Geode/cocos/menu_nodes/CCMenu.h>
@@ -38,14 +29,21 @@
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/utils/Keyboard.hpp>
+#include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/function.hpp>
-#include <Geode/utils/Keyboard.hpp>
 #include <Geode/utils/string.hpp>
-#include <Geode/utils/ZStringView.hpp>
-
-#include "LoaderImpl.hpp"
-#include "ui/mods/GeodeStyle.hpp"
+#include <algorithm>
+#include <fmt/format.h>
+#include <memory>
+#include <numeric>
+#include <optional>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 using namespace geode::prelude;
 
@@ -72,7 +70,6 @@ static Layout* listColumnLayout(float gap, bool ignoreInvisible = true) {
         ->setGap(gap)
         ->ignoreInvisibleChildren(ignoreInvisible);
 }
-
 
 #ifndef GEODE_IS_IOS
 
@@ -127,7 +124,8 @@ struct GeodeKeybindSource : public KeybindSource {
                 keybinds.push_back(keybind);
                 setting->setValue(std::move(keybinds));
             }
-        } else {
+        }
+        else {
             GJKeybindManager::sharedState()->bindChord(chord, action);
         }
     }
@@ -138,11 +136,14 @@ struct GeodeKeybindSource : public KeybindSource {
         if (auto setting = loaderImpl->keybindSettingForActionId(action); setting != nullptr) {
             std::vector<Keybind> keybinds = setting->getValue();
 
-            auto deleted =  std::erase_if(keybinds, [&](auto& e) { return e.toVanillaChord() == chord; });
+            auto deleted = std::erase_if(keybinds, [&](auto& e) {
+                return e.toVanillaChord() == chord;
+            });
             if (deleted > 0) {
                 setting->setValue(std::move(keybinds));
             }
-        } else {
+        }
+        else {
             GJKeybindManager::sharedState()->unbindChord(chord, action);
         }
     }
@@ -151,8 +152,7 @@ struct GeodeKeybindSource : public KeybindSource {
 static bool s_parsingBlob = false;
 
 class $modify(GJKeybindManager) {
-    $override
-    static char const* actionToString(int action) {
+    $override static char const* actionToString(int action) {
         if (s_parsingBlob) {
             return GJKeybindManager::actionToString(action);
         }
@@ -164,8 +164,7 @@ class $modify(GJKeybindManager) {
         return GJKeybindManager::actionToString(action);
     }
 
-    $override
-    void parseBindsBlob(std::string const& blob, bool apply, int* outApplied, int* outUnknown) {
+    $override void parseBindsBlob(std::string const& blob, bool apply, int* outApplied, int* outUnknown) {
         s_parsingBlob = true;
         GJKeybindManager::parseBindsBlob(blob, apply, outApplied, outUnknown);
         s_parsingBlob = false;
@@ -181,18 +180,14 @@ static int makeKey(bool isLevel, int tab) {
 
 Anchor nearestAnchor(CCPoint pos, CCSize size) {
     // 0 = left, 2 = right, 1 = center
-    auto col = pos.x < size.width / 4 ? 0
-        : pos.x > 3 * size.width / 4 ? 2
-        : 1;
+    auto col = pos.x < size.width / 4 ? 0 : pos.x > 3 * size.width / 4 ? 2 : 1;
     // 0 = bottom, 2 = top, 1 = center
-    auto row = pos.y < size.height / 4 ? 0
-        : pos.y > 3 * size.height / 4 ? 2
-        : 1;
+    auto row = pos.y < size.height / 4 ? 0 : pos.y > 3 * size.height / 4 ? 2 : 1;
 
-    static const Anchor table[3][3] = {
-        { Anchor::BottomLeft, Anchor::Bottom, Anchor::BottomRight },
-        { Anchor::Left, Anchor::Center, Anchor::Right },
-        { Anchor::TopLeft, Anchor::Top, Anchor::TopRight },
+    static Anchor const table[3][3] = {
+        {Anchor::BottomLeft, Anchor::Bottom, Anchor::BottomRight},
+        {Anchor::Left, Anchor::Center, Anchor::Right},
+        {Anchor::TopLeft, Anchor::Top, Anchor::TopRight},
     };
 
     return table[row][col];
@@ -212,9 +207,11 @@ void convertToAnchorLayout(CCNode* node, CCSize size, CCPoint pos) {
     for (auto& [child, worldPos] : previousPositions) {
         auto local = node->convertToNodeSpace(worldPos);
         auto anchor = nearestAnchor(local, size);
-        child->setLayoutOptions(AnchorLayoutOptions::create()
-                                ->setAnchor(anchor)
-                                ->setOffset(local - AnchorLayout::getAnchoredPosition(node, anchor, {0, 0})));
+        child->setLayoutOptions(
+            AnchorLayoutOptions::create()->setAnchor(anchor)->setOffset(
+                local - AnchorLayout::getAnchoredPosition(node, anchor, {0, 0})
+            )
+        );
     }
 
     node->setLayout(AnchorLayout::create());
@@ -242,8 +239,12 @@ namespace list {
 
     constexpr float CATEGORY_GAP = 15.0f;
     // gameplay, practice, editor, tools, view + rest
-    static const ccColor3B CATEGORY_COLORS[] = {
-        {120, 255, 120}, {255, 230, 100}, {255, 170, 80}, {200, 150, 255}, {100, 200, 255},
+    static ccColor3B const CATEGORY_COLORS[] = {
+        {120, 255, 120},
+        {255, 230, 100},
+        {255, 170, 80},
+        {200, 150, 255},
+        {100, 200, 255},
     };
 
     constexpr auto ROW_BG_FRAME = "square02_small.png";
@@ -263,8 +264,8 @@ namespace list {
     constexpr float CHORD_LABEL_SCALE = 0.4f;
     constexpr float ADD_LABEL_SCALE = 0.6f;
     constexpr float GLYPH_HEIGHT = 22.0f;
-    static const ccColor3B COLOR_CONFLICT = { 255, 80, 80 };
-    static const ccColor3B COLOR_P2 = { 255, 190, 120 };
+    static ccColor3B const COLOR_CONFLICT = {255, 80, 80};
+    static ccColor3B const COLOR_P2 = {255, 190, 120};
     constexpr float DRAG_CANCEL_DISTANCE = 8.0f;
 
     constexpr GLubyte READONLY_OPACITY = 150;
@@ -274,7 +275,7 @@ namespace list {
 
 static CCSprite* createCollapseState(char const* frame, float iconScale, char const* id) {
     auto bg = CCSprite::create("square02c_001.png");
-    bg->setColor({ 25, 25, 25 });
+    bg->setColor({25, 25, 25});
     bg->setOpacity(105);
     auto icon = CCSprite::createWithSpriteFrameName(frame);
     icon->setScale(iconScale);
@@ -321,8 +322,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         }
     };
 
-    $override
-    bool init(GameSettingsLayer* settings) {
+    $override bool init(GameSettingsLayer* settings) {
         bool isLevelBindings = typeinfo_cast<LevelBindingsLayer*>(this) != nullptr;
         m_fields->isLevel = isLevelBindings;
 
@@ -345,27 +345,31 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         m_contentMenu = nullptr;
         m_fields->ready = true;
 
-        convertToAnchorLayout(m_mainLayer, { m_width, m_height }, winSize / 2);
-        convertToAnchorLayout(m_buttonMenu, { m_width, m_height }, { m_width / 2, m_height / 2 });
-        m_buttonMenu->setLayoutOptions(AnchorLayoutOptions::create()->setAnchor(Anchor::Center)->setOffset({0, 0}));
+        convertToAnchorLayout(m_mainLayer, {m_width, m_height}, winSize / 2);
+        convertToAnchorLayout(m_buttonMenu, {m_width, m_height}, {m_width / 2, m_height / 2});
+        m_buttonMenu->setLayoutOptions(
+            AnchorLayoutOptions::create()->setAnchor(Anchor::Center)->setOffset({0, 0})
+        );
         m_mainLayer->updateLayout();
 
         this->showTab(m_currentTab);
 
         if (!isLevelBindings) {
-            this->addEventListener(SettingChangedEventV3(), [&](std::string_view modId, std::string_view, std::shared_ptr<SettingV3> setting) {
-                if (!typeinfo_pointer_cast<KeybindSettingV3>(setting)) {
-                    return;
+            this->addEventListener(
+                SettingChangedEventV3(),
+                [&](std::string_view modId, std::string_view, std::shared_ptr<SettingV3> setting) {
+                    if (!typeinfo_pointer_cast<KeybindSettingV3>(setting)) {
+                        return;
+                    }
+                    this->queueListRebuild();
                 }
-                this->queueListRebuild();
-            });
+            );
         }
 
         return true;
     }
 
-    $override
-    void showTab(int tab) {
+    $override void showTab(int tab) {
         auto list = m_fields->list;
         if (list && m_currentTab >= 0) {
             s_scrollFromTop[makeKey(m_fields->isLevel, m_currentTab)] = list->getScrollFromTop();
@@ -377,8 +381,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         }
     }
 
-    $override
-    void buildContentForTab(int tab) {
+    $override void buildContentForTab(int tab) {
         if (!m_fields->ready) {
             return;
         }
@@ -396,17 +399,23 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         auto list = ScrollLayer::create({0, 0, viewW, viewH});
         list->setID("keybinds-list");
         list->m_contentLayer->setLayout(listColumnLayout(list::ROW_GAP, false));
-        m_mainLayer->addChildAtPosition(list, Anchor::Center, { -list->getContentWidth() / 2, -list->getContentHeight() / 2 + offsetY });
+        m_mainLayer->addChildAtPosition(
+            list, Anchor::Center, {-list->getContentWidth() / 2, -list->getContentHeight() / 2 + offsetY}
+        );
         m_fields->list = list;
 
-        struct ModGroup { Mod* mod; std::vector<int> actions; };
+        struct ModGroup {
+            Mod* mod;
+            std::vector<int> actions;
+        };
 
         std::vector<int> vanilla;
         std::vector<ModGroup> groups;
         std::unordered_map<Mod*, size_t> groupIndex;
 
         auto settingFor = [&](int id) {
-            return m_fields->moddedSource ? LoaderImpl::get()->keybindSettingForActionId(id) : nullptr;
+            return m_fields->moddedSource ? LoaderImpl::get()->keybindSettingForActionId(id) :
+                                            nullptr;
         };
 
         for (auto id : this->actionsToShow(tab)) {
@@ -418,7 +427,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
 
             auto [it, inserted] = groupIndex.try_emplace(setting->getMod(), groups.size());
             if (inserted) {
-                groups.push_back({ setting->getMod(), {}});
+                groups.push_back({setting->getMod(), {}});
             }
             groups[it->second].actions.push_back(id);
         }
@@ -436,11 +445,12 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
 
         list->m_contentLayer->updateLayout();
         list->scrollToTop();
-        LoaderImpl::get()->queueInMainThread([&, self = Ref(this)] { self->applyListPriorities(); });
+        LoaderImpl::get()->queueInMainThread([&, self = Ref(this)] {
+            self->applyListPriorities();
+        });
     }
 
-    $override
-    std::vector<int> actionsToShow(int tab) {
+    $override std::vector<int> actionsToShow(int tab) {
         auto result = KeybindingsLayer::actionsToShow(tab);
         if (!m_fields->moddedSource) {
             return result;
@@ -490,7 +500,8 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         }
 
         for (auto chord : m_keybindSource->chordsForAction(id)) {
-            auto chordName = utils::string::toLower(GJKeybindManager::sharedState()->chordToString(chord));
+            auto chordName =
+                utils::string::toLower(GJKeybindManager::sharedState()->chordToString(chord));
             if (utils::string::contains(chordName, query)) {
                 return true;
             }
@@ -510,8 +521,8 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
 
     CCNode* createRowBg(float width, GLubyte opacity) {
         auto bg = NineSlice::create(list::ROW_BG_FRAME);
-        bg->setContentSize({ width, list::ROW_HEIGHT });
-        bg->setColor({ 0, 0, 0 });
+        bg->setContentSize({width, list::ROW_HEIGHT});
+        bg->setColor({0, 0, 0});
         bg->setOpacity(opacity);
         bg->setID("bg");
 
@@ -522,69 +533,78 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         bool collapsed = s_collapsedMods.contains(mod->getID());
 
         auto row = CCNode::create();
-        row->setContentSize({ viewW, list::ROW_HEIGHT });
-        row->setAnchorPoint({ 0.5f, 0.5f });
+        row->setContentSize({viewW, list::ROW_HEIGHT});
+        row->setAnchorPoint({0.5f, 0.5f});
         row->setID(fmt::format("{}-header", mod->getID()));
 
         row->addChildAtPosition(createRowBg(viewW, list::HEADER_OPACITY), Anchor::Center);
 
         auto info = CCNode::create();
         info->setID("info");
-        info->setAnchorPoint({ 0.5f, 0.5f });
+        info->setAnchorPoint({0.5f, 0.5f});
         info->setContentHeight(list::ROW_HEIGHT);
-        info->setLayout(SimpleRowLayout::create()
-            ->setGap(list::HEADER_GAP)
-            ->setMainAxisScaling(AxisScaling::Fit));
+        info->setLayout(
+            SimpleRowLayout::create()->setGap(list::HEADER_GAP)->setMainAxisScaling(AxisScaling::Fit)
+        );
 
         auto logo = createModLogo(mod);
         logo->setScale(list::HEADER_LOGO_SIZE / logo->getContentHeight());
         logo->setID("logo");
-        logo->setLayoutOptions(SimpleAxisLayoutOptions::create()
-            ->setScalingPriority(ScalingPriority::Never));
+        logo->setLayoutOptions(
+            SimpleAxisLayoutOptions::create()->setScalingPriority(ScalingPriority::Never)
+        );
         info->addChild(logo);
 
         float nameX = list::TEXT_PADDING + list::HEADER_LOGO_SIZE + list::HEADER_GAP;
         auto name = geode::Label::create(mod->getName(), "goldFont.fnt");
-        name->setAnchorPoint({ 0.5f, 0.5f });
+        name->setAnchorPoint({0.5f, 0.5f});
         name->setID("name-label");
         name->setScale(list::HEADER_NAME_SCALE);
         info->addChild(name);
         info->updateLayout();
 
-        info->setLayoutOptions(SimpleAxisLayoutOptions::create()
-            ->setScalingPriority(ScalingPriority::First)
-            ->setMinRelativeScale(list::TEXT_MIN_SCALE / list::HEADER_NAME_SCALE));
+        info->setLayoutOptions(
+            SimpleAxisLayoutOptions::create()
+                ->setScalingPriority(ScalingPriority::First)
+                ->setMinRelativeScale(list::TEXT_MIN_SCALE / list::HEADER_NAME_SCALE)
+        );
 
         auto gear = createGeodeCircleButton(
-            CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f,
-            CircleBaseSize::Small, false, true);
+            CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f, CircleBaseSize::Small, false, true
+        );
         // margin 3 above and below
         gear->setScale(list::HEADER_BUTTON_SIZE / gear->getContentHeight());
-        auto settings = Button::createWithNode(gear, [mod](Button*) { openSettingsPopup(mod); });
+        auto settings = Button::createWithNode(gear, [mod](Button*) {
+            openSettingsPopup(mod);
+        });
         settings->setID("settings-button");
 
-        auto toggle = Button::createWithNode(createCollapseIcon(collapsed), std::move(buttonCallback));
+        auto toggle =
+            Button::createWithNode(createCollapseIcon(collapsed), std::move(buttonCallback));
         toggle->setID("collapse-button");
 
         auto buttons = CCNode::create();
         buttons->setID("buttons");
         buttons->setContentHeight(list::ROW_HEIGHT);
-        buttons->setLayout(SimpleRowLayout::create()
-            ->setGap(list::HEADER_GAP)
-            ->setMainAxisScaling(AxisScaling::Fit));
-        buttons->setLayoutOptions(SimpleAxisLayoutOptions::create()
-            ->setScalingPriority(ScalingPriority::Never));
+        buttons->setLayout(
+            SimpleRowLayout::create()->setGap(list::HEADER_GAP)->setMainAxisScaling(AxisScaling::Fit)
+        );
+        buttons->setLayoutOptions(
+            SimpleAxisLayoutOptions::create()->setScalingPriority(ScalingPriority::Never)
+        );
         buttons->addChild(settings);
         buttons->addChild(toggle);
         buttons->updateLayout();
 
         auto content = CCNode::create();
-        content->setContentSize({ viewW - 2 * list::TEXT_PADDING, list::ROW_HEIGHT });
+        content->setContentSize({viewW - 2 * list::TEXT_PADDING, list::ROW_HEIGHT});
         content->setID("content");
-        content->setAnchorPoint({ 0.5f, 0.5f });
-        content->setLayout(SimpleRowLayout::create()
-            ->setMainAxisAlignment(MainAxisAlignment::Between)
-            ->setMainAxisScaling(AxisScaling::ScaleDown));
+        content->setAnchorPoint({0.5f, 0.5f});
+        content->setLayout(
+            SimpleRowLayout::create()
+                ->setMainAxisAlignment(MainAxisAlignment::Between)
+                ->setMainAxisScaling(AxisScaling::ScaleDown)
+        );
         content->addChild(info);
         content->addChild(buttons);
         content->updateLayout();
@@ -629,12 +649,14 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         if (setting) {
             text = setting->getMod()->getName() + ":";
             color = ccWHITE;
-        } else {
+        }
+        else {
             int tab = vanillaTabFor(this, id);
             if (tab < 0) {
                 text = "Unk:";
                 color = list::CATEGORY_COLORS[1];
-            } else {
+            }
+            else {
                 text = m_tabs[tab].m_name + ":";
                 color = list::CATEGORY_COLORS[std::min(tab, 4)];
             }
@@ -646,9 +668,10 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         return label;
     }
 
-
     bool chordConflicts(int id, int chord) {
-        auto groupOf = [](int id) { return id <= 0 ? 0 : id / 10000; };
+        auto groupOf = [](int id) {
+            return id <= 0 ? 0 : id / 10000;
+        };
         int group = groupOf(id);
 
         for (auto other : m_keybindSource->actionsForChord(chord)) {
@@ -707,7 +730,8 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
 
     CCNode* createModSection(Mod* mod, std::vector<int> const& actions, float viewW) {
         auto settingFor = [&](int id) {
-            return m_fields->moddedSource ? LoaderImpl::get()->keybindSettingForActionId(id) : nullptr;
+            return m_fields->moddedSource ? LoaderImpl::get()->keybindSettingForActionId(id) :
+                                            nullptr;
         };
 
         std::string id = std::string(mod->getID());
@@ -730,26 +754,31 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         rows->setVisible(!collapsed);
         rows->updateLayout();
 
-        auto header = createHeaderRow(mod, viewW, [self = Ref(this), rows = Ref(rows), section = Ref(section), id](Button* toggle) {
-             auto list = self->m_fields->list;
-            if (!list) {
-                return;
-            }
+        auto header = createHeaderRow(
+            mod,
+            viewW,
+            [self = Ref(this), rows = Ref(rows), section = Ref(section), id](Button* toggle) {
+                auto list = self->m_fields->list;
+                if (!list) {
+                    return;
+                }
 
-            bool nowCollapsed = rows->isVisible();
-            if (nowCollapsed) {
-                s_collapsedMods.insert(id);
-            } else {
-                s_collapsedMods.erase(id);
-            }
+                bool nowCollapsed = rows->isVisible();
+                if (nowCollapsed) {
+                    s_collapsedMods.insert(id);
+                }
+                else {
+                    s_collapsedMods.erase(id);
+                }
 
-            float offset = list->getScrollFromTop();
-            rows->setVisible(!nowCollapsed);
-            section->updateLayout();
-            list->m_contentLayer->updateLayout();
-            list->scrollToFromTop(offset);
-            setCollapseIcon(toggle, nowCollapsed);
-        });
+                float offset = list->getScrollFromTop();
+                rows->setVisible(!nowCollapsed);
+                section->updateLayout();
+                list->m_contentLayer->updateLayout();
+                list->scrollToFromTop(offset);
+                setCollapseIcon(toggle, nowCollapsed);
+            }
+        );
 
         section->addChild(header);
         section->addChild(rows);
@@ -763,20 +792,25 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         auto showController = this->showControllerChords();
 
         auto row = CCNode::create();
-        row->setContentSize({ viewW, list::ROW_HEIGHT });
-        row->setAnchorPoint({ 0.5f, 0.5f });
-        row->setID(setting ? fmt::format("{}/{}", setting->getModID(), setting->getKey())
-                           : fmt::format("action-{}", id));
+        row->setContentSize({viewW, list::ROW_HEIGHT});
+        row->setAnchorPoint({0.5f, 0.5f});
+        row->setID(
+            setting ? fmt::format("{}/{}", setting->getModID(), setting->getKey()) :
+                      fmt::format("action-{}", id)
+        );
 
-        row->addChildAtPosition(createRowBg(viewW, index & 1 ? list::ROW_OPACITY_ODD : list::ROW_OPACITY_EVEN), Anchor::Center);
+        row->addChildAtPosition(
+            createRowBg(viewW, index & 1 ? list::ROW_OPACITY_ODD : list::ROW_OPACITY_EVEN),
+            Anchor::Center
+        );
 
         auto text = CCNode::create();
         text->setID("text");
         text->setContentHeight(list::ROW_HEIGHT);
         text->setScale(list::TEXT_SCALE);
-        text->setLayout(SimpleRowLayout::create()
-            ->setGap(list::CATEGORY_GAP)
-            ->setMainAxisScaling(AxisScaling::Fit));
+        text->setLayout(
+            SimpleRowLayout::create()->setGap(list::CATEGORY_GAP)->setMainAxisScaling(AxisScaling::Fit)
+        );
 
         if (isSearch) {
             text->addChild(this->categoryLabel(id, setting));
@@ -787,17 +821,21 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         text->addChild(name);
         text->updateLayout();
 
-        text->setLayoutOptions(SimpleAxisLayoutOptions::create()
-            ->setScalingPriority(ScalingPriority::First)
-            ->setMinRelativeScale(list::TEXT_MIN_SCALE / list::TEXT_SCALE));
+        text->setLayoutOptions(
+            SimpleAxisLayoutOptions::create()
+                ->setScalingPriority(ScalingPriority::First)
+                ->setMinRelativeScale(list::TEXT_MIN_SCALE / list::TEXT_SCALE)
+        );
 
         auto controls = CCNode::create();
         controls->setContentHeight(list::ROW_HEIGHT);
         controls->setID("controls");
-        controls->setLayout(SimpleRowLayout::create()
-            ->setGap(list::CHORD_GAP)
-            ->setMainAxisAlignment(MainAxisAlignment::End)
-            ->setMainAxisScaling(AxisScaling::Fit));
+        controls->setLayout(
+            SimpleRowLayout::create()
+                ->setGap(list::CHORD_GAP)
+                ->setMainAxisAlignment(MainAxisAlignment::End)
+                ->setMainAxisScaling(AxisScaling::Fit)
+        );
 
         auto chords = m_keybindSource->chordsForAction(id);
 
@@ -812,7 +850,10 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
                 continue;
             }
 
-            auto button = Button::createWithNode(this->chordSprite(id, chords[idx]), [this](Button* b) { this->onEditBinding(b); });
+            auto button =
+                Button::createWithNode(this->chordSprite(id, chords[idx]), [this](Button* b) {
+                    this->onEditBinding(b);
+                });
             // action holds low 24 bits, idx holds 8 high bits, idk gd reads it in callbacks
             button->setTag((id & 0xffffff) | (idx << 24));
             button->setID(fmt::format("chord-button-{}", chords[idx]));
@@ -836,8 +877,12 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         }
 
         auto plus = Button::createWithNode(
-            ButtonSprite::create("+", 10, 0, list::ADD_LABEL_SCALE, true, "bigFont.fnt", "GJ_button_01.png", list::CHORD_SPRITE_HEIGHT),
-            [this](Button* b) { this->onAddBinding(b); }
+            ButtonSprite::create(
+                "+", 10, 0, list::ADD_LABEL_SCALE, true, "bigFont.fnt", "GJ_button_01.png", list::CHORD_SPRITE_HEIGHT
+            ),
+            [this](Button* b) {
+                this->onAddBinding(b);
+            }
         );
         plus->setTag(id);
         plus->setID("add-button");
@@ -845,17 +890,21 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         controls->addChild(plus);
         controls->updateLayout();
 
-        controls->setLayoutOptions(SimpleAxisLayoutOptions::create()
-            ->setScalingPriority(ScalingPriority::Late)
-            ->setMinRelativeScale(list::CHORD_MIN_SCALE));
+        controls->setLayoutOptions(
+            SimpleAxisLayoutOptions::create()
+                ->setScalingPriority(ScalingPriority::Late)
+                ->setMinRelativeScale(list::CHORD_MIN_SCALE)
+        );
 
         auto content = CCNode::create();
-        content->setContentSize({ viewW - 2 * list::TEXT_PADDING, list::ROW_HEIGHT });
-        content->setAnchorPoint({ 0.5f, 0.5f });
+        content->setContentSize({viewW - 2 * list::TEXT_PADDING, list::ROW_HEIGHT});
+        content->setAnchorPoint({0.5f, 0.5f});
         content->setID("content");
-        content->setLayout(SimpleRowLayout::create()
-            ->setMainAxisAlignment(MainAxisAlignment::Between)
-            ->setMainAxisScaling(AxisScaling::ScaleDown));
+        content->setLayout(
+            SimpleRowLayout::create()
+                ->setMainAxisAlignment(MainAxisAlignment::Between)
+                ->setMainAxisScaling(AxisScaling::ScaleDown)
+        );
         content->addChild(text);
         content->addChild(controls);
         content->updateLayout();

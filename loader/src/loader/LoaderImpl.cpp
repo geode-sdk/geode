@@ -1,45 +1,44 @@
 #include "LoaderImpl.hpp"
 
 #include "Geode/loader/SettingV3.hpp"
+#include "LogImpl.hpp"
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
-#include "LogImpl.hpp"
 #include "console.hpp"
 
 #include <Geode/Enums.hpp>
-#include <Geode/loader/Event.hpp>
+#include <Geode/cocos/platform/CCApplication.h>
+#include <Geode/cocos/platform/CCFileUtils.h>
+#include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
+#include <Geode/cocos/textures/CCTextureCache.h>
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/ui/Popup.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/web.hpp>
-#include <Geode/cocos/platform/CCApplication.h>
-#include <Geode/cocos/platform/CCFileUtils.h>
-#include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
-#include <Geode/cocos/textures/CCTextureCache.h>
 #include <about.hpp>
 #include <algorithm>
+#include <asp/fs/fs.hpp>
 #include <crashlog.hpp>
 #include <fmt/format.h>
-#include <asp/fs/fs.hpp>
 #include <hash.hpp>
 #include <iostream>
 #include <iterator>
 #include <optional>
 #include <resources.hpp>
+#include <server/DownloadManager.hpp>
 #include <string>
 #include <string_view>
 #include <unordered_set>
 #include <vector>
-
-#include <server/DownloadManager.hpp>
-#include <Geode/ui/Popup.hpp>
 
 using namespace geode::prelude;
 
@@ -1491,7 +1490,8 @@ void Loader::Impl::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> set
                     setting->getKey(),
                     actionId
                 );
-            } else {
+            }
+            else {
                 nextId++;
             }
 
@@ -1503,13 +1503,16 @@ void Loader::Impl::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> set
 
         switch (category) {
             case KeybindCategory::Universal:
-                actionId = getNextActionId(static_cast<int>(GJActionGroup::Global), m_nextUniversalActionId);
+                actionId =
+                    getNextActionId(static_cast<int>(GJActionGroup::Global), m_nextUniversalActionId);
                 break;
             case KeybindCategory::Gameplay:
-                actionId = getNextActionId(static_cast<int>(GJActionGroup::Gameplay), m_nextGameplayActionId);
+                actionId =
+                    getNextActionId(static_cast<int>(GJActionGroup::Gameplay), m_nextGameplayActionId);
                 break;
             case KeybindCategory::Editor:
-                actionId = getNextActionId(static_cast<int>(GJActionGroup::Editor), m_nextEditorActionId);
+                actionId =
+                    getNextActionId(static_cast<int>(GJActionGroup::Editor), m_nextEditorActionId);
                 break;
         }
 
@@ -1528,7 +1531,8 @@ std::shared_ptr<KeybindSettingV3> Loader::Impl::keybindSettingForActionId(int ac
 }
 
 std::optional<ZStringView> Loader::Impl::keybindNameForActionId(int action) {
-    if (auto it = m_actionIdToKeybindSettingName.find(action); it != m_actionIdToKeybindSettingName.end()) {
+    if (auto it = m_actionIdToKeybindSettingName.find(action);
+        it != m_actionIdToKeybindSettingName.end()) {
         return it->second;
     }
 
@@ -1545,7 +1549,9 @@ int Loader::Impl::actionForKeybindSetting(KeybindSettingV3* setting) {
 
 std::vector<int> Loader::Impl::getActionsForKeybindCategory(std::optional<KeybindCategory> category) {
     auto mods = this->getAllMods();
-    std::erase_if(mods, [](Mod* mod) { return !mod->isLoaded(); });
+    std::erase_if(mods, [](Mod* mod) {
+        return !mod->isLoaded();
+    });
     std::ranges::sort(mods, [](Mod* a, Mod* b) {
         auto order = utils::string::caseInsensitiveCompare(a->getName(), b->getName());
         if (order != 0) {

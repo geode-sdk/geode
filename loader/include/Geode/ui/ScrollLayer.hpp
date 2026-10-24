@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/binding/CCContentLayer.hpp>
 #include <Geode/binding/CCScrollLayerExt.hpp>
+#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <memory>
 
 namespace geode {

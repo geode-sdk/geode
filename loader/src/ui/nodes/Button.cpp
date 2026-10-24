@@ -1,7 +1,8 @@
 #include "Geode/cocos/cocoa/CCGeometry.h"
 #include "Geode/cocos/robtop/touch_dispatcher/CCTouchClipper.h"
-#include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
+
 #include <Geode/cocos/support/CCPointExtension.h>
+#include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -419,7 +420,8 @@ void Button::ccTouchMoved(CCTouch* touch, CCEvent* event) {
         return;
     }
 
-    if (m_impl->m_dragCancelDistance > 0 && ccpDistance(touch->getLocation(), m_impl->m_touchStart) > m_impl->m_dragCancelDistance) {
+    if (m_impl->m_dragCancelDistance > 0 &&
+        ccpDistance(touch->getLocation(), m_impl->m_touchStart) > m_impl->m_dragCancelDistance) {
         m_impl->m_dragTouchCancelled = true;
         SharedButtonHandler::get()->passCancelledToButtons();
         return;
