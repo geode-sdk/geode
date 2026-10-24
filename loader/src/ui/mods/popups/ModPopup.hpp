@@ -65,16 +65,12 @@ protected:
     void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
     void onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result);
 
-    void onTab(CCObject* sender);
     void onEnable(CCObject*);
     void onInstall(CCObject*);
     void onUninstall(CCObject*);
     void onCancelDownload(CCObject*);
 
     void onSettings(CCObject*);
-    void onLink(CCObject*);
-    void onModtober24Info(CCObject*);
-    void onModtober25Info(CCObject*);
 
     bool availableForInstall() const;
 

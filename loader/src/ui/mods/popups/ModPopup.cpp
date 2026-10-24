@@ -92,16 +92,14 @@ bool ModPopup::init(ModSource&& src) {
         auto hashLabel = Label::create(
             fmt::format("Loader: {}, Bindings: {}", loaderHash, bindingsHash), "chatFont.fnt"
         );
-        hashLabel->setAnchorPoint({.5f, 1.f});
         hashLabel->setOpacity(51);
         hashLabel->setScale(.7f);
-        m_mainLayer->addChildAtPosition(hashLabel, Anchor::Bottom, {.0f, -5.f});
+        m_mainLayer->addChildAtPosition(hashLabel, Anchor::Bottom, {.0f, -5.f}, {.5f, 1.f});
     }
 
     auto mainContainer = CCNode::create();
     mainContainer->setID("main-container");
     mainContainer->setContentSize(m_mainLayer->getContentSize() - CCSize{20.f, 20.f});
-    mainContainer->setAnchorPoint({.5f, .5f});
     mainContainer->setLayout(
         RowLayout::create()->setGap(7.5f)->setCrossAxisLineAlignment(AxisAlignment::Start)
     );
@@ -155,18 +153,19 @@ bool ModPopup::init(ModSource&& src) {
 
     auto titleLabel = Label::create(title.str(), "bigFont.fnt");
     titleLabel->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .45f, .1f);
-    titleLabel->setAnchorPoint({.0f, .5f});
     titleLabel->setID("mod-name-label");
     m_titleContainer->addChildAtPosition(
-        titleLabel, Anchor::TopLeft, {devAndTitlePos, -m_titleContainer->getContentHeight() * .25f}
+        titleLabel,
+        Anchor::TopLeft,
+        {devAndTitlePos, -m_titleContainer->getContentHeight() * .25f},
+        {.0f, .5f}
     );
 
     auto dev = Label::create(fmt::format("By {}", m_source.formatDevelopers()), "goldFont.fnt");
     dev->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .35f, .05f);
-    dev->setAnchorPoint({.0f, .5f});
     dev->setID("mod-developer-label");
     m_titleContainer->addChildAtPosition(
-        dev, Anchor::BottomLeft, {devAndTitlePos, m_titleContainer->getContentHeight() * .25f}
+        dev, Anchor::BottomLeft, {devAndTitlePos, m_titleContainer->getContentHeight() * .25f}, {.0f, .5f}
     );
 
     // Suggestions
@@ -236,7 +235,6 @@ bool ModPopup::init(ModSource&& src) {
 
     m_stats = CCNode::create();
     m_stats->setContentSize(statsContainer->getContentSize() - CCSize{10.f, 10.f});
-    m_stats->setAnchorPoint({.5f, .5f});
     m_stats->setID("mod-stats-container");
 
     struct ModStatsLabel {
@@ -331,7 +329,7 @@ bool ModPopup::init(ModSource&& src) {
             AxisAlignment::Even
         )
     );
-    statsContainer->addChildAtPosition(m_stats, Anchor::Center);
+    statsContainer->addChildAtPosition(m_stats, Anchor::Center, CCPointZero, {.5f, .5f});
 
     leftColumn->addChild(statsContainer);
 
@@ -374,7 +372,7 @@ bool ModPopup::init(ModSource&& src) {
     manageTitle->setScale(.25f);
     manageTitle->setOpacity(195);
     manageTitle->setID("manage-title");
-    manageContainer->addChildAtPosition(manageTitle, Anchor::Left, {}, {.0f, .5f});
+    manageContainer->addChildAtPosition(manageTitle, Anchor::Left, CCPointZero, {.0f, .5f});
 
     m_restartRequiredLabel = createTagLabel(
         "Restart Required",
@@ -384,13 +382,13 @@ bool ModPopup::init(ModSource&& src) {
         }
     );
     m_restartRequiredLabel->setScale(.3f);
-    manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, {}, {1.f, .5f});
+    manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, CCPointZero, {1.f, .5f});
 
     m_enabledStatusLabel = Label::create("", "bigFont.fnt");
     m_enabledStatusLabel->setScale(.25f);
     m_enabledStatusLabel->setOpacity(140);
     m_enabledStatusLabel->setID("enabled-status");
-    manageContainer->addChildAtPosition(m_enabledStatusLabel, Anchor::Right, {}, {1.f, .5f});
+    manageContainer->addChildAtPosition(m_enabledStatusLabel, Anchor::Right, CCPointZero, {1.f, .5f});
 
     leftColumn->addChild(manageContainer);
 
@@ -679,7 +677,9 @@ bool ModPopup::init(ModSource&& src) {
     for (auto& tab : mdTabs) {
         auto spr = GeodeTabSprite::create(tab.sprite, std::move(tab.label), 140, m_source.asServer());
 
-        auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModPopup::onTab));
+        auto btn = CCMenuItemExt::createSpriteExtra(spr, [this, tab = tab.tab](auto) {
+            this->loadTab(tab);
+        });
         btn->setTag(static_cast<int>(tab.tab));
         btn->setID(std::move(tab.id));
 
@@ -713,7 +713,7 @@ bool ModPopup::init(ModSource&& src) {
     mainContainer->addChildAtPosition(m_rightColumn, Anchor::Right, {-20.f, .0f});
 
     mainContainer->updateLayout();
-    m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
+    m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center, CCPointZero, {.5f, .5f});
 
     m_settingsBG = NineSlice::create("square02b_001.png");
     m_settingsBG->setColor({0, 0, 0});
@@ -1155,10 +1155,11 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             label->setScale(.35f);
             menu->addChildAtPosition(label, Anchor::Left, {10.f, .0f}, {.0f, .5f});
 
+            // map year to theme name & color tag
             static std::map<std::string_view, std::pair<std::string_view, std::string_view>>
                 modtoberYears = {
                     {"24", {"The Sky's the Limit", "<cl>"}},
-                    {"25", {"What The Heck", "<co>"}},
+                    {"25", {"What The Heck!?", "<co>"}},
             };
 
             auto aboutSpr =
@@ -1168,14 +1169,16 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             auto aboutBtn = CCMenuItemExt::createSpriteExtra(aboutSpr, [year](auto) {
                 auto const it = modtoberYears.find(year);
                 if (it != modtoberYears.end()) {
+                    auto const& pair = it->second;
+
                     createQuickPopup(
                         fmt::format("Modtober 20{}", year),
                         fmt::format(
                             "This mod was an entry for {}Modtober 20{}</c>, a contest to create "
                             "the best mod with the theme <cc>\"{}\"</c>",
+                            pair.second,
                             year,
-                            it->second,
-                            it->first
+                            pair.first
                         ),
                         "OK",
                         nullptr,
@@ -1185,7 +1188,7 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             });
             menu->addChildAtPosition(aboutBtn, Anchor::Right, {-25.f, .0f});
 
-            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, {}, {.5f, .0f});
+            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, CCPointZero, {.5f, .0f});
 
             m_modtoberBanner = menu;
 
@@ -1268,16 +1271,12 @@ void ModPopup::loadTab(ModPopup::Tab tab) {
                 m_currentTabPage->setID("versions-container");
             } break;
         }
-        m_currentTabPage->setAnchorPoint({.5f, .0f});
+
         m_rightColumn->addChildAtPosition(
-            m_currentTabPage, Anchor::Bottom, {0.f, modtoberBannerHeight}
+            m_currentTabPage, Anchor::Bottom, {0.f, modtoberBannerHeight}, {.5f, .0f}
         );
         m_tabs.at(tab).second = m_currentTabPage;
     }
-}
-
-void ModPopup::onTab(CCObject* sender) {
-    this->loadTab(static_cast<Tab>(sender->getTag()));
 }
 
 void ModPopup::onEnable(CCObject*) {
@@ -1330,31 +1329,6 @@ void ModPopup::onSettings(CCObject*) {
     if (auto mod = m_source.asMod()) {
         ModSettingsPopup::create(mod)->show();
     }
-}
-
-void ModPopup::onLink(CCObject* sender) {
-    auto url = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject("url"));
-    web::openLinkInBrowser(url->getCString());
-}
-
-void ModPopup::onModtober24Info(CCObject*) {
-    FLAlertLayer::create(
-        "Modtober 2024",
-        "This mod was an entry for <cj>Modtober 2024</c>, a contest to create "
-        "the best mod with the theme <cc>\"The Sky's the Limit\"</c>",
-        "OK"
-    )
-        ->show();
-}
-
-void ModPopup::onModtober25Info(CCObject*) {
-    FLAlertLayer::create(
-        "Modtober 2025",
-        "This mod was an entry for <co>Modtober 2025</c>, a contest to create "
-        "the best mod with the theme <cc>\"What The Heck!?\"</c>",
-        "OK"
-    )
-        ->show();
 }
 
 ModPopup* ModPopup::create(ModSource&& src) {
