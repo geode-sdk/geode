@@ -259,31 +259,6 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 
     KeyboardModifier modifiers = extractModifiersFromNSEvent(event);
 
-    KeyboardInputData data(
-        keyCode, isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
-        { nativeCode },
-        timestamp,
-        modifiers
-    );
-
-    if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
-
-    isDown = data.action != KeyboardInputData::Action::Release;
-    isRepeat = data.action == KeyboardInputData::Action::Repeat;
-    keyCode = data.key;
-    modifiers = data.modifiers;
-
-    if (keyCode != KEY_Unknown && (!imeDispatcher->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter)) {
-        keyboardDispatcher->dispatchKeyboardMSG(keyCode, isDown, isRepeat, timestamp);
-    }
-
-    keyboardDispatcher->updateModifierKeys(
-        modifiers & KeyboardModifier::Shift,
-        modifiers & KeyboardModifier::Control,
-        modifiers & KeyboardModifier::Alt,
-        modifiers & KeyboardModifier::Super
-    );
-
     NSString* characters = [event characters];
     if ([characters length] == 0) {
         characters = [event charactersIgnoringModifiers];
@@ -310,6 +285,31 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
             imeDispatcher->dispatchInsertText(input.data(), input.size(), keyCode);
         }
     }
+
+    KeyboardInputData data(
+        keyCode, isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
+        { nativeCode },
+        timestamp,
+        modifiers
+    );
+
+    if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
+
+    isDown = data.action != KeyboardInputData::Action::Release;
+    isRepeat = data.action == KeyboardInputData::Action::Repeat;
+    keyCode = data.key;
+    modifiers = data.modifiers;
+
+    if (keyCode != KEY_Unknown && (!imeDispatcher->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter)) {
+        keyboardDispatcher->dispatchKeyboardMSG(keyCode, isDown, isRepeat, timestamp);
+    }
+
+    keyboardDispatcher->updateModifierKeys(
+        modifiers & KeyboardModifier::Shift,
+        modifiers & KeyboardModifier::Control,
+        modifiers & KeyboardModifier::Alt,
+        modifiers & KeyboardModifier::Super
+    );
 }
 
 void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
