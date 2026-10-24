@@ -336,11 +336,13 @@ bool ModItem::init(ModSource&& source, bool listItem) {
                     m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-api.png"_spr));
                 }
 
-                for (auto [year, winner] :
-                     std::initializer_list<std::tuple<char const*, std::optional<char const*>>>{
-                         {"24", "rainixgd.geome3dash"},
-                         {"25", std::nullopt},
-                     }) {
+                static constexpr auto modtoberWinners =
+                    std::to_array<std::pair<std::string_view, std::optional<std::string_view>>>({
+                        {"24", "rainixgd.geome3dash"},
+                        {"25", "alphalaneous.kablammo"},
+                    });
+
+                for (auto& [year, winner] : modtoberWinners) {
                     if (metadata.tags.contains(fmt::format("modtober{}winner", year)) ||
                         (winner.has_value() && m_source.getID() == winner)) {
                         auto shortVer = CCSprite::createWithSpriteFrameName(

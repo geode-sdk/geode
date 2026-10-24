@@ -240,11 +240,11 @@ bool ModPopup::init(ModSource&& src) {
     m_stats->setID("mod-stats-container");
 
     struct ModStatsLabel {
-        std::optional<std::string> sprite; // 0
-        std::string label; // 1
-        std::string id; // 2
-        std::optional<std::string> value; // 3
-        std::string stat; // 4
+        std::optional<std::string> sprite;
+        std::string label;
+        std::string id;
+        std::optional<std::string> value;
+        std::string stat;
     };
 
     auto stats = std::array{
@@ -558,10 +558,10 @@ bool ModPopup::init(ModSource&& src) {
     using CCMIExtCallback = Function<void(CCMenuItemSpriteExtra*)>;
 
     struct ModLinkButton {
-        std::string id; // 0
-        std::string sprite; // 1
-        std::optional<std::string> url; // 2
-        CCMIExtCallback callback = nullptr; // 3
+        std::string id;
+        std::string sprite;
+        std::optional<std::string> url;
+        CCMIExtCallback callback = nullptr;
     };
 
     auto linkButtons = std::array{
@@ -653,10 +653,10 @@ bool ModPopup::init(ModSource&& src) {
     tabsMenu->setID("tabs-menu");
 
     struct ModTab {
-        std::string sprite; // 0
-        std::string label; // 1
-        std::string id; // 2
-        Tab tab; // 3
+        std::string sprite;
+        std::string label;
+        std::string id;
+        Tab tab;
     };
 
     auto mdTabs = std::array{

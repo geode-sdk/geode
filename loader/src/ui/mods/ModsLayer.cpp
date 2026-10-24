@@ -583,10 +583,10 @@ bool ModsLayer::init() {
     mainTabs->setTouchPriority(-150);
 
     struct ModsTabItem {
-        std::string sprite; // 0
-        std::string label; // 1
-        ModListSource* source; // 2
-        std::string id; // 3
+        std::string sprite;
+        std::string label;
+        ModListSource* source;
+        std::string id;
     };
 
     auto tabs = std::array{

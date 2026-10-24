@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BasedButtonSprite.hpp"
 #include "General.hpp"
 #include "IconButtonSprite.hpp"
 #include "Popup.hpp"

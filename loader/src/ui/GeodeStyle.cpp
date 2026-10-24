@@ -1,5 +1,6 @@
 #include "GeodeStyle.hpp"
 
+#include <GUI/CCControlExtension/CCScale9Sprite.h>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/cocos/textures/CCTextureCache.h>
 #include <Geode/loader/ModEvent.hpp>
