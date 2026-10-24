@@ -2,7 +2,6 @@
 #include "Geode/cocos/robtop/touch_dispatcher/CCTouchClipper.h"
 #include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
 #include <Geode/cocos/support/CCPointExtension.h>
-#include "Geode/platform/windows.hpp"
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -11,11 +10,9 @@
 using namespace geode::prelude;
 
 static bool isInsideClippers(CCNode* node, CCPoint worldPoint) {
-    for (auto p = node->getParent(); p != nullptr; p = p->getParent()) {
-        if (auto clipper = typeinfo_cast<CCTouchClipper*>(p)) {
-            if (!clipper->touchInsideClip(worldPoint)) {
-                return false;
-            }
+    if (auto clipper = node->getParentByType<CCTouchClipper*>()) {
+        if (!clipper->touchInsideClip(worldPoint)) {
+            return false;
         }
     }
 
