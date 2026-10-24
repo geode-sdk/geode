@@ -14,9 +14,7 @@
 #include <Geode/utils/cocos.hpp>
 
 bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize const& size) {
-    if (!CCNode::init()) {
-        return false;
-    }
+    if (!CCNode::init()) return false;
 
     m_source = source;
     this->setContentSize(size);
@@ -33,7 +31,7 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
     // mfw fod created a scrolllayer with layouts
     m_list = ScrollLayer::create({size.width - 10.f, size.height - 10.f});
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(5.f));
-    this->addChildAtPosition(m_list, Anchor::Center, -m_list->getScaledContentSize() / 2);
+    this->addChildAtPosition(m_list, Anchor::Center, -m_list->getScaledContentSize() / 2, CCPointZero);
 
     CCSize itemSize = {m_list->getScaledContentWidth(), 20.f};
 

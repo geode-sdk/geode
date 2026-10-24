@@ -73,7 +73,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_searchClearBtn->setID("clear-search-button");
     searchContainer->addChildAtPosition(m_searchClearBtn, Anchor::Right, {-20.f, .0f});
 
-    layerBG->addChildAtPosition(searchContainer, Anchor::Top, {}, {.5f, 1.f});
+    layerBG->addChildAtPosition(searchContainer, Anchor::Top, CCPointZero, {.5f, 1.f});
 
     m_list = ScrollLayer::create(m_listSize - CCSize{.0f, searchContainer->getContentHeight()});
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
@@ -85,7 +85,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_buttonMenu->setTouchPriority(buttonPriority);
     searchContainer->setTouchPriority(buttonPriority);
 
-    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft, {}, CCPointZero);
+    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft, CCPointZero, CCPointZero);
 
     // layer borders
 
