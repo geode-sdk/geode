@@ -383,9 +383,6 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
             return;
         }
         auto isSearch = tab == m_searchTab;
-        auto showController = this->showControllerChords();
-        // nullptr for level binds
-        auto moddedSource = m_fields->moddedSource;
 
         float viewW = m_width - 2 * list::VIEW_PADDING_X;
         float top = isSearch ? list::VIEW_TOP_SEARCH : list::VIEW_TOP;
