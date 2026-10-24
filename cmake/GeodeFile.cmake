@@ -203,6 +203,11 @@ function(setup_geode_mod proname)
         # Iterate dependency directories
         foreach(dir ${dirs})
             if (IS_DIRECTORY ${dir})
+                # if the entry point for cmake script exists, include it
+                set(main_cmake "${dir}/cmake/DependencyMain.cmake")
+                if (EXISTS ${main_cmake})
+                    include(${main_cmake})
+                endif()
 
                 # Read dep info
                 file(READ "${dir}/geode-dep-options.json" DEP_JSON)
