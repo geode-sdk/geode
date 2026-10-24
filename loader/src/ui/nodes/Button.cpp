@@ -1,9 +1,24 @@
+#include "Geode/cocos/cocoa/CCGeometry.h"
+#include "Geode/cocos/robtop/touch_dispatcher/CCTouchClipper.h"
+#include "Geode/platform/windows.hpp"
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <unordered_set>
 
 using namespace geode::prelude;
+
+static bool isInsideClippers(CCNode* node, CCPoint worldPoint) {
+    for (auto p = node->getParent(); p != nullptr; p = p->getParent()) {
+        if (auto clipper = typeinfo_cast<CCTouchClipper*>(p)) {
+            if (!clipper->touchInsideClip(worldPoint)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
 
 class Button::Impl final {
 public:
@@ -526,7 +541,11 @@ bool SharedButtonHandler::containsTouch(Button* button, CCTouch* touch) {
 
     auto rect = cocos2d::CCRect{-dx, -dy, scaledWidth, scaledHeight};
 
-    return rect.containsPoint(local);
+    if (!rect.containsPoint(local)) {
+        return false;
+    }
+
+    return isInsideClippers(button, touch->getLocation());
 }
 
 void SharedButtonHandler::setActiveButton(Button* button) {
