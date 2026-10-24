@@ -210,7 +210,7 @@ void ScrollLayer::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
     m_impl->ccTouchCancelled(touch, event);
 }
 
-float ScrollLayer::getScrollFromTop() {
+float ScrollLayer::getScrollFromTop() const {
     float viewHeight = this->getContentHeight();
     float contentHeight = this->m_contentLayer->getContentHeight();
     return this->m_contentLayer->getPositionY() - (viewHeight - contentHeight);
