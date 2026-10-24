@@ -8,7 +8,7 @@ bool ModListItem::init() {
     m_bg->setOpacity(0);
     m_bg->ignoreAnchorPointForPosition(false);
     m_bg->setAnchorPoint({.5f, .5f});
-    m_bg->setScale(.7f);
+    m_bg->setScaleMultiplier(.7f);
     this->addChildAtPosition(m_bg, Anchor::Center);
 
     m_viewMenu = CCMenu::create();
@@ -33,11 +33,11 @@ void ModListItem::updateState() {
     if (m_display == ModListDisplay::Grid) {
         auto widthWithoutGaps = m_targetWidth - 7.5f;
         this->setContentSize({widthWithoutGaps / roundf(widthWithoutGaps / 80.f), 100.f});
-        m_bg->setContentSize(m_obContentSize / m_bg->getScale());
+        m_bg->setContentSize(m_obContentSize);
     }
     else {
         this->setContentSize({m_targetWidth, m_display == ModListDisplay::BigList ? 40.f : 30.f});
-        m_bg->setContentSize((m_obContentSize - CCSize{6.f, .0f}) / m_bg->getScale());
+        m_bg->setContentSize((m_obContentSize - CCSize{6.f, .0f}));
     }
 
     if (m_display == ModListDisplay::Grid) {

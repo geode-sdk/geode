@@ -39,8 +39,8 @@ bool ModsStatusNode::init() {
 
     m_statusBG = NineSlice::create("black-square.png"_spr);
     m_statusBG->setID("status-bg");
-    m_statusBG->setContentSize({570, 40});
-    m_statusBG->setScale(.5f);
+    m_statusBG->setContentSize({285.f, 20.f});
+    m_statusBG->setScaleMultiplier(.5f);
 
     m_status = Label::create("", "bigFont.fnt");
     m_status->setID("status-label");
@@ -59,8 +59,8 @@ bool ModsStatusNode::init() {
     m_progressBar->setID("progress-bar");
     m_progressBar->m_touchLogic->m_thumb->setVisible(false);
     m_progressBar->setScale(2.f);
-    m_progressBar->setAnchorPoint({0, 0}),
-        m_statusBG->addChildAtPosition(m_progressBar, Anchor::Center);
+    m_progressBar->setAnchorPoint({0, 0});
+    m_statusBG->addChildAtPosition(m_progressBar, Anchor::Center);
 
     this->addChildAtPosition(m_statusBG, Anchor::Bottom);
 

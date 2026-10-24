@@ -229,8 +229,8 @@ bool ModPopup::init(ModSource&& src) {
     auto statsBG = NineSlice::create("square02b_001.png");
     statsBG->setColor({0, 0, 0});
     statsBG->setOpacity(75);
-    statsBG->setScale(.3f);
-    statsBG->setContentSize(statsContainer->getContentSize() / statsBG->getScale());
+    statsBG->setScaleMultiplier(.3f);
+    statsBG->setContentSize(statsContainer->getContentSize());
     statsContainer->addChildAtPosition(statsBG, Anchor::Center);
 
     m_stats = CCNode::create();

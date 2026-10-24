@@ -90,8 +90,8 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     m_infoContainer->addChildAtPosition(m_developers, Anchor::Left);
 
     m_description = NineSlice::create("square02b_001.png");
-    m_description->setScale(.5f);
-    m_description->setContentSize(CCSize{450.f, 30.f} / m_description->getScale());
+    m_description->setScaleMultiplier(.5f);
+    m_description->setContentSize({450.f, 30.f});
     m_description->setColor(ccBLACK);
     m_description->setOpacity(90);
 
