@@ -52,7 +52,9 @@ Result<> updater::extractLoaderResources(ByteSpan data, std::string_view expecte
     auto tempDir = dirs::getGeodeResourcesDir() / fmt::format("{}_tmp", Mod::get()->getID());
     auto resourcesDir = dirs::getGeodeResourcesDir() / Mod::get()->getID();
 
-    (void) asp::fs::removeDirAll(tempDir);
+    GEODE_UNWRAP(asp::fs::removeDirAll(tempDir, false).mapErr([](auto e) {
+        return fmt::format("Unable to delete temporary directory: {}", e);
+    }));
 
     GEODE_UNWRAP(asp::fs::createDir(tempDir).mapErr([](auto e) {
         return fmt::format("Unable to create temporary directory: {}", e);
@@ -67,7 +69,7 @@ Result<> updater::extractLoaderResources(ByteSpan data, std::string_view expecte
         return "Unable to unzip new resources: " + e;
     }));
 
-    GEODE_UNWRAP(asp::fs::removeDirAll(resourcesDir).mapErr([](auto e) {
+    GEODE_UNWRAP(asp::fs::removeDirAll(resourcesDir, false).mapErr([](auto e) {
         return "Unable to remove old resources directory: " + e.toString();
     }));
 
