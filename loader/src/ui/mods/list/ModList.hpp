@@ -51,7 +51,7 @@ protected:
     CCMenuItemToggler* m_toggleUpdatesOnlyBtn = nullptr;
     CCNode* m_errorsContainer = nullptr;
     CCMenuItemToggler* m_toggleErrorsOnlyBtn = nullptr;
-    Label* m_updateCountLabel = nullptr;
+    TextArea* m_updateCountLabel = nullptr;
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_filtersBtn;
     CCMenuItemSpriteExtra* m_clearFiltersBtn;
@@ -88,9 +88,7 @@ public:
 
     void reloadPage();
     void gotoPage(size_t page, bool update = false);
-    void showStatus(
-        ModListStatus status, ZStringView message, std::optional<std::string> details = std::nullopt
-    );
+    void showStatus(ModListStatus status, ZStringView message, std::optional<std::string> details = std::nullopt);
 
     void updateState();
     void updateDisplay(ModListDisplay display);

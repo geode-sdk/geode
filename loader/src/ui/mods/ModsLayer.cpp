@@ -72,8 +72,7 @@ bool ModsStatusNode::init() {
     auto restartSpr = createGeodeButton("Restart Now");
     restartSpr->setScale(.65f);
 
-    m_restartBtn =
-        CCMenuItemSpriteExtra::create(restartSpr, this, menu_selector(ModsStatusNode::onRestart));
+    m_restartBtn = CCMenuItemSpriteExtra::create(restartSpr, this, menu_selector(ModsStatusNode::onRestart));
     m_restartBtn->setID("restart-button");
     m_btnMenu->addChild(m_restartBtn);
 
@@ -87,8 +86,7 @@ bool ModsStatusNode::init() {
     auto cancelSpr = createGeodeButton("Cancel");
     cancelSpr->setScale(.65f);
 
-    m_cancelBtn =
-        CCMenuItemSpriteExtra::create(cancelSpr, this, menu_selector(ModsStatusNode::onCancel));
+    m_cancelBtn = CCMenuItemSpriteExtra::create(cancelSpr, this, menu_selector(ModsStatusNode::onCancel));
     m_cancelBtn->setID("cancel-button");
     m_btnMenu->addChild(m_cancelBtn);
 
@@ -332,8 +330,7 @@ bool ModsLayer::init() {
     bool const isSafeMode = LoaderImpl::get()->isSafeMode();
 
     if (!isSafeMode) {
-        auto listener =
-            NodeProvidingEvent("geode-background"_spr)
+        auto listener = NodeProvidingEvent("geode-background"_spr)
                 .listen(
                     [this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
                         if (nodeOut) return; // someone overrode it already
@@ -341,12 +338,8 @@ bool ModsLayer::init() {
                         CCNode* geodeBackground;
                         if (theme == "sapphire") {
                             geodeBackground = CCSprite::create("sapphire-bg.png"_spr);
-                            geodeBackground->setScaleX(
-                                (winSize.width) / geodeBackground->getContentSize().width
-                            );
-                            geodeBackground->setScaleY(
-                                (winSize.height) / geodeBackground->getContentSize().height
-                            );
+                            geodeBackground->setScaleX((winSize.width) / geodeBackground->getContentSize().width);
+                            geodeBackground->setScaleY((winSize.height) / geodeBackground->getContentSize().height);
                             geodeBackground->setPosition({winSize.width / 2, winSize.height / 2});
                         }
                         else if (theme == "geometry-dash") {
@@ -378,9 +371,7 @@ bool ModsLayer::init() {
     backBtn->setID("back-button");
     backMenu->addChild(backBtn);
 
-    backMenu->setLayout(
-        SimpleRowLayout::create()->setMainAxisAlignment(MainAxisAlignment::Start)->setGap(5.f)
-    );
+    backMenu->setLayout(SimpleRowLayout::create()->setMainAxisAlignment(MainAxisAlignment::Start)->setGap(5.f));
     this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(8, -23), false);
 
     auto actionsMenu = CCMenu::create();
@@ -393,36 +384,27 @@ bool ModsLayer::init() {
     rightActionsMenu->setContentSize({38.f, 200.f});
     rightActionsMenu->setAnchorPoint({.5f, .0f});
 
-    auto reloadSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f, CircleBaseSize::Medium
-    );
+    auto reloadSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f, CircleBaseSize::Medium);
     reloadSpr->setScale(.8f);
     reloadSpr->setTopOffset(ccp(1, 0));
 
-    auto reloadBtn =
-        CCMenuItemSpriteExtra::create(reloadSpr, this, menu_selector(ModsLayer::onRefreshList));
+    auto reloadBtn = CCMenuItemSpriteExtra::create(reloadSpr, this, menu_selector(ModsLayer::onRefreshList));
     reloadBtn->setID("reload-button");
     rightActionsMenu->addChild(reloadBtn);
 
-    auto settingsSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f, CircleBaseSize::Medium
-    );
+    auto settingsSpr = createGeodeCircleButton( CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f, CircleBaseSize::Medium);
     settingsSpr->setScale(.8f);
     settingsSpr->setTopOffset(ccp(-0.1f, 0));
 
-    auto settingsBtn =
-        CCMenuItemSpriteExtra::create(settingsSpr, this, menu_selector(ModsLayer::onSettings));
+    auto settingsBtn = CCMenuItemSpriteExtra::create(settingsSpr, this, menu_selector(ModsLayer::onSettings));
     settingsBtn->setID("settings-button");
     actionsMenu->addChild(settingsBtn);
 
-    auto keybindsSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("keybinds.png"_spr), 1.f, CircleBaseSize::Medium
-    );
+    auto keybindsSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("keybinds.png"_spr), 1.f, CircleBaseSize::Medium);
     keybindsSpr->setScale(.8f);
     keybindsSpr->setTopOffset(ccp(0.2f, 1));
 
-    auto keybindsBtn =
-        CCMenuItemSpriteExtra::create(keybindsSpr, this, menu_selector(ModsLayer::onKeybinds));
+    auto keybindsBtn = CCMenuItemSpriteExtra::create(keybindsSpr, this, menu_selector(ModsLayer::onKeybinds));
     keybindsBtn->setID("settings-button");
     actionsMenu->addChild(keybindsBtn);
 
@@ -432,9 +414,7 @@ bool ModsLayer::init() {
         restartGDCircleSpr->setScale(.8f);
         restartGDCircleSpr->setTopOffset(ccp(1.5f, -1.f));
 
-        auto restartGDBtn = CCMenuItemSpriteExtra::create(
-            restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
-        );
+        auto restartGDBtn = CCMenuItemSpriteExtra::create(restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD));
         restartGDBtn->setID("restart-gd-button");
         actionsMenu->addChild(restartGDBtn);
     }
@@ -461,12 +441,8 @@ bool ModsLayer::init() {
     // center buttons when the actionsMenu is moved
     auto actionsMenuY = std::min(actionsMenuX - 20.0f, 12.0f);
 
-    this->addChildAtPosition(
-        actionsMenu, Anchor::BottomLeft, ccp(actionsMenuX + safeArea.origin.x, actionsMenuY), false
-    );
-    this->addChildAtPosition(
-        rightActionsMenu, Anchor::BottomRight, ccp(-actionsMenuX - safeOffsetRight, actionsMenuY), false
-    );
+    this->addChildAtPosition(actionsMenu, Anchor::BottomLeft, {actionsMenuX + safeArea.origin.x, actionsMenuY}, false);
+    this->addChildAtPosition(rightActionsMenu, Anchor::BottomRight, {-actionsMenuX - safeOffsetRight, actionsMenuY}, false);
 
     m_frame = CCNode::create();
     m_frame->setID("mod-list-frame");
@@ -479,15 +455,13 @@ bool ModsLayer::init() {
     frameBG->ignoreAnchorPointForPosition(false);
     m_frame->addChildAtPosition(frameBG, Anchor::Center);
 
-    auto topListener =
-        NodeProvidingEvent("geode-mods-list-top"_spr)
+    auto topListener = NodeProvidingEvent("geode-mods-list-top"_spr)
             .listen(
                 [this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
                     if (nodeOut) return; // someone overrode it already
 
                     if (theme == "sapphire")
-                        nodeOut =
-                            CCSprite::createWithSpriteFrameName("mods-list-top-sapphire.png"_spr);
+                        nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-sapphire.png"_spr);
                     else if (theme == "geometry-dash")
                         nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top-gd.png"_spr);
                     else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-top.png"_spr);
@@ -502,15 +476,13 @@ bool ModsLayer::init() {
     tabsTop->setZOrder(1);
     m_frame->addChildAtPosition(tabsTop, Anchor::Top, ccp(0, -2));
 
-    auto leftListener =
-        NodeProvidingEvent("geode-mods-list-left"_spr)
+    auto leftListener = NodeProvidingEvent("geode-mods-list-left"_spr)
             .listen(
                 [this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
                     if (nodeOut) return; // someone overrode it already
 
                     if (theme == "sapphire")
-                        nodeOut =
-                            CCSprite::createWithSpriteFrameName("mods-list-side-sapphire.png"_spr);
+                        nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-sapphire.png"_spr);
                     else if (theme == "geometry-dash")
                         nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-gd.png"_spr);
                     else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side.png"_spr);
@@ -524,15 +496,13 @@ bool ModsLayer::init() {
     tabsLeft->setID("frame-left-sprite");
     m_frame->addChildAtPosition(tabsLeft, Anchor::Left, ccp(6.5f, 1));
 
-    auto rightListener =
-        NodeProvidingEvent("geode-mods-list-right"_spr)
+    auto rightListener = NodeProvidingEvent("geode-mods-list-right"_spr)
             .listen(
                 [this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
                     if (nodeOut) return; // someone overrode it already
 
                     if (theme == "sapphire")
-                        nodeOut =
-                            CCSprite::createWithSpriteFrameName("mods-list-side-sapphire.png"_spr);
+                        nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-sapphire.png"_spr);
                     else if (theme == "geometry-dash")
                         nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side-gd.png"_spr);
                     else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-side.png"_spr);
@@ -547,15 +517,13 @@ bool ModsLayer::init() {
     tabsRight->setID("frame-right-sprite");
     m_frame->addChildAtPosition(tabsRight, Anchor::Right, ccp(-6.5f, 1));
 
-    auto bottomListener =
-        NodeProvidingEvent("geode-mods-list-bottom"_spr)
+    auto bottomListener = NodeProvidingEvent("geode-mods-list-bottom"_spr)
             .listen(
                 [this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
                     if (nodeOut) return; // someone overrode it already
 
                     if (theme == "sapphire")
-                        nodeOut =
-                            CCSprite::createWithSpriteFrameName("mods-list-bottom-sapphire.png"_spr);
+                        nodeOut = CCSprite::createWithSpriteFrameName("mods-list-bottom-sapphire.png"_spr);
                     else if (theme == "geometry-dash")
                         nodeOut = CCSprite::createWithSpriteFrameName("mods-list-bottom-gd.png"_spr);
                     else nodeOut = CCSprite::createWithSpriteFrameName("mods-list-bottom.png"_spr);
@@ -1037,8 +1005,7 @@ void ModsLayer::installModFromFile() {
                    "OK",
                    nullptr,
                    350
-        )
-            ->show();
+        )->show();
     }
 
     async::spawn(

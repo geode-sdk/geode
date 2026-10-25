@@ -39,16 +39,12 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
         makeVisitor{
             [this, popup, itemSize](Mod* mod) {
                 for (auto& dev : mod->getMetadata().getDevelopers()) {
-                    m_list->m_contentLayer->addChild(
-                        ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false)
-                    );
+                    m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
                 }
             },
             [this, popup, itemSize](server::ServerModMetadata const& metadata) {
                 for (auto& dev : metadata.developers) {
-                    m_list->m_contentLayer->addChild(
-                        ModDeveloperItem::create(popup, dev.username, itemSize, dev.displayName)
-                    );
+                    m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev.username, itemSize, dev.displayName));
                 }
             },
         }
@@ -60,9 +56,7 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
     return true;
 }
 
-ModDeveloperList* ModDeveloperList::create(
-    DevListPopup* popup, ModSource const& source, CCSize const& size
-) {
+ModDeveloperList* ModDeveloperList::create(DevListPopup* popup, ModSource const& source, CCSize const& size) {
     auto ret = new ModDeveloperList();
     if (ret->init(popup, source, size)) {
         ret->autorelease();

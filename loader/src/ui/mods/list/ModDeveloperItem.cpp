@@ -21,13 +21,9 @@
 #include <ccTypes.h>
 #include <fmt/format.h>
 
-bool ModDeveloperItem::init(
-    DevListPopup* popup, std::string developer, CCSize const& size,
-    std::optional<std::string> displayName, bool addMoreButton
-) {
-    if (!CCNode::init()) {
-        return false;
-    }
+bool ModDeveloperItem::init(DevListPopup* popup, std::string developer, CCSize const& size, std::optional<std::string> displayName, bool addMoreButton) {
+    if (!CCNode::init()) return false;
+
     m_popup = popup;
 
     this->setContentSize(size);
@@ -42,8 +38,7 @@ bool ModDeveloperItem::init(
     m_bg->setContentSize({size.width, size.height});
     this->addChildAtPosition(m_bg, Anchor::Center);
 
-    auto label =
-        Label::create(displayName.has_value() ? std::move(*displayName) : developer, "bigFont.fnt");
+    auto label = Label::create(displayName.has_value() ? std::move(*displayName) : developer, "bigFont.fnt");
 
     // Left + Right + Space between
     constexpr float paddings = 30.0f;
@@ -60,9 +55,7 @@ bool ModDeveloperItem::init(
 
         auto more = createGeodeButton("More");
 
-        auto btn = CCMenuItemSpriteExtra::create(
-            more, this, menu_selector(ModDeveloperItem::onMoreByThisDev)
-        );
+        auto btn = CCMenuItemSpriteExtra::create(more, this, menu_selector(ModDeveloperItem::onMoreByThisDev));
         btn->setUserObject(CCString::create(developer));
         menu->addChild(btn);
         menu->setContentSize({size.width / 2, size.height});
@@ -90,10 +83,7 @@ void ModDeveloperItem::onMoreByThisDev(CCObject* sender) {
     m_popup->onClose(nullptr);
 }
 
-ModDeveloperItem* ModDeveloperItem::create(
-    DevListPopup* popup, std::string developer, CCSize const& size,
-    std::optional<std::string> displayName, bool addMoreButton
-) {
+ModDeveloperItem* ModDeveloperItem::create(DevListPopup* popup, std::string developer, CCSize const& size, std::optional<std::string> displayName, bool addMoreButton) {
     auto ret = new ModDeveloperItem();
     if (ret->init(popup, std::move(developer), size, std::move(displayName), addMoreButton)) {
         ret->autorelease();

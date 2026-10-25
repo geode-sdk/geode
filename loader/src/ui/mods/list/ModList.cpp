@@ -78,31 +78,19 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_updateAllContainer->setContentSize({size.width, 30});
         m_updateAllContainer->setVisible(false);
 
-        m_updateAllBG = CCLayerGradient::create(
-            "mod-list-updates-available-bg"_cc4b, "mod-list-updates-available-bg-2"_cc4b, {1.f, -.5f}
-        );
+        m_updateAllBG = CCLayerGradient::create("mod-list-updates-available-bg"_cc4b, "mod-list-updates-available-bg-2"_cc4b, {1.f, -.5f});
         m_updateAllBG->setID("update-all-bg");
         m_updateAllBG->setContentSize(m_updateAllContainer->getContentSize());
         m_updateAllBG->ignoreAnchorPointForPosition(false);
 
-        m_updateAllBG->addChildAtPosition(
-            CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1),
-            Anchor::TopLeft
-        );
-        m_updateAllBG->addChildAtPosition(
-            CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1),
-            Anchor::BottomLeft,
-            {.0f, -1.f}
-        );
+        m_updateAllBG->addChildAtPosition(CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1), Anchor::TopLeft);
+        m_updateAllBG->addChildAtPosition(CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1), Anchor::BottomLeft, {.0f, -1.f});
 
         m_updateAllContainer->addChildAtPosition(m_updateAllBG, Anchor::Center);
 
-        m_updateCountLabel = Label::create("", "bigFont.fnt");
+        // TODO: 2.209
+        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, {.0f, 1.f}, 12.f, false, 0);
         m_updateCountLabel->setID("update-count-label");
-        m_updateCountLabel->setLineSpacing(12.f);
-        m_updateCountLabel->setMaxWidth((size.width / 2.f) - 30.f);
-        m_updateCountLabel->setAnchorPoint({.0f, 1.f});
-        m_updateCountLabel->setScale(.35f);
         m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, {10.f, .0f}, {});
 
         m_updateAllMenu = CCMenu::create();
@@ -120,18 +108,13 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             "Hide Updates",
             GeodeButtonSprite::Default
         );
-        m_toggleUpdatesOnlyBtn = CCMenuItemToggler::create(
-            m_showUpdatesSpr, m_hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates)
-        );
+        m_toggleUpdatesOnlyBtn = CCMenuItemToggler::create(m_showUpdatesSpr, m_hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates));
         m_toggleUpdatesOnlyBtn->setID("toggle-updates-only-button");
         m_toggleUpdatesOnlyBtn->m_notClickable = true;
         m_updateAllMenu->addChild(m_toggleUpdatesOnlyBtn);
 
-        m_updateAllSpr = createGeodeButton(
-            CCSprite::createWithSpriteFrameName("update.png"_spr), "Update All", GeodeButtonSprite::Install
-        );
-        m_updateAllBtn =
-            CCMenuItemSpriteExtra::create(m_updateAllSpr, this, menu_selector(ModList::onUpdateAll));
+        m_updateAllSpr = createGeodeButton(CCSprite::createWithSpriteFrameName("update.png"_spr), "Update All", GeodeButtonSprite::Install);
+        m_updateAllBtn = CCMenuItemSpriteExtra::create(m_updateAllSpr, this, menu_selector(ModList::onUpdateAll));
         m_updateAllBtn->setID("update-all-button");
         m_updateAllMenu->addChild(m_updateAllBtn);
 
@@ -158,9 +141,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             m_errorsContainer->setContentSize({size.width, 30});
             m_errorsContainer->setVisible(false);
 
-            auto errorsBG = CCLayerGradient::create(
-                "mod-list-errors-found"_cc4b, "mod-list-errors-found-2"_cc4b, {1.f, -.5f}
-            );
+            auto errorsBG = CCLayerGradient::create("mod-list-errors-found"_cc4b, "mod-list-errors-found-2"_cc4b, {1.f, -.5f});
             errorsBG->setID("errors-bg");
             errorsBG->setContentSize(m_errorsContainer->getContentSize());
             errorsBG->ignoreAnchorPointForPosition(false);
@@ -196,9 +177,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                 "Hide Errors Only",
                 GeodeButtonSprite::Default
             );
-            m_toggleErrorsOnlyBtn = CCMenuItemToggler::create(
-                showErrorsSpr, hideErrorsSpr, this, menu_selector(ModList::onToggleErrors)
-            );
+            m_toggleErrorsOnlyBtn = CCMenuItemToggler::create(showErrorsSpr, hideErrorsSpr, this, menu_selector(ModList::onToggleErrors));
             m_toggleErrorsOnlyBtn->setID("toggle-errors-only-button");
             m_toggleErrorsOnlyBtn->m_notClickable = true;
             errorsMenu->addChild(m_toggleErrorsOnlyBtn);
@@ -313,8 +292,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
         auto aboutSpr = createGeodeButton("About");
         aboutSpr->setScale(.5f);
-        auto aboutBtn =
-            CCMenuItemSpriteExtra::create(aboutSpr, this, menu_selector(ModList::onModtoberInfo));
+        auto aboutBtn = CCMenuItemSpriteExtra::create(aboutSpr, this, menu_selector(ModList::onModtoberInfo));
         menu->addChildAtPosition(aboutBtn, Anchor::Right, {-35.f, .0f});
 
         m_topContainer->addChild(menu);
@@ -330,9 +308,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
     m_topContainer->addChild(m_searchMenu);
 
-    m_topContainer->setLayout(
-        ColumnLayout::create()->setGap(0)->setAxisReverse(true)->setAutoGrowAxis(0.f)
-    );
+    m_topContainer->setLayout(ColumnLayout::create()->setGap(0)->setAxisReverse(true)->setAutoGrowAxis(0.f));
 
     this->addChildAtPosition(m_topContainer, Anchor::Top);
 
@@ -343,9 +319,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     pageLeftMenu->setContentWidth(30.f);
     pageLeftMenu->setAnchorPoint({1.f, .5f});
 
-    m_pagePrevBtn = CCMenuItemSpriteExtra::create(
-        CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png"), this, menu_selector(ModList::onPage)
-    );
+    m_pagePrevBtn = CCMenuItemSpriteExtra::create(CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png"), this, menu_selector(ModList::onPage));
     m_pagePrevBtn->setID("page-previous-button");
     m_pagePrevBtn->setTag(-1);
     pageLeftMenu->addChild(m_pagePrevBtn);
@@ -403,9 +377,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_statusLoadingCircle = createLoadingCircle(50);
     m_statusContainer->addChild(m_statusLoadingCircle);
 
-    m_statusContainer->setLayout(
-        SimpleColumnLayout::create()->setMainAxisDirection(AxisDirection::TopToBottom)->setGap(5.f)
-    );
+    m_statusContainer->setLayout(SimpleColumnLayout::create()->setMainAxisDirection(AxisDirection::TopToBottom)->setGap(5.f));
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
     m_invalidateCacheHandle = InvalidateCacheEvent().listen([this](ModListSource* source) {
@@ -448,8 +420,7 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
         this->updateDisplay(m_display);
 
         // Scroll list to top
-        auto listTopScrollPos =
-            -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
+        auto listTopScrollPos = -m_list->m_contentLayer->getContentHeight() + m_list->getContentHeight();
         m_list->m_contentLayer->setPositionY(listTopScrollPos);
 
         // Update page UI
@@ -457,7 +428,7 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
     }
     else {
         auto error = std::move(result).unwrapErr();
-        this->showStatus(ModListErrorStatus(), std::move(error.message), std::move(error.details));
+        this->showStatus(ModListErrorStatus(), error.message, std::move(error.details));
         this->updateState();
     }
 }
@@ -498,22 +469,20 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
     // Not sure if updates really should take precedence over deprecations
     if (check.modsWithUpdates.size() > 0) {
         if (check.modsWithUpdates.size() == 1) {
-            m_updateCountLabel->setText("There is an update available!");
+            m_updateCountLabel->setString("There is an update available!");
             m_updateAllSpr->setString("");
             m_showUpdatesSpr->setString("Show Update");
             m_hideUpdatesSpr->setString("Hide Update");
         }
         else {
-            m_updateCountLabel->setRichText(
-                fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size())
-            );
+            m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size()));
             m_updateAllSpr->setString("Update All");
             m_showUpdatesSpr->setString("Show Updates");
             m_hideUpdatesSpr->setString("Hide Updates");
         }
     }
     else if (m_hasDeprecations) {
-        m_updateCountLabel->setText("Some of your mods have been deprecated!");
+        m_updateCountLabel->setString("Some of your mods have been deprecated!");
         m_updateAllSpr->setString("");
         m_showUpdatesSpr->setString("Show");
         m_hideUpdatesSpr->setString("Hide");
@@ -531,8 +500,7 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
 
     // Recreate the menu with the updated label
     m_updateAllMenu->removeChild(m_updateAllBtn, true);
-    m_updateAllBtn =
-        CCMenuItemSpriteExtra::create(m_updateAllSpr, this, menu_selector(ModList::onUpdateAll));
+    m_updateAllBtn = CCMenuItemSpriteExtra::create(m_updateAllSpr, this, menu_selector(ModList::onUpdateAll));
     m_updateAllBtn->setID("update-all-button");
     m_updateAllMenu->addChild(m_updateAllBtn);
 
@@ -560,8 +528,7 @@ void ModList::updateTopContainer() {
 
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
-    auto oldPosition =
-        oldPositionArea > 0.f ? m_list->m_contentLayer->getPositionY() / oldPositionArea : -1.f;
+    auto oldPosition = oldPositionArea > 0.f ? m_list->m_contentLayer->getPositionY() / oldPositionArea : -1.f;
 
     // Update list size to account for the top menu
     // (giving a little bit of extra padding for it, the same size as gap)
@@ -573,16 +540,13 @@ void ModList::updateTopContainer() {
     this->updateDisplay(m_display);
 
     // Preserve relative scroll position
-    m_list->m_contentLayer->setPositionY(
-        (m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight()) * oldPosition
-    );
+    m_list->m_contentLayer->setPositionY((m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight()) * oldPosition);
 
     // If there are active downloads, hide the Update All button
     if (m_updateAllContainer) {
         auto shouldShowLoading = server::ModDownloadManager::get()->hasActiveDownloads();
         m_updateAllBtn->setEnabled(!shouldShowLoading);
-        static_cast<IconButtonSprite*>(m_updateAllBtn->getNormalImage())
-            ->setOpacity(shouldShowLoading ? 90 : 255);
+        static_cast<IconButtonSprite*>(m_updateAllBtn->getNormalImage())->setOpacity(shouldShowLoading ? 90 : 255);
         m_updateAllLoadingCircle->setVisible(shouldShowLoading);
         m_updateAllMenu->updateLayout();
     }
@@ -615,8 +579,7 @@ void ModList::updateDisplay(ModListDisplay display) {
 
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
-    auto oldPosition =
-        oldPositionArea > 0.f ? m_list->m_contentLayer->getPositionY() / oldPositionArea : -1.f;
+    auto oldPosition = oldPositionArea > 0.f ? m_list->m_contentLayer->getPositionY() / oldPositionArea : -1.f;
 
     // fix initial width being 0
     m_list->m_contentLayer->setContentWidth(m_list->getContentWidth());
@@ -646,9 +609,7 @@ void ModList::updateDisplay(ModListDisplay display) {
     }
 
     // Preserve relative scroll position
-    m_list->m_contentLayer->setPositionY(
-        (m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight()) * oldPosition
-    );
+    m_list->m_contentLayer->setPositionY((m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight()) * oldPosition);
 }
 
 void ModList::updateState() {
@@ -771,8 +732,7 @@ void ModList::onToggleUpdates(CCObject*) {
                 "Click the (!) button to see\nalternatives for each mod.",
                 nullptr,
                 NOTIFICATION_DEFAULT_TIME * 3
-            )
-                ->show();
+            )->show();
         }
     }
 }
@@ -787,8 +747,7 @@ void ModList::onToggleErrors(CCObject*) {
                 "Click the (!) button to see\nthe errors for each mod.",
                 nullptr,
                 NOTIFICATION_DEFAULT_TIME * 3
-            )
-                ->show();
+            )->show();
         }
     }
 }
