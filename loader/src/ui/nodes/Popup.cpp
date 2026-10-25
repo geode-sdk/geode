@@ -94,14 +94,17 @@ bool Popup::init(float width, float height, ZStringView bg, CCRect bgRect) {
     auto winSize = CCDirector::get()->getWinSize();
 
     m_mainLayer = CCLayer::create();
+    m_mainLayer->setID("main-layer");
     this->addChild(m_mainLayer);
 
     m_bgSprite = NineSlice::create(bg, bgRect);
+    m_bgSprite->setID("background");
     m_bgSprite->setContentSize(m_size);
     m_bgSprite->setPosition(winSize.width / 2, winSize.height / 2);
     m_mainLayer->addChild(m_bgSprite);
 
     m_buttonMenu = CCMenu::create();
+    m_buttonMenu->setID("button-menu");
     m_buttonMenu->setZOrder(100);
     m_mainLayer->addChild(m_buttonMenu);
 
@@ -116,6 +119,7 @@ bool Popup::init(float width, float height, ZStringView bg, CCRect bgRect) {
         CCMenuItemExt::createSpriteExtraWithFrameName("GJ_closeBtn_001.png", 0.8f, [this](auto btn) {
             this->onClose(btn);
         });
+    m_closeBtn->setID("close-button");
     m_buttonMenu->addChildAtPosition(m_closeBtn, geode::Anchor::TopLeft, {3.f, -3.f});
 
     this->setKeypadEnabled(true);
@@ -151,6 +155,7 @@ void Popup::setTitle(ZStringView title, ZStringView font, float scale, float off
         m_mainLayer->addChildAtPosition(m_title, Anchor::Top, {0, -offset});
     }
 
+    m_title->setID("title-label");
     m_title->setText(title);
     m_title->setLimitLabelWidth(m_size.width - 20.f, scale, .1f);
 }

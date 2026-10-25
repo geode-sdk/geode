@@ -53,8 +53,18 @@ protected:
     async::TaskHolder<server::ServerResult<server::ServerModUpdateOneCheck>> m_checkUpdateListener;
     ListenerHandle m_downloadListener;
 
+    enum class RepoPlatform {
+        Unknown,
+        GitHub,
+        GitLab,
+        Codeberg,
+        GitGay,
+    };
+
     bool init(ModSource&& src);
     CCNode* createContainer(CCSize const& size);
+    RepoPlatform getRepoPlatform(ZStringView url);
+    ZStringView getPlatformSprite(std::optional<std::string> const& url);
     void updateState();
 
     void setStatIcon(CCNode* stat, ZStringView spr);

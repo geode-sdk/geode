@@ -95,7 +95,7 @@ ModDeveloperItem* ModDeveloperItem::create(
     std::optional<std::string> displayName, bool addMoreButton
 ) {
     auto ret = new ModDeveloperItem();
-    if (ret->init(popup, developer, size, displayName, addMoreButton)) {
+    if (ret->init(popup, std::move(developer), size, std::move(displayName), addMoreButton)) {
         ret->autorelease();
         return ret;
     }

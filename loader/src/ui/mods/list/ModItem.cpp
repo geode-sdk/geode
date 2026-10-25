@@ -971,11 +971,12 @@ void ModItem::onViewError(CCObject*) {
             // than having to do this bs
             // NOTE: the deprecation reason should describe why there
             // is no replacement, or if there will be one in the future
-            std::string byStr;
+            StringBuffer byStr;
             if (dep->by.size()) {
-                byStr += "It is recommended to <cj>install these mods instead</c>:\n\n";
+                byStr.append("It is recommended to <cj>install these mods instead</c>:\n\n");
+
                 for (auto&& by : std::move(dep->by)) {
-                    byStr += fmt::format("<mod:{0}>\n\n", by);
+                    byStr.append("<mod:{0}>\n\n", by);
                 }
             }
             MDPopup::create(
@@ -998,15 +999,18 @@ void ModItem::onViewError(CCObject*) {
         }
         else if (auto problem = mod->getLoadProblem()) {
             std::string title;
+
             switch (problem->type) {
                 default:
+
                 case LoadProblem::Type::Unknown: title = "Unknown error"; break;
                 case LoadProblem::Type::InvalidGeodeFile: title = "Invalid Geode File"; break;
                 case LoadProblem::Type::MissingDependencies: title = "Missing dependencies"; break;
                 case LoadProblem::Type::Outdated: title = "Outdated"; break;
                 case LoadProblem::Type::HasIncompatibilities: title = "Incompatibilities"; break;
             }
-            MDPopup::create(title, problem->message, "OK")->show();
+
+            MDPopup::create(title, std::move(*problem).message, "OK")->show();
         }
     }
 }

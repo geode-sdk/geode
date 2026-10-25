@@ -526,34 +526,6 @@ bool ModPopup::init(ModSource&& src) {
     linksMenu->setAnchorPoint({.5f, .5f});
     linksMenu->setID("links-container");
 
-    auto useGithubIcon = m_source.getMetadata()
-                             .getLinks()
-                             .getSourceURL()
-                             .transform([](auto const& url) {
-                                 // bad logic
-                                 auto hostBegin = url.find_first_of("://");
-                                 if (hostBegin == std::string::npos) {
-                                     return false;
-                                 }
-
-                                 hostBegin += 3;
-
-                                 auto hostEnd = url.find_first_of('/', hostBegin);
-                                 if (hostEnd == std::string::npos) {
-                                     hostEnd = url.size();
-                                 }
-
-                                 auto hostname = url.substr(hostBegin, hostEnd - hostBegin);
-                                 utils::string::toLowerIP(hostname);
-
-                                 // if you add a port or username to your source url, it's your
-                                 // fault and you have to fix the parsing
-
-                                 // accept www.github.com and github.com
-                                 return hostname == "github.com" || hostname == "www.github.com";
-                             })
-                             .value_or(false);
-
     // alias for ccmenuitemext callbacks
     using CCMIExtCallback = Function<void(CCMenuItemSpriteExtra*)>;
 
@@ -572,7 +544,7 @@ bool ModPopup::init(ModSource&& src) {
         },
         ModLinkButton{
             "github",
-            useGithubIcon ? "github.png"_spr : "source_generic.png"_spr,
+            getPlatformSprite(m_source.getMetadata().getLinks().getSourceURL()),
             m_source.getMetadata().getLinks().getSourceURL(),
         },
         ModLinkButton{
@@ -818,6 +790,45 @@ CCNode* ModPopup::createContainer(CCSize const& size) {
     container->addChildAtPosition(bg, Anchor::Center);
 
     return container;
+}
+
+ModPopup::RepoPlatform ModPopup::getRepoPlatform(ZStringView url) {
+    auto split = string::split(url, "://");
+    if (split.size() < 2) return RepoPlatform::Unknown;
+
+    auto& postURL = split[1];
+    static constexpr std::string_view prefixWWW = "www.";
+
+    if (postURL.starts_with(prefixWWW)) postURL.erase(0, prefixWWW.size());
+
+    auto splitSlash = string::split(postURL, "/");
+    if (splitSlash.size() < 2) return RepoPlatform::Unknown;
+
+    auto const& platformURL = splitSlash[0];
+
+    static StringMap<RepoPlatform> const platforms{
+        {"github.com", RepoPlatform::GitHub},
+        {"gitlab.com", RepoPlatform::GitLab},
+        {"codeberg.org", RepoPlatform::Codeberg},
+        {"git.gay", RepoPlatform::GitGay},
+    };
+
+    if (auto const it = platforms.find(platformURL); it != platforms.end()) return it->second;
+    return RepoPlatform::Unknown;
+}
+
+ZStringView ModPopup::getPlatformSprite(std::optional<std::string> const& url) {
+    if (!url.has_value()) return "source_generic.png"_spr;
+    auto platform = getRepoPlatform(url.value());
+
+    switch (platform) {
+        default: return "source_generic.png"_spr;
+
+        case RepoPlatform::GitHub: return "github.png"_spr;
+        case RepoPlatform::GitLab: return "gitlab.png"_spr;
+        case RepoPlatform::Codeberg: return "codeberg.png"_spr;
+        case RepoPlatform::GitGay: return "gitgay.png"_spr;
+    }
 }
 
 void ModPopup::updateState() {
