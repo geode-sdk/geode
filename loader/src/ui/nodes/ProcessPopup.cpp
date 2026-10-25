@@ -23,33 +23,32 @@ ProcessPopup::~ProcessPopup() {};
 bool ProcessPopup::init(
     std::string text, ZStringView font, ZStringView bg, CircleBaseColor btnColor, float width
 ) {
-    if (!Popup::init({width, 110.f}, bg.c_str())) return false;
+    if (!Popup::init({width, 100.f}, bg.c_str())) return false;
 
     this->setCloseButtonSpr(
         CircleButtonSprite::createWithSpriteFrameName("geode.loader/close.png", .875f, btnColor), .825f
     );
 
-    m_impl->m_processSpinner = LoadingSpinner::create(25.f);
+    m_impl->m_processSpinner = LoadingSpinner::create(50.f);
     m_mainLayer->addChildAtPosition(m_impl->m_processSpinner, Anchor::Center, {.0f, 12.5f});
 
     m_impl->m_label = Label::createRich(std::move(text), font);
     m_impl->m_label->setAnchorPoint({.5f, 1.f});
-    m_impl->m_label->setLimitLabelWidth(width, 0.625f);
+    m_impl->m_label->setLimitLabelWidth(width - 5.f, 0.825f);
 
-    m_mainLayer->addChildAtPosition(m_impl->m_label, Anchor::Center, {.0f, -20.f});
+    m_mainLayer->addChildAtPosition(m_impl->m_label, Anchor::Center, {.0f, -22.5f});
 
     m_impl->m_successIcon = CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png");
     m_impl->m_successIcon->setID("success-icon");
-    m_impl->m_successIcon->setScale(1.5f);
+    m_impl->m_successIcon->setScale(2.f);
     m_impl->m_successIcon->setVisible(false);
 
     m_impl->m_failureIcon = CCSprite::createWithSpriteFrameName("exMark_001.png");
     m_impl->m_failureIcon->setID("failure-icon");
-    m_impl->m_failureIcon->setScale(1.25f);
     m_impl->m_failureIcon->setVisible(false);
 
-    m_mainLayer->addChildAtPosition(m_impl->m_successIcon, Anchor::Center, {.0f, 25.f});
-    m_mainLayer->addChildAtPosition(m_impl->m_failureIcon, Anchor::Center, {.0f, 25.f});
+    m_mainLayer->addChildAtPosition(m_impl->m_successIcon, Anchor::Center, {.0f, 12.5f});
+    m_mainLayer->addChildAtPosition(m_impl->m_failureIcon, Anchor::Center, {.0f, 12.5f});
 
     return true;
 };
@@ -123,7 +122,13 @@ class $modify(MenuLayer) {
 
         queueInMainThread([]() {
             auto popup = ProcessPopup::create("Processing...");
+            popup->setCloseCallback([](auto popup, auto) {
+                random::generate(1, 10) >= 3 ? Notification::create("your cannot escape")->show() :
+                                               popup->removeFromParent();
+            });
             popup->show();
+
+            popup->setSuccess("you're gay");
         });
 
         return true;
