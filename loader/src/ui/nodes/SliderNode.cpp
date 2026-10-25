@@ -32,6 +32,10 @@ public:
     Label* m_linkedLabel;
     unsigned int m_labelPrecision;
 
+    geode::ListenerHandle m_slideListener;
+    geode::ListenerHandle m_clickListener;
+    geode::ListenerHandle m_releaseListener;
+
     int m_touchPriority = kCCMenuHandlerPriority;
 };
 
@@ -93,7 +97,7 @@ bool SliderNode::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice*
     addChild(m_impl->m_groove);
     addChild(m_impl->m_bar);
 
-    addEventListener(SliderEvent(this, SlideType::Slide), [this, callback = std::move(callback)] (float value) {
+    m_impl->m_slideListener = SliderEvent(this, SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
         if (callback) callback(this, value);
     });
 
@@ -147,22 +151,19 @@ void SliderNode::updateSize() {
 }
 
 void SliderNode::setSlideCallback(SliderCallback callback) {
-    removeEventListener("slide-event"_spr);
-    addEventListener("slide-event"_spr, SliderEvent(this, SlideType::Slide), [this, callback = std::move(callback)] (float value) {
+    m_impl->m_slideListener = SliderEvent(this, SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
         if (callback) callback(this, value);
     });
 }
 
 void SliderNode::setClickCallback(SliderCallback callback) {
-    removeEventListener("click-event"_spr);
-    addEventListener("click-event"_spr, SliderEvent(this, SlideType::Click), [this, callback = std::move(callback)] (float value) {
+    m_impl->m_clickListener = SliderEvent(this, SlideType::Click).listen([this, callback = std::move(callback)] (float value) {
         if (callback) callback(this, value);
     });
 }
 
 void SliderNode::setReleaseCallback(SliderCallback callback) {
-    removeEventListener("release-event"_spr);
-    addEventListener("release-event"_spr, SliderEvent(this, SlideType::Release), [this, callback = std::move(callback)] (float value) {
+    m_impl->m_releaseListener = SliderEvent(this, SlideType::Release).listen([this, callback = std::move(callback)] (float value) {
         if (callback) callback(this, value);
     });
 }
