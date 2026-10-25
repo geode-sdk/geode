@@ -220,11 +220,10 @@ void ModSource::requestEnable() {
                 MDPopup::create(
                     fmt::format("{0} Mod", status ? "Disable" : "Enable").c_str(),
                     fmt::format(
-                        "Are you sure you want to <cr>{0}</c> <co>{3}</c>?\n\n"
-                        "<cr>{1}</c> this mod will make the following mods {2}:\n\n"
-                        "{4}\n\n",
-                        status ? "disable" : "enable", status ? "Disabling" : "Enabling",
-                        status ? "fail to load" : "work",
+                        "Are you sure you want to <cr>{0}</c> <co>{2}</c>?\n\n"
+                        "Doing so will make the following mods <cy>{1}</c>:\n\n"
+                        "{3}\n\n",
+                        status ? "disable" : "enable", status ? "fail to load" : "work",
                         mod->getName(), dependantsStr
                     ),
                     "No", "Yes",
