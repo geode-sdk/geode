@@ -9,7 +9,6 @@
 #include <Geode/binding/KeybindSource.hpp>
 #include <Geode/binding/KeybindingsLayer.hpp>
 #include <Geode/binding/LevelBindingsLayer.hpp>
-#include <Geode/binding/ScrollableContentLayer.hpp>
 #include <Geode/binding/TabbedPopupLayer.hpp>
 #include <Geode/cocos/CCDirector.h>
 #include <Geode/cocos/base_nodes/CCNode.h>
@@ -52,6 +51,7 @@
 
 using namespace geode::prelude;
 
+// this only runs for the global keybinds, not for level binds
 static int vanillaTabFor(KeybindingsLayer* layer, int id) {
     static std::unordered_map<int, int> s_actionTab;
 
@@ -181,7 +181,7 @@ static int makeKey(bool isLevel, int tab) {
     return (isLevel ? 1000 : 0) + tab;
 }
 
-Anchor nearestAnchor(CCPoint pos, CCSize size) {
+static Anchor nearestAnchor(CCPoint pos, CCSize size) {
     // 0 = left, 2 = right, 1 = center
     auto col = pos.x < size.width / 4 ? 0 : pos.x > 3 * size.width / 4 ? 2 : 1;
     // 0 = bottom, 2 = top, 1 = center
@@ -196,7 +196,7 @@ Anchor nearestAnchor(CCPoint pos, CCSize size) {
     return table[row][col];
 }
 
-void convertToAnchorLayout(CCNode* node, CCSize size, CCPoint pos) {
+static void convertToAnchorLayout(CCNode* node, CCSize size, CCPoint pos) {
     std::unordered_map<CCNode*, CCPoint> previousPositions;
 
     for (auto child : node->getChildrenExt()) {
@@ -219,13 +219,6 @@ void convertToAnchorLayout(CCNode* node, CCSize size, CCPoint pos) {
 
     node->setLayout(AnchorLayout::create());
 }
-
-struct KeybindListEntry {
-    bool isEntry;
-    int action;
-    Mod* mod;
-    std::shared_ptr<KeybindSettingV3> setting;
-};
 
 namespace list {
     constexpr float VIEW_PADDING_X = 15.0f;
@@ -383,7 +376,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         if (!isLevelBindings) {
             this->addEventListener(
                 SettingChangedEventV3(),
-                [&](std::string_view modId, std::string_view, std::shared_ptr<SettingV3> setting) {
+                [this](std::string_view modId, std::string_view, std::shared_ptr<SettingV3> setting) {
                     if (!typeinfo_pointer_cast<KeybindSettingV3>(setting)) {
                         return;
                     }
@@ -480,7 +473,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         scrollbar->updateAnchoredPosition(Anchor::Right, {(-list::VIEW_PADDING_X / 2) - 1.5f, offsetY});
         this->updateScrollbar();
 
-        LoaderImpl::get()->queueInMainThread([&, self = Ref(this)] {
+        LoaderImpl::get()->queueInMainThread([self = Ref(this)] {
             self->applyListPriorities();
         });
     }
@@ -505,8 +498,8 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
             result.append_range(actions);
         }
         if (tab == m_searchTab && !m_searchQuery.empty()) {
+            std::string query = utils::string::toLower(m_searchQuery);
             for (auto id : loaderImpl->getActionsForKeybindCategory(std::nullopt)) {
-                std::string query = utils::string::toLower(m_searchQuery);
                 if (this->customMatchesSearch(id, query)) {
                     result.push_back(id);
                 }
@@ -590,7 +583,6 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         );
         info->addChild(logo);
 
-        float nameX = list::TEXT_PADDING + list::HEADER_LOGO_SIZE + list::HEADER_GAP;
         auto name = geode::Label::create(mod->getName(), "goldFont.fnt");
         name->setAnchorPoint({0.5f, 0.5f});
         name->setID("name-label");
@@ -682,6 +674,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
 
         if (!m_fields->touchPrioBump) {
             auto priobump = CCNode::create();
+            m_fields->touchPrioBump = priobump;
             dispatcher->registerForcePrio(priobump, 2, 0);
         }
 
@@ -828,8 +821,8 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         auto header = createHeaderRow(
             mod,
             viewW,
-            [self = Ref(this), rows = Ref(rows), section = Ref(section), id](Button* toggle) {
-                auto list = self->m_fields->list;
+            [this, rows, section, id](Button* toggle) {
+                auto list = this->m_fields->list;
                 if (!list) {
                     return;
                 }
@@ -847,7 +840,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
                 section->updateLayout();
                 list->m_contentLayer->updateLayout();
                 list->scrollToFromTop(offset);
-                self->updateScrollbar();
+                this->updateScrollbar();
                 setCollapseIcon(toggle, nowCollapsed);
             }
         );
