@@ -1156,7 +1156,7 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             menu->addChildAtPosition(label, Anchor::Left, {10.f, .0f}, {.0f, .5f});
 
             // map year to theme name & color tag
-            static std::map<std::string_view, std::pair<std::string_view, std::string_view>>
+            static std::unordered_map<std::string_view, std::pair<std::string_view, std::string_view>> const
                 modtoberYears = {
                     {"24", {"The Sky's the Limit", "<cl>"}},
                     {"25", {"What The Heck!?", "<co>"}},
