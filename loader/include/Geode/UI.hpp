@@ -3,6 +3,7 @@
 #include "ui/BasedButton.hpp"
 #include "ui/BasedButtonSprite.hpp"
 #include "ui/Border.hpp"
+#include "ui/BoxedLabel.hpp"
 #include "ui/BreakLine.hpp"
 #include "ui/Button.hpp"
 #include "ui/ColorPickPopup.hpp"
