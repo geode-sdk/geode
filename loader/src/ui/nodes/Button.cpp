@@ -7,10 +7,6 @@ using namespace geode::prelude;
 
 class Button::Impl final {
 public:
-    ButtonCallback m_activateCallback = nullptr;
-    ButtonCallback m_selectCallback = nullptr;
-    ButtonCallback m_unselectCallback = nullptr;
-
     bool m_enabled = true;
     bool m_selected = false;
     bool m_defaultsSet = false;
@@ -95,7 +91,10 @@ Button* Button::createWithLabel(ZStringView text, ZStringView font, ButtonCallba
 bool Button::init(ButtonCallback activateCallback) {
     if (!CCNodeRGBA::init()) return false;
     m_impl->m_defaults = CCNodeRGBA::create();
-    m_impl->m_activateCallback = std::move(activateCallback);
+
+    addEventListener("activated-event"_spr, ClickedEvent(this, ClickType::Activated), [this, activateCallback = std::move(activateCallback)]  {
+        if (activateCallback) activateCallback(this);
+    });
 
     setCascadeColorEnabled(true);
     setCascadeOpacityEnabled(true);
@@ -292,7 +291,7 @@ void Button::selected() {
         runAction(m_impl->m_activeClickAction);
     }
 
-    if (m_impl->m_selectCallback) m_impl->m_selectCallback(this);
+    ClickedEvent(this, ClickType::Selected).send();
 
     m_impl->m_selected = true;
 }
@@ -309,7 +308,7 @@ void Button::unselected() {
         runAction(m_impl->m_activeReleaseAction);
     }
 
-    if (m_impl->m_unselectCallback) m_impl->m_unselectCallback(this);
+    ClickedEvent(this, ClickType::Unselected).send();
 
     m_impl->m_selected = false;
 }
@@ -320,7 +319,7 @@ void Button::activate() {
 
     resetDefaults();
 
-    if (m_impl->m_activateCallback) m_impl->m_activateCallback(this);
+    ClickedEvent(this, ClickType::Activated).send();
 }
 
 void Button::setScaleMultiplier(float multiplier) {
@@ -425,15 +424,24 @@ void Button::registerWithTouchDispatcher() {
 }
 
 void Button::setActivateCallback(ButtonCallback callback) {
-    m_impl->m_activateCallback = std::move(callback);
+    removeEventListener("activated-event"_spr);
+    addEventListener("activated-event"_spr, ClickedEvent(this, ClickType::Activated), [this, callback = std::move(callback)] {
+        if (callback) callback(this);
+    });
 }
 
 void Button::setSelectCallback(ButtonCallback callback) {
-    m_impl->m_selectCallback = std::move(callback);
+    removeEventListener("selected-event"_spr);
+    addEventListener("selected-event"_spr, ClickedEvent(this, ClickType::Selected), [this, callback = std::move(callback)] {
+        if (callback) callback(this);
+    });
 }
 
 void Button::setUnselectCallback(ButtonCallback callback) {
-    m_impl->m_unselectCallback = std::move(callback);
+    removeEventListener("unselected-event"_spr);
+    addEventListener("unselected-event"_spr, ClickedEvent(this, ClickType::Unselected), [this, callback = std::move(callback)] {
+        if (callback) callback(this);
+    });
 }
 
 class SharedButtonHandler::Impl final {

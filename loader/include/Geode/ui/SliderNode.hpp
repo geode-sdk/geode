@@ -2,6 +2,7 @@
 
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchDelegateProtocol.h>
+#include <Geode/loader/Event.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/TextInput.hpp>
@@ -11,7 +12,17 @@
 namespace geode {
     class GEODE_DLL SliderNode : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {
     public:
-        using SliderCallback = geode::Function<void(SliderNode* sender, float value)>;
+        enum class SlideType {
+            Slide,
+            Click,
+            Release
+        };
+
+        class SliderEvent : public geode::GlobalEvent<SliderEvent, bool(SliderNode*, SlideType), bool(float value), SliderNode*, SlideType> {
+            using GlobalEvent::GlobalEvent;
+        };
+
+        using SliderCallback = geode::CopyableFunction<void(SliderNode* sender, float value)>;
 
         /**
          * Create a custom Slider
@@ -47,6 +58,30 @@ namespace geode {
          * Set a callback for when the slider thumb is released
          */
         void setReleaseCallback(SliderCallback callback);
+
+        /**
+         * Add a callback for when the slider thumb is dragged
+         */
+        template <class Callback>
+        void addSlideCallback(ZStringView ID, Callback&& callback, int priority = 0) {
+            addEventListener(ID, ClickedEvent(this, SlideType::Slide), std::forward<Callback>(callback), priority);
+        }
+
+        /**
+         * Add a callback for when the slider thumb is clicked
+         */
+        template <class Callback>
+        void addClickCallback(ZStringView ID, Callback&& callback, int priority = 0) {
+            addEventListener(ID, ClickedEvent(this, SlideType::Click), std::forward<Callback>(callback), priority);
+        }
+
+        /**
+         * Add a callback for when the slider thumb is released
+         */
+        template <class Callback>
+        void addReleaseCallback(ZStringView ID, Callback&& callback, int priority = 0) {
+            addEventListener(ID, ClickedEvent(this, SlideType::Release), std::forward<Callback>(callback), priority);
+        }
 
         /**
          * Set the minimum value the slider can go to
