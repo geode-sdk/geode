@@ -1,13 +1,13 @@
 #pragma once
 
+#include <Geode/loader/Setting.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/binding/Slider.hpp>
-#include <Geode/loader/Setting.hpp>
-#include <Geode/ui/Button.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
-#include <Geode/ui/Label.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/Button.hpp>
+#include <Geode/ui/Label.hpp>
 #include <ui/GeodeStyle.hpp>
 
 using namespace geode::prelude;
@@ -28,9 +28,7 @@ protected:
 public:
     // `setting` may be null here
     static TitleSettingNodeV3* create(std::shared_ptr<TitleSettingV3> setting, float width);
-    static TitleSettingNodeV3* create(
-        ZStringView title, std::optional<ZStringView> description, float width
-    );
+    static TitleSettingNodeV3* create(ZStringView title, std::optional<ZStringView> description, float width);
 
     bool isCollapsed() const;
     void setCollapsed(bool collapsed);
@@ -109,7 +107,6 @@ protected:
         auto range = max - min;
         return static_cast<float>(std::clamp(static_cast<double>(value - min) / range, 0.0, 1.0));
     }
-
     ValueType valueFromSlider(float num) {
         auto min = this->getSetting()->getMinValue().value_or(-100);
         auto max = this->getSetting()->getMaxValue().value_or(+100);
@@ -123,7 +120,8 @@ protected:
     }
 
     bool init(std::shared_ptr<S> setting, float width) {
-        if (!SettingValueNodeV3<S>::init(setting, width)) return false;
+        if (!SettingValueNodeV3<S>::init(setting, width))
+            return false;
 
         m_bigArrowLeftBtnSpr = CCSprite::create();
         m_bigArrowLeftBtnSpr->setCascadeColorEnabled(true);
@@ -139,9 +137,7 @@ protected:
         m_bigArrowLeftBtn = CCMenuItemSpriteExtra::create(
             m_bigArrowLeftBtnSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
-        m_bigArrowLeftBtn->setUserObject(
-            ObjWrapper<ValueType>::create(-setting->getBigArrowStepSize())
-        );
+        m_bigArrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getBigArrowStepSize()));
         m_bigArrowLeftBtn->setVisible(setting->isBigArrowsEnabled());
         this->getButtonMenu()->addChildAtPosition(m_bigArrowLeftBtn, Anchor::Left, ccp(5, 0));
 
@@ -156,9 +152,7 @@ protected:
 
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40, "Num");
         m_input->setScale(.7f);
-        m_input->setCommonFilter(
-            std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int
-        );
+        m_input->setCommonFilter(std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int);
         m_input->setCallback([this, setting](auto const& str) {
             this->setValue(numFromString<ValueType>(str).unwrapOr(setting->getDefaultValue()), m_input);
         });
@@ -196,9 +190,7 @@ protected:
         m_bigArrowRightBtn = CCMenuItemSpriteExtra::create(
             m_bigArrowRightBtnSpr, this, menu_selector(NumberSettingNodeV3::onArrow)
         );
-        m_bigArrowRightBtn->setUserObject(
-            ObjWrapper<ValueType>::create(setting->getBigArrowStepSize())
-        );
+        m_bigArrowRightBtn->setUserObject(ObjWrapper<ValueType>::create(setting->getBigArrowStepSize()));
         m_bigArrowRightBtn->setVisible(setting->isBigArrowsEnabled());
         this->getButtonMenu()->addChildAtPosition(m_bigArrowRightBtn, Anchor::Right, ccp(-5, 0));
 
@@ -257,9 +249,9 @@ protected:
     }
 
     void onArrow(CCObject* sender) {
-        auto value = this->getValue() +
-            static_cast<ObjWrapper<ValueType>*>(static_cast<CCNode*>(sender)->getUserObject())
-                ->getValue();
+        auto value = this->getValue() + static_cast<ObjWrapper<ValueType>*>(
+            static_cast<CCNode*>(sender)->getUserObject()
+        )->getValue();
         if (auto min = this->getSetting()->getMinValue()) {
             value = std::max(*min, value);
         }
@@ -367,7 +359,6 @@ protected:
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;
     void onResetToDefault() override;
-
 public:
     static KeybindSettingNodeV3* create(std::shared_ptr<KeybindSettingV3> setting, float width);
 
