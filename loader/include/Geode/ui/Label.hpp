@@ -122,6 +122,12 @@ namespace geode {
         struct EmojiEntry final {
             ZStringView frameName;
 
+            cocos2d::CCPoint offset;
+            float scale = 1.f;
+            cocos2d::ccColor3B tint{255, 255, 255};
+            bool flipX = false;
+
+            EmojiEntry(ZStringView frameName, cocos2d::CCPoint offset, float scale, cocos2d::ccColor3B tint, bool flipX) noexcept;
             EmojiEntry(ZStringView frameName) noexcept;
 
             cocos2d::CCSpriteFrame* getFrame() const;
@@ -131,7 +137,31 @@ namespace geode {
             mutable cocos2d::CCSpriteFrame* cachedFrame = nullptr;
         };
 
-        using Entry = std::variant<EmojiEntry, NodeFactory, NodeFactoryParams>;
+        struct Entry final {
+            Entry(EmojiEntry emoji);
+            Entry(NodeFactory factory);
+            Entry(NodeFactoryParams factory);
+            Entry(ZStringView frameName);
+
+            /// @return The emoji entry if this entry is an emoji, otherwise nullptr.
+            EmojiEntry const* getEmoji() const noexcept;
+            EmojiEntry* getEmoji() noexcept;
+
+            /// @return The node factory if this entry is a parameterless factory, otherwise nullptr.
+            NodeFactory const* getNodeFactory() const noexcept;
+            NodeFactory* getNodeFactory() noexcept;
+
+            /// @return The node factory if this entry is a factory taking parameters, otherwise nullptr.
+            NodeFactoryParams const* getNodeFactoryParams() const noexcept;
+            NodeFactoryParams* getNodeFactoryParams() noexcept;
+
+        private:
+            std::variant<
+                EmojiEntry,
+                std::shared_ptr<NodeFactory>,
+                std::shared_ptr<NodeFactoryParams>
+            > m_storage;
+        };
 
         EmojiRegistry();
         ~EmojiRegistry();
@@ -140,6 +170,10 @@ namespace geode {
         EmojiRegistry(EmojiRegistry&&) noexcept;
         EmojiRegistry& operator=(EmojiRegistry const&);
         EmojiRegistry& operator=(EmojiRegistry&&) noexcept;
+
+        /// Creates an independent copy of this registry.
+        /// @note Node factory functions are shared between the original and the clone.
+        EmojiRegistry clone() const;
 
         /// Inserts a new replacement mapping to the registry.
         /// @param sequence A UTF-32 view to a sequence that's going to be replaced by a custom node.
@@ -161,12 +195,46 @@ namespace geode {
 
         /// Inserts a sequence of mappings to the registry.
         /// @note All sequence views are expected to point to static memory and never be freed.
-        void insert(std::span<std::tuple<std::u32string_view, Entry>> entries);
+        void insert(std::span<std::tuple<std::u32string_view, Entry> const> entries);
+
+        /// Inserts a sequence of mappings to the registry.
+        /// @note All sequence views are expected to point to static memory and never be freed.
+        void insert(std::span<std::pair<std::u32string_view, Entry> const> entries);
+
+        /// Merges all entries of another registry into this one.
+        /// Entries whose sequences already exist in this registry are overwritten.
+        void merge(EmojiRegistry const& other);
 
         /// Removes an entry from the registry by provided sequence.
         void erase(std::u32string_view sequence);
 
+        /// Removes all entries from the registry.
+        void clear() noexcept;
+
+        /// @return True if an entry with the exact provided sequence exists.
+        bool contains(std::u32string_view sequence) const noexcept;
+
+        /// @return The number of entries in the registry.
+        size_t size() const noexcept;
+
+        /// @return True if the registry has no entries.
+        bool empty() const noexcept;
+
+        /// @return All registered sequences in sorted order.
+        std::span<std::u32string_view const> getSequences() const noexcept;
+
+        /// @return The entry registered for the exact provided sequence, or nullptr.
+        Entry const* find(std::u32string_view sequence) const noexcept;
+
+        /// Attempts to match a sequence starting at `index` in `str`. On success,
+        /// `index` is advanced to the last codepoint of the matched sequence.
+        /// @return The matched entry, or nullptr if nothing matched.
         Entry* match(std::u32string_view str, size_t& index);
+
+        /// The shared global registry containing the vanilla emojis.
+        /// @note The registry is shared between all callers,
+        /// use clone() if you need to extend it
+        static EmojiRegistry const& vanillaEmojis();
 
     private:
         friend class Label;
@@ -179,7 +247,11 @@ namespace geode {
 
     /// A drop-in replacement for CCLabelBMFont with improved performance
     /// and support for emojis, Unicode, fallback fonts and color tags.
-    class GEODE_DLL Label : public cocos2d::CCNode, public cocos2d::CCRGBAProtocol, public cocos2d::CCLabelProtocol, public cocos2d::CCBlendProtocol {
+    class GEODE_DLL Label :
+        public cocos2d::CCNode,
+        public cocos2d::CCRGBAProtocol,
+        public cocos2d::CCLabelProtocol,
+        public cocos2d::CCBlendProtocol {
     public:
         Label();
         ~Label() override;
@@ -251,11 +323,18 @@ namespace geode {
         BitmapFont* getFont(size_t index = 0) noexcept;
 
         /// Sets the text of the label.
+        /// If rich-text mode is enabled (see setRichTextEnabled()), the text is parsed for color tags.
         void setText(std::string text) noexcept;
         ZStringView getText() noexcept;
 
         /// Sets the rich text of the label. Rich text may contain color tags (e.g. <cr>Red</c> or <c-123abc>Hex</c>).
+        /// @note Equivalent to setRichTextEnabled(true) followed by setText(text).
         void setRichText(std::string text);
+
+        /// Enables or disables rich-text mode.
+        /// When enabled, text assigned through setText()/setString() is parsed for color tags.
+        void setRichTextEnabled(bool enabled) noexcept;
+        bool isRichTextEnabled() const noexcept;
 
         /// Sets the label string. Provided by CCLabelProtocol.
         /// @note Prefer using Label::setText to avoid a string copy.
@@ -313,10 +392,61 @@ namespace geode {
         void setCharColor(uint32_t index, cocos2d::ccColor4B color);
 
         /// Gets total amount of characters currently visible (excluding whitespace, emojis and custom nodes).
+        /// @note Indices here match setCharColor(). See getGlyphCount() for a count that also includes emojis and custom nodes.
         size_t getCharCount() noexcept;
+
+        /// The kind of a rendered item, see GlyphInfo.
+        enum class GlyphKind : uint8_t {
+            Glyph, /// A font glyph
+            Emoji, /// An emoji sprite
+            Node, /// An embedded custom node
+        };
+
+        /// Information about a single rendered item (font glyph, emoji or embedded node).
+        struct GlyphInfo {
+            /// Bounds of the rendered item in the label's content space.
+            cocos2d::CCRect bounds;
+            /// Index of the item's first codepoint (UTF-32) in the label's text.
+            uint32_t stringIndex;
+            /// Amount of codepoints (UTF-32) covered by the item in the label's text (1 for plain glyphs).
+            uint32_t stringLength;
+            /// The kind of the rendered item.
+            GlyphKind kind;
+        };
+
+        /// @return The amount of rendered items (font glyphs, emojis and embedded nodes),
+        /// excluding whitespace and newlines.
+        size_t getGlyphCount() noexcept;
+
+        /// @return Info about the rendered item at `glyphIndex`
+        /// (in visual order, whitespace and newlines excluded), or nullopt if out of range.
+        std::optional<GlyphInfo> getGlyphInfo(size_t glyphIndex) noexcept;
+
+        /// @return Info about all rendered items in visual order.
+        /// @note The returned reference is invalidated when the text or layout changes.
+        std::vector<GlyphInfo> const& getGlyphInfos() noexcept;
+
+        /// @return The total amount of codepoints (UTF-32) in the label's text.
+        size_t getCodepointCount() noexcept;
+
+        /// @return The height of a single line (scaled common height + extra line spacing).
+        float getLineHeight() noexcept;
+
+        /// Gets the bounds of the character at `codepointIndex` (UTF-32) in the label's text, in content space.
+        /// @param codepointIndex Index of the codepoint, 0 to getCodepointCount() inclusive
+        /// @return The bounds, or nullopt if out of range.
+        std::optional<cocos2d::CCRect> getCharBounds(size_t codepointIndex) noexcept;
+
+        /// Gets the position where a text cursor would be placed at `codepointIndex`.
+        /// @param codepointIndex Index of the codepoint, 0 to getCodepointCount() inclusive
+        /// @return The pen position in content space. Returns nullopt if out of range.
+        std::optional<cocos2d::CCPoint> getCursorPosition(size_t codepointIndex) noexcept;
 
         /// Assigns the emoji registry container and enables the rendering of emojis.
         void setEmojiRegistry(EmojiRegistry const& registry);
+
+        /// @return The registry currently in use by the label (shared state),
+        /// or an empty registry if none was assigned.
         EmojiRegistry getEmojiRegistry();
 
         void setColor(cocos2d::ccColor3B const& color) override;

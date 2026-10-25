@@ -65,13 +65,11 @@ void BitmapFont::purgeAllFonts() {
 
 template <typename F>
 static void forEachPair(std::string_view line, F&& fn) {
-    for (auto p : asp::iter::split(line, ' ')) {
-        for (auto pair : asp::iter::split(p, '\t')) {
-            auto arr = asp::iter::split(pair, '=').collect<asp::SmallVec<std::string_view, 2>>();
-            auto size = arr.size();
-            if (size == 2) fn(arr[0], arr[1]);
-            else if (size == 1) fn(arr[0], std::string_view(""));
-        }
+    for (auto pair : asp::iter::splitAny(line, " \t")) {
+        auto arr = asp::iter::split(pair, '=').collect<asp::SmallVec<std::string_view, 2>>();
+        auto size = arr.size();
+        if (size == 2) fn(arr[0], arr[1]);
+        else if (size == 1) fn(arr[0], std::string_view(""));
     }
 }
 
@@ -322,13 +320,29 @@ struct EmojiRegistry::Impl {
     ListenerHandle m_textureReloadHandle;
 
     Impl() {
+        this->listenForTextureReload();
+    }
+
+    Impl(Impl const& other) : m_keys(other.m_keys), m_entries(other.m_entries) {
+        this->listenForTextureReload();
+    }
+
+    void listenForTextureReload() {
         m_textureReloadHandle = GameEvent(GameEventType::TexturesUnloaded).listen([this]() {
             for (auto& entry : m_entries) {
-                if (auto* emoji = std::get_if<EmojiEntry>(&entry)) {
+                if (auto* emoji = entry.getEmoji()) {
                     emoji->invalidate();
                 }
             }
         });
+    }
+
+    Entry const* find(std::u32string_view sequence) const {
+        auto it = std::ranges::lower_bound(m_keys, sequence);
+        if (it != m_keys.end() && *it == sequence) {
+            return &m_entries[static_cast<size_t>(it - m_keys.begin())];
+        }
+        return nullptr;
     }
 
     Entry* match(std::u32string_view str, size_t& index) {
@@ -369,7 +383,7 @@ struct EmojiRegistry::Impl {
         }
     }
 
-    void insert(std::span<std::tuple<std::u32string_view, Entry>> entries) {
+    void insert(std::span<std::tuple<std::u32string_view, Entry> const> entries) {
         if (entries.empty()) return;
 
         size_t newSize = m_keys.size() + entries.size();
@@ -469,23 +483,8 @@ private:
 };
 
 $on_game(TexturesUnloaded) {
-    // BitmapFont::purgeAllFonts();
+    BitmapFont::purgeAllFonts();
     SharedIndexBuffer::get().purge();
-}
-
-$on_game(TexturesLoaded) {
-    // a bit hacky, but mods sometimes forget to re-create the label on texture reload,
-    // which would trigger a crash if we purge all fonts
-    for (auto& [name, font] : GetBitmapFontsCache()) {
-        BitmapFont tmp;
-        if (!tmp.initWithFile(name)) {
-            log::warn("Failed to reload bitmap font '{}'", name);
-            continue;
-        }
-
-        tmp.initBakedValues();
-        font = std::move(tmp);
-    }
 }
 
 struct LabelFontBatch {
@@ -580,6 +579,12 @@ struct CharQuadRef {
     uint32_t charIndex : 24;
 };
 
+struct EmojiQuadRef {
+    uint32_t batchIndex;
+    uint32_t quadIndex;
+    EmojiRegistry::EmojiEntry const* emoji;
+};
+
 struct ShapedItem {
     enum class Kind : uint8_t {
         Glyph,
@@ -594,8 +599,11 @@ struct ShapedItem {
     union {
         BitmapFont::CharDef const* def; // glyph
         CCNode* node; // embedded
-        CCSpriteFrame* frame; // emoji
+        EmojiRegistry::EmojiEntry const* emoji; // emoji
     };
+
+    uint32_t srcIndex = 0;
+    uint32_t srcLength = 1;
 };
 
 struct WordSpan {
@@ -620,6 +628,7 @@ struct Label::Impl {
     asp::SmallVec<BitmapFont*, 2> m_fonts;
     asp::SmallVec<LabelFontBatch, 2> m_batches;
     std::vector<CharQuadRef> m_chars;
+    std::vector<EmojiQuadRef> m_emojiQuads;
 
     Label* m_label;
     std::shared_ptr<EmojiRegistry::Impl> m_emojiRegistry;
@@ -631,6 +640,11 @@ struct Label::Impl {
     asp::SmallVec<LineSpan, 1> m_lines;
 
     std::vector<StyleSpan> m_styles;
+
+    size_t m_codepointCount = 0;
+    std::vector<CCPoint> m_itemPens;
+    std::vector<uint8_t> m_penCovered;
+    std::vector<GlyphInfo> m_glyphs;
 
     float m_spaceWidth = 0.f;
     float m_maxLineWidth = 0.f;
@@ -650,14 +664,14 @@ struct Label::Impl {
     bool m_cascadeColorEnabled = false;
     bool m_cascadeOpacityEnabled = false;
 
+    bool m_emojisUseColors = false;
+    bool m_customNodesColors = false;
+
     CCSize m_limitSize{};
     float m_defaultScale = 1.f;
     float m_minScale = 0.f;
     bool m_limitChanged = false;
     bool m_fitLabelSize = false;
-
-    bool m_emojisUseColors = false;
-    bool m_customNodesColors = false;
 
     bool m_useRichText = false;
 
@@ -702,6 +716,35 @@ struct Label::Impl {
         return { 255, 255, 255, m_displayedOpacity };
     }
 
+    ccColor4B getEmojiColorTint(EmojiRegistry::EmojiEntry const* entry) const {
+        if (entry->tint != ccColor3B{255, 255, 255}) {
+            auto emojiColor = this->getEmojiColor();
+            emojiColor.r = ((emojiColor.r / 255.f) * (entry->tint.r / 255.f)) * 255;
+            emojiColor.g = ((emojiColor.g / 255.f) * (entry->tint.g / 255.f)) * 255;
+            emojiColor.b = ((emojiColor.b / 255.f) * (entry->tint.b / 255.f)) * 255;
+            return emojiColor;
+        }
+        return this->getEmojiColor();
+    }
+
+    cocos2d::CCPoint endPen() const {
+        float lineHeight = m_fonts.empty() ? 0.f :
+            m_fonts.data()[0]->getCommonHeightScaled() + m_extraLineSpacing;
+
+        if (m_shaped.empty()) {
+            return { 0.f, lineHeight };
+        }
+
+        auto const& last = m_shaped.back();
+        auto const& pen = m_itemPens.back();
+
+        if (last.kind == ShapedItem::Kind::Newline) {
+            return { 0.f, pen.y - lineHeight };
+        }
+
+        return { pen.x + last.advance, pen.y };
+    }
+
     uint8_t getOrCreateBatch(CCTexture2D* texture) {
         for (size_t i = 0; i < m_emojiBatches.size(); i++) {
             if (m_emojiBatches[i].texture == texture) {
@@ -714,59 +757,57 @@ struct Label::Impl {
     }
 
     bool tryMatchEmojiOrNode(std::u32string_view str, size_t& index) {
-        if (!m_emojiRegistry) return false;
+        if (!m_emojiRegistry || m_fonts.empty()) return false;
 
+        size_t srcIndex = index;
         auto entry = m_emojiRegistry->match(str, index);
         if (!entry) return false;
 
         float baseHeight = m_fonts.data()[0]->getCommonHeightScaled();
 
-        std::visit([&]<typename T>(T& e) {
-            if constexpr (std::is_same_v<T, EmojiRegistry::EmojiEntry>) {
-                auto frame = e.getFrame();
-                if (!frame) return;
-
+        if (auto* emoji = entry->getEmoji()) {
+            if (auto frame = emoji->getFrame()) {
                 auto size = frame->getRect().size;
                 auto batchIndex = this->getOrCreateBatch(frame->getTexture());
+
+                float frameH = size.height > 0.f ? size.height : 1.f;
+                float frameW = size.width;
+                float scale = baseHeight / frameH * emoji->scale;
 
                 m_shaped.push_back(ShapedItem{
                     .kind = ShapedItem::Kind::Emoji,
                     .fontIndex = batchIndex,
-                    .advance = size.width * (baseHeight / size.height),
-                    .frame = frame,
+                    .advance = frameW * scale,
+                    .emoji = emoji,
+                    .srcIndex = static_cast<uint32_t>(srcIndex),
+                    .srcLength = static_cast<uint32_t>(index - srcIndex + 1),
                 });
-            } else if constexpr (std::is_same_v<T, EmojiRegistry::NodeFactory>) {
-                auto node = e();
-                if (!node) return;
-
-                auto size = node->getContentSize();
-
-                m_shaped.push_back(ShapedItem{
-                    .kind = ShapedItem::Kind::Node,
-                    .fontIndex = 0,
-                    .advance = size.width * (baseHeight / size.height),
-                    .node = node,
-                });
-
-                m_label->addChild(node);
-                m_embeddedNodes.push_back(node);
-            } else if constexpr (std::is_same_v<T, EmojiRegistry::NodeFactoryParams>) {
-                auto node = e(str, index);
-                if (!node) return;
-
-                auto size = node->getContentSize();
-
-                m_shaped.push_back(ShapedItem{
-                    .kind = ShapedItem::Kind::Node,
-                    .fontIndex = 0,
-                    .advance = size.width * (baseHeight / size.height),
-                    .node = node,
-                });
-
-                m_label->addChild(node);
-                m_embeddedNodes.push_back(node);
             }
-        }, *entry);
+            return true;
+        }
+
+        CCNode* node = nullptr;
+        if (auto* factory = entry->getNodeFactory()) {
+            node = (*factory)();
+        } else if (auto* factory = entry->getNodeFactoryParams()) {
+            node = (*factory)(str, index);
+        }
+
+        if (node) {
+            auto size = node->getContentSize();
+
+            m_shaped.push_back(ShapedItem{
+                .kind = ShapedItem::Kind::Node,
+                .fontIndex = 0,
+                .advance = size.width * (baseHeight / (size.height > 0.f ? size.height : 1.f)),
+                .node = node,
+                .srcIndex = static_cast<uint32_t>(srcIndex),
+                .srcLength = static_cast<uint32_t>(index - srcIndex + 1),
+            });
+
+            m_label->addChild(node);
+            m_embeddedNodes.push_back(node);
+        }
 
         return true;
     }
@@ -797,6 +838,7 @@ struct Label::Impl {
         char32_t ch,
         BitmapFont::CharDef const* def,
         uint8_t fontIndex,
+        uint32_t srcIndex,
         uint32_t& prevCp,
         uint8_t& prevFontIndex
     ) {
@@ -815,7 +857,9 @@ struct Label::Impl {
             .kind = ShapedItem::Kind::Glyph,
             .fontIndex = fontIndex,
             .advance = advance,
-            .def = def
+            .def = def,
+            .srcIndex = srcIndex,
+            .srcLength = 1,
         });
 
         prevCp = ch;
@@ -961,7 +1005,9 @@ struct Label::Impl {
                         .kind = ShapedItem::Kind::Newline,
                         .fontIndex = 0,
                         .advance = 0.f,
-                        .def = nullptr
+                        .def = nullptr,
+                        .srcIndex = static_cast<uint32_t>(i),
+                        .srcLength = 1,
                     });
                     prevCp = 0;
                     break;
@@ -975,7 +1021,9 @@ struct Label::Impl {
                         .kind = ShapedItem::Kind::Space,
                         .fontIndex = 0,
                         .advance = advance,
-                        .def = nullptr
+                        .def = nullptr,
+                        .srcIndex = static_cast<uint32_t>(i),
+                        .srcLength = 1,
                     });
 
                     prevCp = ch;
@@ -998,7 +1046,7 @@ struct Label::Impl {
                     auto [def, fontIndex] = this->findGlyphDef(ch);
                     if (!def) break;
 
-                    this->appendGlyphItem(ch, def, fontIndex, prevCp, prevFontIndex);
+                    this->appendGlyphItem(ch, def, fontIndex, static_cast<uint32_t>(i), prevCp, prevFontIndex);
                     break;
                 }
             }
@@ -1023,6 +1071,7 @@ struct Label::Impl {
         }
 
         auto str = std::u32string_view(buffer.data(), buffer.size());
+        m_codepointCount = str.size();
         m_shaped.reserve(str.size());
 
         if (m_useRichText) {
@@ -1041,7 +1090,9 @@ struct Label::Impl {
                         .kind = ShapedItem::Kind::Newline,
                         .fontIndex = 0,
                         .advance = 0.f,
-                        .def = nullptr
+                        .def = nullptr,
+                        .srcIndex = static_cast<uint32_t>(i),
+                        .srcLength = 1,
                     });
                     prevCp = 0;
                     break;
@@ -1055,7 +1106,9 @@ struct Label::Impl {
                         .kind = ShapedItem::Kind::Space,
                         .fontIndex = 0,
                         .advance = advance,
-                        .def = nullptr
+                        .def = nullptr,
+                        .srcIndex = static_cast<uint32_t>(i),
+                        .srcLength = 1,
                     });
 
                     prevCp = ch;
@@ -1071,7 +1124,7 @@ struct Label::Impl {
                     auto [def, fontIndex] = this->findGlyphDef(ch);
                     if (!def) break;
 
-                    this->appendGlyphItem(ch, def, fontIndex, prevCp, prevFontIndex);
+                    this->appendGlyphItem(ch, def, fontIndex, static_cast<uint32_t>(i), prevCp, prevFontIndex);
                     break;
                 }
             }
@@ -1252,6 +1305,13 @@ struct Label::Impl {
 
         m_chars.clear();
         m_chars.reserve(m_shaped.size());
+        m_emojiQuads.clear();
+        m_emojiQuads.reserve(m_shaped.size());
+
+        m_glyphs.clear();
+        m_glyphs.reserve(m_shaped.size());
+        m_itemPens.assign(m_shaped.size(), CCPoint{});
+        m_penCovered.assign(m_shaped.size(), 0);
 
         if (m_lines.empty() || m_fonts.empty()) {
             m_label->setContentSize({0.f, 0.f});
@@ -1317,6 +1377,9 @@ struct Label::Impl {
                 for (uint32_t ii = word.start; ii < word.end; ++ii) {
                     auto const& item = m_shaped[ii];
 
+                    m_itemPens[ii] = CCPoint{x, y};
+                    m_penCovered[ii] = 1;
+
                     switch (item.kind) {
                         case ShapedItem::Kind::Glyph: {
                             auto const& def = *item.def;
@@ -1343,6 +1406,11 @@ struct Label::Impl {
                                 .batchIndex = item.fontIndex,
                                 .charIndex = static_cast<uint32_t>(batch.quads.size() - 1)
                             });
+
+                            m_glyphs.push_back(GlyphInfo{
+                                CCRect{ qx, qy - h, w, h },
+                                item.srcIndex, item.srcLength, GlyphKind::Glyph,
+                            });
                             break;
                         }
                         case ShapedItem::Kind::Node: {
@@ -1354,11 +1422,23 @@ struct Label::Impl {
                                 if (m_customNodesColors) rgba->setColor(m_color);
                                 rgba->setOpacity(m_opacity);
                             }
+
+                            auto pos = item.node->getPosition();
+                            m_glyphs.push_back(GlyphInfo{
+                                CCRect{
+                                    pos.x - size.width * scale * 0.5f,
+                                    pos.y - size.height * scale * 0.5f,
+                                    size.width * scale,
+                                    size.height * scale
+                                },
+                                item.srcIndex, item.srcLength, GlyphKind::Node,
+                            });
+
                             lineMaxX = std::max(lineMaxX, x + item.advance);
                             break;
                         }
                         case ShapedItem::Kind::Emoji: {
-                            auto frame = item.frame;
+                            auto frame = item.emoji->getFrame();
                             auto const& rectPoints = frame->getRect();
                             auto const& rectPixels = frame->getRectInPixels();
                             bool rotated = frame->isRotated();
@@ -1392,13 +1472,24 @@ struct Label::Impl {
                                 trU = right; trV = bottom;
                             }
 
-                            float scale = rectPoints.size.height > 0.f ? commonHeight / rectPoints.size.height : 1.f;
+                            float frameH = rectPoints.size.height > 0.f ? rectPoints.size.height : 1.f;
+                            float scale = commonHeight / frameH * item.emoji->scale;
+
                             float w = rectPoints.size.width * scale;
                             float h = rectPoints.size.height * scale;
                             float qx = x;
-                            float qy = y;
+                            float qy = y - (commonHeight - h) * 0.5f;
 
-                            auto emojiColor = this->getEmojiColor();
+                            if (item.emoji->flipX) {
+                                std::swap(blU, brU);
+                                std::swap(tlU, trU);
+                            }
+
+                            float offX = item.emoji->flipX ? -item.emoji->offset.x : item.emoji->offset.x;
+                            qx += offX * scale;
+                            qy += item.emoji->offset.y * scale;
+
+                            auto emojiColor = this->getEmojiColorTint(item.emoji);
 
                             batch.quads.push_back({
                                 .bl = { .vertices = { qx, qy - h }, .colors = emojiColor, .texCoords = { blU, blV } },
@@ -1406,6 +1497,18 @@ struct Label::Impl {
                                 .tl = { .vertices = { qx, qy }, .colors = emojiColor, .texCoords = { tlU, tlV } },
                                 .tr = { .vertices = { qx + w, qy }, .colors = emojiColor, .texCoords = { trU, trV } },
                             });
+
+                            m_glyphs.push_back(GlyphInfo{
+                                CCRect{ qx, qy - h, w, h },
+                                item.srcIndex, item.srcLength, GlyphKind::Emoji,
+                            });
+
+                            m_emojiQuads.push_back({
+                                .batchIndex = item.fontIndex,
+                                .quadIndex = static_cast<uint32_t>(batch.quads.size() - 1),
+                                .emoji = item.emoji,
+                            });
+
                             lineMaxX = std::max(lineMaxX, x + item.advance);
                             break;
                         }
@@ -1424,6 +1527,22 @@ struct Label::Impl {
 
             maxLineWidth = std::max(maxLineWidth, lineMaxX);
             y -= lineHeight;
+        }
+
+        for (size_t i = 0; i < m_shaped.size(); ++i) {
+            if (m_penCovered[i]) continue;
+
+            if (i == 0) {
+                m_itemPens[i] = CCPoint{ 0.f, totalHeight };
+            } else {
+                auto const& prev = m_shaped[i - 1];
+                auto const& prevPen = m_itemPens[i - 1];
+                if (prev.kind == ShapedItem::Kind::Newline) {
+                    m_itemPens[i] = CCPoint{ 0.f, prevPen.y - lineHeight };
+                } else {
+                    m_itemPens[i] = CCPoint{ prevPen.x + prev.advance, prevPen.y };
+                }
+            }
         }
 
         m_label->setContentSize({ maxLineWidth, lineHeight * m_lines.size() });
@@ -1472,16 +1591,17 @@ struct Label::Impl {
             }
         }
 
-        auto emojiColor = this->getEmojiColor();
-
         for (auto& batch : m_emojiBatches) {
-            for (auto& quad : batch.quads) {
-                quad.bl.colors = emojiColor;
-                quad.br.colors = emojiColor;
-                quad.tl.colors = emojiColor;
-                quad.tr.colors = emojiColor;
-            }
             batch.isDirty = true;
+        }
+
+        for (auto const& ref : m_emojiQuads) {
+            auto& quad = m_emojiBatches[ref.batchIndex].quads[ref.quadIndex];
+            auto emojiColor = this->getEmojiColorTint(ref.emoji);
+            quad.bl.colors = emojiColor;
+            quad.br.colors = emojiColor;
+            quad.tl.colors = emojiColor;
+            quad.tr.colors = emojiColor;
         }
 
         for (auto& node : m_embeddedNodes) {
@@ -1541,7 +1661,6 @@ struct Label::Impl {
 
         constexpr auto ITERATIONS = 14;
         constexpr float FLOAT_MAX = std::numeric_limits<float>::max();
-        constexpr float FLOAT_MIN = std::numeric_limits<float>::min();
         constexpr float MIN_WIDTH_RATIO = 0.95f;
 
         auto eval = [&](float wrap, float& outMinW, float& outMaxW, float& rawW, float& rawH) {
@@ -1658,6 +1777,14 @@ struct Label::Impl {
     }
 };
 
+EmojiRegistry::EmojiEntry::EmojiEntry(
+    ZStringView frameName,
+    cocos2d::CCPoint offset,
+    float scale,
+    cocos2d::ccColor3B tint,
+    bool flipX
+) noexcept : frameName(frameName), offset(offset), scale(scale), tint(tint), flipX(flipX) {}
+
 EmojiRegistry::EmojiEntry::EmojiEntry(ZStringView frameName) noexcept : frameName(frameName) {}
 
 CCSpriteFrame* EmojiRegistry::EmojiEntry::getFrame() const {
@@ -1669,6 +1796,44 @@ CCSpriteFrame* EmojiRegistry::EmojiEntry::getFrame() const {
 
 void EmojiRegistry::EmojiEntry::invalidate() noexcept {
     cachedFrame = nullptr;
+}
+
+EmojiRegistry::Entry::Entry(EmojiEntry emoji) : m_storage(std::move(emoji)) {}
+
+EmojiRegistry::Entry::Entry(NodeFactory factory)
+  : m_storage(std::make_shared<NodeFactory>(std::move(factory))) {}
+
+EmojiRegistry::Entry::Entry(NodeFactoryParams factory)
+  : m_storage(std::make_shared<NodeFactoryParams>(std::move(factory))) {}
+
+EmojiRegistry::Entry::Entry(ZStringView frameName) : m_storage(EmojiEntry(frameName)) {}
+
+EmojiRegistry::EmojiEntry const* EmojiRegistry::Entry::getEmoji() const noexcept {
+    return std::get_if<EmojiEntry>(&m_storage);
+}
+
+EmojiRegistry::EmojiEntry* EmojiRegistry::Entry::getEmoji() noexcept {
+    return std::get_if<EmojiEntry>(&m_storage);
+}
+
+EmojiRegistry::NodeFactory const* EmojiRegistry::Entry::getNodeFactory() const noexcept {
+    auto* fn = std::get_if<std::shared_ptr<NodeFactory>>(&m_storage);
+    return fn ? fn->get() : nullptr;
+}
+
+EmojiRegistry::NodeFactory* EmojiRegistry::Entry::getNodeFactory() noexcept {
+    auto* fn = std::get_if<std::shared_ptr<NodeFactory>>(&m_storage);
+    return fn ? fn->get() : nullptr;
+}
+
+EmojiRegistry::NodeFactoryParams const* EmojiRegistry::Entry::getNodeFactoryParams() const noexcept {
+    auto* fn = std::get_if<std::shared_ptr<NodeFactoryParams>>(&m_storage);
+    return fn ? fn->get() : nullptr;
+}
+
+EmojiRegistry::NodeFactoryParams* EmojiRegistry::Entry::getNodeFactoryParams() noexcept {
+    auto* fn = std::get_if<std::shared_ptr<NodeFactoryParams>>(&m_storage);
+    return fn ? fn->get() : nullptr;
 }
 
 EmojiRegistry::EmojiRegistry() : m_impl(std::make_shared<Impl>()) {}
@@ -1692,8 +1857,27 @@ void EmojiRegistry::insert(std::u32string_view sequence, ZStringView frameName) 
     m_impl->insert(sequence, EmojiEntry(frameName));
 }
 
-void EmojiRegistry::insert(std::span<std::tuple<std::u32string_view, Entry>> entries) {
+void EmojiRegistry::insert(std::span<std::tuple<std::u32string_view, Entry> const> entries) {
     m_impl->insert(entries);
+}
+
+void EmojiRegistry::insert(std::span<std::pair<std::u32string_view, Entry> const> entries) {
+    for (auto const& [sequence, entry] : entries) {
+        m_impl->insert(sequence, entry);
+    }
+}
+
+void EmojiRegistry::merge(EmojiRegistry const& other) {
+    if (!other.m_impl || other.m_impl == m_impl) {
+        return;
+    }
+
+    m_impl->m_keys.reserve(m_impl->m_keys.size() + other.m_impl->m_keys.size());
+    m_impl->m_entries.reserve(m_impl->m_entries.size() + other.m_impl->m_entries.size());
+
+    for (size_t i = 0; i < other.m_impl->m_keys.size(); ++i) {
+        m_impl->insert(other.m_impl->m_keys[i], other.m_impl->m_entries[i]);
+    }
 }
 
 void EmojiRegistry::erase(std::u32string_view sequence) {
@@ -1702,6 +1886,519 @@ void EmojiRegistry::erase(std::u32string_view sequence) {
 
 EmojiRegistry::Entry* EmojiRegistry::match(std::u32string_view str, size_t& index) {
     return m_impl->match(str, index);
+}
+
+EmojiRegistry EmojiRegistry::clone() const {
+    if (!m_impl) {
+        return EmojiRegistry();
+    }
+    return EmojiRegistry(std::make_shared<Impl>(*m_impl));
+}
+
+void EmojiRegistry::clear() noexcept {
+    m_impl->m_keys.clear();
+    m_impl->m_entries.clear();
+}
+
+bool EmojiRegistry::contains(std::u32string_view sequence) const noexcept {
+    return m_impl->find(sequence) != nullptr;
+}
+
+size_t EmojiRegistry::size() const noexcept {
+    return m_impl->m_keys.size();
+}
+
+bool EmojiRegistry::empty() const noexcept {
+    return m_impl->m_keys.empty();
+}
+
+std::span<std::u32string_view const> EmojiRegistry::getSequences() const noexcept {
+    return m_impl->m_keys;
+}
+
+EmojiRegistry::Entry const* EmojiRegistry::find(std::u32string_view sequence) const noexcept {
+    return m_impl->find(sequence);
+}
+
+EmojiRegistry const& EmojiRegistry::vanillaEmojis() {
+    static EmojiRegistry registry = [] {
+        using E = std::pair<std::u32string_view, Entry>;
+        static auto const table = std::to_array<E>({
+            E{U":100:", "particle_354_001.png"},
+            E{U":98:", "particle_236_001.png"},
+            E{U":adore:", EmojiEntry{"particle_339_001.png", {0.f, 0.f}, 1.1f, {255, 255, 255}, false}},
+            E{U":angel:", EmojiEntry{"particle_293_001.png", {0.f, 1.2f}, 1.2f, {255, 255, 255}, false}},
+            E{U":angry:", "particle_261_001.png"},
+            E{U":annoyed:", "particle_263_001.png"},
+            E{U":arrow:", "particle_12_001.png"},
+            E{U":arrow_left:", EmojiEntry{"particle_12_001.png", {0.f, 0.f}, 1.f, {255, 255, 255}, true}},
+            E{U":arrow_right:", "particle_12_001.png"},
+            E{U":arrowleft:", EmojiEntry{"particle_12_001.png", {0.f, 0.f}, 1.f, {255, 255, 255}, true}},
+            E{U":arrowright:", "particle_12_001.png"},
+            E{U":astonished:", "particle_275_001.png"},
+            E{U":auto:", "particle_63_001.png"},
+            E{U":ban:", EmojiEntry{"particle_203_001.png", {0.f, 0.f}, 1.f, {0xff, 0x32, 0x32}, false}},
+            E{U":bawl:", "particle_267_001.png"},
+            E{U":beam:", "particle_328_001.png"},
+            E{U":beast1:", EmojiEntry{"particle_341_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U":beast2:", EmojiEntry{"particle_342_001.png", {0.f, 0.f}, 1.1f, {255, 255, 255}, false}},
+            E{U":beast3:", EmojiEntry{"particle_343_001.png", {0.f, 1.f}, 1.1f, {255, 255, 255}, false}},
+            E{U":beast4:", "particle_344_001.png"},
+            E{U":beast5:", "particle_345_001.png"},
+            E{U":bell:", "particle_346_001.png"},
+            E{U":blank:", "particle_250_001.png"},
+            E{U":blob:", "particle_324_001.png"},
+            E{U":blueblock:", "particle_322_001.png"},
+            E{U":bluechest:", "particle_224_001.png"},
+            E{U":bluehuh:", "particle_323_001.png"},
+            E{U":blush:", "particle_252_001.png"},
+            E{U":bolt:", EmojiEntry{"particle_151_001.png", {0.f, 0.f}, 0.85f, {0xff, 0xdc, 0x41}, false}},
+            E{U":bomb:", "particle_315_001.png"},
+            E{U":brick:", "particle_221_001.png"},
+            E{U":bricks:", "particle_221_001.png"},
+            E{U":broken_heart:", "particle_356_001.png"},
+            E{U":brokenheart:", "particle_356_001.png"},
+            E{U":bruh:", "particle_310_001.png"},
+            E{U":chart:", EmojiEntry{"particle_336_001.png", {0.f, -1.5f}, 1.2f, {255, 255, 255}, false}},
+            E{U":chartdown:", EmojiEntry{"particle_338_001.png", {0.f, 0.f}, 0.9f, {255, 255, 255}, false}},
+            E{U":chartup:", EmojiEntry{"particle_337_001.png", {0.f, 0.f}, 0.9f, {255, 255, 255}, false}},
+            E{U":check:", EmojiEntry{"particle_50_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U":checkered_flag:", "particle_333_001.png"},
+            E{U":checkpoint:", "particle_217_001.png"},
+            E{U":chest:", "particle_223_001.png"},
+            E{U":clap:", "particle_300_001.png"},
+            E{U":clock:", "particle_197_001.png"},
+            E{U":clown:", "particle_285_001.png"},
+            E{U":coin:", "particle_311_001.png"},
+            E{U":confused:", EmojiEntry{"particle_295_001.png", {0.f, 1.4f}, 1.2f, {255, 255, 255}, false}},
+            E{U":cool:", "particle_268_001.png"},
+            E{U":crescent_moon:", "particle_208_001.png"},
+            E{U":cross:", EmojiEntry{"particle_193_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U":crossed_fingers:", "particle_347_001.png"},
+            E{U":crown:", "particle_313_001.png"},
+            E{U":cry:", "particle_332_001.png"},
+            E{U":cube:", "particle_213_001.png"},
+            E{U":cubeface:", "particle_260_001.png"},
+            E{U":dead:", "particle_248_001.png"},
+            E{U":deathmarker:", "particle_326_001.png"},
+            E{U":demonchest:", "particle_225_001.png"},
+            E{U":devil:", EmojiEntry{"particle_294_001.png", {0.f, 0.5f}, 1.1f, {255, 255, 255}, false}},
+            E{U":diamond:", EmojiEntry{"particle_51_001.png", {0.f, 0.f}, 1.08f, {255, 255, 255}, false}},
+            E{U":dislike:", "particle_49_001.png"},
+            E{U":dizzy:", "particle_270_001.png"},
+            E{U":dots:", "particle_219_001.png"},
+            E{U":doubt:", "particle_296_001.png"},
+            E{U":download:", "particle_201_001.png"},
+            E{U":easy:", "particle_53_001.png"},
+            E{U":easydemon:", EmojiEntry{"particle_58_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U":envelope:", "particle_207_001.png"},
+            E{U":epic:", "particle_228_001.png"},
+            E{U":evil:", "particle_329_001.png"},
+            E{U":exclaim:", EmojiEntry{"particle_10_001.png", {0.f, 0.f}, 0.92f, {0xff, 0x32, 0x32}, false}},
+            E{U":exclamation:", EmojiEntry{"particle_10_001.png", {0.f, 0.f}, 0.92f, {0xff, 0x32, 0x32}, false}},
+            E{U":exploding_head:", "particle_358_001.png"},
+            E{U":extremedemon:", EmojiEntry{"particle_62_001.png", {0.f, 0.f}, 1.4f, {255, 255, 255}, false}},
+            E{U":eyeroll:", "particle_348_001.png"},
+            E{U":eyes:", EmojiEntry{"particle_298_001.png", {0.f, 0.f}, 0.85f, {255, 255, 255}, false}},
+            E{U":ez:", "particle_235_001.png"},
+            E{U":facepalm:", "particle_282_001.png"},
+            E{U":favorite:", EmojiEntry{"particle_199_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U":favourite:", EmojiEntry{"particle_199_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U":featured:", EmojiEntry{"particle_227_001.png", {0.f, 0.f}, 0.95f, {255, 255, 255}, false}},
+            E{U":fingerscrossed:", "particle_347_001.png"},
+            E{U":fire:", "particle_228_001.png"},
+            E{U":fireskull:", "particle_220_001.png"},
+            E{U":fist:", "particle_304_001.png"},
+            E{U":flag:", "particle_333_001.png"},
+            E{U":flex:", "particle_303_001.png"},
+            E{U":floppy_disk:", "particle_216_001.png"},
+            E{U":gasp:", "particle_264_001.png"},
+            E{U":gear:", "particle_200_001.png"},
+            E{U":gem:", EmojiEntry{"particle_51_001.png", {0.f, 0.f}, 1.08f, {255, 255, 255}, false}},
+            E{U":gg:", "particle_233_001.png"},
+            E{U":ghost:", EmojiEntry{"particle_152_001.png", {0.f, 0.f}, 0.95f, {255, 255, 255}, false}},
+            E{U":globe:", "particle_335_001.png"},
+            E{U":go:", "particle_234_001.png"},
+            E{U":goldblock:", "particle_318_001.png"},
+            E{U":greenblock:", "particle_319_001.png"},
+            E{U":grin:", "particle_327_001.png"},
+            E{U":grinning:", "particle_327_001.png"},
+            E{U":gross:", "particle_277_001.png"},
+            E{U":grr:", "particle_261_001.png"},
+            E{U":handshake:", EmojiEntry{"particle_302_001.png", {0.f, 0.f}, 0.9f, {255, 255, 255}, false}},
+            E{U":happy:", "particle_242_001.png"},
+            E{U":hard:", "particle_55_001.png"},
+            E{U":harddemon:", EmojiEntry{"particle_60_001.png", {0.f, 0.f}, 1.17f, {255, 255, 255}, false}},
+            E{U":harder:", "particle_56_001.png"},
+            E{U":heart:", "particle_355_001.png"},
+            E{U":heart_eyes:", "particle_254_001.png"},
+            E{U":heartbubble:", "particle_231_001.png"},
+            E{U":hide:", "particle_283_001.png"},
+            E{U":house:", "particle_334_001.png"},
+            E{U":hug:", "particle_351_001.png"},
+            E{U":hugging:", "particle_351_001.png"},
+            E{U":huh:", "particle_238_001.png"},
+            E{U":hundred:", "particle_354_001.png"},
+            E{U":hyped:", "particle_246_001.png"},
+            E{U":ill:", "particle_278_001.png"},
+            E{U":innocent:", EmojiEntry{"particle_293_001.png", {0.f, 1.2f}, 1.2f, {255, 255, 255}, false}},
+            E{U":insane:", "particle_57_001.png"},
+            E{U":insanedemon:", EmojiEntry{"particle_61_001.png", {0.f, 0.f}, 1.35f, {255, 255, 255}, false}},
+            E{U":joy:", "particle_244_001.png"},
+            E{U":judge:", "particle_349_001.png"},
+            E{U":key:", "particle_314_001.png"},
+            E{U":keydemon:", EmojiEntry{"particle_205_001.png", {0.f, 0.f}, 1.1f, {255, 255, 255}, false}},
+            E{U":laugh:", "particle_243_001.png"},
+            E{U":laughing:", "particle_243_001.png"},
+            E{U":legendary:", EmojiEntry{"particle_229_001.png", {0.f, 0.f}, 1.05f, {255, 255, 255}, false}},
+            E{U":like:", "particle_48_001.png"},
+            E{U":lock:", "particle_194_001.png"},
+            E{U":lol:", "particle_244_001.png"},
+            E{U":love:", "particle_254_001.png"},
+            E{U":mail:", "particle_207_001.png"},
+            E{U":mediumdemon:", EmojiEntry{"particle_59_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U":meh:", "particle_24_001.png"},
+            E{U":mindblown:", "particle_358_001.png"},
+            E{U":monocle:", EmojiEntry{"particle_291_001.png", {0.f, 1.6f}, 1.22f, {255, 255, 255}, false}},
+            E{U":moon:", "particle_208_001.png"},
+            E{U":moyai:", "particle_310_001.png"},
+            E{U":muscle:", "particle_303_001.png"},
+            E{U":music:", "particle_202_001.png"},
+            E{U":musical_note:", "particle_202_001.png"},
+            E{U":mystery:", "particle_325_001.png"},
+            E{U":mythic:", EmojiEntry{"particle_230_001.png", {0.f, 0.f}, 1.1f, {255, 255, 255}, false}},
+            E{U":na:", "particle_52_001.png"},
+            E{U":nerd:", "particle_359_001.png"},
+            E{U":nerd_face:", "particle_359_001.png"},
+            E{U":neutral_face:", "particle_250_001.png"},
+            E{U":ninja:", "particle_262_001.png"},
+            E{U":no:", EmojiEntry{"particle_193_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U":normal:", "particle_54_001.png"},
+            E{U":nuke:", "particle_316_001.png"},
+            E{U":ok:", "particle_305_001.png"},
+            E{U":ok_hand:", "particle_305_001.png"},
+            E{U":open_mouth:", "particle_264_001.png"},
+            E{U":orangeblock:", "particle_321_001.png"},
+            E{U":orb:", "particle_195_001.png"},
+            E{U":party:", EmojiEntry{"particle_255_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U":partying_face:", EmojiEntry{"particle_255_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U":peace:", "particle_306_001.png"},
+            E{U":pensive:", "particle_361_001.png"},
+            E{U":phew:", "particle_272_001.png"},
+            E{U":pink_heart:", "particle_357_001.png"},
+            E{U":pinkblock:", "particle_320_001.png"},
+            E{U":pinkheart:", "particle_357_001.png"},
+            E{U":plead:", "particle_256_001.png"},
+            E{U":pleading_face:", "particle_256_001.png"},
+            E{U":pls:", "particle_256_001.png"},
+            E{U":point:", "particle_307_001.png"},
+            E{U":point_left:", "particle_307_001.png"},
+            E{U":point_right:", EmojiEntry{"particle_307_001.png", {0.f, 0.f}, 1.f, {255, 255, 255}, true}},
+            E{U":pointleft:", "particle_307_001.png"},
+            E{U":pointright:", EmojiEntry{"particle_307_001.png", {0.f, 0.f}, 1.f, {255, 255, 255}, true}},
+            E{U":poop:", "particle_308_001.png"},
+            E{U":popcorn:", "particle_309_001.png"},
+            E{U":pray:", "particle_301_001.png"},
+            E{U":puke:", "particle_279_001.png"},
+            E{U":puppyeyes:", "particle_253_001.png"},
+            E{U":quest:", "particle_218_001.png"},
+            E{U":question:", EmojiEntry{"particle_11_001.png", {0.f, 0.f}, 0.92f, {0xff, 0x32, 0x32}, false}},
+            E{U":rage:", "particle_57_001.png"},
+            E{U":raised_hands:", "particle_352_001.png"},
+            E{U":raisedhands:", "particle_352_001.png"},
+            E{U":rate:", "particle_232_001.png"},
+            E{U":redblock:", "particle_317_001.png"},
+            E{U":relieved:", "particle_259_001.png"},
+            E{U":rolling_eyes:", "particle_348_001.png"},
+            E{U":royal:", EmojiEntry{"particle_226_001.png", {0.f, 0.f}, 0.85f, {255, 255, 255}, false}},
+            E{U":sad:", "particle_240_001.png"},
+            E{U":sadclown:", "particle_286_001.png"},
+            E{U":salute:", "particle_284_001.png"},
+            E{U":save:", "particle_216_001.png"},
+            E{U":sceptical:", "particle_360_001.png"},
+            E{U":scream:", "particle_274_001.png"},
+            E{U":shadow:", "particle_280_001.png"},
+            E{U":shocked:", "particle_274_001.png"},
+            E{U":shrug:", "particle_287_001.png"},
+            E{U":sick:", "particle_276_001.png"},
+            E{U":silvercoin:", "particle_312_001.png"},
+            E{U":sir:", EmojiEntry{"particle_292_001.png", {0.f, 1.6f}, 1.22f, {255, 255, 255}, false}},
+            E{U":skeptical:", "particle_360_001.png"},
+            E{U":skull:", "particle_215_001.png"},
+            E{U":skullbomb:", "particle_316_001.png"},
+            E{U":sleeping:", "particle_290_001.png"},
+            E{U":sleepy:", "particle_288_001.png"},
+            E{U":slight_smile:", "particle_239_001.png"},
+            E{U":slightsmile:", "particle_239_001.png"},
+            E{U":smile:", "particle_327_001.png"},
+            E{U":smiley:", "particle_23_001.png"},
+            E{U":smiling_imp:", EmojiEntry{"particle_294_001.png", {0.f, 0.5f}, 1.1f, {255, 255, 255}, false}},
+            E{U":smirk:", "particle_257_001.png"},
+            E{U":smug:", "particle_258_001.png"},
+            E{U":sniff:", "particle_330_001.png"},
+            E{U":snore:", "particle_290_001.png"},
+            E{U":snow:", EmojiEntry{"particle_14_001.png", {0.f, 0.f}, 0.9f, {0xa0, 0xe1, 0xff}, false}},
+            E{U":snowflake:", EmojiEntry{"particle_14_001.png", {0.f, 0.f}, 0.9f, {0xa0, 0xe1, 0xff}, false}},
+            E{U":sob:", "particle_266_001.png"},
+            E{U":sparkles:", "particle_353_001.png"},
+            E{U":spike:", "particle_214_001.png"},
+            E{U":star:", EmojiEntry{"particle_47_001.png", {0.f, 0.f}, 1.08f, {255, 255, 255}, false}},
+            E{U":star_struck:", "particle_245_001.png"},
+            E{U":stare:", "particle_249_001.png"},
+            E{U":starstruck:", "particle_245_001.png"},
+            E{U":sun:", EmojiEntry{"particle_281_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U":sunglasses:", "particle_268_001.png"},
+            E{U":sus:", "particle_241_001.png"},
+            E{U":swear:", "particle_237_001.png"},
+            E{U":sweat:", "particle_271_001.png"},
+            E{U":sweat_smile:", "particle_272_001.png"},
+            E{U":tada:", EmojiEntry{"particle_255_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U":teary:", "particle_331_001.png"},
+            E{U":think:", "particle_251_001.png"},
+            E{U":thinking:", "particle_251_001.png"},
+            E{U":thug:", "particle_269_001.png"},
+            E{U":thumbsdown:", "particle_49_001.png"},
+            E{U":thumbsup:", "particle_48_001.png"},
+            E{U":tired:", "particle_289_001.png"},
+            E{U":tired_face:", "particle_289_001.png"},
+            E{U":tongue:", "particle_265_001.png"},
+            E{U":tools:", "particle_196_001.png"},
+            E{U":trophy:", "particle_222_001.png"},
+            E{U":unamused:", "particle_263_001.png"},
+            E{U":usercoin:", "particle_312_001.png"},
+            E{U":wave:", "particle_299_001.png"},
+            E{U":wink:", "particle_247_001.png"},
+            E{U":wow:", "particle_275_001.png"},
+            E{U":wraith:", EmojiEntry{"particle_340_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U":x:", EmojiEntry{"particle_193_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U":yay:", "particle_242_001.png"},
+            E{U":yes:", EmojiEntry{"particle_50_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U":yikes:", "particle_273_001.png"},
+            E{U":yum:", "particle_350_001.png"},
+            E{U":zap:", EmojiEntry{"particle_151_001.png", {0.f, 0.f}, 0.85f, {0xff, 0xdc, 0x41}, false}},
+            E{U":zip:", "particle_297_001.png"},
+            E{U":zipper_mouth:", "particle_297_001.png"},
+            E{U":zzz:", "particle_290_001.png"},
+            E{U"‼", EmojiEntry{"particle_10_001.png", {0.f, 0.f}, 0.92f, {0xff, 0x32, 0x32}, false}},
+            E{U"⌚", "particle_197_001.png"},
+            E{U"⌛", "particle_197_001.png"},
+            E{U"⏰", "particle_197_001.png"},
+            E{U"⏳", "particle_197_001.png"},
+            E{U"☀", EmojiEntry{"particle_281_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U"☠", "particle_215_001.png"},
+            E{U"☹", "particle_240_001.png"},
+            E{U"⚙", "particle_200_001.png"},
+            E{U"⚡", EmojiEntry{"particle_151_001.png", {0.f, 0.f}, 0.85f, {0xff, 0xdc, 0x41}, false}},
+            E{U"⛔", EmojiEntry{"particle_203_001.png", {0.f, 0.f}, 1.f, {0xff, 0x32, 0x32}, false}},
+            E{U"✅", EmojiEntry{"particle_50_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U"✉", "particle_207_001.png"},
+            E{U"✊", "particle_304_001.png"},
+            E{U"✌", "particle_306_001.png"},
+            E{U"✔", EmojiEntry{"particle_50_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U"✨", "particle_353_001.png"},
+            E{U"❄", EmojiEntry{"particle_14_001.png", {0.f, 0.f}, 0.9f, {0xa0, 0xe1, 0xff}, false}},
+            E{U"❌", EmojiEntry{"particle_193_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U"❎", EmojiEntry{"particle_193_001.png", {0.f, 0.f}, 0.92f, {255, 255, 255}, false}},
+            E{U"❓", EmojiEntry{"particle_11_001.png", {0.f, 0.f}, 0.92f, {0xff, 0x32, 0x32}, false}},
+            E{U"❔", EmojiEntry{"particle_11_001.png", {0.f, 0.f}, 0.92f, {0xff, 0x32, 0x32}, false}},
+            E{U"❗", EmojiEntry{"particle_10_001.png", {0.f, 0.f}, 0.92f, {0xff, 0x32, 0x32}, false}},
+            E{U"❤", "particle_355_001.png"},
+            E{U"➡", "particle_12_001.png"},
+            E{U"⬅", EmojiEntry{"particle_12_001.png", {0.f, 0.f}, 1.f, {255, 255, 255}, true}},
+            E{U"⬇", "particle_201_001.png"},
+            E{U"⭐", EmojiEntry{"particle_47_001.png", {0.f, 0.f}, 1.08f, {255, 255, 255}, false}},
+            E{U"🌍", "particle_335_001.png"},
+            E{U"🌎", "particle_335_001.png"},
+            E{U"🌏", "particle_335_001.png"},
+            E{U"🌙", "particle_208_001.png"},
+            E{U"🌛", "particle_208_001.png"},
+            E{U"🌞", EmojiEntry{"particle_281_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U"🌟", EmojiEntry{"particle_47_001.png", {0.f, 0.f}, 1.08f, {255, 255, 255}, false}},
+            E{U"🍿", "particle_309_001.png"},
+            E{U"🎁", "particle_223_001.png"},
+            E{U"🎉", EmojiEntry{"particle_255_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U"🎩", EmojiEntry{"particle_292_001.png", {0.f, 1.6f}, 1.22f, {255, 255, 255}, false}},
+            E{U"🎵", "particle_202_001.png"},
+            E{U"🎶", "particle_202_001.png"},
+            E{U"🏁", "particle_333_001.png"},
+            E{U"🏆", "particle_222_001.png"},
+            E{U"🏠", "particle_334_001.png"},
+            E{U"👀", EmojiEntry{"particle_298_001.png", {0.f, 0.f}, 0.85f, {255, 255, 255}, false}},
+            E{U"👈", "particle_307_001.png"},
+            E{U"👉", EmojiEntry{"particle_307_001.png", {0.f, 0.f}, 1.f, {255, 255, 255}, true}},
+            E{U"👊", "particle_304_001.png"},
+            E{U"👋", "particle_299_001.png"},
+            E{U"👌", "particle_305_001.png"},
+            E{U"👍", "particle_48_001.png"},
+            E{U"👎", "particle_49_001.png"},
+            E{U"👏", "particle_300_001.png"},
+            E{U"👑", "particle_313_001.png"},
+            E{U"👻", EmojiEntry{"particle_152_001.png", {0.f, 0.f}, 0.95f, {255, 255, 255}, false}},
+            E{U"👿", "particle_329_001.png"},
+            E{U"💀", "particle_215_001.png"},
+            E{U"💎", EmojiEntry{"particle_51_001.png", {0.f, 0.f}, 1.08f, {255, 255, 255}, false}},
+            E{U"💔", "particle_356_001.png"},
+            E{U"💕", "particle_357_001.png"},
+            E{U"💖", "particle_357_001.png"},
+            E{U"💗", "particle_357_001.png"},
+            E{U"💙", "particle_355_001.png"},
+            E{U"💚", "particle_355_001.png"},
+            E{U"💛", "particle_355_001.png"},
+            E{U"💜", "particle_355_001.png"},
+            E{U"💣", "particle_315_001.png"},
+            E{U"💤", "particle_290_001.png"},
+            E{U"💩", "particle_308_001.png"},
+            E{U"💪", "particle_303_001.png"},
+            E{U"💬", "particle_219_001.png"},
+            E{U"💭", "particle_219_001.png"},
+            E{U"💯", "particle_354_001.png"},
+            E{U"💾", "particle_216_001.png"},
+            E{U"📈", EmojiEntry{"particle_337_001.png", {0.f, 0.f}, 0.9f, {255, 255, 255}, false}},
+            E{U"📉", EmojiEntry{"particle_338_001.png", {0.f, 0.f}, 0.9f, {255, 255, 255}, false}},
+            E{U"📊", EmojiEntry{"particle_336_001.png", {0.f, -1.5f}, 1.2f, {255, 255, 255}, false}},
+            E{U"📥", "particle_201_001.png"},
+            E{U"📧", "particle_207_001.png"},
+            E{U"📨", "particle_207_001.png"},
+            E{U"📩", "particle_207_001.png"},
+            E{U"🔑", "particle_314_001.png"},
+            E{U"🔒", "particle_194_001.png"},
+            E{U"🔔", "particle_346_001.png"},
+            E{U"🔥", "particle_228_001.png"},
+            E{U"🔧", "particle_196_001.png"},
+            E{U"🔮", "particle_195_001.png"},
+            E{U"🕐", "particle_197_001.png"},
+            E{U"🕑", "particle_197_001.png"},
+            E{U"🕒", "particle_197_001.png"},
+            E{U"🕓", "particle_197_001.png"},
+            E{U"🕔", "particle_197_001.png"},
+            E{U"🕕", "particle_197_001.png"},
+            E{U"🕖", "particle_197_001.png"},
+            E{U"🕗", "particle_197_001.png"},
+            E{U"🕘", "particle_197_001.png"},
+            E{U"🕙", "particle_197_001.png"},
+            E{U"🕚", "particle_197_001.png"},
+            E{U"🕛", "particle_197_001.png"},
+            E{U"🕜", "particle_197_001.png"},
+            E{U"🕝", "particle_197_001.png"},
+            E{U"🕞", "particle_197_001.png"},
+            E{U"🕟", "particle_197_001.png"},
+            E{U"🕠", "particle_197_001.png"},
+            E{U"🕡", "particle_197_001.png"},
+            E{U"🕢", "particle_197_001.png"},
+            E{U"🕣", "particle_197_001.png"},
+            E{U"🕤", "particle_197_001.png"},
+            E{U"🕥", "particle_197_001.png"},
+            E{U"🕦", "particle_197_001.png"},
+            E{U"🕧", "particle_197_001.png"},
+            E{U"🖤", "particle_355_001.png"},
+            E{U"🗿", "particle_310_001.png"},
+            E{U"😀", "particle_327_001.png"},
+            E{U"😁", "particle_328_001.png"},
+            E{U"😂", "particle_244_001.png"},
+            E{U"😃", "particle_242_001.png"},
+            E{U"😄", "particle_328_001.png"},
+            E{U"😅", "particle_272_001.png"},
+            E{U"😆", "particle_243_001.png"},
+            E{U"😇", EmojiEntry{"particle_293_001.png", {0.f, 1.2f}, 1.2f, {255, 255, 255}, false}},
+            E{U"😈", EmojiEntry{"particle_294_001.png", {0.f, 0.5f}, 1.1f, {255, 255, 255}, false}},
+            E{U"😉", "particle_247_001.png"},
+            E{U"😊", "particle_252_001.png"},
+            E{U"😋", "particle_350_001.png"},
+            E{U"😌", "particle_259_001.png"},
+            E{U"😍", "particle_254_001.png"},
+            E{U"😎", "particle_268_001.png"},
+            E{U"😏", "particle_257_001.png"},
+            E{U"😐", "particle_250_001.png"},
+            E{U"😑", "particle_250_001.png"},
+            E{U"😒", "particle_349_001.png"},
+            E{U"😓", "particle_271_001.png"},
+            E{U"😔", "particle_361_001.png"},
+            E{U"😕", EmojiEntry{"particle_295_001.png", {0.f, 1.4f}, 1.2f, {255, 255, 255}, false}},
+            E{U"😘", "particle_254_001.png"},
+            E{U"😛", "particle_265_001.png"},
+            E{U"😜", "particle_265_001.png"},
+            E{U"😝", "particle_265_001.png"},
+            E{U"😞", "particle_361_001.png"},
+            E{U"😠", "particle_261_001.png"},
+            E{U"😡", "particle_261_001.png"},
+            E{U"😢", "particle_332_001.png"},
+            E{U"😤", "particle_261_001.png"},
+            E{U"😥", "particle_330_001.png"},
+            E{U"😨", "particle_273_001.png"},
+            E{U"😩", "particle_289_001.png"},
+            E{U"😪", "particle_288_001.png"},
+            E{U"😫", "particle_289_001.png"},
+            E{U"😬", "particle_273_001.png"},
+            E{U"😭", "particle_266_001.png"},
+            E{U"😮", "particle_264_001.png"},
+            E{U"😯", "particle_264_001.png"},
+            E{U"😰", "particle_271_001.png"},
+            E{U"😱", "particle_274_001.png"},
+            E{U"😲", "particle_275_001.png"},
+            E{U"😳", "particle_252_001.png"},
+            E{U"😴", "particle_290_001.png"},
+            E{U"😵", "particle_248_001.png"},
+            E{U"😶", "particle_250_001.png"},
+            E{U"😷", "particle_278_001.png"},
+            E{U"🙁", "particle_240_001.png"},
+            E{U"🙂", "particle_239_001.png"},
+            E{U"🙃", "particle_239_001.png"},
+            E{U"🙄", "particle_348_001.png"},
+            E{U"🙈", "particle_283_001.png"},
+            E{U"🙌", "particle_352_001.png"},
+            E{U"🙏", "particle_301_001.png"},
+            E{U"🚩", "particle_333_001.png"},
+            E{U"🚫", EmojiEntry{"particle_203_001.png", {0.f, 0.f}, 1.f, {0xff, 0x32, 0x32}, false}},
+            E{U"🛠", "particle_196_001.png"},
+            E{U"🟥", "particle_317_001.png"},
+            E{U"🟦", "particle_322_001.png"},
+            E{U"🟧", "particle_321_001.png"},
+            E{U"🟨", "particle_318_001.png"},
+            E{U"🟩", "particle_319_001.png"},
+            E{U"🟪", "particle_320_001.png"},
+            E{U"🤍", "particle_355_001.png"},
+            E{U"🤐", "particle_297_001.png"},
+            E{U"🤒", "particle_276_001.png"},
+            E{U"🤓", "particle_359_001.png"},
+            E{U"🤔", "particle_251_001.png"},
+            E{U"🤗", "particle_351_001.png"},
+            E{U"🤝", EmojiEntry{"particle_302_001.png", {0.f, 0.f}, 0.9f, {255, 255, 255}, false}},
+            E{U"🤞", "particle_347_001.png"},
+            E{U"🤡", "particle_285_001.png"},
+            E{U"🤢", "particle_277_001.png"},
+            E{U"🤣", "particle_244_001.png"},
+            E{U"🤦", "particle_282_001.png"},
+            E{U"🤧", "particle_276_001.png"},
+            E{U"🤨", "particle_241_001.png"},
+            E{U"🤩", "particle_245_001.png"},
+            E{U"🤪", "particle_265_001.png"},
+            E{U"🤬", "particle_237_001.png"},
+            E{U"🤮", "particle_279_001.png"},
+            E{U"🤯", "particle_358_001.png"},
+            E{U"🤷", "particle_287_001.png"},
+            E{U"🥰", EmojiEntry{"particle_339_001.png", {0.f, 0.f}, 1.1f, {255, 255, 255}, false}},
+            E{U"🥱", "particle_290_001.png"},
+            E{U"🥲", "particle_331_001.png"},
+            E{U"🥳", EmojiEntry{"particle_255_001.png", {0.f, 0.f}, 1.2f, {255, 255, 255}, false}},
+            E{U"🥷", "particle_262_001.png"},
+            E{U"🥹", "particle_331_001.png"},
+            E{U"🥺", "particle_256_001.png"},
+            E{U"🧐", EmojiEntry{"particle_291_001.png", {0.f, 1.6f}, 1.22f, {255, 255, 255}, false}},
+            E{U"🧡", "particle_355_001.png"},
+            E{U"🧱", "particle_221_001.png"},
+            E{U"🩷", "particle_357_001.png"},
+            E{U"🪙", "particle_311_001.png"},
+            E{U"🫡", "particle_284_001.png"},
+            E{U"🫣", "particle_283_001.png"},
+            E{U"🫤", "particle_296_001.png"},
+            E{U"😵‍💫", "particle_270_001.png"},
+        });
+
+        EmojiRegistry reg;
+        reg.insert(table);
+        return reg;
+    }();
+    return registry;
 }
 
 Label::Label() : m_impl(new Impl(this)) {}
@@ -2058,11 +2755,106 @@ size_t Label::getCharCount() noexcept {
     return m_impl->m_chars.size();
 }
 
+size_t Label::getGlyphCount() noexcept {
+    this->validate();
+    return m_impl->m_glyphs.size();
+}
+
+std::vector<Label::GlyphInfo> const& Label::getGlyphInfos() noexcept {
+    this->validate();
+    return m_impl->m_glyphs;
+}
+
+std::optional<Label::GlyphInfo> Label::getGlyphInfo(size_t glyphIndex) noexcept {
+    this->validate();
+    if (glyphIndex >= m_impl->m_glyphs.size()) {
+        return std::nullopt;
+    }
+    return m_impl->m_glyphs[glyphIndex];
+}
+
+size_t Label::getCodepointCount() noexcept {
+    this->validate();
+    return m_impl->m_codepointCount;
+}
+
+float Label::getLineHeight() noexcept {
+    if (m_impl->m_fonts.empty()) return 0.f;
+    return m_impl->m_fonts.data()[0]->getCommonHeightScaled() + m_impl->m_extraLineSpacing;
+}
+
+std::optional<CCRect> Label::getCharBounds(size_t codepointIndex) noexcept {
+    this->validate();
+
+    if (codepointIndex > m_impl->m_codepointCount) {
+        return std::nullopt;
+    }
+
+    float lineHeight = this->getLineHeight();
+    auto const& shaped = m_impl->m_shaped;
+
+    for (size_t i = 0; i < shaped.size(); ++i) {
+        auto const& item = shaped[i];
+        auto const& pen = m_impl->m_itemPens[i];
+
+        if (item.srcIndex + item.srcLength <= codepointIndex) continue;
+
+        if (item.srcIndex > codepointIndex) {
+            return CCRect{ pen.x, pen.y - lineHeight, 0.f, lineHeight };
+        }
+
+        switch (item.kind) {
+            case ShapedItem::Kind::Glyph:
+            case ShapedItem::Kind::Emoji:
+            case ShapedItem::Kind::Node: {
+                auto& glyphs = m_impl->m_glyphs;
+                auto it = std::ranges::lower_bound(
+                    glyphs, item.srcIndex, {}, &GlyphInfo::stringIndex
+                );
+                if (it != glyphs.end() && it->stringIndex == item.srcIndex) {
+                    return it->bounds;
+                }
+                return CCRect{ pen.x, pen.y - lineHeight, 0.f, lineHeight };
+            }
+            case ShapedItem::Kind::Space:
+                return CCRect{ pen.x, pen.y - lineHeight, item.advance, lineHeight };
+            case ShapedItem::Kind::Newline:
+                return CCRect{ pen.x, pen.y - lineHeight, 0.f, lineHeight };
+        }
+    }
+
+    auto pen = m_impl->endPen();
+    return CCRect{ pen.x, pen.y - lineHeight, 0.f, lineHeight };
+}
+
+std::optional<CCPoint> Label::getCursorPosition(size_t codepointIndex) noexcept {
+    this->validate();
+
+    if (codepointIndex > m_impl->m_codepointCount) {
+        return std::nullopt;
+    }
+
+    float lineHeight = this->getLineHeight();
+    auto const& shaped = m_impl->m_shaped;
+    for (size_t i = 0; i < shaped.size(); ++i) {
+        if (shaped[i].srcIndex >= codepointIndex) {
+            return CCPoint{ m_impl->m_itemPens[i].x, m_impl->m_itemPens[i].y - lineHeight };
+        }
+    }
+
+    auto pen = m_impl->endPen();
+    return CCPoint{ pen.x, pen.y - lineHeight };
+}
+
 void Label::setEmojiRegistry(EmojiRegistry const& registry) {
     m_impl->m_emojiRegistry = registry.m_impl;
+    m_impl->m_textDirty = true;
 }
 
 EmojiRegistry Label::getEmojiRegistry() {
+    if (!m_impl->m_emojiRegistry) {
+        return EmojiRegistry();
+    }
     return EmojiRegistry(m_impl->m_emojiRegistry);
 }
 
@@ -2218,7 +3010,6 @@ void Label::setText(std::string text) noexcept {
 
     m_impl->m_text = std::move(text);
     m_impl->m_textDirty = true;
-    m_impl->m_useRichText = false;
 }
 
 ZStringView Label::getText() noexcept {
@@ -2226,13 +3017,28 @@ ZStringView Label::getText() noexcept {
 }
 
 void Label::setRichText(std::string text) {
+    bool wasRich = m_impl->m_useRichText;
+    m_impl->m_useRichText = true;
+
     if (m_impl->m_text == text) {
+        if (!wasRich) {
+            m_impl->m_textDirty = true;
+        }
         return;
     }
 
     m_impl->m_text = std::move(text);
     m_impl->m_textDirty = true;
-    m_impl->m_useRichText = true;
+}
+
+void Label::setRichTextEnabled(bool enabled) noexcept {
+    if (m_impl->m_useRichText == enabled) return;
+    m_impl->m_useRichText = enabled;
+    m_impl->m_textDirty = true;
+}
+
+bool Label::isRichTextEnabled() const noexcept {
+    return m_impl->m_useRichText;
 }
 
 void Label::setString(char const* label) {
@@ -2242,7 +3048,6 @@ void Label::setString(char const* label) {
 
     m_impl->m_text = label;
     m_impl->m_textDirty = true;
-    m_impl->m_useRichText = false;
 }
 
 char const* Label::getString() {
@@ -2300,6 +3105,9 @@ bool Label::initWithFont(BitmapFont* font) {
 
     this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor));
     this->setAnchorPoint({0.5f, 0.5f});
+
+    // provide vanilla emojis by default
+    this->setEmojiRegistry(EmojiRegistry::vanillaEmojis());
 
     return true;
 }

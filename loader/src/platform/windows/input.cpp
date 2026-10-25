@@ -765,6 +765,14 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         // window is created on a different thread, so it needs time to initialize
         queueInMainThread([]{ attemptHookRawInput(); });
     }
+
+    void clearQueuedInput() {
+        CCEGLView::clearQueuedInput();
+
+        // clearQueuedInput should've released all keys already
+        RawInputQueue::get().clear();
+        KeyStateTracker::get().clear();
+    }
 };
 
 static void GLFWFocusCallback(GLFWwindow* window, int focused) {
