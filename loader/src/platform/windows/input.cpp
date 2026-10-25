@@ -3,6 +3,8 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
+#include <Geode/loader/Event.hpp>
 #include <Geode/modify/CCApplication.hpp>
 #include <Geode/modify/CCEGLView.hpp>
 #include <Geode/utils/Keyboard.hpp>
@@ -344,6 +346,9 @@ static enumKeyCodes keyToKeyCode(uint16_t vkey, bool isE0) {
         case VK_OEM_6: return enumKeyCodes::KEY_RightBracket;
         case VK_OEM_3: return enumKeyCodes::KEY_GraveAccent;
         case VK_OEM_102: return enumKeyCodes::KEY_World1;
+        case VK_OEM_8: return enumKeyCodes::KEY_OEM8;
+        case 0xC1: return enumKeyCodes::KEY_ABNT1; // VK_ABNT_C1
+        case 0xC2: return enumKeyCodes::KEY_ABNT2; // VK_ABNT_C2
         case VK_OEM_COMMA: return enumKeyCodes::KEY_OEMComma;
         case VK_OEM_PERIOD: return enumKeyCodes::KEY_OEMPeriod;
 
@@ -648,6 +653,22 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                     }
                 } else if (data.button == Right && isDown && result == ListenerResult::Propagate) {
                     this->handleRightClick(m_fMouseX, m_fMouseY);
+                } else if ((data.button == Button4 || data.button == Button5) && result == ListenerResult::Propagate) {
+                    if (!isDown || !CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
+                        auto* kbDispatcher = CCKeyboardDispatcher::get();
+                        kbDispatcher->updateModifierKeys(
+                            data.modifiers & KeyboardModifier::Shift,
+                            data.modifiers & KeyboardModifier::Control,
+                            data.modifiers & KeyboardModifier::Alt,
+                            data.modifiers & KeyboardModifier::Super
+                        );
+                        kbDispatcher->dispatchKeyboardMSG(
+                            MouseInputData::buttonToKeyCode(data.button),
+                            isDown,
+                            false,
+                            data.timestamp
+                        );
+                    }
                 }
             }
         }

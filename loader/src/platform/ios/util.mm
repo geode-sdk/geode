@@ -16,6 +16,8 @@ using namespace geode::prelude;
 #include <Geode/binding/AppDelegate.hpp>
 #include <Geode/binding/MenuLayer.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/cocos/actions/CCActionManager.h>
+#include <Geode/cocos/platform/ios/CCEGLView.h>
 #include <Geode/Utils.hpp>
 #include <mach-o/utils.h>
 #include <objc/runtime.h>
@@ -385,7 +387,7 @@ namespace {
 
         asp::fs::Path documentsPath = [documentsDirectory UTF8String];
 
-        s_savedBaseDir = documentsPath;
+        s_savedBaseDir = documentsPath.string();
         return asp::fs::Path(documentsPath);
     }
 }
