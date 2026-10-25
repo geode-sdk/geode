@@ -4,6 +4,7 @@
 #include "CCKeyboardDelegate.h"
 #include "../../cocoa/CCArray.h"
 #include <unordered_map>
+#include <vector>
 
 
 NS_CC_BEGIN

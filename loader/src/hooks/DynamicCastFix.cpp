@@ -12,7 +12,7 @@ $on_mod(Loaded) {
     #if defined(GEODE_IS_MACOS) && GEODE_COMP_GD_VERSION != 22091
         #error "Unsupported version for macOS dynamic cast fix, please update the addresses"
     #endif
-    #if defined(GEODE_IS_IOS) && GEODE_COMP_GD_VERSION != 22081
+    #if defined(GEODE_IS_IOS) && GEODE_COMP_GD_VERSION != 22091
         #error "Unsupported version for iOS dynamic cast fix, please update the addresses"
     #endif
 
@@ -30,7 +30,7 @@ $on_mod(Loaded) {
 
         dlclose(handle);
     #elif defined(GEODE_IS_IOS)
-        void* addr = reinterpret_cast<void*>(base::get() + 0x7812d8);
+        void* addr = reinterpret_cast<void*>(base::get() + 0x8ceeb8);
         (void) Mod::get()->patch(addr, geode::toBytes(&cast::typeinfoCastInternal));
     #endif
 }
