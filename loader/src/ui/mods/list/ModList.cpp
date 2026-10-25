@@ -97,10 +97,12 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
         m_updateAllContainer->addChildAtPosition(m_updateAllBG, Anchor::Center);
 
-        // TODO: 2.209
-        m_updateCountLabel =
-            TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, {.0f, 1.f}, 12.f, false, 0);
+        m_updateCountLabel = Label::create("", "bigFont.fnt");
         m_updateCountLabel->setID("update-count-label");
+        m_updateCountLabel->setLineSpacing(12.f);
+        m_updateCountLabel->setMaxWidth((size.width / 2.f) - 30.f);
+        m_updateCountLabel->setAnchorPoint({.0f, 1.f});
+        m_updateCountLabel->setScale(.35f);
         m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, {10.f, .0f}, {});
 
         m_updateAllMenu = CCMenu::create();
@@ -491,16 +493,18 @@ void ModList::onShowStatusDetails(CCObject*) {
 void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
     if (check.modsWithUpdates.empty() && check.modsWithDeprecations.empty()) return;
 
+    m_hasDeprecations = !check.modsWithDeprecations.empty();
+
     // Not sure if updates really should take precedence over deprecations
-    if (check.modsWithUpdates.size()) {
+    if (check.modsWithUpdates.size() > 0) {
         if (check.modsWithUpdates.size() == 1) {
-            m_updateCountLabel->setString("There is an update available!");
+            m_updateCountLabel->setText("There is an update available!");
             m_updateAllSpr->setString("");
             m_showUpdatesSpr->setString("Show Update");
             m_hideUpdatesSpr->setString("Hide Update");
         }
         else {
-            m_updateCountLabel->setString(
+            m_updateCountLabel->setRichText(
                 fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size())
             );
             m_updateAllSpr->setString("Update All");
@@ -508,14 +512,12 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
             m_hideUpdatesSpr->setString("Hide Updates");
         }
     }
-    else if (check.modsWithDeprecations.size()) {
-        m_updateCountLabel->setString("Some of your mods have been deprecated!");
+    else if (m_hasDeprecations) {
+        m_updateCountLabel->setText("Some of your mods have been deprecated!");
         m_updateAllSpr->setString("");
         m_showUpdatesSpr->setString("Show");
         m_hideUpdatesSpr->setString("Hide");
     }
-
-    m_hasDeprecations = check.modsWithDeprecations.size() > 0;
 
     // Fix "Show Update" / "Show" button positioning
     auto btnSize = m_showUpdatesSpr->getScaledContentSize();

@@ -1,21 +1,22 @@
 #pragma once
 
+#include "../sources/ModListSource.hpp"
+#include "ModListItem.hpp"
+
 #include <Geode/ui/General.hpp>
+#include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include <Geode/ui/IconButtonSprite.hpp>
-#include <Geode/binding/TextArea.hpp>
-#include "ModListItem.hpp"
-#include "../sources/ModListSource.hpp"
 #include <server/DownloadManager.hpp>
 #include <variant>
 
 using namespace geode::prelude;
 
 struct ModListErrorStatus {};
+
 struct ModListUnkProgressStatus {};
+
 using ModListStatus = std::variant<ModListErrorStatus, ModListUnkProgressStatus>;
 
 struct InstalledModsUpdateCheck final {
@@ -50,7 +51,7 @@ protected:
     CCMenuItemToggler* m_toggleUpdatesOnlyBtn = nullptr;
     CCNode* m_errorsContainer = nullptr;
     CCMenuItemToggler* m_toggleErrorsOnlyBtn = nullptr;
-    TextArea* m_updateCountLabel = nullptr;
+    Label* m_updateCountLabel = nullptr;
     TextInput* m_searchInput;
     CCMenuItemSpriteExtra* m_filtersBtn;
     CCMenuItemSpriteExtra* m_clearFiltersBtn;
@@ -87,7 +88,9 @@ public:
 
     void reloadPage();
     void gotoPage(size_t page, bool update = false);
-    void showStatus(ModListStatus status, ZStringView message, std::optional<std::string> details = std::nullopt);
+    void showStatus(
+        ModListStatus status, ZStringView message, std::optional<std::string> details = std::nullopt
+    );
 
     void updateState();
     void updateDisplay(ModListDisplay display);
