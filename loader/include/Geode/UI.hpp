@@ -22,6 +22,7 @@
 #include "ui/Notification.hpp"
 #include "ui/OverlayManager.hpp"
 #include "ui/Popup.hpp"
+#include "ui/ProcessPopup.hpp"
 #include "ui/ProgressBar.hpp"
 #include "ui/SceneEvent.hpp"
 #include "ui/Scrollbar.hpp"
