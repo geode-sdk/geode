@@ -1,19 +1,20 @@
 #pragma once
 
+#include <Geode/cocos/include/ccTypes.h>
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/function.hpp>
 
 namespace geode {
-    // Enum for progress bar style
-    enum class ProgressBarStyle : uint8_t {
-        Level, // Style commonly seen in classic levels
-        Slider, // Style commonly seen as sliders
-        Solid, // Style commonly seen in level progression UI
-    };
-
     class GEODE_DLL ProgressBar final : public cocos2d::CCNode {
         class Impl;
         std::unique_ptr<Impl> m_impl;
+
+    public:
+        enum class Style : uint8_t {
+            Level, // Style commonly seen in classic levels
+            Slider, // Style commonly seen as sliders
+            Solid, // Style commonly seen in level progression UI
+        };
 
     protected:
         ProgressBar();
@@ -23,7 +24,7 @@ namespace geode {
 
         void onAnimate(float dt);
 
-        bool init(float progress, ProgressBarStyle style);
+        bool init(float progress, Style style);
 
     public:
         using AnimationCallback = Function<void(ProgressBar* self, bool completed)>;
@@ -31,15 +32,15 @@ namespace geode {
         /// Create a custom progress bar with a pre-determined progress state
         /// @param style Style of the progress bar
         /// @param progress A float from 0 to 100 for the amount of progress to start the bar with upon creation
-        static ProgressBar* create(float progress, ProgressBarStyle style = ProgressBarStyle::Level);
+        static ProgressBar* create(float progress, Style style = Style::Level);
 
         /// Create a custom progress bar
         /// @param style Style of the progress bar
-        static ProgressBar* create(ProgressBarStyle style = ProgressBarStyle::Level);
+        static ProgressBar* create(Style style = Style::Level);
 
         /// Set the style of the progress bar
         /// @param style Style to switch to
-        void setStyle(ProgressBarStyle style);
+        void setStyle(Style style);
 
         /// Set the color of the fill of the bar
         /// @param color RGB color object
@@ -58,7 +59,10 @@ namespace geode {
         /// @param duration Amount of seconds the animation will last
         /// @param ease Animation easing type
         /// @param callback Optional callback that fires when the animation ends
-        virtual void updateProgress(float value, float duration, EasingType ease = EasingType::None, AnimationCallback callback = nullptr);
+        virtual void updateProgress(
+            float value, float duration, EasingType ease = EasingType::None,
+            AnimationCallback callback = nullptr
+        );
 
         /// Stop the running progress animation, if any
         void stopProgressAnimation();
@@ -77,7 +81,7 @@ namespace geode {
         cocos2d::CCSprite* getBarFill() const noexcept;
 
         /// Get the current style of the progress bar
-        ProgressBarStyle getStyle() const noexcept;
+        Style getStyle() const noexcept;
 
         /// Get the current color of the fill of the progress bar
         cocos2d::ccColor3B getFillColor() const noexcept;

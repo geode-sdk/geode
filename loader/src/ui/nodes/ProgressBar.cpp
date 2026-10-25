@@ -13,7 +13,7 @@ public:
     // Current progress bar fill percentage ranging from 0 to 100
     float m_progress = .0f;
 
-    ProgressBarStyle m_style = ProgressBarStyle::Level;
+    Style m_style = Style::Level;
     ccColor3B m_barFillColor = {255, 255, 255};
     bool m_showPercentLabel = false;
 
@@ -135,15 +135,11 @@ void ProgressBar::reloadStyle() {
     switch (m_impl->m_style) {
         default: [[fallthrough]];
 
-        case ProgressBarStyle::Level:
-            m_impl->setupBarStyle("slidergroove2.png", "sliderBar2.png");
-            break;
+        case Style::Level: m_impl->setupBarStyle("slidergroove2.png", "sliderBar2.png"); break;
 
-        case ProgressBarStyle::Slider:
-            m_impl->setupBarStyle("slidergroove.png", "sliderBar.png");
-            break;
+        case Style::Slider: m_impl->setupBarStyle("slidergroove.png", "sliderBar.png"); break;
 
-        case ProgressBarStyle::Solid: m_impl->setupSolidStyle(); break;
+        case Style::Solid: m_impl->setupSolidStyle(); break;
     };
 
     this->setContentSize(m_impl->m_bar->getContentSize());
@@ -156,7 +152,7 @@ void ProgressBar::reloadStyle() {
     this->updateProgress(m_impl->m_progress);
 };
 
-bool ProgressBar::init(float progress, ProgressBarStyle style) {
+bool ProgressBar::init(float progress, Style style) {
     if (!CCNode::init()) return false;
 
     m_impl->m_progress = progress;
@@ -188,7 +184,7 @@ void ProgressBar::onAnimate(float dt) {
     };
 };
 
-void ProgressBar::setStyle(ProgressBarStyle style) {
+void ProgressBar::setStyle(Style style) {
     if (m_impl->m_style != style) {
         m_impl->m_style = style;
 
@@ -264,7 +260,7 @@ CCSprite* ProgressBar::getBarFill() const noexcept {
     return m_impl->m_barFill;
 };
 
-ProgressBarStyle ProgressBar::getStyle() const noexcept {
+ProgressBar::Style ProgressBar::getStyle() const noexcept {
     return m_impl->m_style;
 };
 
@@ -276,11 +272,11 @@ size_t ProgressBar::getPrecision() const noexcept {
     return m_impl->m_precision;
 };
 
-ProgressBar* ProgressBar::create(ProgressBarStyle style) {
+ProgressBar* ProgressBar::create(Style style) {
     return create(.0f, style);
 };
 
-ProgressBar* ProgressBar::create(float progress, ProgressBarStyle style) {
+ProgressBar* ProgressBar::create(float progress, Style style) {
     auto ret = new ProgressBar();
     if (ret->init(progress, style)) {
         ret->autorelease();
