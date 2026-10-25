@@ -17,7 +17,7 @@ using namespace geode::prelude;
 #include <Geode/binding/MenuLayer.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/coocs/actions/CCActionManager.h>
-#include <Geode/coocs/platform/ios/CCEGLView.h>
+#include <Geode/cocos/platform/ios/CCEGLView.h>
 #include <Geode/Utils.hpp>
 #include <mach-o/utils.h>
 #include <objc/runtime.h>
