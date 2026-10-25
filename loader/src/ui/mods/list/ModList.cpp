@@ -75,7 +75,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_updateAllContainer = CCNode::create();
         m_updateAllContainer->setID("update-all-container");
         m_updateAllContainer->ignoreAnchorPointForPosition(false);
-        m_updateAllContainer->setContentSize({size.width, 30});
+        m_updateAllContainer->setContentSize({size.width, 30.f});
         m_updateAllContainer->setVisible(false);
 
         m_updateAllBG = CCLayerGradient::create("mod-list-updates-available-bg"_cc4b, "mod-list-updates-available-bg-2"_cc4b, {1.f, -.5f});
@@ -89,7 +89,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_updateAllContainer->addChildAtPosition(m_updateAllBG, Anchor::Center);
 
         // TODO: 2.209
-        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, {.0f, 1.f}, 12.f, false, 0);
+        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30.f, {.0f, 1.f}, 12.f, false, 0);
         m_updateCountLabel->setID("update-count-label");
         m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, {10.f, .0f}, {});
 
@@ -138,7 +138,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             m_errorsContainer = CCNode::create();
             m_errorsContainer->setID("errors-container");
             m_errorsContainer->ignoreAnchorPointForPosition(false);
-            m_errorsContainer->setContentSize({size.width, 30});
+            m_errorsContainer->setContentSize({size.width, 30.f});
             m_errorsContainer->setVisible(false);
 
             auto errorsBG = CCLayerGradient::create("mod-list-errors-found"_cc4b, "mod-list-errors-found-2"_cc4b, {1.f, -.5f});
@@ -153,7 +153,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                 "There were <cy>errors</c> loading some mods",
                 "bigFont.fnt",
                 .35f,
-                size.width / 2 - 30,
+                size.width / 2 - 30.f,
                 {.0f, 1.f},
                 12.f,
                 false,
@@ -200,7 +200,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_searchMenu = CCNode::create();
     m_searchMenu->setID("search-menu");
     m_searchMenu->ignoreAnchorPointForPosition(false);
-    m_searchMenu->setContentSize({size.width, 30});
+    m_searchMenu->setContentSize({size.width, 30.f});
 
     auto searchBG = CCLayerColor::create(ColorProvider::get()->color("mod-list-search-bg"_spr));
     searchBG->setContentSize(m_searchMenu->getContentSize());
@@ -237,7 +237,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
     auto searchFiltersMenu = CCMenu::create();
     searchFiltersMenu->setID("search-filters-menu");
-    searchFiltersMenu->setContentSize({size.width - m_searchInput->getScaledContentWidth() - 5, 30});
+    searchFiltersMenu->setContentSize({size.width - m_searchInput->getScaledContentWidth() - 5, 30.f});
     searchFiltersMenu->setAnchorPoint({1, .5f});
     searchFiltersMenu->setScale(.75f);
     // Set higher prio to not let list items override touch
@@ -280,7 +280,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         auto menu = CCMenu::create();
         menu->setID("modtober-banner");
         menu->ignoreAnchorPointForPosition(false);
-        menu->setContentSize({size.width, 30});
+        menu->setContentSize({size.width, 30.f});
 
         auto banner = CCSprite::createWithSpriteFrameName("modtober25-banner.png"_spr);
         limitNodeWidth(banner, size.width, 1.f, .1f);

@@ -21,7 +21,13 @@
 #include <ccTypes.h>
 #include <fmt/format.h>
 
-bool ModDeveloperItem::init(DevListPopup* popup, std::string developer, CCSize const& size, std::optional<std::string> displayName, bool addMoreButton) {
+bool ModDeveloperItem::init(
+    DevListPopup* popup,
+    std::string developer,
+    CCSize const& size,
+    std::optional<std::string> displayName,
+    bool addMoreButton
+) {
     if (!CCNode::init()) return false;
 
     m_popup = popup;
@@ -83,7 +89,13 @@ void ModDeveloperItem::onMoreByThisDev(CCObject* sender) {
     m_popup->onClose(nullptr);
 }
 
-ModDeveloperItem* ModDeveloperItem::create(DevListPopup* popup, std::string developer, CCSize const& size, std::optional<std::string> displayName, bool addMoreButton) {
+ModDeveloperItem* ModDeveloperItem::create(
+    DevListPopup* popup,
+    std::string developer,
+    CCSize const& size,
+    std::optional<std::string> displayName,
+    bool addMoreButton
+) {
     auto ret = new ModDeveloperItem();
     if (ret->init(popup, std::move(developer), size, std::move(displayName), addMoreButton)) {
         ret->autorelease();

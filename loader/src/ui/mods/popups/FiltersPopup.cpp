@@ -51,8 +51,7 @@ bool FiltersPopup::init(ModListSource* src) {
     tagsTitleMenu->addChild(SpacerNode::create());
 
     auto resetSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
-    auto resetBtn =
-        CCMenuItemSpriteExtra::create(resetSpr, this, menu_selector(FiltersPopup::onResetTags));
+    auto resetBtn = CCMenuItemSpriteExtra::create(resetSpr, this, menu_selector(FiltersPopup::onResetTags));
     tagsTitleMenu->addChild(resetBtn);
 
     tagsTitleMenu->setLayout(RowLayout::create()->setDefaultScaleLimits(.1f, .4f));
@@ -134,8 +133,7 @@ bool FiltersPopup::init(ModListSource* src) {
         inputTitleMenu->addChild(SpacerNode::create());
 
         auto resetSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
-        auto resetBtn =
-            CCMenuItemSpriteExtra::create(resetSpr, this, menu_selector(FiltersPopup::onResetDevName));
+        auto resetBtn = CCMenuItemSpriteExtra::create(resetSpr, this, menu_selector(FiltersPopup::onResetDevName));
         inputTitleMenu->addChild(resetBtn);
 
         inputTitleMenu->setLayout(RowLayout::create()->setDefaultScaleLimits(.1f, .4f));
@@ -219,10 +217,8 @@ void FiltersPopup::onResetDevName(CCObject*) {
 void FiltersPopup::onClose(CCObject* sender) {
     m_source->setModTags(m_selectedTags);
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
-        src->getQueryMut()->enabledOnly =
-            m_enabledModsOnly->isToggled() ? std::optional(true) : std::nullopt;
-        src->getQueryMut()->enabledFirst =
-            m_enabledModsFirst->isToggled() ? std::optional(true) : std::nullopt;
+        src->getQueryMut()->enabledOnly = m_enabledModsOnly->isToggled() ? std::optional(true) : std::nullopt;
+        src->getQueryMut()->enabledFirst = m_enabledModsFirst->isToggled() ? std::optional(true) : std::nullopt;
 
         auto filters = src->getQuery().dumpFilters();
         Mod::get()->setSavedValue("mod-list-installed-filters", filters);
