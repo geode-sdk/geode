@@ -10,6 +10,7 @@
 #include <Geode/binding/KeybindingsLayer.hpp>
 #include <Geode/binding/LevelBindingsLayer.hpp>
 #include <Geode/binding/TabbedPopupLayer.hpp>
+#include <Geode/binding/ScrollableContentLayer.hpp>
 #include <Geode/cocos/CCDirector.h>
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/cocoa/CCGeometry.h>
