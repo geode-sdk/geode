@@ -66,7 +66,7 @@ public:
         m_percentLabel->setAlignment(Label::Alignment::Left);
         m_percentLabel->setVisible(m_showPercentLabel);
         m_percentLabel->setZOrder(1);
-    };
+    }
 
     void setupSolidStyle() {
         m_bar = CCSprite::create("GJ_progressBar_001.png");
@@ -106,14 +106,14 @@ public:
         m_percentLabel->setAlignment(Label::Alignment::Center);
         m_percentLabel->setVisible(m_showPercentLabel);
         m_percentLabel->setZOrder(1);
-    };
+    }
 
     void updateBarLabel() {
         auto percentString = (m_precision > 0) ?
             fmt::format("{}%", numToString(m_progress, m_precision)) :
             fmt::format("{:.0f}%", m_progress);
         m_percentLabel->setText(std::move(percentString));
-    };
+    }
 
     void updateBar(float value) {
         if (value > 100.0f) value = 100.0f;
@@ -125,11 +125,12 @@ public:
         m_barFill->setTextureRect({.0f, .0f, width, m_barFillMaxHeight});
 
         if (m_showPercentLabel) this->updateBarLabel();
-    };
+    }
 };
 
-ProgressBar::ProgressBar() : m_impl(std::make_unique<Impl>()) {};
-ProgressBar::~ProgressBar() {};
+ProgressBar::ProgressBar() : m_impl(std::make_unique<Impl>()) {}
+
+ProgressBar::~ProgressBar() {}
 
 void ProgressBar::reloadStyle() {
     switch (m_impl->m_style) {
@@ -140,7 +141,7 @@ void ProgressBar::reloadStyle() {
         case Style::Slider: m_impl->setupBarStyle("slidergroove.png", "sliderBar.png"); break;
 
         case Style::Solid: m_impl->setupSolidStyle(); break;
-    };
+    }
 
     this->setContentSize(m_impl->m_bar->getContentSize());
 
@@ -150,7 +151,7 @@ void ProgressBar::reloadStyle() {
     this->addChild(m_impl->m_percentLabel);
 
     this->updateProgress(m_impl->m_progress);
-};
+}
 
 bool ProgressBar::init(float progress, Style style) {
     if (!CCNode::init()) return false;
@@ -163,7 +164,7 @@ bool ProgressBar::init(float progress, Style style) {
     this->reloadStyle();
 
     return true;
-};
+}
 
 void ProgressBar::onAnimate(float dt) {
     m_impl->m_animElapsed += dt;
@@ -181,8 +182,8 @@ void ProgressBar::onAnimate(float dt) {
         this->unschedule(schedule_selector(ProgressBar::onAnimate));
 
         if (m_impl->m_animCallback) m_impl->m_animCallback(this, true);
-    };
-};
+    }
+}
 
 void ProgressBar::setStyle(Style style) {
     if (m_impl->m_style != style) {
@@ -190,23 +191,23 @@ void ProgressBar::setStyle(Style style) {
 
         this->removeAllChildren();
         this->reloadStyle(); // recreate nodes with new style
-    };
-};
+    }
+}
 
 void ProgressBar::setFillColor(ccColor3B color) {
     m_impl->m_barFillColor = color;
     m_impl->m_barFill->setColor(color);
-};
+}
 
 void ProgressBar::setPrecision(size_t precision) {
     m_impl->m_precision = precision;
     this->updateProgress(m_impl->m_progress); // update label with new precision
-};
+}
 
 void ProgressBar::updateProgress(float value) {
     this->stopProgressAnimation();
     m_impl->updateBar(value);
-};
+}
 
 void ProgressBar::updateProgress(float value, float duration, EasingType ease, AnimationCallback callback) {
     this->stopProgressAnimation();
@@ -216,7 +217,7 @@ void ProgressBar::updateProgress(float value, float duration, EasingType ease, A
     if (duration <= .0f) {
         this->updateProgress(value);
         return;
-    };
+    }
 
     m_impl->m_animProgressFrom = m_impl->m_progress;
     m_impl->m_animProgressTo = value;
@@ -228,7 +229,7 @@ void ProgressBar::updateProgress(float value, float duration, EasingType ease, A
 
     this->schedule(schedule_selector(ProgressBar::onAnimate));
     m_impl->m_isAnimating = true;
-};
+}
 
 void ProgressBar::stopProgressAnimation() {
     this->unschedule(schedule_selector(ProgressBar::onAnimate));
@@ -239,50 +240,50 @@ void ProgressBar::stopProgressAnimation() {
 
     if (m_impl->m_isAnimating && m_impl->m_animCallback) m_impl->m_animCallback(this, false);
     m_impl->m_isAnimating = false;
-};
+}
 
 void ProgressBar::showProgressLabel(bool show) {
     m_impl->m_showPercentLabel = show;
     if (show) m_impl->updateBarLabel();
 
     m_impl->m_percentLabel->setVisible(show);
-};
+}
 
 float ProgressBar::getProgress() const noexcept {
     return m_impl->m_progress;
-};
+}
 
 Label* ProgressBar::getProgressLabel() const noexcept {
     return m_impl->m_percentLabel;
-};
+}
 
 CCSprite* ProgressBar::getBarFill() const noexcept {
     return m_impl->m_barFill;
-};
+}
 
 ProgressBar::Style ProgressBar::getStyle() const noexcept {
     return m_impl->m_style;
-};
+}
 
 ccColor3B ProgressBar::getFillColor() const noexcept {
     return m_impl->m_barFillColor;
-};
+}
 
 size_t ProgressBar::getPrecision() const noexcept {
     return m_impl->m_precision;
-};
+}
 
 ProgressBar* ProgressBar::create(Style style) {
     return create(.0f, style);
-};
+}
 
 ProgressBar* ProgressBar::create(float progress, Style style) {
     auto ret = new ProgressBar();
     if (ret->init(progress, style)) {
         ret->autorelease();
         return ret;
-    };
+    }
 
     delete ret;
     return nullptr;
-};
+}
