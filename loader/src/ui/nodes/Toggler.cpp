@@ -35,12 +35,9 @@ static Toggler* createScaled(
     float scale,
     Toggler::ToggleCallback toggleCallback
 ) {
-    if (!offNode || !onNode) return nullptr;
-
     auto ret = Toggler::create(offNode, onNode, std::move(toggleCallback));
-    if (ret) {
-        ret->setScale(scale);
-    }
+    ret->setScale(scale);
+
     return ret;
 }
 
@@ -113,12 +110,6 @@ bool Toggler::init(
     CCNode* onNode,
     ToggleCallback toggleCallback
 ) {
-    if (!offNode || !onNode ||
-        offNode == onNode ||
-        offNode->getParent() || onNode->getParent()) {
-        return false;
-    }
-
     if (!Button::init(nullptr)) return false;
 
     this->setAnchorPoint({0.5f, 0.5f});
@@ -162,11 +153,6 @@ CCNode* Toggler::getOffNode() const {
 }
 
 void Toggler::setOffNode(CCNode* node) {
-    if (!node || node == m_impl->m_offNode ||
-        node == m_impl->m_onNode || node->getParent()) {
-        return;
-    }
-
     node->setAnchorPoint({0.5f, 0.5f});
 
     m_impl->m_offNode->removeFromParent();
@@ -181,11 +167,6 @@ CCNode* Toggler::getOnNode() const {
 }
 
 void Toggler::setOnNode(CCNode* node) {
-    if (!node || node == m_impl->m_offNode ||
-        node == m_impl->m_onNode || node->getParent()) {
-        return;
-    }
-
     node->setAnchorPoint({0.5f, 0.5f});
 
     m_impl->m_onNode->removeFromParent();
@@ -207,8 +188,6 @@ void Toggler::activate() {
 }
 
 void Toggler::updateDisplay() {
-    if (!m_impl->m_offNode || !m_impl->m_onNode) return;
-
     auto offSize = m_impl->m_offNode->getScaledContentSize();
     auto onSize = m_impl->m_onNode->getScaledContentSize();
 
