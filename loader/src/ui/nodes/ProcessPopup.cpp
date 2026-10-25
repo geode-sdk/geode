@@ -23,10 +23,10 @@ ProcessPopup::~ProcessPopup() {};
 bool ProcessPopup::init(
     std::string text, ZStringView font, ZStringView bg, CircleBaseColor btnColor, float width
 ) {
-    if (!Popup::init({width, 100.f}, bg.c_str())) return false;
+    if (!Popup::init({width, 105.f}, bg.c_str())) return false;
 
     this->setCloseButtonSpr(
-        CircleButtonSprite::createWithSpriteFrameName("geode.loader/close.png", .875f, btnColor), .825f
+        CircleButtonSprite::createWithSpriteFrameName("close.png"_spr, .875f, btnColor), .825f
     );
 
     m_impl->m_processSpinner = LoadingSpinner::create(50.f);
@@ -34,7 +34,7 @@ bool ProcessPopup::init(
 
     m_impl->m_label = Label::createRich(std::move(text), font);
     m_impl->m_label->setAnchorPoint({.5f, 1.f});
-    m_impl->m_label->setLimitLabelWidth(width - 5.f, 0.825f);
+    m_impl->m_label->setLimitLabelWidth(width - 5.f, 15.f / m_impl->m_label->getScaledContentHeight());
 
     m_mainLayer->addChildAtPosition(m_impl->m_label, Anchor::Center, {.0f, -22.5f});
 
@@ -66,20 +66,24 @@ void ProcessPopup::resetCloseCallback() {
 };
 
 void ProcessPopup::updateMessage(std::string text) {
-    m_impl->m_label->setText(std::move(text));
+    if (m_impl->m_state == State::Ongoing) m_impl->m_label->setRichText(std::move(text));
 };
 
 void ProcessPopup::setSuccess(std::string text) {
+    if (m_impl->m_state != State::Ongoing) return;
+
     m_impl->m_state = State::Success;
-    m_impl->m_label->setText(std::move(text));
+    m_impl->m_label->setRichText(std::move(text));
 
     m_impl->m_successIcon->setVisible(true);
     m_impl->m_processSpinner->setVisible(false);
 };
 
 void ProcessPopup::setFailure(std::string text) {
+    if (m_impl->m_state != State::Ongoing) return;
+
     m_impl->m_state = State::Failure;
-    m_impl->m_label->setText(std::move(text));
+    m_impl->m_label->setRichText(std::move(text));
 
     m_impl->m_failureIcon->setVisible(true);
     m_impl->m_processSpinner->setVisible(false);
@@ -108,29 +112,4 @@ ProcessPopup* ProcessPopup::create(
 
     delete ret;
     return nullptr;
-};
-
-// testing this shit
-
-#include <Geode/modify/MenuLayer.hpp>
-
-class $modify(MenuLayer) {
-    bool init() {
-        if (!MenuLayer::init()) return false;
-
-        if (auto menu = getChildByID("main-menu")) menu->setVisible(false);
-
-        queueInMainThread([]() {
-            auto popup = ProcessPopup::create("Processing...");
-            popup->setCloseCallback([](auto popup, auto) {
-                random::generate(1, 10) >= 3 ? Notification::create("your cannot escape")->show() :
-                                               popup->removeFromParent();
-            });
-            popup->show();
-
-            popup->setSuccess("you're gay");
-        });
-
-        return true;
-    };
 };
