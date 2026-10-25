@@ -32,6 +32,11 @@ public:
     cocos2d::CCNode* m_displayNode = nullptr;
 
     geode::Ref<cocos2d::CCNodeRGBA> m_defaults = nullptr;
+
+    geode::ListenerHandle m_activateListener;
+    geode::ListenerHandle m_selectedListener;
+    geode::ListenerHandle m_unselectedListener;
+
 };
 
 Button::Button() : m_impl(std::make_unique<Impl>()) {}
@@ -92,7 +97,7 @@ bool Button::init(ButtonCallback activateCallback) {
     if (!CCNodeRGBA::init()) return false;
     m_impl->m_defaults = CCNodeRGBA::create();
 
-    addEventListener("activated-event"_spr, ClickedEvent(this, ClickType::Activated), [this, activateCallback = std::move(activateCallback)]  {
+    m_impl->m_activateListener = ClickedEvent(this, ClickType::Activated).listen([this, activateCallback = std::move(activateCallback)]  {
         if (activateCallback) activateCallback(this);
     });
 
@@ -424,22 +429,19 @@ void Button::registerWithTouchDispatcher() {
 }
 
 void Button::setActivateCallback(ButtonCallback callback) {
-    removeEventListener("activated-event"_spr);
-    addEventListener("activated-event"_spr, ClickedEvent(this, ClickType::Activated), [this, callback = std::move(callback)] {
+    m_impl->m_activateListener = ClickedEvent(this, ClickType::Activated).listen([this, callback = std::move(callback)]  {
         if (callback) callback(this);
     });
 }
 
 void Button::setSelectCallback(ButtonCallback callback) {
-    removeEventListener("selected-event"_spr);
-    addEventListener("selected-event"_spr, ClickedEvent(this, ClickType::Selected), [this, callback = std::move(callback)] {
+    m_impl->m_selectedListener = ClickedEvent(this, ClickType::Selected).listen([this, callback = std::move(callback)]  {
         if (callback) callback(this);
     });
 }
 
 void Button::setUnselectCallback(ButtonCallback callback) {
-    removeEventListener("unselected-event"_spr);
-    addEventListener("unselected-event"_spr, ClickedEvent(this, ClickType::Unselected), [this, callback = std::move(callback)] {
+    m_impl->m_unselectedListener = ClickedEvent(this, ClickType::Unselected).listen([this, callback = std::move(callback)]  {
         if (callback) callback(this);
     });
 }
