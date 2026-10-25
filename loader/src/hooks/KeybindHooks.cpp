@@ -1,4 +1,4 @@
-#ifdef GEODE_IS_WINDOWS
+#ifndef GEODE_IS_IOS
 
 #include "LoaderImpl.hpp"
 #include "ui/mods/GeodeStyle.hpp"
@@ -21,6 +21,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/modify/GJKeybindManager.hpp>
+#include <Geode/modify/IDManager.hpp>
 #include <Geode/modify/KeybindingsLayer.hpp>
 #include <Geode/modify/TabbedPopupLayer.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
@@ -30,8 +31,10 @@
 #include <Geode/ui/Layout.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/Scrollbar.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/utils/Keyboard.hpp>
+#include <Geode/utils/NodeIDs.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/function.hpp>
@@ -72,8 +75,6 @@ static Layout* listColumnLayout(float gap, bool ignoreInvisible = true) {
         ->setGap(gap)
         ->ignoreInvisibleChildren(ignoreInvisible);
 }
-
-#ifndef GEODE_IS_IOS
 
 struct GeodeKeybindSource : public KeybindSource {
     virtual std::vector<int> chordsForAction(int action) override {
@@ -230,7 +231,7 @@ namespace list {
     constexpr float VIEW_PADDING_X = 15.0f;
     constexpr float VIEW_BOTTOM = 128.0f;
     constexpr float VIEW_TOP = 96.0f;
-    constexpr float VIEW_TOP_SEARCH = 64.0f;
+    constexpr float VIEW_TOP_SEARCH = 62.0f;
 
     constexpr float ROW_HEIGHT = 30.0f;
     constexpr float ROW_GAP = 2.0f;
@@ -308,8 +309,20 @@ static void setCollapseIcon(Button* toggle, bool collapsed) {
 }
 
 class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("KeybindingsLayer::init", geode::node_ids::GEODE_ID_PRIORITY)) {
+            log::warn(
+                "Failed to set KeybindingsLayer::init hook priority, node IDs may not work properly"
+            );
+        }
+        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("KeybindingsLayer stuff disabled")
+    }
+
     struct Fields {
         Ref<ScrollLayer> list = nullptr;
+        Ref<Scrollbar> scrollbar = nullptr;
+        // ugly hack to get a bit more force prio for this popup
+        Ref<CCNode> touchPrioBump = nullptr;
         GeodeKeybindSource* moddedSource = nullptr;
         bool ready = false;
         int currentTab = -1;
@@ -320,6 +333,10 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         ~Fields() {
             if (list && currentTab >= 0) {
                 s_scrollFromTop[makeKey(isLevel, currentTab)] = list->getScrollFromTop();
+            }
+
+            if (touchPrioBump) {
+                CCTouchDispatcher::get()->unregisterForcePrio(touchPrioBump);
             }
         }
     };
@@ -354,6 +371,13 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         );
         m_mainLayer->updateLayout();
 
+        auto scrollbar = Scrollbar::create(nullptr);
+        scrollbar->setID("scrollbar");
+        m_mainLayer->addChildAtPosition(
+            scrollbar, Anchor::Right, {(-list::VIEW_PADDING_X / 2) - 1.5f, 0}
+        );
+        m_fields->scrollbar = scrollbar;
+
         this->showTab(m_currentTab);
 
         if (!isLevelBindings) {
@@ -366,6 +390,10 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
                     this->queueListRebuild();
                 }
             );
+        }
+
+        if (!isLevelBindings) {
+            NodeIDs::provideFor(this);
         }
 
         return true;
@@ -447,6 +475,11 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
 
         list->m_contentLayer->updateLayout();
         list->scrollToTop();
+
+        auto scrollbar = m_fields->scrollbar;
+        scrollbar->updateAnchoredPosition(Anchor::Right, {(-list::VIEW_PADDING_X / 2) - 1.5f, offsetY});
+        this->updateScrollbar();
+
         LoaderImpl::get()->queueInMainThread([&, self = Ref(this)] {
             self->applyListPriorities();
         });
@@ -621,10 +654,40 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         button->setDragCancelDistance(list::DRAG_CANCEL_DISTANCE);
     }
 
+    void updateScrollbar() {
+        auto scrollbar = m_fields->scrollbar;
+
+        if (!scrollbar) {
+            return;
+        }
+
+        auto list = m_fields->list;
+        if (!list) {
+            scrollbar->setVisible(false);
+            scrollbar->setTarget(nullptr);
+            return;
+        }
+
+        auto contentH = list->m_contentLayer->getScaledContentHeight();
+        auto viewH = list->getScaledContentHeight();
+        auto overflow = contentH - viewH + list->m_scrollLimitTop;
+        bool scrollable = overflow > 1.0f;
+
+        scrollbar->setVisible(scrollable);
+        scrollbar->setTarget(scrollable ? list : nullptr);
+    }
+
     void applyListPriorities() {
         auto dispatcher = CCTouchDispatcher::get();
+
+        if (!m_fields->touchPrioBump) {
+            auto priobump = CCNode::create();
+            dispatcher->registerForcePrio(priobump, 2, 0);
+        }
+
         auto popup = dispatcher->findHandler(this);
         auto list = m_fields->list;
+        auto scrollbar = m_fields->scrollbar;
 
         if (!popup || !list) {
             return;
@@ -633,6 +696,12 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         int p = popup->getPriority();
         if (dispatcher->findHandler(list)) {
             dispatcher->setPriority(p - 1, list);
+        }
+
+        if (scrollbar) {
+            if (dispatcher->findHandler(scrollbar)) {
+                dispatcher->setPriority(p - 2, scrollbar);
+            }
         }
 
         findFirstChildRecursive<Button>(list, [&](Button* button) {
@@ -778,6 +847,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
                 section->updateLayout();
                 list->m_contentLayer->updateLayout();
                 list->scrollToFromTop(offset);
+                self->updateScrollbar();
                 setCollapseIcon(toggle, nowCollapsed);
             }
         );
@@ -929,5 +999,4 @@ class $modify(TabbedPopupLayer) {
     }
 };
 
-#endif
 #endif
