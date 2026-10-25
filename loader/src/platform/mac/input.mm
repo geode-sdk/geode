@@ -263,7 +263,8 @@ void keyDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
         keyCode, isRepeat ? KeyboardInputData::Action::Repeat : KeyboardInputData::Action::Press,
         { nativeCode },
         timestamp,
-        modifiers
+        modifiers,
+        nullptr
     );
 
     if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
@@ -327,7 +328,8 @@ void keyUpExecHook(EAGLView* self, SEL sel, NSEvent* event) {
         keyCode, KeyboardInputData::Action::Release,
         { nativeCode },
         timestamp,
-        modifiers
+        modifiers,
+        nullptr
     );
 
     if (KeyboardInputEvent(keyCode).send(data) != ListenerResult::Propagate) return;
