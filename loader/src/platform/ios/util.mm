@@ -387,7 +387,7 @@ namespace {
 
         asp::fs::Path documentsPath = [documentsDirectory UTF8String];
 
-        s_savedBaseDir = documentsPath;
+        s_savedBaseDir = documentsPath.string();
         return asp::fs::Path(documentsPath);
     }
 }
