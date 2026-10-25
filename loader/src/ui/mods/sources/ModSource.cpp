@@ -228,7 +228,7 @@ void ModSource::requestEnable() {
                         mod->getName(), dependantsStr
                     ),
                     "No", "Yes",
-                    [doEnable = std::move(doEnable)] (bool btn2) {
+                    [doEnable = std::move(doEnable)] (bool btn2) mutable {
                         if (btn2) {
                             doEnable();
                         }
