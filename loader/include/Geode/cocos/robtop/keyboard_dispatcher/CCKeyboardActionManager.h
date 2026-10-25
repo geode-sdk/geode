@@ -13,8 +13,7 @@ class CC_DLL CCKeyboardActionManager : public CCObject
 public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCKeyboardActionManager, CCObject)
 
-    // uncomment this after keybind bindings are updated
-    // virtual std::vector<int> actionsForKey(enumKeyCodes key, bool ctrl, bool alt, bool shift) = 0;
+    virtual std::vector<int> actionsForKey(enumKeyCodes key, bool ctrl, bool alt, bool shift) = 0;
     virtual bool handleGlobalAction(int, bool);
 };
 
