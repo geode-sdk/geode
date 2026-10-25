@@ -1,3 +1,5 @@
+#ifdef GEODE_IS_WINDOWS
+
 #include "LoaderImpl.hpp"
 #include "ui/mods/GeodeStyle.hpp"
 
@@ -927,4 +929,5 @@ class $modify(TabbedPopupLayer) {
     }
 };
 
+#endif
 #endif
