@@ -115,7 +115,7 @@ bool Button::init(ButtonCallback activateCallback) {
     if (!CCNodeRGBA::init()) return false;
     m_impl->m_defaults = CCNodeRGBA::create();
 
-    m_impl->m_activateListener = ClickedEvent(this, ClickType::Activated).listen([this, activateCallback = std::move(activateCallback)]  {
+    m_impl->m_activateListener = Button::ClickedEvent(this, Button::ClickType::Activated).listen([this, activateCallback = std::move(activateCallback)]  {
         if (activateCallback) activateCallback(this);
     });
 
@@ -314,7 +314,7 @@ void Button::selected() {
         runAction(m_impl->m_activeClickAction);
     }
 
-    ClickedEvent(this, ClickType::Selected).send();
+    Button::ClickedEvent(this, Button::ClickType::Selected).send();
 
     m_impl->m_selected = true;
 }
@@ -331,7 +331,7 @@ void Button::unselected() {
         runAction(m_impl->m_activeReleaseAction);
     }
 
-    ClickedEvent(this, ClickType::Unselected).send();
+    Button::ClickedEvent(this, Button::ClickType::Unselected).send();
 
     m_impl->m_selected = false;
 }
@@ -342,7 +342,7 @@ void Button::activate() {
 
     resetDefaults();
 
-    ClickedEvent(this, ClickType::Activated).send();
+    Button::ClickedEvent(this, Button::ClickType::Activated).send();
 }
 
 void Button::setScaleMultiplier(float multiplier) {
@@ -354,7 +354,7 @@ float Button::getScaleMultiplier() {
 }
 
 void Button::setMoveOffset(cocos2d::CCPoint const& offset) {
-    m_impl->m_offset = std::move(offset);
+    m_impl->m_offset = offset;
 }
 
 cocos2d::CCPoint Button::getMoveOffset() {
@@ -466,19 +466,19 @@ void Button::registerWithTouchDispatcher() {
 }
 
 void Button::setActivateCallback(ButtonCallback callback) {
-    m_impl->m_activateListener = ClickedEvent(this, ClickType::Activated).listen([this, callback = std::move(callback)]  {
+    m_impl->m_activateListener = Button::ClickedEvent(this, Button::ClickType::Activated).listen([this, callback = std::move(callback)]  {
         if (callback) callback(this);
     });
 }
 
 void Button::setSelectCallback(ButtonCallback callback) {
-    m_impl->m_selectedListener = ClickedEvent(this, ClickType::Selected).listen([this, callback = std::move(callback)]  {
+    m_impl->m_selectedListener = Button::ClickedEvent(this, Button::ClickType::Selected).listen([this, callback = std::move(callback)]  {
         if (callback) callback(this);
     });
 }
 
 void Button::setUnselectCallback(ButtonCallback callback) {
-    m_impl->m_unselectedListener = ClickedEvent(this, ClickType::Unselected).listen([this, callback = std::move(callback)]  {
+    m_impl->m_unselectedListener = Button::ClickedEvent(this, Button::ClickType::Unselected).listen([this, callback = std::move(callback)]  {
         if (callback) callback(this);
     });
 }

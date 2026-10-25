@@ -97,7 +97,7 @@ bool SliderNode::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice*
     addChild(m_impl->m_groove);
     addChild(m_impl->m_bar);
 
-    m_impl->m_slideListener = SliderEvent(this, SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
+    m_impl->m_slideListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
         if (callback) callback(this, value);
     });
 
@@ -151,19 +151,19 @@ void SliderNode::updateSize() {
 }
 
 void SliderNode::setSlideCallback(SliderCallback callback) {
-    m_impl->m_slideListener = SliderEvent(this, SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
+    m_impl->m_slideListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
         if (callback) callback(this, value);
     });
 }
 
 void SliderNode::setClickCallback(SliderCallback callback) {
-    m_impl->m_clickListener = SliderEvent(this, SlideType::Click).listen([this, callback = std::move(callback)] (float value) {
+    m_impl->m_clickListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Click).listen([this, callback = std::move(callback)] (float value) {
         if (callback) callback(this, value);
     });
 }
 
 void SliderNode::setReleaseCallback(SliderCallback callback) {
-    m_impl->m_releaseListener = SliderEvent(this, SlideType::Release).listen([this, callback = std::move(callback)] (float value) {
+    m_impl->m_releaseListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Release).listen([this, callback = std::move(callback)] (float value) {
         if (callback) callback(this, value);
     });
 }
