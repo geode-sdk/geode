@@ -1,5 +1,8 @@
 # Geode Changelog
 
+## v5.11.3
+ * Fix 2.2091 compatibility
+
 ## v5.11.2
  * Fix 2.209 crashes (note that this release is still primarily for 2.2081)
  * Fix text inputs in forward compat mode on 2.209
