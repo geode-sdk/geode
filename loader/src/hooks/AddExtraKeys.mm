@@ -31,7 +31,7 @@ enumKeyCodes keyCodeFromKeyCommand(UIKey* key) {
         case UIKeyboardHIDUsageKeyboardTab: return enumKeyCodes::KEY_Tab;
         case UIKeyboardHIDUsageKeyboardSpacebar: return enumKeyCodes::KEY_Space;
         case UIKeyboardHIDUsageKeyboardHyphen: return enumKeyCodes::KEY_OEMMinus;
-        case UIKeyboardHIDUsageKeyboardEqualSign: return enumKeyCodes::KEY_Equal;
+        case UIKeyboardHIDUsageKeyboardEqualSign: return enumKeyCodes::KEY_OEMEqual;
         case UIKeyboardHIDUsageKeyboardOpenBracket: return enumKeyCodes::KEY_LeftBracket;
         case UIKeyboardHIDUsageKeyboardCloseBracket: return enumKeyCodes::KEY_RightBracket;
         case UIKeyboardHIDUsageKeyboardBackslash: return enumKeyCodes::KEY_Backslash;
@@ -88,7 +88,7 @@ enumKeyCodes keyCodeFromKeyCommand(UIKey* key) {
         case UIKeyboardHIDUsageKeypadSlash: return enumKeyCodes::KEY_Slash;
         case UIKeyboardHIDUsageKeypadAsterisk: return enumKeyCodes::KEY_Multiply;
         case UIKeyboardHIDUsageKeypadHyphen: return enumKeyCodes::KEY_OEMMinus;
-        case UIKeyboardHIDUsageKeypadPlus: return enumKeyCodes::KEY_OEMPlus;
+        case UIKeyboardHIDUsageKeypadPlus: return enumKeyCodes::KEY_Add;
         case UIKeyboardHIDUsageKeypadEnter: return enumKeyCodes::KEY_NumEnter;
         case UIKeyboardHIDUsageKeypad0: return enumKeyCodes::KEY_NumPad0;
         case UIKeyboardHIDUsageKeypad1: return enumKeyCodes::KEY_NumPad1;
@@ -104,7 +104,7 @@ enumKeyCodes keyCodeFromKeyCommand(UIKey* key) {
         // case UIKeyboardHIDUsageKeyboardNonUSBackslash: return enumKeyCodes::KEY_;
         case UIKeyboardHIDUsageKeyboardApplication: return enumKeyCodes::KEY_ApplicationsKey;
         // case UIKeyboardHIDUsageKeyboardPower: return enumKeyCodes::KEY_;
-        case UIKeyboardHIDUsageKeypadEqualSign: return enumKeyCodes::KEY_OEMEqual;
+        case UIKeyboardHIDUsageKeypadEqualSign: return enumKeyCodes::KEY_Equal;
         // case UIKeyboardHIDUsageKeyboardMenu: return enumKeyCodes::KEY_;
         case UIKeyboardHIDUsageKeyboardMute: return enumKeyCodes::KEY_VolumeMute;
         case UIKeyboardHIDUsageKeyboardVolumeUp: return enumKeyCodes::KEY_VolumeUp;
