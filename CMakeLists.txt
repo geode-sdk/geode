@@ -260,7 +260,7 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.5.0")
-CPMAddPackage("gh:geode-sdk/json@4.0.0")
+CPMAddPackage("gh:geode-sdk/json#854b2c3328b71bbe2a27b24abdf614999da6d7d1")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
 CPMAddPackage("gh:fmtlib/fmt#12.2.0")
 
