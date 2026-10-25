@@ -121,7 +121,7 @@ namespace geode {
          */
         template <class Callback>
         void addActivateCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, ClickedEvent(this, ClickType::Activated), std::forward<Callback>(callback), priority);
+            addEventListener(ID, Button::ClickedEvent(this, Button::ClickType::Activated), std::forward<Callback>(callback), priority);
         }
 
         /**
@@ -129,7 +129,7 @@ namespace geode {
          */
         template <class Callback>
         void addSelectCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, ClickedEvent(this, ClickType::Selected), std::forward<Callback>(callback), priority);
+            addEventListener(ID, Button::ClickedEvent(this, Button::ClickType::Selected), std::forward<Callback>(callback), priority);
         }
 
         /**
@@ -137,7 +137,7 @@ namespace geode {
          */
         template <class Callback>
         void addUnselectCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, ClickedEvent(this, ClickType::Unselected), std::forward<Callback>(callback), priority);
+            addEventListener(ID, Button::ClickedEvent(this, Button::ClickType::Unselected), std::forward<Callback>(callback), priority);
         }
 
         /**
