@@ -248,6 +248,10 @@ asp::fs::Path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
 }
 
+asp::fs::Path dirs::getGeodeInternalDir() {
+    return dirs::getGeodeDir();
+}
+
 void geode::utils::game::exit(bool saveData) {
     // TODO: mat
     #if 0
