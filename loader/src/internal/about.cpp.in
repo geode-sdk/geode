@@ -1,3 +1,4 @@
+#pragma once
 #include "about.hpp"
 
 geode::VersionInfo about::getLoaderVersion() {
