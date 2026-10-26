@@ -117,8 +117,7 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
             if (this->root() == other.root()) return false;
 
             auto director = CCDirector::get();
-            auto const rootOrder =
-                std::array<CCNode*, 2>{director->m_pRunningScene, director->m_pNotificationNode};
+            std::array<CCNode*, 2> const rootOrder = {director->m_pRunningScene, director->m_pNotificationNode};
             auto thisRootIt = std::find(rootOrder.begin(), rootOrder.end(), this->root());
             auto otherRootIt = std::find(rootOrder.begin(), rootOrder.end(), other.root());
 
@@ -160,9 +159,6 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
                 // the touch from the child whenever necessary
                 // at least thats how scroll layers kind of work in gd
                 // this is what its trying to emulate basically
-
-                // swallows like a good boy >w<\n
-                // https://github.com/geode-sdk/api/commit/01bcacde38a225edb51a06961ce6553851dd24c5
 
                 if (!thisParent && otherParent) {
                     // other is deeper in compared to this, other should come first
