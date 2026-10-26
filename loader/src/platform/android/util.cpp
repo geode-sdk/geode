@@ -128,7 +128,7 @@ asp::fs::Path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
-asp::fs::Path dirs::getModRuntimeDir() {
+asp::fs::Path dirs::getGeodeInternalDir() {
     static std::string cachedResult = [] {
         // incase the jni fails, default to this
         std::string path = "/data/user/0/com.geode.launcher/files/";
@@ -145,27 +145,7 @@ asp::fs::Path dirs::getModRuntimeDir() {
 
         return path;
     }();
-    return asp::fs::Path(cachedResult) / "geode" / "unzipped";
-}
-
-asp::fs::Path dirs::getGeodeResourcesDir() {
-    static std::string cachedResult = [] {
-        // TODO: dedupe the cachedResult copypaste
-        std::string path = "/data/user/0/com.geode.launcher/files/";
-
-        JniMethodInfo t;
-        if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getInternalDirectory", "()Ljava/lang/String;")) {
-            jstring str = reinterpret_cast<jstring>(t.env->CallStaticObjectMethod(t.classID, t.methodID));
-            t.env->DeleteLocalRef(t.classID);
-            path = JniHelper::jstring2string(str);
-            t.env->DeleteLocalRef(str);
-        } else {
-            clearJNIException();
-        }
-
-        return path;
-    }();
-    return asp::fs::Path(cachedResult) / "geode" / "resources";
+    return asp::fs::Path(cachedResult) / "geode";
 }
 
 asp::fs::Path dirs::getResourcesDir() {

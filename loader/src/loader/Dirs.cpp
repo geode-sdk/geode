@@ -46,6 +46,14 @@ asp::fs::Path dirs::getModPersistentDir() {
     return dirs::getSaveDir() / "geode-persistent";
 }
 
+asp::fs::Path dirs::getModRuntimeDir() {
+    return getGeodeInternalDir() / "unzipped";
+}
+
+asp::fs::Path dirs::getGeodeResourcesDir() {
+    return getGeodeInternalDir() / "resources";
+}
+
 // asp::fs::Path dirs::getModBinariesDir() {
 //     return dirs::getModRuntimeDir() / "binaries";
 // }
