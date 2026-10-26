@@ -106,7 +106,7 @@ function(setup_geode_mod proname)
         message(STATUS "Mod ${MOD_ID} is compiling for Geometry Dash version ${TARGET_GD_VERSION}")
     else()
         message(FATAL_ERROR
-            "Mod ${MOD_ID} is made for Geometry Dash version ${TARGET_GD_VERSION} but this version of Geode is for GD version ${GEODE_GD_VERSION}. Please change the Geometry Dash version in your mod.json. "
+            "Mod ${MOD_ID} is made for Geometry Dash version ${TARGET_GD_VERSION} but this version of Geode is for GD version ${GEODE_GD_VERSION}. Please change the Geometry Dash version in your mod.json and delete the build folder. "
         )
     endif()
 
