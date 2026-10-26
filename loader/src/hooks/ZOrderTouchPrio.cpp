@@ -29,7 +29,6 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         mutable bool hasInvalidRoot = false;
 
         ParentPath(Handler* handler) : handler(handler) {}
-
         ParentPath(ParentPath&& other) = default;
         ParentPath& operator=(ParentPath&& other) = default;
 
@@ -97,13 +96,26 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
             return false;
         }
 
+        bool hasValidRoot() {
+            if (this->hasInvalidRoot) return false;
+
+            auto director = CCDirector::get();
+            auto const rootOrder = std::array<CCNode*, 2>{director->m_pRunningScene, director->m_pNotificationNode};
+            auto thisRootIt = std::find(rootOrder.begin(), rootOrder.end(), this->root());
+
+            if (thisRootIt == rootOrder.end()) {
+                this->hasInvalidRoot = true;
+                return false;
+            }
+            return true;
+        }
+
         bool compareRoots(ParentPath const& other) const {
             // same root, not less than
             if (this->root() == other.root()) return false;
 
             auto director = CCDirector::get();
-            auto const rootOrder =
-                std::array<CCNode*, 2>{director->m_pRunningScene, director->m_pNotificationNode};
+            auto const rootOrder = std::array<CCNode*, 2>{director->m_pRunningScene, director->m_pNotificationNode};
             auto thisRootIt = std::find(rootOrder.begin(), rootOrder.end(), this->root());
             auto otherRootIt = std::find(rootOrder.begin(), rootOrder.end(), other.root());
 
@@ -146,6 +158,9 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
                 // at least thats how scroll layers kind of work in gd
                 // this is what its trying to emulate basically
 
+                // swallows like a good boy >w<\n
+                // https://github.com/geode-sdk/api/commit/01bcacde38a225edb51a06961ce6553851dd24c5
+
                 if (!thisParent && otherParent) {
                     // other is deeper in compared to this, other should come first
                     // we are the parent, they are the child
@@ -180,9 +195,7 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
     };
 
     template <class Handler>
-    std::vector<ParentPath<Handler>> getRegisteredPaths(
-        CCArray* handlers, std::optional<CCNode*> filter
-    ) const {
+    std::vector<ParentPath<Handler>> getRegisteredPaths(CCArray* handlers, std::optional<CCNode*> filter, std::vector<ParentPath<Handler>>& invalidRoots) const {
         std::vector<ParentPath<Handler>> paths;
         for (auto handler : CCArrayExt<Handler*>(handlers)) {
             if (!handler) continue;
@@ -194,11 +207,22 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
             if (filter) {
                 auto filtered = ParentPath<Handler>::filtered(node, handler, *filter);
                 if (filtered) {
-                    paths.push_back(std::move(filtered.value()));
+                    if (filtered.value().hasValidRoot()) {
+                        paths.push_back(std::move(filtered.value()));
+                    }
+                    else {
+                        invalidRoots.push_back(std::move(filtered.value()));
+                    }
                 }
             }
             else {
-                paths.emplace_back(node, handler);
+                auto path = ParentPath<Handler>(node, handler);
+                if (path.hasValidRoot()) {
+                    paths.push_back(std::move(path));
+                }
+                else {
+                    invalidRoots.push_back(std::move(path));
+                }
             }
         }
         std::sort(paths.begin(), paths.end());
@@ -206,22 +230,8 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
     }
 
     template <class Handler>
-    bool handleSingleTargetedHandlers(
-        CCSet* touches, CCTouch* touch, CCEvent* event, unsigned int index,
-        std::vector<ParentPath<Handler>> const& registeredPaths
-    ) {
+    bool handleSingleTargetedHandlers(CCSet* touches, CCTouch* touch, CCEvent* event, unsigned int index, std::vector<ParentPath<Handler>> const& registeredPaths) {
         bool touchClaimed = false;
-        if (index == CCTOUCHBEGAN)
-            for (auto& path : registeredPaths) {
-                if (path.hasInvalidRoot) {
-                    log::error(
-                        "Handler {}({}) has an invalid root, detected leaked node!! Please report "
-                        "the issue to the owner of the node!!",
-                        path.leaf(),
-                        path.leaf()->getID()
-                    );
-                }
-            }
 
         for (auto& path : registeredPaths) {
             auto delegate = path.handler->getDelegate();
@@ -243,15 +253,17 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
                 claimed = true;
 
                 switch (m_sHandlerHelperData[index].m_type) {
-                    case CCTOUCHMOVED: delegate->ccTouchMoved(touch, event); break;
-                    case CCTOUCHENDED:
-                        delegate->ccTouchEnded(touch, event);
-                        claimedTouches->removeObject(touch);
-                        break;
-                    case CCTOUCHCANCELLED:
-                        delegate->ccTouchCancelled(touch, event);
-                        claimedTouches->removeObject(touch);
-                        break;
+                case CCTOUCHMOVED:
+                    delegate->ccTouchMoved(touch, event);
+                    break;
+                case CCTOUCHENDED:
+                    delegate->ccTouchEnded(touch, event);
+                    claimedTouches->removeObject(touch);
+                    break;
+                case CCTOUCHCANCELLED:
+                    delegate->ccTouchCancelled(touch, event);
+                    claimedTouches->removeObject(touch);
+                    break;
                 }
             }
 
@@ -264,11 +276,20 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         return touchClaimed;
     }
 
-    void handleTargetedHandlers(
-        CCSet* touches, CCEvent* event, unsigned int index, std::optional<CCNode*> filter = std::nullopt
-    ) {
-        auto registeredPaths =
-            this->getRegisteredPaths<CCTargetedTouchHandler>(m_pTargetedHandlers, filter);
+    template <class Handler>
+    void logInvalidRoots(std::vector<ParentPath<Handler>> const& invalidRoots) {
+        for (auto& path : invalidRoots) {
+            log::error("Handler {}({}) has an invalid root, detected leaked node!! Please report the issue to the owner of the node!!", path.leaf(), path.leaf()->getID());
+        }
+    }
+
+    void handleTargetedHandlers(CCSet* touches, CCEvent* event, unsigned int index, std::optional<CCNode*> filter = std::nullopt) {
+        std::vector<ParentPath<CCTargetedTouchHandler>> invalidRoots;
+        Ref<CCArray> handlersCopy = m_pTargetedHandlers->shallowCopy();
+
+        auto registeredPaths = this->getRegisteredPaths<CCTargetedTouchHandler>(m_pTargetedHandlers, filter, invalidRoots);
+
+        if (index == CCTOUCHBEGAN) logInvalidRoots(invalidRoots);
 
         std::vector<CCTouch*> touchesCopy;
         for (auto touch : *touches) {
@@ -281,17 +302,29 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
     }
 
     void handleStandardHandlers(CCSet* touches, CCEvent* event, unsigned int index) {
-        auto registeredPaths =
-            this->getRegisteredPaths<CCStandardTouchHandler>(m_pStandardHandlers, std::nullopt);
+        std::vector<ParentPath<CCStandardTouchHandler>> invalidRoots;
+        Ref<CCArray> handlersCopy = m_pStandardHandlers->shallowCopy();
+
+        auto registeredPaths = this->getRegisteredPaths<CCStandardTouchHandler>(m_pStandardHandlers, std::nullopt, invalidRoots);
+
+        if (index == CCTOUCHBEGAN) logInvalidRoots(invalidRoots);
 
         for (auto& path : registeredPaths) {
             auto delegate = path.handler->getDelegate();
 
             switch (m_sHandlerHelperData[index].m_type) {
-                case CCTOUCHBEGAN: delegate->ccTouchesBegan(touches, event); break;
-                case CCTOUCHMOVED: delegate->ccTouchesMoved(touches, event); break;
-                case CCTOUCHENDED: delegate->ccTouchesEnded(touches, event); break;
-                case CCTOUCHCANCELLED: delegate->ccTouchesCancelled(touches, event); break;
+            case CCTOUCHBEGAN:
+                delegate->ccTouchesBegan(touches, event);
+                break;
+            case CCTOUCHMOVED:
+                delegate->ccTouchesMoved(touches, event);
+                break;
+            case CCTOUCHENDED:
+                delegate->ccTouchesEnded(touches, event);
+                break;
+            case CCTOUCHCANCELLED:
+                delegate->ccTouchesCancelled(touches, event);
+                break;
             }
         }
     }
@@ -345,10 +378,14 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
                 if (!handler) continue;
 
                 if (typeinfo_cast<CCTargetedTouchHandler*>(handler)) {
-                    m_pTargetedHandlers->addObject(handler);
+                    if (!m_pTargetedHandlers->containsObject(handler)) {
+                        m_pTargetedHandlers->addObject(handler);
+                    }
                 }
                 else {
-                    m_pStandardHandlers->addObject(handler);
+                    if (!m_pStandardHandlers->containsObject(handler)) {
+                        m_pStandardHandlers->addObject(handler);
+                    }
                 }
             }
 
@@ -362,11 +399,11 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         }
     }
 
-    bool handleSingleTargetedHandlersWithFilter(
-        CCTouch* touch, CCEvent* event, unsigned int index, CCNode* filter
-    ) {
-        auto registeredPaths =
-            this->getRegisteredPaths<CCTargetedTouchHandler>(m_pTargetedHandlers, filter);
+    bool handleSingleTargetedHandlersWithFilter(CCTouch* touch, CCEvent* event, unsigned int index, CCNode* filter) {
+        std::vector<ParentPath<CCTargetedTouchHandler>> invalidRoots;
+        auto registeredPaths = this->getRegisteredPaths<CCTargetedTouchHandler>(m_pTargetedHandlers, filter, invalidRoots);
+
+        if (index == CCTOUCHBEGAN) logInvalidRoots(invalidRoots);
 
         return this->handleSingleTargetedHandlers(nullptr, touch, event, index, registeredPaths);
     }
@@ -375,15 +412,7 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
 #include <Geode/modify/GJBaseGameLayer.hpp>
 
 struct ZOrderUILayerHelper : Modify<ZOrderUILayerHelper, GJBaseGameLayer> {
-    static void onModify(auto& self) {
-        if (!self.setHookPriority("GJBaseGameLayer::init", Priority::Replace)) {
-            log::warn(
-                "Failed to set GJBaseGameLayer::init hook priority, Z-order based touch dispatcher "
-                "may not work properly"
-            );
-        }
-        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("Z Order based touch dispatcher");
-    }
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Z Order based touch dispatcher");
 
     $override
     bool init() override {
@@ -396,77 +425,51 @@ struct ZOrderUILayerHelper : Modify<ZOrderUILayerHelper, GJBaseGameLayer> {
     }
 };
 
-class ObjectLayerTouchListener : public CCLayer {
-public:
-    CCLayer* m_objectLayer;
-
-    static ObjectLayerTouchListener* create(CCLayer* objectLayer) {
-        auto ret = new ObjectLayerTouchListener;
-        if (ret->init(objectLayer)) {
-            ret->autorelease();
-            return ret;
-        }
-
-        delete ret;
-        return nullptr;
-    }
-
-    bool init(CCLayer* objectLayer) {
-        if (!CCLayer::init()) return false;
-
-        m_objectLayer = objectLayer;
-
-        this->setTouchEnabled(true);
-        this->setID("object-layer-touch-listener"_spr);
-
-        return true;
-    }
-
-    void registerWithTouchDispatcher() override {
-        CCTouchDispatcher::get()->addTargetedDelegate(this, 0, true);
-    }
-
-    bool ccTouchBegan(CCTouch* touch, CCEvent* event) override {
-        return static_cast<ZOrderTouchDispatcher*>(CCTouchDispatcher::get())
-            ->handleSingleTargetedHandlersWithFilter(touch, event, CCTOUCHBEGAN, m_objectLayer);
-    }
-
-    void ccTouchMoved(CCTouch* touch, CCEvent* event) override {
-        static_cast<ZOrderTouchDispatcher*>(CCTouchDispatcher::get())
-            ->handleSingleTargetedHandlersWithFilter(touch, event, CCTOUCHMOVED, m_objectLayer);
-    }
-
-    void ccTouchEnded(CCTouch* touch, CCEvent* event) override {
-        static_cast<ZOrderTouchDispatcher*>(CCTouchDispatcher::get())
-            ->handleSingleTargetedHandlersWithFilter(touch, event, CCTOUCHENDED, m_objectLayer);
-    }
-
-    void ccTouchCancelled(CCTouch* touch, CCEvent* event) override {
-        static_cast<ZOrderTouchDispatcher*>(CCTouchDispatcher::get())
-            ->handleSingleTargetedHandlersWithFilter(touch, event, CCTOUCHCANCELLED, m_objectLayer);
-    }
-};
-
 #include <Geode/modify/EditorUI.hpp>
 
 struct ZOrderEditorUIHelper : Modify<ZOrderEditorUIHelper, EditorUI> {
-    static void onModify(auto& self) {
-        if (!self.setHookPriority("EditorUI::init", Priority::Replace)) {
-            log::warn(
-                "Failed to set EditorUI::init hook priority, Z-order based touch dispatcher may "
-                "not work properly"
-            );
+    GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Z Order based touch dispatcher");
+
+    struct Fields {
+        bool m_inObjectsLayer = false;
+    };
+
+    $override
+    bool ccTouchBegan(CCTouch* touch, CCEvent* event) override {
+        if (dispatchToLayers(touch, event, CCTOUCHBEGAN)) {
+            m_fields->m_inObjectsLayer = true;
+            return true;
         }
-        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("Z Order based touch dispatcher");
+        return EditorUI::ccTouchBegan(touch, event);
     }
 
     $override
-    bool init(LevelEditorLayer* editorLayer) {
-        if (!EditorUI::init(editorLayer)) return false;
+    void ccTouchMoved(CCTouch* touch, CCEvent* event) override {
+        if (m_fields->m_inObjectsLayer) {
+            dispatchToLayers(touch, event, CCTOUCHMOVED);
+            return;
+        }
+        EditorUI::ccTouchMoved(touch, event);
+    }
 
-        // below everything else in editorui, but inside editorui so it runs before editorui's touches
-        this->addChild(ObjectLayerTouchListener::create(editorLayer->m_objectLayer), -1000);
+    $override
+    void ccTouchEnded(CCTouch* touch, CCEvent* event) override {
+        auto fields = m_fields.self();
+        if (fields->m_inObjectsLayer) {
+            dispatchToLayers(touch, event, CCTOUCHENDED);
+            fields->m_inObjectsLayer = false;
+            return;
+        }
+        EditorUI::ccTouchEnded(touch, event);
+    }
 
-        return true;
+    bool dispatchToLayers(CCTouch* touch, CCEvent* event, int type) {
+        auto dispatcher = static_cast<ZOrderTouchDispatcher*>(CCTouchDispatcher::get());
+        for (auto layer : {m_editorLayer->m_inShaderObjectLayer, m_editorLayer->m_aboveShaderObjectLayer, m_editorLayer->m_objectLayer}) {
+            if (dispatcher->handleSingleTargetedHandlersWithFilter(touch, event, type, layer)) {
+                return true;
+            }
+        }
+        return false;
     }
 };
