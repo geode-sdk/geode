@@ -1241,7 +1241,7 @@ void ModPopup::onDependencies(CCObject*) {
 
     auto mod = m_source.asMod();
     if (mod && mod->getEnabledDependants().size() > 0) {
-        str += "Some mods have  <co>this mod</c> marked as a  <cy>dependency</c>:\n\n";
+        str += "Some mods have <co>this mod</c> marked as a <cy>dependency</c>:\n\n";
         for (const auto dependant : mod->getEnabledDependants()) {
             str += fmt::format("<mod:{}>\n\n", dependant->getID());
         }
