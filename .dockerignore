@@ -1,0 +1,15 @@
+
+*
+!bindings
+!cmake
+!installer
+!loader
+!CHANGELOG.md
+!CMakeLists.txt
+!CMakePresets.json
+!entry.cpp
+!EULA
+!LICENSE.txt
+!README.md
+!VERSION
+!docker-extract.sh

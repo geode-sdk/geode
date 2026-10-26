@@ -1,0 +1,14 @@
+services:
+  combine-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SDK_VERSION: 5.9.0
+
+    image: geode-export
+    volumes:
+      - cpm-cache:/workspace/cpm-cache
+      - ./bin/docker:/workspace/bin
+volumes:
+  cpm-cache:

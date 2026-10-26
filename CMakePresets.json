@@ -1,0 +1,142 @@
+{
+  "version": 4,
+
+  "configurePresets": [
+    {
+      "name": "docker-win",
+      "displayName": "Docker Windows x64 build",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-docker",
+
+      "toolchainFile": "/root/.local/share/Geode/cross-tools/clang-msvc-sdk/clang-msvc.cmake",
+
+      "cacheVariables": {
+        "SPLAT_DIR": "/root/.local/share/Geode/cross-tools/splat",
+        "HOST_ARCH": "x86_64",
+
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+
+        "CPM_SOURCE_CACHE": "/workspace/cpm-cache",
+        "GEODE_BINDINGS_REPO_PATH": "/workspace/bindings",
+
+        "GEODE_DISABLE_PRECOMPILED_HEADERS": "On",
+        "GEODE_DONT_INSTALL_MODS": "On",
+        "SKIP_BUILDING_CODEGEN": "On"
+      }
+    },
+
+    {
+      "name": "docker-a32",
+      "displayName": "Docker Android ARMv7 build",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-docker",
+
+      "toolchainFile": "/opt/android-ndk/build/cmake/android.toolchain.cmake",
+
+      "cacheVariables": {
+        "ANDROID_ABI": "armeabi-v7a",
+        "ANDROID_PLATFORM": "android-23",
+        "ANDROID_STL": "c++_shared",
+
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+
+        "CPM_SOURCE_CACHE": "/workspace/cpm-cache",
+        "GEODE_BINDINGS_REPO_PATH": "/workspace/bindings",
+
+        "GEODE_DISABLE_PRECOMPILED_HEADERS": "On",
+        "GEODE_DONT_INSTALL_MODS": "On",
+        "SKIP_BUILDING_CODEGEN": "On"
+      }
+    },
+
+    {
+      "name": "docker-a64",
+      "displayName": "Docker Android AARCH64 build",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-docker",
+
+      "toolchainFile": "/opt/android-ndk/build/cmake/android.toolchain.cmake",
+
+      "cacheVariables": {
+        "ANDROID_ABI": "arm64-v8a",
+        "ANDROID_PLATFORM": "android-23",
+        "ANDROID_STL": "c++_shared",
+
+        "CMAKE_BUILD_TYPE": "Release",
+
+        "CPM_SOURCE_CACHE": "/workspace/cpm-cache",
+        "GEODE_BINDINGS_REPO_PATH": "/workspace/bindings",
+
+        "GEODE_DISABLE_PRECOMPILED_HEADERS": "On",
+        "GEODE_DONT_INSTALL_MODS": "On",
+        "SKIP_BUILDING_CODEGEN": "On"
+      }
+    },
+
+    {
+      "name": "docker-mac",
+      "displayName": "Docker MacOS x64 - AARCH64 build",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-docker",
+
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
+
+        "CMAKE_BUILD_TYPE": "Release",
+
+        "CPM_SOURCE_CACHE": "/workspace/cpm-cache",
+        "GEODE_BINDINGS_REPO_PATH": "/workspace/bindings",
+
+        "GEODE_DISABLE_PRECOMPILED_HEADERS": "On",
+        "GEODE_DONT_INSTALL_MODS": "On",
+        "SKIP_BUILDING_CODEGEN": "On"
+      }
+    },
+
+    {
+      "name": "docker-ios",
+      "displayName": "Docker iOS AARCH64 build",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-docker",
+
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+
+        "CPM_SOURCE_CACHE": "/workspace/cpm-cache",
+        "GEODE_BINDINGS_REPO_PATH": "/workspace/bindings",
+
+        "GEODE_DISABLE_PRECOMPILED_HEADERS": "On",
+        "GEODE_DONT_INSTALL_MODS": "On",
+        "SKIP_BUILDING_CODEGEN": "On"
+      }
+    }
+
+  ],
+  "buildPresets": [
+    {
+      "name": "docker-win",
+      "configurePreset": "docker-win",
+      "jobs": 0
+    },
+    {
+      "name": "docker-a32",
+      "configurePreset": "docker-a32",
+      "jobs": 0
+    },
+    {
+      "name": "docker-a64",
+      "configurePreset": "docker-a64",
+      "jobs": 0
+    },
+    {
+      "name": "docker-mac",
+      "configurePreset": "docker-mac",
+      "jobs": 0
+    },
+    {
+      "name": "docker-ios",
+      "configurePreset": "docker-ios",
+      "jobs": 0
+    }
+  ]
+}
