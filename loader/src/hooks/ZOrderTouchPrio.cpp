@@ -29,6 +29,7 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         mutable bool hasInvalidRoot = false;
 
         ParentPath(Handler* handler) : handler(handler) {}
+
         ParentPath(ParentPath&& other) = default;
         ParentPath& operator=(ParentPath&& other) = default;
 
@@ -100,7 +101,8 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
             if (this->hasInvalidRoot) return false;
 
             auto director = CCDirector::get();
-            auto const rootOrder = std::array<CCNode*, 2>{director->m_pRunningScene, director->m_pNotificationNode};
+            auto const rootOrder =
+                std::array<CCNode*, 2>{director->m_pRunningScene, director->m_pNotificationNode};
             auto thisRootIt = std::find(rootOrder.begin(), rootOrder.end(), this->root());
 
             if (thisRootIt == rootOrder.end()) {
@@ -115,7 +117,8 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
             if (this->root() == other.root()) return false;
 
             auto director = CCDirector::get();
-            auto const rootOrder = std::array<CCNode*, 2>{director->m_pRunningScene, director->m_pNotificationNode};
+            auto const rootOrder =
+                std::array<CCNode*, 2>{director->m_pRunningScene, director->m_pNotificationNode};
             auto thisRootIt = std::find(rootOrder.begin(), rootOrder.end(), this->root());
             auto otherRootIt = std::find(rootOrder.begin(), rootOrder.end(), other.root());
 
@@ -195,7 +198,9 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
     };
 
     template <class Handler>
-    std::vector<ParentPath<Handler>> getRegisteredPaths(CCArray* handlers, std::optional<CCNode*> filter, std::vector<ParentPath<Handler>>& invalidRoots) const {
+    std::vector<ParentPath<Handler>> getRegisteredPaths(
+        CCArray* handlers, std::optional<CCNode*> filter, std::vector<ParentPath<Handler>>& invalidRoots
+    ) const {
         std::vector<ParentPath<Handler>> paths;
         for (auto handler : CCArrayExt<Handler*>(handlers)) {
             if (!handler) continue;
@@ -230,7 +235,10 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
     }
 
     template <class Handler>
-    bool handleSingleTargetedHandlers(CCSet* touches, CCTouch* touch, CCEvent* event, unsigned int index, std::vector<ParentPath<Handler>> const& registeredPaths) {
+    bool handleSingleTargetedHandlers(
+        CCSet* touches, CCTouch* touch, CCEvent* event, unsigned int index,
+        std::vector<ParentPath<Handler>> const& registeredPaths
+    ) {
         bool touchClaimed = false;
 
         for (auto& path : registeredPaths) {
@@ -253,17 +261,15 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
                 claimed = true;
 
                 switch (m_sHandlerHelperData[index].m_type) {
-                case CCTOUCHMOVED:
-                    delegate->ccTouchMoved(touch, event);
-                    break;
-                case CCTOUCHENDED:
-                    delegate->ccTouchEnded(touch, event);
-                    claimedTouches->removeObject(touch);
-                    break;
-                case CCTOUCHCANCELLED:
-                    delegate->ccTouchCancelled(touch, event);
-                    claimedTouches->removeObject(touch);
-                    break;
+                    case CCTOUCHMOVED: delegate->ccTouchMoved(touch, event); break;
+                    case CCTOUCHENDED:
+                        delegate->ccTouchEnded(touch, event);
+                        claimedTouches->removeObject(touch);
+                        break;
+                    case CCTOUCHCANCELLED:
+                        delegate->ccTouchCancelled(touch, event);
+                        claimedTouches->removeObject(touch);
+                        break;
                 }
             }
 
@@ -279,15 +285,24 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
     template <class Handler>
     void logInvalidRoots(std::vector<ParentPath<Handler>> const& invalidRoots) {
         for (auto& path : invalidRoots) {
-            log::error("Handler {}({}) has an invalid root, detected leaked node!! Please report the issue to the owner of the node!!", path.leaf(), path.leaf()->getID());
+            log::error(
+                "Handler {}({}) has an invalid root, detected leaked node!! Please report the "
+                "issue to the owner of the node!!",
+                path.leaf(),
+                path.leaf()->getID()
+            );
         }
     }
 
-    void handleTargetedHandlers(CCSet* touches, CCEvent* event, unsigned int index, std::optional<CCNode*> filter = std::nullopt) {
+    void handleTargetedHandlers(
+        CCSet* touches, CCEvent* event, unsigned int index, std::optional<CCNode*> filter = std::nullopt
+    ) {
         std::vector<ParentPath<CCTargetedTouchHandler>> invalidRoots;
         Ref<CCArray> handlersCopy = m_pTargetedHandlers->shallowCopy();
 
-        auto registeredPaths = this->getRegisteredPaths<CCTargetedTouchHandler>(m_pTargetedHandlers, filter, invalidRoots);
+        auto registeredPaths = this->getRegisteredPaths<CCTargetedTouchHandler>(
+            m_pTargetedHandlers, filter, invalidRoots
+        );
 
         if (index == CCTOUCHBEGAN) logInvalidRoots(invalidRoots);
 
@@ -305,7 +320,9 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         std::vector<ParentPath<CCStandardTouchHandler>> invalidRoots;
         Ref<CCArray> handlersCopy = m_pStandardHandlers->shallowCopy();
 
-        auto registeredPaths = this->getRegisteredPaths<CCStandardTouchHandler>(m_pStandardHandlers, std::nullopt, invalidRoots);
+        auto registeredPaths = this->getRegisteredPaths<CCStandardTouchHandler>(
+            m_pStandardHandlers, std::nullopt, invalidRoots
+        );
 
         if (index == CCTOUCHBEGAN) logInvalidRoots(invalidRoots);
 
@@ -313,18 +330,10 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
             auto delegate = path.handler->getDelegate();
 
             switch (m_sHandlerHelperData[index].m_type) {
-            case CCTOUCHBEGAN:
-                delegate->ccTouchesBegan(touches, event);
-                break;
-            case CCTOUCHMOVED:
-                delegate->ccTouchesMoved(touches, event);
-                break;
-            case CCTOUCHENDED:
-                delegate->ccTouchesEnded(touches, event);
-                break;
-            case CCTOUCHCANCELLED:
-                delegate->ccTouchesCancelled(touches, event);
-                break;
+                case CCTOUCHBEGAN: delegate->ccTouchesBegan(touches, event); break;
+                case CCTOUCHMOVED: delegate->ccTouchesMoved(touches, event); break;
+                case CCTOUCHENDED: delegate->ccTouchesEnded(touches, event); break;
+                case CCTOUCHCANCELLED: delegate->ccTouchesCancelled(touches, event); break;
             }
         }
     }
@@ -399,9 +408,13 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         }
     }
 
-    bool handleSingleTargetedHandlersWithFilter(CCTouch* touch, CCEvent* event, unsigned int index, CCNode* filter) {
+    bool handleSingleTargetedHandlersWithFilter(
+        CCTouch* touch, CCEvent* event, unsigned int index, CCNode* filter
+    ) {
         std::vector<ParentPath<CCTargetedTouchHandler>> invalidRoots;
-        auto registeredPaths = this->getRegisteredPaths<CCTargetedTouchHandler>(m_pTargetedHandlers, filter, invalidRoots);
+        auto registeredPaths = this->getRegisteredPaths<CCTargetedTouchHandler>(
+            m_pTargetedHandlers, filter, invalidRoots
+        );
 
         if (index == CCTOUCHBEGAN) logInvalidRoots(invalidRoots);
 
@@ -465,7 +478,10 @@ struct ZOrderEditorUIHelper : Modify<ZOrderEditorUIHelper, EditorUI> {
 
     bool dispatchToLayers(CCTouch* touch, CCEvent* event, int type) {
         auto dispatcher = static_cast<ZOrderTouchDispatcher*>(CCTouchDispatcher::get());
-        for (auto layer : {m_editorLayer->m_inShaderObjectLayer, m_editorLayer->m_aboveShaderObjectLayer, m_editorLayer->m_objectLayer}) {
+        for (auto layer :
+             {m_editorLayer->m_inShaderObjectLayer,
+              m_editorLayer->m_aboveShaderObjectLayer,
+              m_editorLayer->m_objectLayer}) {
             if (dispatcher->handleSingleTargetedHandlersWithFilter(touch, event, type, layer)) {
                 return true;
             }
