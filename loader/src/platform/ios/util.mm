@@ -396,16 +396,8 @@ asp::fs::Path dirs::getGameDir() {
     return getBaseDir() / "game";
 }
 
-asp::fs::Path dirs::getModRuntimeDir() {
-    return dirs::getGeodeDir() / "unzipped";
-}
-
 asp::fs::Path dirs::getSaveDir() {
     return getBaseDir() / "save";
-}
-
-asp::fs::Path dirs::getGeodeResourcesDir() {
-    return dirs::getGeodeDir() / "resources";
 }
 
 asp::fs::Path dirs::getResourcesDir() {
