@@ -82,7 +82,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_buttonMenu->setTouchPriority(buttonPriority);
     searchContainer->setTouchPriority(buttonPriority);
 
-    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
+    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft, CCPointZero, CCPointZero);
 
     // layer borders
 
