@@ -14,11 +14,11 @@ COPY bindings bindings
 WORKDIR /workspace/bindings/codegen
 
 RUN --mount=type=cache,target=/workspace/cpm-cache \
-    --mount=type=cache,target=/workspace/project/build-docker,id=android32 \
+    --mount=type=cache,target=/workspace/bindings/codegen/build-docker,id=codegen \
     cmake -G Ninja -B build-docker \
     -DCPM_SOURCE_CACHE=/workspace/cpm-cache \
-    && cmake --build build --parallel \
-    && cp build/Codegen /workspace/
+    && cmake --build build-docker --parallel \
+    && cp build-docker/Codegen /workspace/
 
 
 FROM prevter/geode-sdk:android-${SDK_VERSION} AS build-android32
@@ -26,14 +26,16 @@ FROM prevter/geode-sdk:android-${SDK_VERSION} AS build-android32
 WORKDIR /workspace
 COPY bindings bindings
 
-COPY --from=build-repositories /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen
+COPY --from=build-repositories /workspace/Codegen .
 
 WORKDIR /workspace/project
 COPY . .
 
 RUN --mount=type=cache,target=/workspace/cpm-cache \
     --mount=type=cache,target=/workspace/project/build-docker,id=android32 \
-    cmake --preset docker-a32 \
+    mkdir -p /workspace/project/build-docker/bindings/codegen \
+    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
+    && cmake --preset docker-a32 \
     && cmake --build --preset docker-a32
 
 FROM scratch AS export-android32
@@ -45,14 +47,16 @@ FROM prevter/geode-sdk:android-${SDK_VERSION} AS build-android64
 WORKDIR /workspace
 COPY bindings bindings
 
-COPY --from=build-repositories /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen
+COPY --from=build-repositories /workspace/Codegen .
 
 WORKDIR /workspace/project
 COPY . .
 
 RUN --mount=type=cache,target=/workspace/cpm-cache \
     --mount=type=cache,target=/workspace/project/build-docker,id=android64 \
-    cmake --preset docker-a64 \
+    mkdir -p /workspace/project/build-docker/bindings/codegen \
+    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
+    && cmake --preset docker-a64 \
     && cmake --build --preset docker-a64
 
 FROM scratch AS export-android64
@@ -64,14 +68,16 @@ FROM prevter/geode-sdk:ios-${SDK_VERSION} AS build-ios
 WORKDIR /workspace
 COPY bindings bindings
 
-COPY --from=build-repositories /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen
+COPY --from=build-repositories /workspace/Codegen .
 
 WORKDIR /workspace/project
 COPY . .
 
 RUN --mount=type=cache,target=/workspace/cpm-cache \
     --mount=type=cache,target=/workspace/project/build-docker,id=ios \
-    cmake --preset docker-ios \
+    mkdir -p /workspace/project/build-docker/bindings/codegen \
+    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
+    && cmake --preset docker-ios \
     && cmake --build --preset docker-ios
 
 FROM scratch AS export-ios
@@ -85,14 +91,16 @@ ARG CPM_CACHE_DIR
 WORKDIR /workspace
 COPY bindings bindings
 
-COPY --from=build-repositories /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen
+COPY --from=build-repositories /workspace/Codegen .
 
 WORKDIR /workspace/project
 COPY . .
 
 RUN --mount=type=cache,target=/workspace/cpm-cache \
     --mount=type=cache,target=/workspace/project/build-docker,id=macos \
-    cmake --preset docker-mac \
+    mkdir -p /workspace/project/build-docker/bindings/codegen \
+    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
+    && cmake --preset docker-mac \
     && cmake --build --preset docker-mac
 
 FROM scratch AS export-macos
@@ -105,14 +113,16 @@ ARG CPM_CACHE_DIR
 WORKDIR /workspace
 COPY bindings bindings
 
-COPY --from=build-repositories /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen
+COPY --from=build-repositories /workspace/Codegen .
 
 WORKDIR /workspace/project
 COPY . .
 
 RUN --mount=type=cache,target=/workspace/cpm-cache \
     --mount=type=cache,target=/workspace/project/build-docker,id=windows \
-    cmake --preset docker-win \
+    mkdir -p /workspace/project/build-docker/bindings/codegen \
+    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
+    && cmake --preset docker-win \
     && cmake --build --preset docker-win
 
 FROM scratch AS export-windows
