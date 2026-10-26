@@ -194,7 +194,7 @@ bool MDTextArea::init(std::string str, CCSize const& size) {
 
     m_impl->m_scrollLayer->setTouchEnabled(true);
 
-    this->addChild(m_impl->m_scrollLayer);
+    this->addChildAtPosition(m_impl->m_scrollLayer, Anchor::BottomLeft, CCPointZero, CCPointZero, false);
 
     this->updateLabel();
 
