@@ -229,7 +229,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE GEODE_MOD_ID="geode.loader")
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
 	# Markdown support
-	CPMAddPackage("gh:mity/md4c#release-0.5.2")
+	CPMAddPackage("gh:mity/md4c@0.6.0")
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_ZSTD ON CACHE INTERNAL "")
@@ -266,8 +266,9 @@ if (NOT GEODE_BUILDING_DOCS)
 
 	set(SIMDUTF_TESTS OFF)
 	set(SIMDUTF_TOOLS OFF)
-	CPMAddPackage("gh:simdutf/simdutf@8.0.0")
-	CPMAddPackage("gh:fastfloat/fast_float@8.2.3")
+	set(SIMDUTF_CXX_STANDARD 23)
+	CPMAddPackage("gh:simdutf/simdutf@9.3.2")
+	CPMAddPackage("gh:fastfloat/fast_float@8.3.2")
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
