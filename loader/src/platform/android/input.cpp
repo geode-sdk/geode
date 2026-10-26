@@ -1,3 +1,4 @@
+#include <Geode/cocos/CCDirector.h>
 #include <Geode/utils/AndroidEvent.hpp>
 #include <Geode/utils/Keyboard.hpp>
 #include <Geode/Prelude.hpp>
