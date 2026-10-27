@@ -53,7 +53,11 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     m_versionLabel = Label::create("", "bigFont.fnt");
     m_versionLabel->setID("version-label");
     m_versionLabel->setScale(0.7f);
-    m_versionLabel->setLayoutOptions(SimpleAxisLayoutOptions::create()->setMinRelativeScale(.7f)->setMaxRelativeScale(1.f));
+    m_versionLabel->setLayoutOptions(
+        SimpleAxisLayoutOptions::create()
+            ->setMinRelativeScale(.7f)
+            ->setMaxRelativeScale(1.f)
+    );
     m_titleContainer->addChild(m_versionLabel);
 
     m_versionDownloadSeparator = Label::create("•", "bigFont.fnt");
@@ -77,11 +81,17 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     auto by = m_source.formatDevelopers();
     m_developerLabel = Label::create(by, "goldFont.fnt");
     m_developerLabel->setID("developers-label");
-    auto developersBtn = CCMenuItemSpriteExtra::create(m_developerLabel, this, menu_selector(ModItem::onDevelopers));
+    auto developersBtn = CCMenuItemSpriteExtra::create(
+        m_developerLabel, this, menu_selector(ModItem::onDevelopers)
+    );
     developersBtn->setID("developers-button");
     m_developers->addChild(developersBtn);
 
-    m_developers->setLayout(SimpleRowLayout::create()->setMainAxisAlignment(MainAxisAlignment::Start)->setGap(5.f));
+    m_developers->setLayout(
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setGap(5.f)
+    );
     m_infoContainer->addChildAtPosition(m_developers, Anchor::Left);
 
     m_description = NineSlice::create("square02b_001.png");
@@ -91,7 +101,10 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     m_description->setOpacity(90);
 
     auto desc = m_source.getMetadata().getDescription();
-    auto descLabel = Label::create(desc.value_or("[No Description Provided]"), "chatFont.fnt");
+    auto descLabel = Label::create(
+        desc.value_or("[No Description Provided]"),
+        "chatFont.fnt"
+    );
     descLabel->setColor(desc ? ccWHITE : ccGRAY);
     limitNodeWidth(descLabel, m_description->getContentWidth() - 20, 2.f, .1f);
     m_description->addChildAtPosition(descLabel, Anchor::Left, {10.f, .0f}, {.0f, .5f});
@@ -162,10 +175,16 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     auto downloadWaitingLabel = Label::create("Preparing Download...", "bigFont.fnt");
     downloadWaitingLabel->setScale(.75f);
     downloadWaitingLabel->setID("download-waiting-label");
-    m_downloadWaiting->addChildAtPosition(downloadWaitingLabel, Anchor::Left, {m_downloadWaiting->getContentHeight(), .0f}, {.0f, .5f});
+    m_downloadWaiting->addChildAtPosition(
+        downloadWaitingLabel, Anchor::Left,
+        {m_downloadWaiting->getContentHeight(), .0f}, {.0f, .5f}
+    );
 
     auto downloadWaitingSpinner = createLoadingCircle(20);
-    m_downloadWaiting->addChildAtPosition(downloadWaitingSpinner, Anchor::Left, {m_downloadWaiting->getContentHeight() / 2.f, .0f});
+    m_downloadWaiting->addChildAtPosition(
+        downloadWaitingSpinner, Anchor::Left,
+        {m_downloadWaiting->getContentHeight() / 2.f, .0f}
+    );
 
     m_infoContainer->addChildAtPosition(m_downloadWaiting, Anchor::Left);
 
@@ -201,7 +220,11 @@ bool ModItem::init(ModSource&& source, bool listItem) {
 
     m_badgeContainer = CCNode::create();
     m_badgeContainer->setID("badge-container");
-    m_badgeContainer->setLayoutOptions(SimpleAxisLayoutOptions::create()->setMinRelativeScale(.6f)->setMaxRelativeScale(1.f));
+    m_badgeContainer->setLayoutOptions(
+        SimpleAxisLayoutOptions::create()
+            ->setMinRelativeScale(.6f)
+            ->setMaxRelativeScale(1.f)
+    );
 
     // Handle source-specific stuff
     m_source.visit(
@@ -395,16 +418,25 @@ bool ModItem::init(ModSource&& source, bool listItem) {
         }
     );
 
-    auto updateSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("update.png"_spr), 1.15f, CircleBaseSize::Medium, true);
-    m_updateBtn = CCMenuItemSpriteExtra::create(updateSpr, this, menu_selector(ModItem::onInstall));
+    auto updateSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("update.png"_spr), 1.15f,
+        CircleBaseSize::Medium, true
+    );
+    m_updateBtn = CCMenuItemSpriteExtra::create(
+        updateSpr, this, menu_selector(ModItem::onInstall)
+    );
     m_updateBtn->setID("update-button");
     m_viewMenu->addChild(m_updateBtn);
 
     if (m_source.asMod()) {
-        m_checkUpdateListener.spawn("ModItem update check", m_source.checkUpdates(), [this](auto res) {
-            this->onCheckUpdates(std::move(res));
-            return ListenerResult::Propagate;
-        });
+        m_checkUpdateListener.spawn(
+            "ModItem update check",
+            m_source.checkUpdates(),
+            [this](auto res) {
+                this->onCheckUpdates(std::move(res));
+                return ListenerResult::Propagate;
+            }
+        );
     }
 
     this->updateState();
@@ -467,8 +499,7 @@ void ModItem::updateState() {
     if (m_updatedAtContainer) {
         auto listSource = typeinfo_cast<InstalledModListSource*>(m_source.getListSource());
         m_updatedAtContainer->removeFromParent();
-        if (listSource &&
-            listSource->getSort() == static_cast<size_t>(InstalledModListSort::RecentlyUpdated)) {
+        if (listSource && listSource->getSort() == static_cast<size_t>(InstalledModListSort::RecentlyUpdated)) {
             // Hide these
             if (m_enableToggle) m_enableToggle->setVisible(false);
             if (m_pinToggle) m_pinToggle->setVisible(false);
@@ -622,18 +653,11 @@ void ModItem::updateState() {
     m_updateBtn->setVisible(false);
 
     auto update = m_source.hasUpdates();
-    if ((update.update || update.deprecation) &&
-        !(download && (download->isActive() || download->isDone()))) {
+    if ((update.update || update.deprecation) && !(download && (download->isActive() || download->isDone()))) {
         if (update.update) {
             m_updateBtn->setVisible(true);
 
-            m_versionLabel->setText(
-                fmt::format(
-                    "{} -> {}",
-                    m_source.getMetadata().getVersion().toVString(),
-                    update.update->version.toVString()
-                )
-            );
+            m_versionLabel->setText(fmt::format("{} -> {}", m_source.getMetadata().getVersion().toVString(), update.update->version.toVString()));
             m_versionLabel->setColor(to3B(ColorProvider::get()->color("mod-list-version-label-updates-available"_spr)));
 
             m_bg->setColor(to3B(ColorProvider::get()->color("mod-list-version-bg-updates-available"_spr)));
@@ -700,13 +724,15 @@ void ModItem::updateState() {
         static_cast<SimpleRowLayout*>(m_titleContainer->getLayout())
             ->setGap(10)
             ->setMainAxisAlignment(MainAxisAlignment::Center);
-        static_cast<SimpleRowLayout*>(m_developers->getLayout())->setMainAxisAlignment(MainAxisAlignment::Center);
+        static_cast<SimpleRowLayout*>(m_developers->getLayout())
+            ->setMainAxisAlignment(MainAxisAlignment::Center);
     }
     else {
         static_cast<SimpleRowLayout*>(m_titleContainer->getLayout())
             ->setGap(5)
             ->setMainAxisAlignment(MainAxisAlignment::Start);
-        static_cast<SimpleRowLayout*>(m_developers->getLayout())->setMainAxisAlignment(MainAxisAlignment::Start);
+        static_cast<SimpleRowLayout*>(m_developers->getLayout())
+            ->setMainAxisAlignment(MainAxisAlignment::Start);
     }
     m_developers->setContentWidth(titleSpace.width / m_infoContainer->getScale());
     m_developers->setContentHeight(30.f);
@@ -725,7 +751,10 @@ void ModItem::updateState() {
         case ModListDisplay::Grid: {
             m_infoContainer->updateAnchoredPosition(Anchor::Center, {.0f, -5.f}, {.5f, .5f});
             // m_description is hidden
-            m_titleLabel->setLayoutOptions(AnchorLayoutOptions::create()->setAnchor(Anchor::Top)->setOffset({.0f, -10.f}));
+            m_titleLabel->setLayoutOptions(AnchorLayoutOptions::create()
+                ->setAnchor(Anchor::Top)
+                ->setOffset({.0f, -10.f})
+            );
             limitNodeWidth(m_titleLabel, m_titleContainer->getContentWidth(), .8f, .1f);
             m_titleContainer->updateAnchoredPosition(Anchor::Center, { .0f, .0f }, {.5f, .5f});
             m_developers->updateAnchoredPosition(Anchor::Bottom, {.0f, 10.f}, {.5f, .5f});
@@ -742,7 +771,11 @@ void ModItem::updateState() {
         case ModListDisplay::SmallList: {
             m_infoContainer->updateAnchoredPosition(Anchor::Left, {m_obContentSize.height + 10.f, .0f}, {.0f, .5f});
             m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, {.0f, 2.f}, {.0f, 1.f});
-            m_titleLabel->setLayoutOptions(SimpleAxisLayoutOptions::create()->setMinRelativeScale(.5f)->setMaxRelativeScale(1.f));
+            m_titleLabel->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.5f)
+                    ->setMaxRelativeScale(1.f)
+                );
             // m_description is hidden
             m_developers->updateAnchoredPosition(Anchor::BottomLeft, {.0f, 3.f}, { .0f, .0f });
             m_modLabelsContainer->updateAnchoredPosition(Anchor::BottomLeft, {.0f, 3.f}, { .0f, .0f });
@@ -757,7 +790,11 @@ void ModItem::updateState() {
         case ModListDisplay::BigList: {
             m_infoContainer->updateAnchoredPosition(Anchor::Left, {m_obContentSize.height + 10.f, .0f}, {.0f, .5f});
             m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, { .0f, .0f }, {.0f, 1.f});
-            m_titleLabel->setLayoutOptions(SimpleAxisLayoutOptions::create()->setMinRelativeScale(.5f)->setMaxRelativeScale(1.f));
+            m_titleLabel->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.5f)
+                    ->setMaxRelativeScale(1.f)
+                );
             m_developers->updateAnchoredPosition(Anchor::Left, { .0f, .0f }, {.0f, .5f});
 
             m_description->updateAnchoredPosition(Anchor::BottomLeft, { .0f, .0f }, { .0f, .0f });
@@ -822,16 +859,13 @@ void ModItem::onView(CCObject*) {
     if (m_source.asServer() && m_source.asServer()->tags.contains("paid") && !shownPaidNotif) {
         shownPaidNotif = true;
         return FLAlertLayer::create(
-                   nullptr,
-                   "Paid Content",
-                   "This mod contains <cg>Paid Content</c>. This means that some or all "
-                   "features of the mod <cj>require money to use</c>.\n\n"
-                   "<cy>Geode does not handle any payments. The mod handles all transactions in "
-                   "their own way.</c>\n\n"
-                   "<cp>The paid content may not be available in your country.</c>",
-                   "OK",
-                   nullptr,
-                   360
+            nullptr,
+            "Paid Content",
+            "This mod contains <cg>Paid Content</c>. This means that some or all "
+            "features of the mod <cj>require money to use</c>.\n\n"
+            "<cy>Geode does not handle any payments. The mod handles all transactions in their own way.</c>\n\n"
+            "<cp>The paid content may not be available in your country.</c>",
+            "OK", nullptr, 360.f
         )->show();
     }
 
@@ -841,32 +875,26 @@ void ModItem::onView(CCObject*) {
         auto gameVersion = version.getGameVersion();
         if (gameVersion == "0.000") {
             return FLAlertLayer::create(
-                       nullptr,
-                       "Invalid Platform",
-                       "This mod is <cr>not available</c> for your current platform.",
-                       "OK",
-                       nullptr,
-                       360
+                nullptr,
+                "Invalid Platform",
+                "This mod is <cr>not available</c> for your current platform.",
+                "OK", nullptr, 360.f
             )->show();
         }
         if (gameVersion && gameVersion != "*" && gameVersion != GEODE_STR(GEODE_GD_VERSION)) {
             return FLAlertLayer::create(
-                       nullptr,
-                       "Unavailable",
-                       "This mod targets an <cr>unsupported version of Geometry Dash</c>.",
-                       "OK",
-                       nullptr,
-                       360
+                nullptr,
+                "Unavailable",
+                "This mod targets an <cr>unsupported version of Geometry Dash</c>.",
+                "OK", nullptr, 360.f
             )->show();
         }
         if (!Loader::get()->isModVersionSupported(version.getGeodeVersion())) {
             return FLAlertLayer::create(
-                       nullptr,
-                       "Unavailable",
-                       "This mod targets an <cr>unsupported version of Geode</c>.",
-                       "OK",
-                       nullptr,
-                       360
+                nullptr,
+                "Unavailable",
+                "This mod targets an <cr>unsupported version of Geode</c>.",
+                "OK", nullptr, 360.f
             )->show();
         }
     }

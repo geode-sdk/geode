@@ -172,7 +172,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                 "bigFont.fnt", .35f, size.width / 2.f - 30.f, {.0f, 1.f}, 12.f, false, 0
             );
             errorsLabel->setID("errors-label");
-            m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, {10.f, 0.f}, {});
+            m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, {10.f, .0f}, {});
 
             auto errorsMenu = CCMenu::create();
             errorsMenu->setID("errors-menu");
@@ -325,7 +325,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         ColumnLayout::create()
             ->setGap(0)
             ->setAxisReverse(true)
-            ->setAutoGrowAxis(0.f)
+            ->setAutoGrowAxis(.0f)
     );
 
     this->addChildAtPosition(m_topContainer, Anchor::Top);
@@ -355,7 +355,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     auto pageRightMenu = CCMenu::create();
     pageRightMenu->setID("page-right-menu");
     pageRightMenu->setContentWidth(30.f);
-    pageRightMenu->setAnchorPoint({0.f, .5f});
+    pageRightMenu->setAnchorPoint({.0f, .5f});
 
     auto pageNextSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
     pageNextSpr->setFlipX(true);
@@ -497,7 +497,7 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
     m_hasDeprecations = !check.modsWithDeprecations.empty();
 
     // Not sure if updates really should take precedence over deprecations
-    if (check.modsWithUpdates.size() > 0) {
+    if (!check.modsWithUpdates.empty()) {
         if (check.modsWithUpdates.size() == 1) {
             m_updateCountLabel->setString("There is an update available!");
             m_updateAllSpr->setString("");
@@ -560,14 +560,14 @@ void ModList::updateTopContainer() {
 
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
-    auto oldPosition = oldPositionArea > 0.f ?
+    auto oldPosition = oldPositionArea > .0f ?
         m_list->m_contentLayer->getPositionY() / oldPositionArea :
         -1.f;
 
     // Update list size to account for the top menu
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
-        m_topContainer->getContentHeight() > 0.f ?
+        m_topContainer->getContentHeight() > .0f ?
             this->getContentHeight() - m_topContainer->getContentHeight() - 2.5f :
             this->getContentHeight()
     );
@@ -615,7 +615,7 @@ void ModList::updateDisplay(ModListDisplay display) {
 
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
-    auto oldPosition = oldPositionArea > 0.f ? m_list->m_contentLayer->getPositionY() / oldPositionArea : -1.f;
+    auto oldPosition = oldPositionArea > .0f ? m_list->m_contentLayer->getPositionY() / oldPositionArea : -1.f;
 
     // fix initial width being 0
     m_list->m_contentLayer->setContentWidth(m_list->getContentWidth());
@@ -645,7 +645,9 @@ void ModList::updateDisplay(ModListDisplay display) {
     }
 
     // Preserve relative scroll position
-    m_list->m_contentLayer->setPositionY((m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight()) * oldPosition);
+    m_list->m_contentLayer->setPositionY((
+        m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight()
+    ) * oldPosition);
 }
 
 void ModList::updateState() {

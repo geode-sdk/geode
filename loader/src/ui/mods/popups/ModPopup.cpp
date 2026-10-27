@@ -824,7 +824,11 @@ ModPopup::RepoPlatform ModPopup::getRepoPlatform(ZStringView url) {
         {"git.gay", RepoPlatform::GitGay},
     };
 
-    if (auto const it = platforms.find(platformURL); it != platforms.end()) return it->second;
+    auto const it = platforms.find(platformURL);
+    if (it != platforms.end()) {
+        return it->second;
+    }
+
     return RepoPlatform::Unknown;
 }
 
