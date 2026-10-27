@@ -53,7 +53,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
     m_list = ScrollLayer::create(size);
 
-    this->addChildAtPosition(m_list, Anchor::BottomLeft, CCPointZero, CCPointZero);
+    this->addChildAtPosition(m_list, Anchor::BottomLeft, { .0f, .0f }, { .0f, .0f });
 
     m_topContainer = CCNode::create();
     m_topContainer->setID("top-container");

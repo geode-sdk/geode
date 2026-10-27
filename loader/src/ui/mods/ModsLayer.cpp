@@ -59,7 +59,7 @@ bool ModsStatusNode::init() {
     m_progressBar->setID("progress-bar");
     m_progressBar->m_touchLogic->m_thumb->setVisible(false);
     m_progressBar->setScale(2.f);
-    m_progressBar->setAnchorPoint({0, 0});
+    m_progressBar->setAnchorPoint({ .0f, .0f });
     m_statusBG->addChildAtPosition(m_progressBar, Anchor::Center);
 
     this->addChildAtPosition(m_statusBG, Anchor::Bottom);
@@ -72,7 +72,9 @@ bool ModsStatusNode::init() {
     auto restartSpr = createGeodeButton("Restart Now");
     restartSpr->setScale(.65f);
 
-    m_restartBtn = CCMenuItemSpriteExtra::create(restartSpr, this, menu_selector(ModsStatusNode::onRestart));
+    m_restartBtn = CCMenuItemSpriteExtra::create(
+        restartSpr, this, menu_selector(ModsStatusNode::onRestart)
+    );
     m_restartBtn->setID("restart-button");
     m_btnMenu->addChild(m_restartBtn);
 
@@ -86,11 +88,16 @@ bool ModsStatusNode::init() {
     auto cancelSpr = createGeodeButton("Cancel");
     cancelSpr->setScale(.65f);
 
-    m_cancelBtn = CCMenuItemSpriteExtra::create(cancelSpr, this, menu_selector(ModsStatusNode::onCancel));
+    m_cancelBtn = CCMenuItemSpriteExtra::create(
+        cancelSpr, this, menu_selector(ModsStatusNode::onCancel)
+    );
     m_cancelBtn->setID("cancel-button");
     m_btnMenu->addChild(m_cancelBtn);
 
-    m_btnMenu->setLayout(SimpleRowLayout::create()->setGap(5.f));
+    m_btnMenu->setLayout(
+        SimpleRowLayout::create()
+            ->setGap(5.f)
+    );
     this->addChildAtPosition(m_btnMenu, Anchor::Center, ccp(0, 5));
 
     m_updateStateHandle = UpdateModListStateEvent().listen([this](UpdateState const& state) {
@@ -245,8 +252,7 @@ void ModsStatusNode::updateState() {
 
                 if (std::holds_alternative<server::DownloadStatusDone>(status)) {
                     totalProgress += 100;
-                }
-                else if (auto downloading = std::get_if<server::DownloadStatusDownloading>(&status)) {
+                } else if (auto downloading = std::get_if<server::DownloadStatusDownloading>(&status)) {
                     totalProgress += downloading->percentage;
                 }
             }
@@ -278,11 +284,16 @@ void ModsStatusNode::onViewErrors(CCObject*) {
             errors.push_back(fmt::format("<cr>{}</c>: {}", download.getID(), error->details));
         }
     }
-    MDPopup::create("Download Errors", ranges::join(errors, "\n\n"), "OK", "Dismiss", [](bool btn2) {
-        if (btn2) {
-            server::ModDownloadManager::get()->dismissAll();
+    MDPopup::create(
+        "Download Errors",
+        ranges::join(errors, "\n\n"),
+        "OK", "Dismiss",
+        [](bool btn2) {
+            if (btn2) {
+                server::ModDownloadManager::get()->dismissAll();
+            }
         }
-    })->show();
+    )->show();
 }
 
 void ModsStatusNode::onConfirm(CCObject*) {
@@ -327,7 +338,7 @@ bool ModsLayer::init() {
     auto safeArea = geode::utils::getSafeAreaRect();
 
     auto winSize = CCDirector::get()->getWinSize();
-    bool const isSafeMode = LoaderImpl::get()->isSafeMode();
+    const bool isSafeMode = LoaderImpl::get()->isSafeMode();
 
     if (!isSafeMode) {
         auto listener = NodeProvidingEvent("geode-background"_spr)
@@ -367,11 +378,17 @@ bool ModsLayer::init() {
     backMenu->setAnchorPoint({.0f, .5f});
 
     auto backSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
-    auto backBtn = CCMenuItemSpriteExtra::create(backSpr, this, menu_selector(ModsLayer::onBack));
+    auto backBtn = CCMenuItemSpriteExtra::create(
+        backSpr, this, menu_selector(ModsLayer::onBack)
+    );
     backBtn->setID("back-button");
     backMenu->addChild(backBtn);
 
-    backMenu->setLayout(SimpleRowLayout::create()->setMainAxisAlignment(MainAxisAlignment::Start)->setGap(5.f));
+    backMenu->setLayout(
+        SimpleRowLayout::create()
+            ->setMainAxisAlignment(MainAxisAlignment::Start)
+            ->setGap(5.f)
+    );
     this->addChildAtPosition(backMenu, Anchor::TopLeft, ccp(8, -23), false);
 
     auto actionsMenu = CCMenu::create();
@@ -384,37 +401,57 @@ bool ModsLayer::init() {
     rightActionsMenu->setContentSize({38.f, 200.f});
     rightActionsMenu->setAnchorPoint({.5f, .0f});
 
-    auto reloadSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f, CircleBaseSize::Medium);
+    auto reloadSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f,
+        CircleBaseSize::Medium
+    );
     reloadSpr->setScale(.8f);
     reloadSpr->setTopOffset(ccp(1, 0));
 
-    auto reloadBtn = CCMenuItemSpriteExtra::create(reloadSpr, this, menu_selector(ModsLayer::onRefreshList));
+    auto reloadBtn = CCMenuItemSpriteExtra::create(
+        reloadSpr, this, menu_selector(ModsLayer::onRefreshList)
+    );
     reloadBtn->setID("reload-button");
     rightActionsMenu->addChild(reloadBtn);
 
-    auto settingsSpr = createGeodeCircleButton( CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f, CircleBaseSize::Medium);
+    auto settingsSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f,
+        CircleBaseSize::Medium
+    );
     settingsSpr->setScale(.8f);
     settingsSpr->setTopOffset(ccp(-0.1f, 0));
 
-    auto settingsBtn = CCMenuItemSpriteExtra::create(settingsSpr, this, menu_selector(ModsLayer::onSettings));
+    auto settingsBtn = CCMenuItemSpriteExtra::create(
+        settingsSpr, this, menu_selector(ModsLayer::onSettings)
+    );
     settingsBtn->setID("settings-button");
     actionsMenu->addChild(settingsBtn);
 
-    auto keybindsSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("keybinds.png"_spr), 1.f, CircleBaseSize::Medium);
+    auto keybindsSpr = createGeodeCircleButton(
+        CCSprite::createWithSpriteFrameName("keybinds.png"_spr), 1.f,
+        CircleBaseSize::Medium
+    );
     keybindsSpr->setScale(.8f);
     keybindsSpr->setTopOffset(ccp(0.2f, 1));
 
-    auto keybindsBtn = CCMenuItemSpriteExtra::create(keybindsSpr, this, menu_selector(ModsLayer::onKeybinds));
+    auto keybindsBtn = CCMenuItemSpriteExtra::create(
+        keybindsSpr, this, menu_selector(ModsLayer::onKeybinds)
+    );
     keybindsBtn->setID("settings-button");
     actionsMenu->addChild(keybindsBtn);
 
     if (Mod::get()->getSettingValue<bool>("restart-button")) {
         auto restartGDSpr = CCSprite::createWithSpriteFrameName("reload-gold.png"_spr);
-        auto restartGDCircleSpr = createGeodeCircleButton(restartGDSpr, 1.f, CircleBaseSize::Medium);
+        auto restartGDCircleSpr = createGeodeCircleButton(
+            restartGDSpr, 1.f,
+            CircleBaseSize::Medium
+        );
         restartGDCircleSpr->setScale(.8f);
         restartGDCircleSpr->setTopOffset(ccp(1.5f, -1.f));
 
-        auto restartGDBtn = CCMenuItemSpriteExtra::create(restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD));
+        auto restartGDBtn = CCMenuItemSpriteExtra::create(
+            restartGDCircleSpr, this, menu_selector(ModsLayer::onRestartGD)
+        );
         restartGDBtn->setID("restart-gd-button");
         actionsMenu->addChild(restartGDBtn);
     }
@@ -598,7 +635,11 @@ bool ModsLayer::init() {
         m_tabs.push_back(btn);
     }
 
-    mainTabs->setLayout(SimpleRowLayout::create()->setMainAxisScaling(AxisScaling::Scale)->setGap(5.f));
+    mainTabs->setLayout(
+        SimpleRowLayout::create()
+            ->setMainAxisScaling(AxisScaling::Scale)
+            ->setGap(5.f)
+    );
     this->addChild(mainTabs);
 
     // Actions
@@ -611,8 +652,7 @@ bool ModsLayer::init() {
 
     auto smallSizeBtn = CCMenuItemSpriteExtra::create(
         GeodeSquareSprite::createWithSpriteFrameName("GJ_smallModeIcon_001.png"),
-        this,
-        menu_selector(ModsLayer::onDisplay)
+        this, menu_selector(ModsLayer::onDisplay)
     );
     smallSizeBtn->setTag(static_cast<int>(ModListDisplay::SmallList));
     smallSizeBtn->setID("list-normal-size-button");
@@ -621,8 +661,7 @@ bool ModsLayer::init() {
 
     auto bigSizeBtn = CCMenuItemSpriteExtra::create(
         GeodeSquareSprite::createWithSpriteFrameName("GJ_extendedIcon_001.png"),
-        this,
-        menu_selector(ModsLayer::onDisplay)
+        this, menu_selector(ModsLayer::onDisplay)
     );
     bigSizeBtn->setTag(static_cast<int>(ModListDisplay::BigList));
     bigSizeBtn->setID("list-size-button");
@@ -631,8 +670,7 @@ bool ModsLayer::init() {
 
     auto gridBtn = CCMenuItemSpriteExtra::create(
         GeodeSquareSprite::createWithSpriteFrameName("grid-view.png"_spr),
-        this,
-        menu_selector(ModsLayer::onDisplay)
+        this, menu_selector(ModsLayer::onDisplay)
     );
     gridBtn->setTag(static_cast<int>(ModListDisplay::Grid));
     gridBtn->setID("list-size-button");
@@ -671,8 +709,7 @@ bool ModsLayer::init() {
 
     m_goToPageBtn = CCMenuItemSpriteExtra::create(
         CCSprite::createWithSpriteFrameName("gj_navDotBtn_on_001.png"),
-        this,
-        menu_selector(ModsLayer::onGoToPage)
+        this, menu_selector(ModsLayer::onGoToPage)
     );
     m_goToPageBtn->setID("go-to-page-button");
     m_pageMenu->addChild(m_goToPageBtn);
@@ -725,8 +762,7 @@ bool ModsLayer::init() {
         static int _ = [this] {
             auto alert = PopupManager::get().alert(
                 "Safe Mode Enabled",
-                "Safe Mode has been enabled. This means no mods will be loaded to prevent crashes. "
-                "Feel free to manage any problematic mods.",
+                "Safe Mode has been enabled. This means no mods will be loaded to prevent crashes. Feel free to manage any problematic mods.",
                 "OK"
             );
             alert->m_noElasticity = true;
@@ -784,8 +820,7 @@ void ModsLayer::keyDown(enumKeyCodes key, double p1) {
             break;
         case KEY_Right:
         case CONTROLLER_Right:
-            if (m_currentSource->getPageCount() &&
-                list->getPage() < m_currentSource->getPageCount().value() - 1) {
+            if (m_currentSource->getPageCount() && list->getPage() < m_currentSource->getPageCount().value() - 1) {
                 list->gotoPage(list->getPage() + 1);
             }
             break;
@@ -827,8 +862,7 @@ void ModsLayer::updateState() {
 
     // Update display button
     for (auto btn : m_displayBtns) {
-        static_cast<GeodeSquareSprite*>(btn->getNormalImage())
-            ->setState(static_cast<ModListDisplay>(btn->getTag()) == m_modListDisplay);
+        static_cast<GeodeSquareSprite*>(btn->getNormalImage())->setState(static_cast<ModListDisplay>(btn->getTag()) == m_modListDisplay);
     }
 }
 
@@ -857,18 +891,7 @@ void ModsLayer::onBack(CCObject*) {
 }
 
 void ModsLayer::onGoToPage(CCObject*) {
-    auto popup = SetIDPopup::create(
-        m_lists.at(m_currentSource)->getPage() + 1,
-        1,
-        m_currentSource->getPageCount().value(),
-        "Go to Page",
-        "Go",
-        true,
-        1,
-        60.f,
-        false,
-        false
-    );
+    auto popup = SetIDPopup::create(m_lists.at(m_currentSource)->getPage() + 1, 1, m_currentSource->getPageCount().value(), "Go to Page", "Go", true, 1, 60.f, false, false);
     popup->m_delegate = this;
     popup->setID("go-to-page"_spr);
     popup->show();
@@ -911,8 +934,7 @@ void ModsLayer::onTheme(CCObject*) {
             "to {}?",
             (old ? "<cy>GD-style colors</c>" : "<ca>Geode-style colors</c>")
         ),
-        "Cancel",
-        "Switch",
+        "Cancel", "Switch",
         [old](auto*, bool btn2) {
             if (btn2) {
                 Mod::get()->setSettingValue("enable-geode-theme", !old);
@@ -937,8 +959,7 @@ void ModsLayer::onRestartGD(CCObject*) {
     createQuickPopup(
         "Restart Geometry Dash",
         "Are you sure you want to restart Geometry Dash?",
-        "Cancel",
-        "Restart",
+        "Cancel", "Restart",
         [](auto, bool btn2) {
             if (btn2) {
                 game::restart(true);
@@ -996,15 +1017,13 @@ void ModsLayer::refreshList() {
 void ModsLayer::installModFromFile() {
     if (!Mod::get()->setSavedValue("shown-manual-install-info", true)) {
         return FLAlertLayer::create(
-                   nullptr,
-                   "Manually Installing Mods",
-                   "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
-                   "Do note that manually installed mods <co>are not verified to be safe and "
-                   "stable</c>!\n"
-                   "<cr>Proceed at your own risk!</c>",
-                   "OK",
-                   nullptr,
-                   350
+            nullptr,
+            "Manually Installing Mods",
+            "You can <cg>manually install mods</c> by selecting their <cd>.geode</c> files. "
+            "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
+            "<cr>Proceed at your own risk!</c>",
+            "OK", nullptr,
+            350.f
         )->show();
     }
 

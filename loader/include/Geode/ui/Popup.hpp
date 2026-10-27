@@ -36,17 +36,13 @@ namespace geode {
          * `m_bgSprite` being tied to the size of `m_mainLayer` (rather than
          * being the size of the window)
          */
-        bool init(
-            float width, float height, ZStringView bg = "GJ_square01.png", cocos2d::CCRect bgRect = {}
-        );
+        bool init(float width, float height, ZStringView bg = "GJ_square01.png", cocos2d::CCRect bgRect = {});
         bool init(cocos2d::CCSize size, ZStringView bg = "GJ_square01.png", cocos2d::CCRect bgRect = {});
 
         void keyBackClicked() override;
         void keyDown(cocos2d::enumKeyCodes key, double p1) override;
 
-        void setTitle(
-            ZStringView title, ZStringView font = "goldFont.fnt", float scale = .7f, float offset = 20.f
-        );
+        void setTitle(ZStringView title, ZStringView font = "goldFont.fnt", float scale = .7f, float offset = 20.f);
 
         void setCloseButtonSpr(cocos2d::CCSprite* spr, float scale = 1.f);
 
@@ -56,15 +52,7 @@ namespace geode {
         CloseEvent listenForClose();
     };
 
-    GEODE_DLL FLAlertLayer* createQuickPopup(
-        ZStringView title, std::string content, ZStringView btn1, ZStringView btn2 = "",
-        geode::Function<void(FLAlertLayer*, bool)> selected = nullptr, bool doShow = true,
-        bool cancelledByEscape = false
-    );
+    GEODE_DLL FLAlertLayer* createQuickPopup(ZStringView title, std::string content, ZStringView btn1, ZStringView btn2 = "", geode::Function<void(FLAlertLayer*, bool)> selected = nullptr, bool doShow = true, bool cancelledByEscape = false);
 
-    GEODE_DLL FLAlertLayer* createQuickPopup(
-        ZStringView title, std::string content, ZStringView btn1, ZStringView btn2, float width,
-        geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow = true,
-        bool cancelledByEscape = false
-    );
+    GEODE_DLL FLAlertLayer* createQuickPopup(ZStringView title, std::string content, ZStringView btn1, ZStringView btn2, float width, geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow = true, bool cancelledByEscape = false);
 }

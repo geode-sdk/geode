@@ -13,6 +13,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/web.hpp>
 #include <optional>
+#include <ranges>
 
 class FetchTextArea : public CCNode {
 public:
@@ -326,7 +327,7 @@ bool ModPopup::init(ModSource&& src) {
             ->setDefaultScaleLimits(.1f, 1)
             ->setAxisAlignment(AxisAlignment::Even)
     );
-    statsContainer->addChildAtPosition(m_stats, Anchor::Center, CCPointZero, {.5f, .5f});
+    statsContainer->addChildAtPosition(m_stats, Anchor::Center, { .0f, .0f }, {.5f, .5f});
 
     leftColumn->addChild(statsContainer);
 
@@ -369,7 +370,7 @@ bool ModPopup::init(ModSource&& src) {
     manageTitle->setScale(.25f);
     manageTitle->setOpacity(195);
     manageTitle->setID("manage-title");
-    manageContainer->addChildAtPosition(manageTitle, Anchor::Left, CCPointZero, {.0f, .5f});
+    manageContainer->addChildAtPosition(manageTitle, Anchor::Left, { .0f, .0f }, {.0f, .5f});
 
     m_restartRequiredLabel = createTagLabel(
         "Restart Required",
@@ -379,13 +380,13 @@ bool ModPopup::init(ModSource&& src) {
         }
     );
     m_restartRequiredLabel->setScale(.3f);
-    manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, CCPointZero, {1.f, .5f});
+    manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, { .0f, .0f }, {1.f, .5f});
 
     m_enabledStatusLabel = Label::create("", "bigFont.fnt");
     m_enabledStatusLabel->setScale(.25f);
     m_enabledStatusLabel->setOpacity(140);
     m_enabledStatusLabel->setID("enabled-status");
-    manageContainer->addChildAtPosition(m_enabledStatusLabel, Anchor::Right, CCPointZero, {1.f, .5f});
+    manageContainer->addChildAtPosition(m_enabledStatusLabel, Anchor::Right, { .0f, .0f }, {1.f, .5f});
 
     leftColumn->addChild(manageContainer);
 
@@ -694,7 +695,7 @@ bool ModPopup::init(ModSource&& src) {
     mainContainer->addChildAtPosition(m_rightColumn, Anchor::Right, {-20.f, .0f});
 
     mainContainer->updateLayout();
-    m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center, CCPointZero, {.5f, .5f});
+    m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center, { .0f, .0f }, {.5f, .5f});
 
     m_settingsBG = NineSlice::create("square02b_001.png");
     m_settingsBG->setColor({0, 0, 0});
@@ -1201,12 +1202,12 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             });
             menu->addChildAtPosition(aboutBtn, Anchor::Right, {-25.f, .0f});
 
-            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, CCPointZero, {.5f, .0f});
+            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, { .0f, .0f }, {.5f, .0f});
 
             m_modtoberBanner = menu;
 
             // Force reload of all the tabs since otherwise their contents will overflow
-            for (auto& [_, tab] : m_tabs) {
+            for (auto& tab : m_tabs | std::views::values) {
                 if (tab.second && tab.second->getParent()) {
                     tab.second->removeFromParent();
                 }
