@@ -57,7 +57,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
         SimpleAxisLayoutOptions::create()
             ->setMinRelativeScale(.7f)
             ->setMaxRelativeScale(1.f)
-    );
+        );
     m_titleContainer->addChild(m_versionLabel);
 
     m_versionDownloadSeparator = Label::create("•", "bigFont.fnt");
@@ -594,7 +594,8 @@ void ModItem::updateState() {
     // Couldn't figure out a more concise name
     m_description->setVisible(m_display == ModListDisplay::BigList);
     m_developers->setVisible(true);
-    auto elementToReplaceWithOtherAbnormalElement = m_display == ModListDisplay::BigList ? m_description : m_developers;
+    auto elementToReplaceWithOtherAbnormalElement =
+        m_display == ModListDisplay::BigList ? m_description : m_developers;
 
     auto titleSpace = m_display == ModListDisplay::Grid ?
         CCSize(m_obContentSize.width - 10, 35) :
@@ -717,8 +718,7 @@ void ModItem::updateState() {
             if (m_display == ModListDisplay::Grid) {
                 if (!m_source.getMetadata().checkPlatformSupported()) {
                     m_outdatedLabel->setString("Unsupported");
-                }
-                else {
+                } else {
                     m_outdatedLabel->setString("Outdated");
                 }
             }
@@ -952,9 +952,7 @@ void ModItem::onViewError(CCObject*) {
                     "**Reason:** {1}\n\n"
                     "{2}\n\n"
                     "It is recommended to <cr>uninstall {0}</c>.",
-                    mod->getName(),
-                    dep->reason,
-                    byStr
+                    mod->getName(), dep->reason, byStr
                 ),
                 "OK"
             )->show();

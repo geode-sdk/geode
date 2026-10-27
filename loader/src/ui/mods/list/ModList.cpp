@@ -373,7 +373,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
     pageRightMenu->setLayout(
         SimpleRowLayout::create()
-            ->setMainAxisAlignment(MainAxisAlignment::Start)
+        ->setMainAxisAlignment(MainAxisAlignment::Start)
     );
     this->addChildAtPosition(pageRightMenu, Anchor::Right, {20.f, .0f});
 
@@ -618,7 +618,9 @@ void ModList::updateDisplay(ModListDisplay display) {
 
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
-    auto oldPosition = oldPositionArea > .0f ? m_list->m_contentLayer->getPositionY() / oldPositionArea : -1.f;
+    auto oldPosition = oldPositionArea > .0f ?
+        m_list->m_contentLayer->getPositionY() / oldPositionArea :
+        -1.f;
 
     // fix initial width being 0
     m_list->m_contentLayer->setContentWidth(m_list->getContentWidth());
@@ -715,8 +717,7 @@ void ModList::gotoPage(size_t page, bool update) {
     auto cachedPage = m_source->getCachedPage(page);
     if (!update && cachedPage.has_value()) {
         this->onPromise(Ok(std::move(cachedPage).value()));
-    }
-    else {
+    } else {
         m_listener.spawn("ModList Page Load", m_source->loadPage(page, update), [this, page](auto res) {
             if (res.isErr()) {
                 return this->onPromise(Err(std::move(res).unwrapErr()));
@@ -742,7 +743,9 @@ void ModList::showStatus(ModListStatus status, std::string message, std::optiona
     m_statusContainer->setVisible(true);
     m_statusDetails->setVisible(false);
     m_statusDetailsBtn->setVisible(details.has_value());
-    m_statusLoadingCircle->setVisible(std::holds_alternative<ModListUnkProgressStatus>(status));
+    m_statusLoadingCircle->setVisible(
+        std::holds_alternative<ModListUnkProgressStatus>(status)
+    );
 
     // Update layout to automatically rearrange everything neatly in the status
     m_statusContainer->updateLayout();
@@ -780,8 +783,9 @@ void ModList::onToggleUpdates(CCObject*) {
 void ModList::onToggleErrors(CCObject*) {
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         auto mut = src->getQueryMut();
-        mut->type = mut->type == InstalledModListType::OnlyErrors ? InstalledModListType::All :
-                                                                    InstalledModListType::OnlyErrors;
+        mut->type = mut->type == InstalledModListType::OnlyErrors ?
+            InstalledModListType::All :
+            InstalledModListType::OnlyErrors;
         if (mut->type == InstalledModListType::OnlyErrors) {
             Notification::create(
                 "Click the (!) button to see\nthe errors for each mod.",
