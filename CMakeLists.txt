@@ -260,7 +260,7 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.5.0")
-CPMAddPackage("gh:geode-sdk/json@3.3.1")
+CPMAddPackage("gh:geode-sdk/json@4.0.1")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
 CPMAddPackage("gh:fmtlib/fmt#12.2.0")
 
@@ -338,7 +338,9 @@ if (SUPPORTS_W_NO_EVERYTHING)
 	endif()
 endif()
 
-target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
+if (NOT GEODE_NO_ENTRY)
+	target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
+endif()
 
 add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
 

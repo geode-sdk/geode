@@ -6,6 +6,7 @@
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/BoxedLabel.hpp>
 #include <Geode/binding/TextArea.hpp>
 #include "KeybindEditPopup.hpp"
 
@@ -306,23 +307,16 @@ bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width
     this->getNameLabel()->setVisible(false);
     this->getDescriptionButton()->setVisible(false);
 
-    auto bg = NineSlice::create("white-square.png"_spr);
-    bg->setColor(setting->getColor().value_or(ccc3(255, 135, 88)));
-    bg->setOpacity(90);
-    bg->setContentWidth(width - 30);
+    auto label =
+        BoxedLabel::create(setting->getDescription().value_or(""), "chatFont.fnt", width - 25);
+    label->lockBGWidth(true);
+    label->setTextScale(.65f);
+    label->setBGOpacity(100);
+    label->setBGColor(setting->getColor().value_or(ccc3(255, 135, 88)));
 
-    this->addChildAtPosition(bg, Anchor::Center);
+    this->addChildAtPosition(label, Anchor::Center);
 
-    // TODO: 2.209 (change to Label?)
-    auto infoLabel = TextArea::create(
-        setting->getDescription().value_or(""),
-        "chatFont.fnt", .65f, bg->getContentWidth() - 45,
-        ccp(.4999f, .4999f), 12, false, 0
-    );
-
-    this->setContentHeight(30 + infoLabel->getContentHeight());
-    bg->setContentHeight(this->getContentHeight() - 10);
-    bg->addChildAtPosition(infoLabel, Anchor::Center);
+    this->setContentHeight(12.5f + label->getContentHeight());
 
     this->updateState(nullptr);
 
