@@ -1243,7 +1243,7 @@ void ModPopup::onDependencies(CCObject*) {
 
     std::string str;
     if (!std::ranges::empty(required)) {
-        str += "<cy>Required</c> dependencies:\n\n";
+        str += "<co>Required</c> dependencies:\n\n";
         for (const auto& dep : required) {
             str += fmt::format("<mod:{}>\n\n", dep.getID());
         }
