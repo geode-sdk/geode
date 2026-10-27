@@ -135,29 +135,26 @@ void ModsStatusNode::updateState() {
 
     auto downloads = server::ModDownloadManager::get()->getDownloads();
     for (auto& download : downloads) {
-        std::visit(
-            makeVisitor{
-                [&](server::DownloadStatusFetching const&) {
-                    upgradeState(DownloadState::SomeFetching);
-                },
-                [&](server::DownloadStatusConfirm const&) {
-                    upgradeState(DownloadState::SomeToBeConfirmed);
-                },
-                [&](server::DownloadStatusDownloading const&) {
-                    upgradeState(DownloadState::SomeDownloading);
-                },
-                [&](server::DownloadStatusDone const&) {
-                    upgradeState(DownloadState::AllDone);
-                },
-                [&](server::DownloadStatusError const&) {
-                    upgradeState(DownloadState::SomeErrored);
-                },
-                [&](server::DownloadStatusCancelled const&) {
-                    upgradeState(DownloadState::SomeCancelled);
-                },
+        std::visit(makeVisitor {
+            [&](server::DownloadStatusFetching const&) {
+                upgradeState(DownloadState::SomeFetching);
             },
-            download.getStatus()
-        );
+            [&](server::DownloadStatusConfirm const&) {
+                upgradeState(DownloadState::SomeToBeConfirmed);
+            },
+            [&](server::DownloadStatusDownloading const&) {
+                upgradeState(DownloadState::SomeDownloading);
+            },
+            [&](server::DownloadStatusDone const&) {
+                upgradeState(DownloadState::AllDone);
+            },
+            [&](server::DownloadStatusError const&) {
+                upgradeState(DownloadState::SomeErrored);
+            },
+            [&](server::DownloadStatusCancelled const&) {
+                upgradeState(DownloadState::SomeCancelled);
+            },
+        }, download.getStatus());
     }
 
     // Reset the state to default

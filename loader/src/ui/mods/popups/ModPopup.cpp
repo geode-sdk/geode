@@ -765,24 +765,20 @@ bool ModPopup::init(ModSource&& src) {
         return ListenerResult::Propagate;
     });
 
-    m_source.visit(
-        makeVisitor{
-            [this](Mod* mod) {
-                m_settingNodeHandle = SettingNodeValueChangeEvent().listen(
-                    [this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
-                        if (!isCommit) {
-                            return ListenerResult::Propagate;
-                        }
-                        this->updateState();
-                        return ListenerResult::Propagate;
-                    }
-                );
-            },
-            [this](server::ServerModMetadata const& metadata) {
+    m_source.visit(makeVisitor {
+        [this](Mod* mod) {
+            m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
+                if (!isCommit) {
+                    return ListenerResult::Propagate;
+                }
+                this->updateState();
+                return ListenerResult::Propagate;
+            });
+        },
+        [this](server::ServerModMetadata const& metadata) {
 
-            }
         }
-    );
+    });
 
     return true;
 }
@@ -956,33 +952,30 @@ void ModPopup::updateState() {
             }
         }
         else {
-            std::visit(
-                makeVisitor{
-                    [this](server::DownloadStatusError const& e) {
-                        m_enabledStatusLabel->setText("Error");
-                        m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
-                        // todo: show error details somewhere (like an info button)
-                    },
-                    [this](server::DownloadStatusCancelled const&) {
-                        m_enabledStatusLabel->setText("Cancelled");
-                        m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
-                    },
-                    [this](server::DownloadStatusDone const&) {
-                        m_enableBtn->setVisible(false);
-                        m_reenableBtn->setVisible(false);
-                        m_updateBtn->setVisible(false);
-                        m_installBtn->setVisible(false);
-                        m_uninstallBtn->setVisible(false);
-                        m_cancelBtn->setVisible(false);
-
-                        m_installStatusLabel->setText("Mod has been installed");
-                        m_installStatusLabel->setVisible(true);
-                    },
-                    // rest are unreachable due to the isActive() check
-                    [this](auto const&) {},
+            std::visit(makeVisitor {
+                [this](server::DownloadStatusError const& e) {
+                    m_enabledStatusLabel->setText("Error");
+                    m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
+                    // todo: show error details somewhere (like an info button)
                 },
-                download->getStatus()
-            );
+                [this](server::DownloadStatusCancelled const&) {
+                    m_enabledStatusLabel->setText("Cancelled");
+                    m_enabledStatusLabel->setColor(to3B(ColorProvider::get()->color("mod-list-disabled"_spr)));
+                },
+                [this](server::DownloadStatusDone const&) {
+                    m_enableBtn->setVisible(false);
+                    m_reenableBtn->setVisible(false);
+                    m_updateBtn->setVisible(false);
+                    m_installBtn->setVisible(false);
+                    m_uninstallBtn->setVisible(false);
+                    m_cancelBtn->setVisible(false);
+
+                    m_installStatusLabel->setText("Mod has been installed");
+                    m_installStatusLabel->setVisible(true);
+                },
+                // rest are unreachable due to the isActive() check
+                [this](auto const&) {},
+            }, download->getStatus());
         }
     }
 

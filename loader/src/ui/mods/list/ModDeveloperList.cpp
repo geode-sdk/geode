@@ -35,20 +35,18 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
 
     CCSize itemSize = {m_list->getScaledContentWidth(), 20.f};
 
-    m_source.visit(
-        makeVisitor{
-            [this, popup, itemSize](Mod* mod) {
-                for (auto& dev : mod->getMetadata().getDevelopers()) {
-                    m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
-                }
-            },
-            [this, popup, itemSize](server::ServerModMetadata const& metadata) {
-                for (auto& dev : metadata.developers) {
-                    m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev.username, itemSize, dev.displayName));
-                }
-            },
-        }
-    );
+    m_source.visit(makeVisitor {
+        [this, popup, itemSize](Mod* mod) {
+            for (auto& dev : mod->getMetadata().getDevelopers()) {
+                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev, itemSize, std::nullopt, false));
+            }
+        },
+        [this, popup, itemSize](server::ServerModMetadata const& metadata) {
+            for (auto& dev : metadata.developers) {
+                m_list->m_contentLayer->addChild(ModDeveloperItem::create(popup, dev.username, itemSize, dev.displayName));
+            }
+        },
+    });
 
     m_list->m_contentLayer->updateLayout();
     m_list->scrollToTop();

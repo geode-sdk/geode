@@ -227,196 +227,221 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     );
 
     // Handle source-specific stuff
-    m_source.visit(
-        makeVisitor{
-            [this, listItem](Mod* mod) {
-                // Add an enable button if the mod is enablable
-                if (!mod->isInternal()) {
-                    m_enableToggle = CCMenuItemToggler::createWithStandardSprites(this, menu_selector(ModItem::onEnable), 1.f);
-                    m_enableToggle->setScale(0.9f);
-                    m_enableToggle->setLayoutOptions(SimpleAxisLayoutOptions::create()->setMaxRelativeScale(1.f));
-                    m_enableToggle->setID("enable-toggler");
-                    // Manually handle toggle state
-                    m_enableToggle->m_notClickable = true;
-                    m_viewMenu->addChild(m_enableToggle);
-                    m_viewMenu->updateLayout();
-                }
-
-                // Add a pin button if the mod is in a list and enablable
-                if (listItem && !mod->isInternal()) {
-                    auto pinOff = CCSprite::createWithSpriteFrameName("pin.png"_spr);
-                    pinOff->setOpacity(105);
-                    auto pinOn = CCSprite::createWithSpriteFrameName("pin.png"_spr);
-
-                    if (isGeodeTheme()) {
-                        pinOn->setColor(ccc3(245, 174, 125));
-                        pinOff->setColor(ccc3(220, 190, 230));
-                    }
-                    else {
-                        // someone with better colour decisions can pick colours for gd
-                        pinOn->setColor(ccc3(245, 174, 125));
-                        pinOff->setColor(ccc3(220, 190, 230));
-                    }
-
-                    m_pinToggle = CCMenuItemToggler::create(pinOff, pinOn, this, menu_selector(ModItem::onPin));
-                    m_pinToggle->setScale(0.75f);
-                    m_pinToggle->setLayoutOptions(SimpleAxisLayoutOptions::create()->setMaxRelativeScale(1.f));
-                    m_pinToggle->setID("pin-toggler");
-                    m_viewMenu->addChild(m_pinToggle);
-                    m_viewMenu->updateLayout();
-                }
-
-                if (mod->getLoadProblem() || m_source.hasUpdates().deprecation.has_value()) {
-                    auto viewErrorSpr = CircleButtonSprite::create(
-                        CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
-                        CircleBaseColor::Red,
-                        CircleBaseSize::Small
-                    );
-                    auto viewErrorBtn = CCMenuItemSpriteExtra::create(viewErrorSpr, this, menu_selector(ModItem::onViewError));
-                    viewErrorBtn->setID("view-error-button");
-                    m_viewMenu->addChild(viewErrorBtn);
-                }
-
-                m_settingNodeHandle = SettingNodeValueChangeEvent().listen(
-                    [this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
-                        if (!isCommit) {
-                            return ListenerResult::Propagate;
-                        }
-                        this->updateState();
-                        return ListenerResult::Propagate;
-                    }
+    m_source.visit(makeVisitor {
+        [this, listItem](Mod* mod) {
+            // Add an enable button if the mod is enablable
+            if (!mod->isInternal()) {
+                m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
+                    this, menu_selector(ModItem::onEnable), 1.f
                 );
+                m_enableToggle->setScale(0.9f);
+                m_enableToggle->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMaxRelativeScale(1.f)
+                );
+                m_enableToggle->setID("enable-toggler");
+                // Manually handle toggle state
+                m_enableToggle->m_notClickable = true;
+                m_viewMenu->addChild(m_enableToggle);
+                m_viewMenu->updateLayout();
+            }
 
-                auto updatedAt = server::ModDownloadManager::get()->getRecentlyUpdatedInfo(mod->getID());
-                if (updatedAt) {
-                    m_updatedAtContainer = CCNode::create();
+            // Add a pin button if the mod is in a list and enablable
+            if (listItem && !mod->isInternal()) {
+                auto pinOff = CCSprite::createWithSpriteFrameName("pin.png"_spr);
+                pinOff->setOpacity(105);
+                auto pinOn = CCSprite::createWithSpriteFrameName("pin.png"_spr);
 
-                    auto installedLabel = Label::create(utils::timeToAgoString(updatedAt->updateTime, true), "bigFont.fnt");
-                    installedLabel->setID("installed-ago-label");
-                    installedLabel->setLimitLabelWidth(125, 1.f, .1f);
-                    m_updatedAtContainer->addChildAtPosition(installedLabel, Anchor::Right, { .0f, .0f }, {1.f, .5f});
-
-                    auto installedIcon = CCSprite::createWithSpriteFrameName("GJ_timeIcon_001.png");
-                    installedIcon->setID("installed-ago-sprite");
-                    installedIcon->setScale(1.2f);
-                    m_updatedAtContainer->addChildAtPosition(installedIcon, Anchor::Left, {8.f, .0f});
-
-                    // m_updatedAtContainer scale is controlled in updateState
-                    m_updatedAtContainer->setContentSize({installedLabel->getScaledContentWidth() + installedIcon->getScaledContentWidth(),30});
-                    m_updatedAtContainer->updateLayout();
-                    m_updatedAtContainer->setLayoutOptions(SimpleAxisLayoutOptions::create()->setMinRelativeScale(.1f)->setMaxRelativeScale(1.f));
+                if (isGeodeTheme()) {
+                    pinOn->setColor(ccc3(245, 174, 125));
+                    pinOff->setColor(ccc3(220, 190, 230));
+                } else {
+                    // someone with better colour decisions can pick colours for gd
+                    pinOn->setColor(ccc3(245, 174, 125));
+                    pinOff->setColor(ccc3(220, 190, 230));
                 }
-            },
-            [this](server::ServerModMetadata const& metadata) {
-                // todo: there has to be a better way to deal with the short/long alternatives
-                if (metadata.featured) {
-                    m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-featured.png"_spr));
+
+                m_pinToggle = CCMenuItemToggler::create(
+                    pinOff, pinOn,
+                    this, menu_selector(ModItem::onPin)
+                );
+                m_pinToggle->setScale(0.75f);
+                m_pinToggle->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMaxRelativeScale(1.f)
+                );
+                m_pinToggle->setID("pin-toggler");
+                m_viewMenu->addChild(m_pinToggle);
+                m_viewMenu->updateLayout();
+            }
+
+            if (mod->getLoadProblem() || m_source.hasUpdates().deprecation.has_value()) {
+                auto viewErrorSpr = CircleButtonSprite::create(
+                    CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
+                    CircleBaseColor::Red, CircleBaseSize::Small
+                );
+                auto viewErrorBtn = CCMenuItemSpriteExtra::create(
+                    viewErrorSpr, this, menu_selector(ModItem::onViewError)
+                );
+                viewErrorBtn->setID("view-error-button");
+                m_viewMenu->addChild(viewErrorBtn);
+            }
+
+            m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
+                if (!isCommit) {
+                    return ListenerResult::Propagate;
                 }
-                if (metadata.tags.contains("paid")) {
-                    auto shortVer = CCSprite::createWithSpriteFrameName("tag-paid.png"_spr);
+                this->updateState();
+                return ListenerResult::Propagate;
+            });
+
+            auto updatedAt = server::ModDownloadManager::get()->getRecentlyUpdatedInfo(mod->getID());
+            if (updatedAt) {
+                m_updatedAtContainer = CCNode::create();
+
+                auto installedLabel = Label::create(
+                    utils::timeToAgoString(updatedAt->updateTime, true),
+                    "bigFont.fnt"
+                );
+                installedLabel->setID("installed-ago-label");
+                installedLabel->setLimitLabelWidth(125, 1.f, .1f);
+                m_updatedAtContainer->addChildAtPosition(installedLabel, Anchor::Right, ccp(-0, 0), ccp(1, .5f));
+
+                auto installedIcon = CCSprite::createWithSpriteFrameName("GJ_timeIcon_001.png");
+                installedIcon->setID("installed-ago-sprite");
+                installedIcon->setScale(1.2f);
+                m_updatedAtContainer->addChildAtPosition(installedIcon, Anchor::Left, ccp(8, 0));
+
+                // m_updatedAtContainer scale is controlled in updateState
+                m_updatedAtContainer->setContentSize({
+                    installedLabel->getScaledContentWidth() + installedIcon->getScaledContentWidth(),
+                    30
+                });
+                m_updatedAtContainer->updateLayout();
+                m_updatedAtContainer->setLayoutOptions(
+                    SimpleAxisLayoutOptions::create()
+                        ->setMinRelativeScale(.1f)
+                        ->setMaxRelativeScale(1.f)
+                );
+            }
+        },
+        [this](server::ServerModMetadata const& metadata) {
+            // todo: there has to be a better way to deal with the short/long alternatives
+            if (metadata.featured) {
+                m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-featured.png"_spr));
+            }
+            if (metadata.tags.contains("paid")) {
+                auto shortVer = CCSprite::createWithSpriteFrameName("tag-paid.png"_spr);
+                shortVer->setTag(1);
+                m_badgeContainer->addChild(shortVer);
+                auto longVer = CCSprite::createWithSpriteFrameName("tag-paid-long.png"_spr);
+                longVer->setTag(2);
+                m_badgeContainer->addChild(longVer);
+            }
+            if (metadata.tags.contains("joke")) {
+                m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-joke.png"_spr));
+            }
+            if (metadata.tags.contains("api")) {
+                m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-api.png"_spr));
+            }
+
+            for (auto [ year, winner ] : std::initializer_list<std::tuple<const char*, std::optional<const char*>>> {
+                { "24", "rainixgd.geome3dash" },
+                { "25", std::nullopt },
+            }) {
+                if (metadata.tags.contains(fmt::format("modtober{}winner", year)) || (winner.has_value() && m_source.getID() == winner)) {
+
+                    auto shortVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner.png"_spr, year).c_str());
                     shortVer->setTag(1);
                     m_badgeContainer->addChild(shortVer);
-                    auto longVer = CCSprite::createWithSpriteFrameName("tag-paid-long.png"_spr);
+                    auto longVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner-long.png"_spr, year).c_str());
                     longVer->setTag(2);
                     m_badgeContainer->addChild(longVer);
+
+                    break;
                 }
-                if (metadata.tags.contains("joke")) {
-                    m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-joke.png"_spr));
+                // Only show default Modtober tag if not a winner
+                else if (metadata.tags.contains(fmt::format("modtober{}", year))) {
+                    auto shortVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}.png"_spr, year).c_str());
+                    m_badgeContainer->addChild(shortVer);
+
+                    break;
                 }
-                if (metadata.tags.contains("api")) {
-                    m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-api.png"_spr));
-                }
-
-                static constexpr auto modtoberWinners = std::to_array<std::pair<std::string_view, std::optional<std::string_view>>>({
-                        {"24", "rainixgd.geome3dash"},
-                        {"25", "alphalaneous.kablammo"},
-                    });
-
-                for (auto& [year, winner] : modtoberWinners) {
-                    if (metadata.tags.contains(fmt::format("modtober{}winner", year)) ||
-                        (winner.has_value() && m_source.getID() == winner)) {
-                        auto shortVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner.png"_spr, year).c_str());
-                        shortVer->setTag(1);
-                        m_badgeContainer->addChild(shortVer);
-                        auto longVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner-long.png"_spr, year).c_str());
-                        longVer->setTag(2);
-                        m_badgeContainer->addChild(longVer);
-
-                        break;
-                    }
-                    // Only show default Modtober tag if not a winner
-                    else if (metadata.tags.contains(fmt::format("modtober{}", year))) {
-                        auto shortVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}.png"_spr, year).c_str());
-                        m_badgeContainer->addChild(shortVer);
-
-                        break;
-                    }
-                }
-
-                // Show mod download count here already so people can make informed decisions
-                // on which mods to install
-                m_downloadCountContainer = CCNode::create();
-
-                auto downloads = Label::create(numToAbbreviatedString(metadata.downloadCount), "bigFont.fnt");
-                downloads->setID("downloads-label");
-                downloads->setColor("mod-list-version-label"_cc3b);
-                downloads->setLimitLabelWidth(125, 1.f, .1f);
-                m_downloadCountContainer->addChildAtPosition(downloads, Anchor::Right, { .0f, .0f }, {1.f, .5f});
-
-                auto downloadsIcon = CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png");
-                downloadsIcon->setID("downloads-icon-sprite");
-                downloadsIcon->setScale(1.2f);
-                m_downloadCountContainer->addChildAtPosition(downloadsIcon, Anchor::Left, {8.f, .0f});
-
-                // m_downloadCountContainer scale is controlled in updateState
-                m_downloadCountContainer->setContentSize({downloads->getScaledContentWidth() + downloadsIcon->getScaledContentWidth(), 30.f});
-                m_downloadCountContainer->updateLayout();
-                m_downloadCountContainer->setLayoutOptions(SimpleAxisLayoutOptions::create()->setMinRelativeScale(.1f)->setMaxRelativeScale(1.f));
-
-                // Check if mod is recommended by any others, only if not installed
-                // todo: bring this back once we add "suggestions" field in mod
-                // if (!Loader::get()->isModInstalled(metadata.id)) {
-                //     std::vector<Mod*> recommends {};
-                //     for (auto& recommend : Loader::get()->getRecommendations()) {
-                //         auto suggestionID = recommend.message.substr(0, recommend.message.find('
-                //         ')); if (suggestionID != metadata.id) {
-                //             continue;
-                //         }
-                //         recommends.push_back(std::get<2>(recommend.cause));
-                //     }
-
-                //     if (recommends.size() > 0) {
-                //         m_recommendedBy = CCNode::create();
-                //         m_recommendedBy->setID("recommended-container");
-                //         m_recommendedBy->setContentWidth(225);
-                //         auto byLabel = Label::create("Recommended by ", "bigFont.fnt");
-                //         byLabel->setID("recommended-label");
-                //         byLabel->setColor("mod-list-recommended-by"_cc3b);
-                //         m_recommendedBy->addChild(byLabel);
-
-                //         std::string recommendStr = "";
-                //         if (recommends.size() == 1) {
-                //             recommendStr = recommends[0]->getName();
-                //         } else {
-                //             recommendStr = fmt::format("{} installed mods", recommends.size());
-                //         }
-
-                //         auto nameLabel = Label::create(recommendStr.c_str(), "bigFont.fnt");
-                //         nameLabel->setID("recommended-name-label");
-                //         nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
-                //         m_recommendedBy->addChild(nameLabel);
-
-                //         m_recommendedBy->setLayout(
-                //             RowLayout::create()
-                //                 ->setDefaultScaleLimits(.1f, 1.f)
-                //                 ->setAxisAlignment(AxisAlignment::Start)
-                //         );
-                //         m_infoContainer->addChildAtPosition(m_recommendedBy, Anchor::Left);
-                //     }
-                // }
             }
+
+            // Show mod download count here already so people can make informed decisions
+            // on which mods to install
+            m_downloadCountContainer = CCNode::create();
+
+            auto downloads = Label::create(
+                numToAbbreviatedString(metadata.downloadCount),
+                "bigFont.fnt"
+            );
+            downloads->setID("downloads-label");
+            downloads->setColor("mod-list-version-label"_cc3b);
+            downloads->setLimitLabelWidth(125, 1.f, .1f);
+            m_downloadCountContainer->addChildAtPosition(downloads, Anchor::Right, ccp(-0, 0), ccp(1, .5f));
+
+            auto downloadsIcon = CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png");
+            downloadsIcon->setID("downloads-icon-sprite");
+            downloadsIcon->setScale(1.2f);
+            m_downloadCountContainer->addChildAtPosition(downloadsIcon, Anchor::Left, ccp(8, 0));
+
+            // m_downloadCountContainer scale is controlled in updateState
+            m_downloadCountContainer->setContentSize({
+                downloads->getScaledContentWidth() + downloadsIcon->getScaledContentWidth(),
+                30
+            });
+            m_downloadCountContainer->updateLayout();
+            m_downloadCountContainer->setLayoutOptions(
+                SimpleAxisLayoutOptions::create()
+                    ->setMinRelativeScale(.1f)
+                    ->setMaxRelativeScale(1.f)
+            );
+
+            // Check if mod is recommended by any others, only if not installed
+            // todo: bring this back once we add "suggestions" field in mod
+            // if (!Loader::get()->isModInstalled(metadata.id)) {
+            //     std::vector<Mod*> recommends {};
+            //     for (auto& recommend : Loader::get()->getRecommendations()) {
+            //         auto suggestionID = recommend.message.substr(0, recommend.message.find(' '));
+            //         if (suggestionID != metadata.id) {
+            //             continue;
+            //         }
+            //         recommends.push_back(std::get<2>(recommend.cause));
+            //     }
+
+            //     if (recommends.size() > 0) {
+            //         m_recommendedBy = CCNode::create();
+            //         m_recommendedBy->setID("recommended-container");
+            //         m_recommendedBy->setContentWidth(225);
+            //         auto byLabel = Label::create("Recommended by ", "bigFont.fnt");
+            //         byLabel->setID("recommended-label");
+            //         byLabel->setColor("mod-list-recommended-by"_cc3b);
+            //         m_recommendedBy->addChild(byLabel);
+
+            //         std::string recommendStr = "";
+            //         if (recommends.size() == 1) {
+            //             recommendStr = recommends[0]->getName();
+            //         } else {
+            //             recommendStr = fmt::format("{} installed mods", recommends.size());
+            //         }
+
+            //         auto nameLabel = Label::create(recommendStr.c_str(), "bigFont.fnt");
+            //         nameLabel->setID("recommended-name-label");
+            //         nameLabel->setColor("mod-list-recommended-by-2"_cc3b);
+            //         m_recommendedBy->addChild(nameLabel);
+
+            //         m_recommendedBy->setLayout(
+            //             RowLayout::create()
+            //                 ->setDefaultScaleLimits(.1f, 1.f)
+            //                 ->setAxisAlignment(AxisAlignment::Start)
+            //         );
+            //         m_infoContainer->addChildAtPosition(m_recommendedBy, Anchor::Left);
+            //     }
+            // }
         }
-    );
+    });
 
     auto updateSpr = createGeodeCircleButton(
         CCSprite::createWithSpriteFrameName("update.png"_spr), 1.15f,
@@ -608,45 +633,42 @@ void ModItem::updateState() {
 
     // Set default colors based on source to start off with
     // (possibly overriding later based on state)
-    m_source.visit(
-        makeVisitor{
-            [this](Mod* mod) {
-                if (isGeodeTheme()) {
-                    m_bg->setColor(ccWHITE);
-                    m_bg->setOpacity(mod->isOrWillBeEnabled() ? 25 : 10);
-                }
-                else {
-                    m_bg->setColor(ccBLACK);
-                    m_bg->setOpacity(mod->isOrWillBeEnabled() ? 90 : 60);
-                }
-                m_titleLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
-                m_versionLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
-                m_developerLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
-            },
-            [this](server::ServerModMetadata const& metadata) {
-                m_bg->setColor(isGeodeTheme() ? ccWHITE : ccBLACK);
-                m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+    m_source.visit(makeVisitor {
+        [this](Mod* mod) {
+            if (isGeodeTheme()) {
+                m_bg->setColor(ccWHITE);
+                m_bg->setOpacity(mod->isOrWillBeEnabled() ? 25 : 10);
+            }
+            else {
+                m_bg->setColor(ccBLACK);
+                m_bg->setOpacity(mod->isOrWillBeEnabled() ? 90 : 60);
+            }
+            m_titleLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
+            m_versionLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
+            m_developerLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
+        },
+        [this](server::ServerModMetadata const& metadata) {
+            m_bg->setColor(isGeodeTheme() ? ccWHITE : ccBLACK);
+            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
 
-                if (metadata.tags.contains("paid")) {
-                    m_bg->setColor("mod-list-paid-color"_cc3b);
-                    m_bg->setOpacity(55);
-                }
-                if (metadata.tags.contains("modtober24")) {
-                    m_bg->setColor(ccc3(63, 91, 138));
-                    m_bg->setOpacity(85);
-                }
-                if (metadata.tags.contains("modtober24winner") ||
-                    m_source.getID() == "rainixgd.geome3dash") {
-                    m_bg->setColor(ccc3(104, 63, 138));
-                    m_bg->setOpacity(85);
-                }
-                if (isGeodeTheme() && metadata.featured) {
-                    m_bg->setColor("mod-list-featured-color"_cc3b);
-                    m_bg->setOpacity(65);
-                }
+            if (metadata.tags.contains("paid")) {
+                m_bg->setColor("mod-list-paid-color"_cc3b);
+                m_bg->setOpacity(55);
+            }
+            if (metadata.tags.contains("modtober24")) {
+                m_bg->setColor(ccc3(63, 91, 138));
+                m_bg->setOpacity(85);
+            }
+            if (metadata.tags.contains("modtober24winner") || m_source.getID() == "rainixgd.geome3dash") {
+                m_bg->setColor(ccc3(104, 63, 138));
+                m_bg->setOpacity(85);
+            }
+            if (isGeodeTheme() && metadata.featured) {
+                m_bg->setColor("mod-list-featured-color"_cc3b);
+                m_bg->setOpacity(65);
             }
         }
-    );
+    });
 
     m_deprecatedLabel->setVisible(false);
 
