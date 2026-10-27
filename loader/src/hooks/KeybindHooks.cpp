@@ -416,18 +416,6 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         float viewH = top + list::VIEW_BOTTOM;
         float offsetY = (top - list::VIEW_BOTTOM) / 2;
 
-        if (m_fields->list) {
-            m_fields->list->removeFromParent();
-            m_fields->list = nullptr;
-        }
-        auto list = ScrollLayer::create({0, 0, viewW, viewH});
-        list->setID("keybinds-list");
-        list->m_contentLayer->setLayout(listColumnLayout(list::ROW_GAP, false));
-        m_mainLayer->addChildAtPosition(
-            list, Anchor::Center, {-list->getContentWidth() / 2, -list->getContentHeight() / 2 + offsetY}
-        );
-        m_fields->list = list;
-
         struct ModGroup {
             Mod* mod;
             std::vector<int> actions;
@@ -456,19 +444,48 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
             groups[it->second].actions.push_back(id);
         }
 
-        int index = 0;
-
-        for (int id : vanilla) {
-            auto setting = settingFor(id);
-            list->m_contentLayer->addChild(createActionRow(id, setting, index++, viewW));
+        if (m_fields->list) {
+            m_fields->list->removeFromParent();
+            m_fields->list = nullptr;
         }
 
-        for (auto& group : groups) {
-            list->m_contentLayer->addChild(createModSection(group.mod, group.actions, viewW));
-        }
+        auto list = ScrollLayer::create({0, 0, viewW, viewH});
+        list->setID("keybinds-list");
+        list->m_contentLayer->setLayout(listColumnLayout(list::ROW_GAP, false));
+        m_mainLayer->addChildAtPosition(
+            list, Anchor::Center, {-list->getContentWidth() / 2, -list->getContentHeight() / 2 + offsetY}
+        );
+        m_fields->list = list;
 
-        list->m_contentLayer->updateLayout();
-        list->scrollToTop();
+        if (vanilla.empty() && groups.empty()) {
+            std::string text;
+            if (tab == m_fields->modsTab) {
+                text = "No mods with keybinds 😥";
+            } else if (tab == m_searchTab && m_searchQuery.empty()) {
+                text = "Type to search keybinds";
+            } else {
+                text = "No keybinds found 😥";
+            }
+
+            auto label = Label::create(text, "goldFont.fnt");
+            label->setID("no-mods-label");
+            label->setScale(0.6f);
+            list->addChildAtPosition(label, Anchor::Center, CCPointZero, false);
+        } else {
+            int index = 0;
+
+            for (int id : vanilla) {
+                auto setting = settingFor(id);
+                list->m_contentLayer->addChild(createActionRow(id, setting, index++, viewW));
+            }
+
+            for (auto& group : groups) {
+                list->m_contentLayer->addChild(createModSection(group.mod, group.actions, viewW));
+            }
+
+            list->m_contentLayer->updateLayout();
+            list->scrollToTop();
+        }
 
         auto scrollbar = m_fields->scrollbar;
         scrollbar->updateAnchoredPosition(Anchor::Right, {(-list::VIEW_PADDING_X / 2) - 1.5f, offsetY});
