@@ -233,7 +233,7 @@ namespace geode {
 
         std::string getRawText();
 
-        void registerRichTextKey(std::shared_ptr<RichTextKeyBase> key);
+        void addRichKey(std::shared_ptr<RichTextKeyBase> key);
     protected:
         RichTextArea();
         ~RichTextArea();

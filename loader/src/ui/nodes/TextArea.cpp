@@ -378,7 +378,7 @@ public:
     std::map<CCFontSprite*, ccColor3B> m_ogColorForLink{};
 
     void charIteration(geode::FunctionRef<geode::Label*(geode::Label* line, char c, float top)> overflowHandling) override;
-    void formatRichText();
+    void parseRichText();
 
     void processLinkClick(
         std::string const& link,
@@ -414,7 +414,7 @@ RichTextArea* RichTextArea::create(std::string font, std::string text, float sca
 bool RichTextArea::init(std::string font, std::string text, float scale, float width, bool artificialWidth) {
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
 
-    registerRichTextKey(std::make_shared<RichTextKey<ccColor3B>>(
+    addRichKey(std::make_shared<RichTextKey<ccColor3B>>(
         "color",
         [](std::string value) -> Result<ccColor3B> {
             auto colorRes = cc3bFromHexString(value);
@@ -427,7 +427,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    registerRichTextKey(std::make_shared<RichTextKey<bool>>(
+    addRichKey(std::make_shared<RichTextKey<bool>>(
         "flip",
         [](std::string value) -> Result<bool> {
             if (value == "") return Ok(true);
@@ -443,7 +443,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    registerRichTextKey(std::make_shared<RichTextKey<bool>>(
+    addRichKey(std::make_shared<RichTextKey<bool>>(
         "mirror",
         [](std::string value) -> Result<bool> {
             if (value == "") return Ok(true);
@@ -459,7 +459,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    registerRichTextKey(std::make_shared<RichTextKey<std::time_t>>(
+    addRichKey(std::make_shared<RichTextKey<std::time_t>>(
         "workingTime",
         [](std::string value) -> Result<std::time_t> {
             auto timeRes = geode::utils::numFromString<time_t>(value);
@@ -472,7 +472,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }
     ));
 
-    registerRichTextKey(std::make_shared<RichTextKey<float>>(
+    addRichKey(std::make_shared<RichTextKey<float>>(
         "size",
         [](std::string value) -> Result<float> {
             auto numRes = geode::utils::numFromString<float>(value);
@@ -502,7 +502,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     //     }
     // ));
 
-    registerRichTextKey(std::make_shared<RichTextKey<std::string>>(
+    addRichKey(std::make_shared<RichTextKey<std::string>>(
         "link",
         [](std::string value) -> Result<std::string> {
             return Ok(value);
@@ -514,7 +514,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
     castedImpl()->m_rawText = m_impl->m_text;
 
-    castedImpl()->formatRichText();
+    castedImpl()->parseRichText();
     m_impl->updateContainer();
 
     return true;
@@ -604,7 +604,7 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<geode::Label*(geod
     }
 }
 
-void RichTextArea::RichImpl::formatRichText() {
+void RichTextArea::RichImpl::parseRichText() {
     std::regex pattern(R"(<(\/)?([^=<>]+)(?:\s*=\s*([^<>]+))?>)");
     std::smatch match;
 
@@ -713,11 +713,11 @@ void RichTextArea::RichImpl::processLinkClick(
 void RichTextArea::RichImpl::setTextImpl(std::string text) {
     m_text = std::move(text);
     m_rawText = m_text;
-    formatRichText();
+    parseRichText();
     updateContainer();
 }
 
-void RichTextArea::registerRichTextKey(std::shared_ptr<RichTextKeyBase> key){
+void RichTextArea::addRichKey(std::shared_ptr<RichTextKeyBase> key){
     if (this->castedImpl()->m_richTextKeys.contains(key->getKey())) return;
 
     this->castedImpl()->m_richTextKeys.insert({key->getKey(), key});
