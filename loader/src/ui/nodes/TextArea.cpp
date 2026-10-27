@@ -53,7 +53,7 @@ geode::Label* geode::SimpleTextAreaImpl::createLabel(std::string text, float top
 
         return nullptr;
     } else {
-        geode::Label* label = geode::Label::create(std::move(text), m_font.c_str());
+        geode::Label* label = geode::Label::createRich(std::move(text), m_font.c_str());
 
         label->setScale(m_scale);
         label->setPosition({ 0, top });
