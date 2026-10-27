@@ -97,14 +97,17 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
         m_updateAllContainer->addChildAtPosition(m_updateAllBG, Anchor::Center);
 
-        // TODO: 2.209
-        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30.f, {.0f, 1.f}, 12.f, false, 0);
+        m_updateCountLabel = Label::create("", "bigFont.fnt");
         m_updateCountLabel->setID("update-count-label");
+        m_updateCountLabel->setScale(.35f);
+        m_updateCountLabel->setBreakWords(true);
+        m_updateCountLabel->setMaxWidth(((size.width / 2.f) - 30.f) / m_updateCountLabel->getScale());
+        m_updateCountLabel->setAnchorPoint({.0f, .5f});
         m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, {10.f, .0f}, {});
 
         m_updateAllMenu = CCMenu::create();
         m_updateAllMenu->setID("update-all-menu");
-        m_updateAllMenu->setContentSize({size.width / 2, 20});
+        m_updateAllMenu->setContentSize({size.width / 2.f, 20.f});
         m_updateAllMenu->setAnchorPoint({1, .5f});
 
         m_showUpdatesSpr = createGeodeButton(
@@ -166,18 +169,18 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
             m_errorsContainer->addChildAtPosition(errorsBG, Anchor::Center);
 
-            // TODO: 2.209 (change to Label?)
-            auto errorsLabel = TextArea::create(
-                "There were <cy>errors</c> loading some mods",
-                "bigFont.fnt", .35f, size.width / 2.f - 30.f, {.0f, 1.f}, 12.f, false, 0
-            );
+            auto errorsLabel = Label::createRich("There were <cy>errors</c> loading some mods", "bigFont.fnt");
             errorsLabel->setID("errors-label");
+            errorsLabel->setScale(.35f);
+            errorsLabel->setBreakWords(true);
+            errorsLabel->setMaxWidth(((size.width / 2.f) - 30.f) / errorsLabel->getScale());
+            errorsLabel->setAnchorPoint({.0f, .5f});
             m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, {10.f, .0f}, {});
 
             auto errorsMenu = CCMenu::create();
             errorsMenu->setID("errors-menu");
-            errorsMenu->setContentSize({size.width / 2.f, 20});
-            errorsMenu->setAnchorPoint({1, .5f});
+            errorsMenu->setContentSize({size.width / 2.f, 20.f});
+            errorsMenu->setAnchorPoint({1.f, .5f});
 
             auto showErrorsSpr = createGeodeButton(
                 CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
@@ -458,7 +461,7 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
     }
     else {
         auto error = std::move(result).unwrapErr();
-        this->showStatus(ModListErrorStatus(), error.message, std::move(error.details));
+        this->showStatus(ModListErrorStatus(), std::move(error.message), std::move(error.details));
         this->updateState();
     }
 }
@@ -499,20 +502,20 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
     // Not sure if updates really should take precedence over deprecations
     if (!check.modsWithUpdates.empty()) {
         if (check.modsWithUpdates.size() == 1) {
-            m_updateCountLabel->setString("There is an update available!");
+            m_updateCountLabel->setText("There is an update available!");
             m_updateAllSpr->setString("");
             m_showUpdatesSpr->setString("Show Update");
             m_hideUpdatesSpr->setString("Hide Update");
         }
         else {
-            m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size()));
+            m_updateCountLabel->setRichText(fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size()));
             m_updateAllSpr->setString("Update All");
             m_showUpdatesSpr->setString("Show Updates");
             m_hideUpdatesSpr->setString("Hide Updates");
         }
     }
     else if (m_hasDeprecations) {
-        m_updateCountLabel->setString("Some of your mods have been deprecated!");
+        m_updateCountLabel->setText("Some of your mods have been deprecated!");
         m_updateAllSpr->setString("");
         m_showUpdatesSpr->setString("Show");
         m_hideUpdatesSpr->setString("Hide");
@@ -727,22 +730,19 @@ void ModList::gotoPage(size_t page, bool update) {
     this->updateState();
 }
 
-void ModList::showStatus(ModListStatus status, ZStringView message, std::optional<std::string> details) {
+void ModList::showStatus(ModListStatus status, std::string message, std::optional<std::string> details) {
     // Clear list contents
     m_list->m_contentLayer->removeAllChildren();
 
     // Update status
-    bool hasDetails = details.has_value();
-    m_statusTitle->setText(message);
+    m_statusTitle->setText(std::move(message));
     m_statusDetails->setText(std::move(details).value_or(""));
 
     // Update status visibility
     m_statusContainer->setVisible(true);
     m_statusDetails->setVisible(false);
-    m_statusDetailsBtn->setVisible(hasDetails);
-    m_statusLoadingCircle->setVisible(
-        std::holds_alternative<ModListUnkProgressStatus>(status)
-    );
+    m_statusDetailsBtn->setVisible(details.has_value());
+    m_statusLoadingCircle->setVisible(std::holds_alternative<ModListUnkProgressStatus>(status));
 
     // Update layout to automatically rearrange everything neatly in the status
     m_statusContainer->updateLayout();
