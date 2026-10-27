@@ -41,7 +41,7 @@ protected:
         this->addChildAtPosition(m_loading, Anchor::Center);
 
         m_listener.spawn(
-            std::move(req), 
+            std::move(req),
             [this](auto val) {
                 this->onRequest(std::move(val));
             }
@@ -118,8 +118,8 @@ bool ModPopup::init(ModSource&& src) {
         auto logo = m_source.createModLogo();
         logo->setID("mod-logo");
         limitNodeSize(
-            logo, 
-            {m_titleContainer->getContentHeight(), m_titleContainer->getContentHeight()}, 
+            logo,
+            {m_titleContainer->getContentHeight(), m_titleContainer->getContentHeight()},
             5.f, .1f
         );
         return logo;
@@ -426,7 +426,7 @@ bool ModPopup::init(ModSource&& src) {
     enableModOnSpr->setScale(.5f);
 
     m_enableBtn = CCMenuItemToggler::create(
-        enableModOffSpr, enableModOnSpr, 
+        enableModOffSpr, enableModOnSpr,
         this, menu_selector(ModPopup::onEnable)
     );
     m_enableBtn->m_notClickable = true;
@@ -441,14 +441,14 @@ bool ModPopup::init(ModSource&& src) {
     );
     reenableModOffSpr->setScale(.5f);
     auto reenableModOnSpr = createGeodeButton(
-        CCSprite::createWithSpriteFrameName("reset.png"_spr), 
-        "Re-Disable", 
+        CCSprite::createWithSpriteFrameName("reset.png"_spr),
+        "Re-Disable",
         GeodeButtonSprite::Default
     );
     reenableModOnSpr->setScale(.5f);
 
     m_reenableBtn = CCMenuItemToggler::create(
-        reenableModOffSpr, reenableModOnSpr, 
+        reenableModOffSpr, reenableModOnSpr,
         this, menu_selector(ModPopup::onEnable)
     );
     m_reenableBtn->m_notClickable = true;
