@@ -15,20 +15,22 @@ public:
 
     CCSprite* m_successIcon = nullptr;
     CCSprite* m_failureIcon = nullptr;
+
+    void setState(State state, std::string msg) {
+        m_state = state;
+        m_label->setRichText(std::move(msg));
+
+        m_processSpinner->setVisible(false);
+    };
 };
 
 ProcessPopup::ProcessPopup() : m_impl(std::make_unique<Impl>()) {}
-
 ProcessPopup::~ProcessPopup() {}
 
-bool ProcessPopup::init(
-    std::string text, ZStringView font, ZStringView bg, CircleBaseColor btnColor, float width
-) {
+bool ProcessPopup::init(std::string text, ZStringView font, ZStringView bg, CircleBaseColor btnColor, float width) {
     if (!Popup::init({width, 105.f}, bg.c_str())) return false;
 
-    this->setCloseButtonSpr(
-        CircleButtonSprite::createWithSpriteFrameName("close.png"_spr, .875f, btnColor), .825f
-    );
+    this->setCloseButtonSpr(CircleButtonSprite::createWithSpriteFrameName("close.png"_spr, .875f, btnColor), .825f);
 
     m_impl->m_processSpinner = LoadingSpinner::create(50.f);
     m_mainLayer->addChildAtPosition(m_impl->m_processSpinner, Anchor::Center, {.0f, 12.5f});
@@ -73,21 +75,15 @@ void ProcessPopup::updateMessage(std::string text) {
 void ProcessPopup::setSuccess(std::string text) {
     if (m_impl->m_state != State::Ongoing) return;
 
-    m_impl->m_state = State::Success;
-    m_impl->m_label->setRichText(std::move(text));
-
     m_impl->m_successIcon->setVisible(true);
-    m_impl->m_processSpinner->setVisible(false);
+    m_impl->setState(State::Success, std::move(text));
 }
 
 void ProcessPopup::setFailure(std::string text) {
     if (m_impl->m_state != State::Ongoing) return;
 
-    m_impl->m_state = State::Failure;
-    m_impl->m_label->setRichText(std::move(text));
-
     m_impl->m_failureIcon->setVisible(true);
-    m_impl->m_processSpinner->setVisible(false);
+    m_impl->setState(State::Failure, std::move(text));
 }
 
 ZStringView ProcessPopup::getCurrentMessage() const noexcept {
@@ -102,9 +98,7 @@ ProcessPopup* ProcessPopup::create(std::string text, ZStringView font, float wid
     return create(std::move(text), font, "GJ_square02.png", CircleBaseColor::Green, width);
 }
 
-ProcessPopup* ProcessPopup::create(
-    std::string text, ZStringView font, ZStringView bg, CircleBaseColor btnColor, float width
-) {
+ProcessPopup* ProcessPopup::create(std::string text, ZStringView font, ZStringView bg, CircleBaseColor btnColor, float width) {
     auto ret = new ProcessPopup();
     if (ret->init(std::move(text), font, bg, btnColor, width)) {
         ret->autorelease();
