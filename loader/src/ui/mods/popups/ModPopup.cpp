@@ -40,9 +40,12 @@ protected:
         m_loading = createLoadingCircle(30);
         this->addChildAtPosition(m_loading, Anchor::Center);
 
-        m_listener.spawn(std::move(req), [this](auto val) {
-            this->onRequest(std::move(val));
-        });
+        m_listener.spawn(
+            std::move(req), 
+            [this](auto val) {
+                this->onRequest(std::move(val));
+            }
+        );
 
         return true;
     }
@@ -98,10 +101,14 @@ bool ModPopup::init(ModSource&& src) {
     auto mainContainer = CCNode::create();
     mainContainer->setID("main-container");
     mainContainer->setContentSize(m_mainLayer->getContentSize() - CCSize{20.f, 20.f});
-    mainContainer->setLayout(RowLayout::create()->setGap(7.5f)->setCrossAxisLineAlignment(AxisAlignment::Start));
+    mainContainer->setLayout(
+        RowLayout::create()
+            ->setGap(7.5f)
+            ->setCrossAxisLineAlignment(AxisAlignment::Start)
+    );
 
     auto leftColumn = CCNode::create();
-    leftColumn->setContentSize({145, mainContainer->getContentHeight()});
+    leftColumn->setContentSize({145.f, mainContainer->getContentHeight()});
 
     m_titleContainer = CCMenu::create();
     m_titleContainer->setContentSize({leftColumn->getContentWidth(), 25});
@@ -110,7 +117,11 @@ bool ModPopup::init(ModSource&& src) {
     auto getLogo = [this]() {
         auto logo = m_source.createModLogo();
         logo->setID("mod-logo");
-        limitNodeSize(logo, {m_titleContainer->getContentHeight(), m_titleContainer->getContentHeight()}, 5.f, .1f);
+        limitNodeSize(
+            logo, 
+            {m_titleContainer->getContentHeight(), m_titleContainer->getContentHeight()}, 
+            5.f, .1f
+        );
         return logo;
     };
 
@@ -125,10 +136,14 @@ bool ModPopup::init(ModSource&& src) {
                     Mod::get()->getSaveContainer().erase("alternate-geode-style");
                 }
             });
-        m_titleContainer->addChildAtPosition(logoButton, Anchor::Left, {m_titleContainer->getContentHeight() / 2.f, .0f});
+        m_titleContainer->addChildAtPosition(
+            logoButton, Anchor::Left, {m_titleContainer->getContentHeight() / 2.f, .0f}
+        );
     }
     else {
-        m_titleContainer->addChildAtPosition(getLogo(), Anchor::Left, {m_titleContainer->getContentHeight() / 2.f, .0f});
+        m_titleContainer->addChildAtPosition(
+            getLogo(), Anchor::Left, {m_titleContainer->getContentHeight() / 2.f, .0f}
+        );
     }
 
     // Lil padding
@@ -305,7 +320,12 @@ bool ModPopup::init(ModSource&& src) {
         m_stats->addChild(container);
     }
 
-    m_stats->setLayout(ColumnLayout::create()->setAxisReverse(true)->setDefaultScaleLimits(.1f, 1)->setAxisAlignment(AxisAlignment::Even));
+    m_stats->setLayout(
+        ColumnLayout::create()
+            ->setAxisReverse(true)
+            ->setDefaultScaleLimits(.1f, 1)
+            ->setAxisAlignment(AxisAlignment::Even)
+    );
     statsContainer->addChildAtPosition(m_stats, Anchor::Center, CCPointZero, {.5f, .5f});
 
     leftColumn->addChild(statsContainer);
@@ -384,7 +404,9 @@ bool ModPopup::init(ModSource&& src) {
         m_forceDisableTheme
     );
     updateModSpr->setScale(.5f);
-    m_updateBtn = CCMenuItemSpriteExtra::create(updateModSpr, this, menu_selector(ModPopup::onInstall));
+    m_updateBtn = CCMenuItemSpriteExtra::create(
+        updateModSpr, this, menu_selector(ModPopup::onInstall)
+    );
     m_updateBtn->setID("update-button");
     m_installMenu->addChild(m_updateBtn);
 
@@ -403,7 +425,10 @@ bool ModPopup::init(ModSource&& src) {
     );
     enableModOnSpr->setScale(.5f);
 
-    m_enableBtn = CCMenuItemToggler::create(enableModOffSpr, enableModOnSpr, this, menu_selector(ModPopup::onEnable));
+    m_enableBtn = CCMenuItemToggler::create(
+        enableModOffSpr, enableModOnSpr, 
+        this, menu_selector(ModPopup::onEnable)
+    );
     m_enableBtn->m_notClickable = true;
     m_enableBtn->setID("enable-button");
     m_installMenu->addChild(m_enableBtn);
@@ -415,10 +440,17 @@ bool ModPopup::init(ModSource&& src) {
         m_forceDisableTheme
     );
     reenableModOffSpr->setScale(.5f);
-    auto reenableModOnSpr = createGeodeButton(CCSprite::createWithSpriteFrameName("reset.png"_spr), "Re-Disable", GeodeButtonSprite::Default);
+    auto reenableModOnSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("reset.png"_spr), 
+        "Re-Disable", 
+        GeodeButtonSprite::Default
+    );
     reenableModOnSpr->setScale(.5f);
 
-    m_reenableBtn = CCMenuItemToggler::create(reenableModOffSpr, reenableModOnSpr, this, menu_selector(ModPopup::onEnable));
+    m_reenableBtn = CCMenuItemToggler::create(
+        reenableModOffSpr, reenableModOnSpr, 
+        this, menu_selector(ModPopup::onEnable)
+    );
     m_reenableBtn->m_notClickable = true;
     m_reenableBtn->setID("reenable-button");
     m_installMenu->addChild(m_reenableBtn);
@@ -432,7 +464,9 @@ bool ModPopup::init(ModSource&& src) {
     unavailableSpr->setColor({155, 155, 155});
     unavailableSpr->setScale(.5f);
 
-    m_unavailableBtn = CCMenuItemSpriteExtra::create(unavailableSpr, this, nullptr);
+    m_unavailableBtn = CCMenuItemSpriteExtra::create(
+        unavailableSpr, this, nullptr
+    );
     m_unavailableBtn->setID("unavailable-button");
     m_unavailableBtn->setEnabled(false);
     m_installMenu->addChild(m_unavailableBtn);
@@ -444,7 +478,9 @@ bool ModPopup::init(ModSource&& src) {
         m_forceDisableTheme
     );
     installModSpr->setScale(.5f);
-    m_installBtn = CCMenuItemSpriteExtra::create(installModSpr, this, menu_selector(ModPopup::onInstall));
+    m_installBtn = CCMenuItemSpriteExtra::create(
+        installModSpr, this, menu_selector(ModPopup::onInstall)
+    );
     m_installBtn->setID("install-button");
     m_installMenu->addChild(m_installBtn);
 
@@ -455,7 +491,9 @@ bool ModPopup::init(ModSource&& src) {
         m_forceDisableTheme
     );
     uninstallModSpr->setScale(.5f);
-    m_uninstallBtn = CCMenuItemSpriteExtra::create(uninstallModSpr, this, menu_selector(ModPopup::onUninstall));
+    m_uninstallBtn = CCMenuItemSpriteExtra::create(
+        uninstallModSpr, this, menu_selector(ModPopup::onUninstall)
+    );
     m_uninstallBtn->setID("uninstall-button");
     m_installMenu->addChild(m_uninstallBtn);
 
@@ -466,7 +504,9 @@ bool ModPopup::init(ModSource&& src) {
         m_forceDisableTheme
     );
     cancelDownloadSpr->setScale(.5f);
-    m_cancelBtn = CCMenuItemSpriteExtra::create(cancelDownloadSpr, this, menu_selector(ModPopup::onCancelDownload));
+    m_cancelBtn = CCMenuItemSpriteExtra::create(
+        cancelDownloadSpr, this, menu_selector(ModPopup::onCancelDownload)
+    );
     m_cancelBtn->setID("cancel-button");
     m_installMenu->addChild(m_cancelBtn);
 
@@ -475,7 +515,11 @@ bool ModPopup::init(ModSource&& src) {
     m_installStatusLabel->setVisible(false);
     m_installMenu->addChild(m_installStatusLabel);
 
-    m_installMenu->setLayout(RowLayout::create()->setDefaultScaleLimits(.1f, 1)->setAxisAlignment(AxisAlignment::Center));
+    m_installMenu->setLayout(
+        RowLayout::create()
+            ->setDefaultScaleLimits(.1f, 1)
+            ->setAxisAlignment(AxisAlignment::Center)
+    );
     installContainer->addChildAtPosition(m_installMenu, Anchor::Center);
 
     leftColumn->addChild(installContainer);
@@ -553,7 +597,11 @@ bool ModPopup::init(ModSource&& src) {
         linksMenu->addChild(button);
     }
 
-    linksMenu->setLayout(RowLayout::create()->setDefaultScaleLimits(.1f, 1)->setAxisAlignment(AxisAlignment::Center));
+    linksMenu->setLayout(
+        RowLayout::create()
+            ->setDefaultScaleLimits(.1f, 1)
+            ->setAxisAlignment(AxisAlignment::Center)
+    );
     linksContainer->addChildAtPosition(linksMenu, Anchor::Center);
 
     leftColumn->addChild(linksContainer);
@@ -663,7 +711,9 @@ bool ModPopup::init(ModSource&& src) {
         m_forceDisableTheme
     );
     settingsSpr->setScale(.6f);
-    auto settingsBtn = CCMenuItemSpriteExtra::create(settingsSpr, this, menu_selector(ModPopup::onSettings));
+    auto settingsBtn = CCMenuItemSpriteExtra::create(
+        settingsSpr, this, menu_selector(ModPopup::onSettings)
+    );
     settingsBtn->setID("settings-button");
     m_buttonMenu->addChildAtPosition(settingsBtn, Anchor::BottomLeft, {28.f, 25.f});
 
@@ -830,7 +880,8 @@ void ModPopup::updateState() {
 
     m_enableBtn->toggle(asMod && asMod->isOrWillBeEnabled());
     m_enableBtn->setVisible(
-        asMod && asMod->getRequestedAction() == ModRequestedAction::None &&
+        asMod && 
+        asMod->getRequestedAction() == ModRequestedAction::None &&
         !asMod->targetsOutdatedVersion()
     );
 
@@ -860,10 +911,8 @@ void ModPopup::updateState() {
         static_cast<IconButtonSprite*>(m_uninstallBtn->getNormalImage())->setString("");
     }
     else {
-        static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage())
-            ->setString("Disable");
-        static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage())
-            ->setString("Enable");
+        static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage())->setString("Disable");
+        static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage())->setString("Enable");
         static_cast<IconButtonSprite*>(m_uninstallBtn->getNormalImage())->setString("Uninstall");
     }
     m_enableBtn->updateSprite();
@@ -977,7 +1026,7 @@ void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> value) {
 
     // Update value
     if (value.has_value()) {
-        valueLabel->setText(std::move(value).value());
+        valueLabel->setText(std::move(*value));
     }
 
     // Update layout
