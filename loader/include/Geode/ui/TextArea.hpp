@@ -226,6 +226,43 @@ namespace geode {
     };
 
 
+    class GEODE_DLL NewRichTextArea : public SimpleTextArea {
+    public:
+        using ValidateArgs = geode::Function<geode::Result<>(const std::string&)>;
+        using CreateCallback = geode::Function<cocos2d::CCNode*(const std::string&, const std::string&)>;
+        using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, const std::string&)>;
+
+        struct RichKey {
+            std::string id;
+            ValidateArgs validate;
+            CreateCallback create;
+            CharIterator iterator;
+        };
+
+        static NewRichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.f);
+        static NewRichTextArea* create(std::string text, std::string font, float scale, float width);
+
+        void addRichKey(std::string id, CreateCallback create, bool updateText = true);
+
+        void addRichKey(std::string id, ValidateArgs validate, CreateCallback create, bool updateText);
+
+        void addRichKey(std::string id, CharIterator iterator, bool updateText);
+
+        void addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText);
+
+    protected:
+        NewRichTextArea() : SimpleTextArea() {}
+        ~NewRichTextArea() = default;
+
+        class RichImpl;
+        std::unique_ptr<SimpleTextAreaImpl> createImpl() override;
+        RichImpl* richImpl();
+
+        bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
+    private:
+        static NewRichTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
+    };
+
     class GEODE_DLL RichTextArea : public SimpleTextArea, public cocos2d::CCTouchDelegate {
     public:
         static RichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.0f);

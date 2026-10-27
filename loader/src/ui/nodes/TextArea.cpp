@@ -3,6 +3,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
+#include <optional>
 #include <regex>
 #include <fmt/chrono.h>
 #include <asp/iter.hpp>
@@ -27,7 +28,7 @@ public:
 
     SimpleTextAreaImpl(geode::SimpleTextArea* self) : m_self(self) {}
 
-    geode::Label* createLabel(std::string text, float top);
+    virtual geode::Label* createLabel(std::string text, float top);
 
     float calculateOffset(geode::Label* label);
 
@@ -362,6 +363,42 @@ inline std::unique_ptr<geode::SimpleTextAreaImpl> geode::SimpleTextArea::createI
 }
 
 using namespace geode::prelude;
+
+class NewRichTextArea::RichImpl : public SimpleTextAreaImpl {
+public:
+    std::vector<RichKey> m_keys;
+    EmojiRegistry m_emojiRegistry;
+
+    NewRichTextArea* m_self = nullptr;
+    RichImpl(NewRichTextArea* self) : m_self(self), SimpleTextAreaImpl(self) {}
+};
+
+NewRichTextArea* NewRichTextArea::create(std::string text, std::string font, float scale) {
+    return NewRichTextArea::create(
+        std::move(font), std::move(text), scale,
+        CCDirector::sharedDirector()->getWinSize().width / 2, false
+    );
+}
+
+NewRichTextArea* NewRichTextArea::create(std::string text, std::string font, float scale, float width) {
+    return NewRichTextArea::create(std::move(font), std::move(text), scale, width, true);
+}
+
+NewRichTextArea* NewRichTextArea::create(std::string font, std::string text, float scale, float width, const bool artificialWidth) {
+    auto ret = new NewRichTextArea();
+    ret->m_impl = ret->createImpl();
+    if (ret->init(std::move(font), std::move(text), scale, width, artificialWidth)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+bool NewRichTextArea::init(std::string font, std::string text, float scale, float width, const bool artificialWidth) {
+    if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
+    return true;
+}
 
 class RichTextArea::RichImpl : public SimpleTextAreaImpl {
 public:
