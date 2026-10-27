@@ -17,6 +17,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/web.hpp>
 #include <optional>
+#include <ranges>
 
 class FetchTextArea : public CCNode {
 public:
@@ -1232,11 +1233,26 @@ void ModPopup::onModtober25Info(CCObject*) {
 }
 
 void ModPopup::onDependencies(CCObject*) {
+    auto dependencies = m_source.getMetadata().getDependencies();
+    auto required = dependencies | std::views::filter([](auto dep) {
+        return dep.isRequired() && dep.getID() != "geode.loader";
+    });
+    auto optional = dependencies | std::views::filter([](auto dep) {
+        return !dep.isRequired() && dep.getID() != "geode.loader";
+    });
+
     std::string str;
-    for (const auto& dependency : m_source.getMetadata().getDependencies()) {
-        if (dependency.getID() == "geode.loader") continue;
-        if (!dependency.isRequired() && !dependency.getMod()) continue;
-        str += fmt::format("<mod:{}>\n\n", dependency.getID());
+    if (!std::ranges::empty(required)) {
+        str += "<cy>Required</c> dependencies:\n\n";
+        for (const auto& dep : required) {
+            str += fmt::format("<mod:{}>\n\n", dep.getID());
+        }
+    }
+    if (!std::ranges::empty(optional)) {
+        str += "<cg>Recommended</c> dependencies:\n\n";
+        for (const auto& dep : optional) {
+            str += fmt::format("<mod:{}>\n\n", dep.getID());
+        }
     }
 
     auto mod = m_source.asMod();
