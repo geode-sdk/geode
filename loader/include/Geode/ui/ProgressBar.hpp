@@ -29,14 +29,14 @@ namespace geode {
     public:
         using AnimationCallback = Function<void(ProgressBar* self, bool completed)>;
 
+        /// Create a custom progress bar
+        /// @param style Style of the progress bar
+        static ProgressBar* create(Style style = Style::Level);
+
         /// Create a custom progress bar with a pre-determined progress state
         /// @param style Style of the progress bar
         /// @param progress A float from 0 to 100 for the amount of progress to start the bar with upon creation
         static ProgressBar* create(float progress, Style style = Style::Level);
-
-        /// Create a custom progress bar
-        /// @param style Style of the progress bar
-        static ProgressBar* create(Style style = Style::Level);
 
         /// Set the style of the progress bar
         /// @param style Style to switch to
@@ -59,10 +59,7 @@ namespace geode {
         /// @param duration Amount of seconds the animation will last
         /// @param ease Animation easing type
         /// @param callback Optional callback that fires when the animation ends
-        virtual void updateProgress(
-            float value, float duration, EasingType ease = EasingType::None,
-            AnimationCallback callback = nullptr
-        );
+        virtual void updateProgress(float value, float duration, EasingType ease = EasingType::None, AnimationCallback callback = nullptr);
 
         /// Stop the running progress animation, if any
         void stopProgressAnimation();

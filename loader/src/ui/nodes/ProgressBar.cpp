@@ -36,10 +36,7 @@ public:
         m_bar = CCSprite::create(barSpr.c_str());
         m_bar->setID("progress-bar");
         m_bar->setAnchorPoint({.5, .5});
-        m_bar->setPosition({
-            m_bar->getScaledContentWidth() / 2.0f,
-            m_bar->getScaledContentHeight() / 2.0f,
-        });
+        m_bar->setPosition(m_bar->getScaledContentSize() / 2.0f);
         m_bar->setZOrder(1);
 
         m_barFill = CCSprite::create(fillSpr.c_str());
@@ -72,10 +69,7 @@ public:
         m_bar = CCSprite::create("GJ_progressBar_001.png");
         m_bar->setID("progress-bar");
         m_bar->setAnchorPoint({.5, .5});
-        m_bar->setPosition({
-            m_bar->getScaledContentWidth() / 2.0f,
-            m_bar->getScaledContentHeight() / 2.0f,
-        });
+        m_bar->setPosition(m_bar->getScaledContentSize() / 2.0f);
         m_bar->setColor({0, 0, 0});
         m_bar->setOpacity(125);
         m_bar->setZOrder(-1);
@@ -99,10 +93,7 @@ public:
         m_percentLabel->setID("progress-percent-label");
         m_percentLabel->setScale(.5f);
         m_percentLabel->setAnchorPoint({.5, .5});
-        m_percentLabel->setPosition({
-            m_bar->getScaledContentWidth() / 2.0f,
-            m_bar->getScaledContentHeight() / 2.0f,
-        });
+        m_percentLabel->setPosition(m_bar->getScaledContentSize() / 2.0f);
         m_percentLabel->setAlignment(Label::Alignment::Center);
         m_percentLabel->setVisible(m_showPercentLabel);
         m_percentLabel->setZOrder(1);
@@ -129,7 +120,6 @@ public:
 };
 
 ProgressBar::ProgressBar() : m_impl(std::make_unique<Impl>()) {}
-
 ProgressBar::~ProgressBar() {}
 
 void ProgressBar::reloadStyle() {
@@ -137,9 +127,7 @@ void ProgressBar::reloadStyle() {
         default: [[fallthrough]];
 
         case Style::Level: m_impl->setupBarStyle("slidergroove2.png", "sliderBar2.png"); break;
-
         case Style::Slider: m_impl->setupBarStyle("slidergroove.png", "sliderBar.png"); break;
-
         case Style::Solid: m_impl->setupSolidStyle(); break;
     }
 
@@ -171,9 +159,7 @@ void ProgressBar::onAnimate(float dt) {
     float t = std::min(m_impl->m_animElapsed / m_impl->m_animDuration, 1.0f);
 
     float eased = GameToolbox::getEasedValue(t, static_cast<int>(m_impl->m_animEase), 2.0f);
-    m_impl->updateBar(
-        m_impl->m_animProgressFrom + (m_impl->m_animProgressTo - m_impl->m_animProgressFrom) * eased
-    );
+    m_impl->updateBar(m_impl->m_animProgressFrom + (m_impl->m_animProgressTo - m_impl->m_animProgressFrom) * eased);
 
     if (t >= 1.0f) {
         m_impl->m_isAnimating = false;
@@ -201,7 +187,7 @@ void ProgressBar::setFillColor(ccColor3B color) {
 
 void ProgressBar::setPrecision(size_t precision) {
     m_impl->m_precision = precision;
-    this->updateProgress(m_impl->m_progress); // update label with new precision
+    this->updateProgress(m_impl->m_progress); // also updates label with new precision
 }
 
 void ProgressBar::updateProgress(float value) {
