@@ -1476,6 +1476,11 @@ void Loader::Impl::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> set
         }
     }
 
+    auto* mod = setting->getMod();
+    if (mod == nullptr || !mod->isLoaded()) {
+        return;
+    }
+
     if (!m_keybindSettingToActionId.contains(setting.get())) {
         auto getNextActionId = [this, &setting](int group, int& nextId) {
             int actionId = nextId;
