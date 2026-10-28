@@ -5,12 +5,9 @@
 #include <Geode/utils/terminate.hpp>
 #include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 #include <deque>
-
-#include <stack>
 #include <memory>
 #include <optional>
 #include <regex>
-
 #include <fmt/chrono.h>
 #include <asp/iter.hpp>
 
@@ -416,7 +413,6 @@ void NewRichTextArea::RichImpl::parseRichText() {
     ParseState state = ParseState::Normal;
 
     RichKey* key;
-    std::stack<std::tuple<RichKey*, std::string>> prevKeys;
     std::string id;
     std::string args;
     std::string text;
@@ -484,14 +480,8 @@ void NewRichTextArea::RichImpl::parseRichText() {
                     if (auto p = this->peek(); p && *p == '/') {
                         state = ParseState::ParseClosing;
                     } else {
-                        auto ir = makeIR();
-                        newText += ir;
-                        this->registerKey(ir);
-                        prevKeys.emplace(key, args);
-                        state = ParseState::ParseKey;
-                        id.clear();
-                        args.clear();
-                        text.clear();
+                        // TODO: Handle nested tag
+                        state = ParseState::ParseClosing;
                     }
                     break;
                 }
@@ -525,20 +515,10 @@ void NewRichTextArea::RichImpl::parseRichText() {
                 auto ir = makeIR();
                 newText += ir;
                 this->registerKey(ir);
-                if (!prevKeys.empty()) {
-                    auto prev = prevKeys.top();
-                    key = std::get<0>(prev);
-                    id = key->id;
-                    args = std::get<1>(prev);
-                    state = ParseState::ParseText;
-                    prevKeys.pop();
-                    text.clear();
-                } else {
-                    state = ParseState::Normal;
-                    id.clear();
-                    args.clear();
-                    text.clear();
-                }
+                state = ParseState::Normal;
+                id.clear();
+                args.clear();
+                text.clear();
                 break;
             }
         }
