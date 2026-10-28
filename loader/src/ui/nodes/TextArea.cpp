@@ -524,7 +524,6 @@ void NewRichTextArea::RichImpl::parseRichText() {
                         // geode::Label doesn't have an easy method to add per-character
                         // effects (ty quads) so we have to resort to this
                         auto ret = CCLabelBMFont::create(split[1].c_str(), m_font.c_str());
-                        ret->setScale(m_scale);
                         ret->setColor(to3B(m_color));
                         ret->setOpacity(m_color.a);
 
