@@ -244,11 +244,11 @@ namespace geode {
 
         void addRichKey(std::string id, CreateCallback create, bool updateText = true);
 
-        void addRichKey(std::string id, ValidateArgs validate, CreateCallback create, bool updateText);
+        void addRichKey(std::string id, ValidateArgs validate, CreateCallback create, bool updateText = true);
 
-        void addRichKey(std::string id, CharIterator iterator, bool updateText);
+        void addRichKey(std::string id, CharIterator iterator, bool updateText = true);
 
-        void addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText);
+        void addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText = true);
 
     protected:
         NewRichTextArea() : SimpleTextArea() {}
@@ -261,7 +261,6 @@ namespace geode {
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
     private:
         static NewRichTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
-        void addRichKey(std::string id, ValidateArgs validate, CreateCallback, CharIterator iterator, bool updateText);
     };
 
     class GEODE_DLL RichTextArea : public SimpleTextArea, public cocos2d::CCTouchDelegate {
