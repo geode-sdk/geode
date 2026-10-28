@@ -459,14 +459,6 @@ void NewRichTextArea::RichImpl::parseRichText() {
                     break;
                 }
                 args += c;
-                if (auto p = this->peek(); p && *p == '>') {
-                    if (!key->validate(args)) {
-                        handleError();
-                        break;
-                    }
-                    state = ParseState::ParseRest;
-                    this->advance();
-                }
                 break;
             case ParseState::ParseRest: {
                 auto close = m_text.find(fmt::format("</{}>", id), m_idx);
@@ -476,7 +468,11 @@ void NewRichTextArea::RichImpl::parseRichText() {
                     break;
                 }
                 text = m_text.substr(m_idx, close - m_idx);
-                std::string repl = fmt::format(":{}|{}:", id, text);
+                std::string repl = fmt::format(
+                    ":{}{}|{}:",
+                    id, args.empty() ? "" : "-" + args,
+                    text
+                );
                 newText += repl;
                 this->advance((close + id.size() + 2) - m_idx);
 
@@ -507,10 +503,6 @@ void NewRichTextArea::RichImpl::parseRichText() {
                     std::string arg;
                     if (string::contains(split[0], "-")) {
                         auto k = string::split(split[0], "-");
-                        keyStr = k[0];
-                        arg = k[1];
-                    } else if (string::contains(split[0], "=")) {
-                        auto k = string::split(split[0], "=");
                         keyStr = k[0];
                         arg = k[1];
                     } else {
