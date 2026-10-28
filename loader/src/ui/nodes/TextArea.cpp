@@ -384,7 +384,7 @@ public:
     std::optional<char> peek();
     void advance(int offset = 1);
 
-    void addRichKey(std::string id, ValidateArgs validate, CreateCallback, CharIterator iterator, bool updateText);
+    void addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback, CharIterator iterator, bool updateText);
     void updateRichText();
 
     Label* createLabel(std::string text, float top) override;
@@ -466,6 +466,10 @@ void NewRichTextArea::RichImpl::parseRichText() {
                 break;
             case ParseState::ParseArgs:
                 if (c == '>') {
+                    if (args.empty() && key->requireArgs) {
+                        handleError();
+                        break;
+                    }
                     if (!key->validate(args)) {
                         handleError();
                         break;
@@ -614,12 +618,13 @@ void NewRichTextArea::RichImpl::advance(int offset) {
 
 void NewRichTextArea::RichImpl::addRichKey(
     std::string id,
+    bool requireArgs,
     ValidateArgs validate,
     CreateCallback create,
     CharIterator iterator,
     bool updateText
 ) {
-    m_keys.emplace_back(std::move(id), std::move(validate), std::move(create), std::move(iterator));
+    m_keys.emplace_back(std::move(id), requireArgs, std::move(validate), std::move(create), std::move(iterator));
     if (updateText) {
         m_text = m_rawText;
         this->updateRichText();
@@ -673,19 +678,35 @@ bool NewRichTextArea::init(std::string font, std::string text, float scale, floa
 }
 
 void NewRichTextArea::addRichKey(std::string id, CreateCallback create, bool updateText) {
-    m_richImpl->addRichKey(std::move(id), [](auto) { return true; }, std::move(create), nullptr, updateText);
+    addRichKey(std::move(id), false, std::move(create), updateText);
+}
+
+void NewRichTextArea::addRichKey(std::string id, bool requireArgs, CreateCallback create, bool updateText) {
+    m_richImpl->addRichKey(std::move(id), false, [](auto) { return true; }, std::move(create), nullptr, updateText);
 }
 
 void NewRichTextArea::addRichKey(std::string id, ValidateArgs validate, CreateCallback create, bool updateText) {
-    m_richImpl->addRichKey(std::move(id), std::move(validate), std::move(create), nullptr, updateText);
+    addRichKey(std::move(id), false, std::move(validate), std::move(create), updateText);
+}
+
+void NewRichTextArea::addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback create, bool updateText) {
+    m_richImpl->addRichKey(std::move(id), requireArgs, std::move(validate), std::move(create), nullptr, updateText);
 }
 
 void NewRichTextArea::addRichKey(std::string id, CharIterator iterator, bool updateText) {
-    m_richImpl->addRichKey(std::move(id), [](auto) { return true; }, nullptr, std::move(iterator), updateText);
+    addRichKey(std::move(id), false, std::move(iterator), updateText);
+}
+
+void NewRichTextArea::addRichKey(std::string id, bool requireArgs, CharIterator iterator, bool updateText) {
+    m_richImpl->addRichKey(std::move(id), requireArgs, [](auto) { return true; }, nullptr, std::move(iterator), updateText);
 }
 
 void NewRichTextArea::addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText) {
-    m_richImpl->addRichKey(std::move(id), std::move(validate), nullptr, std::move(iterator), updateText);
+    addRichKey(std::move(id), false, std::move(validate), std::move(iterator), updateText);
+}
+
+void NewRichTextArea::addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CharIterator iterator, bool updateText) {
+    m_richImpl->addRichKey(std::move(id), requireArgs, std::move(validate), nullptr, std::move(iterator), updateText);
 }
 
 std::string NewRichTextArea::getText() const {

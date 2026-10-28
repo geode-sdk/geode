@@ -234,6 +234,7 @@ namespace geode {
 
         struct RichKey {
             std::string id;
+            bool requireArgs;
             ValidateArgs validate;
             CreateCallback create;
             CharIterator iterator;
@@ -244,11 +245,19 @@ namespace geode {
 
         void addRichKey(std::string id, CreateCallback create, bool updateText = true);
 
+        void addRichKey(std::string id, bool requireArgs, CreateCallback create, bool updateText = true);
+
         void addRichKey(std::string id, ValidateArgs validate, CreateCallback create, bool updateText = true);
+
+        void addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback create, bool updateText = true);
 
         void addRichKey(std::string id, CharIterator iterator, bool updateText = true);
 
+        void addRichKey(std::string id, bool requireArgs, CharIterator iterator, bool updateText = true);
+
         void addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText = true);
+
+        void addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CharIterator iterator, bool updateText = true);
 
         std::string getText() const override;
 
