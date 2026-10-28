@@ -491,13 +491,14 @@ void NewRichTextArea::RichImpl::parseRichText() {
                     }
                     auto str = str8.unwrap();
 
-                    auto end = str.find(":", idx + 1);
-                    if (end == std::string::npos) {
+                    auto start = str.rfind(":", idx - 1);
+                    if (start == std::string::npos) {
                         // Unless something went *horribly* wrong while parsing
                         // this should be unreachable
-                        utils::unreachable("Missing ending ':' on intermediate (RichTextArea)");
+                        log::error("Missing ending ':' on intermediate (RichTextArea)\n\nText: {}, Index: {}", str, idx);
+                        return CCNode::create();
                     }
-                    auto inter = str.substr(idx + 1, end - idx - 1);
+                    auto inter = str.substr(start + 1, idx - start - 1);
 
                     // Split text and key
                     auto split = string::split(inter, "|");
@@ -586,6 +587,7 @@ void NewRichTextArea::RichImpl::addRichKey(
 ) {
     m_keys.emplace_back(std::move(id), std::move(validate), std::move(create), std::move(iterator));
     if (updateText) {
+        m_text = m_rawText;
         this->parseRichText();
         this->updateContainer();
     }
