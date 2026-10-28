@@ -24,7 +24,7 @@ namespace geode {
      * - Custom text alignment
      * - Configurable and automatic word wrapping
      * - Line padding
-     * - Color tag support (for custom tags use `RichTextArea`)
+     * - Color tag support (for more/custom tags use `RichTextArea`)
      *
      * Contact me on Discord (\@smjs) if you have any questions, suggestions or bugs.
     */
