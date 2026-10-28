@@ -72,6 +72,55 @@ namespace geode {
 
     /**
      * A SimpleTextArea with rich text support
+     *
+     * You can add a custom tag with `addRichTag`:
+     * @example ```cpp
+     * richTextArea->addRichTag(
+     *     "tagID",
+     *     [](CCFontSprite* spr, std::string_view args) {
+     *         // This function will manually modify every character
+     *         // in the label. This class uses a combination of geode::Label and
+     *         // CCLabelBMFont under the hood to make this possible
+     *         spr->setFlipX(true);
+     *     }
+     * );
+     * ```
+     *
+     * You can also use *any* node of your liking:
+     * @example ```cpp
+     * richTextArea->addRichTag(
+     *     "tagID",
+     *     [](std::string_view text, std::string_view args) {
+     *         // If you want to add a button for example, you can
+     *         // add one like so
+     *         auto btn = Button::createWithLabel("Button!", "bigFont.fnt", []{
+     *             log::info("My button was pressed!")
+     *         });
+     *         return btn;
+     *     }
+     * );
+     * ```
+     *
+     * Tags can also take arguments with "-" or "=":
+     * @example ```cpp
+     * auto richTextArea = RichTextArea::create("Here's some <tagID-h>text!</tagID>");
+     * richTextArea->addRichTag(
+     *     "tagID",
+     *     true, // This will make the tag *always* require an argument, anything else will throw an error
+     *     [](std::string_view args) {
+     *         // This function is meant to validate the argument's syntax
+     *         // For this example we don't care so we just return true
+     *         return true;
+     *     },
+     *     [](CCFontSprite* spr, std::string_view args) {
+     *         if (args == "h") {
+     *             spr->setFlipX(true);
+     *         } else {
+     *             spr->setFlipY(true);
+     *         }
+     *     }
+     * );
+     * ```
      */
     class GEODE_DLL RichTextArea : public SimpleTextArea {
     public:
