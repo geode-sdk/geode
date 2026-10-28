@@ -1,41 +1,44 @@
 #include "LoaderImpl.hpp"
 
+#include "LogImpl.hpp"
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
-#include "LogImpl.hpp"
 #include "console.hpp"
 
-#include <Geode/loader/Event.hpp>
+#include <Geode/Enums.hpp>
+#include <Geode/cocos/platform/CCApplication.h>
+#include <Geode/cocos/platform/CCFileUtils.h>
+#include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
+#include <Geode/cocos/textures/CCTextureCache.h>
 #include <Geode/loader/Dirs.hpp>
+#include <Geode/loader/Event.hpp>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/SettingV3.hpp>
+#include <Geode/ui/Popup.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/web.hpp>
-#include <Geode/cocos/platform/CCApplication.h>
-#include <Geode/cocos/platform/CCFileUtils.h>
-#include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
-#include <Geode/cocos/textures/CCTextureCache.h>
 #include <about.hpp>
+#include <algorithm>
+#include <asp/fs/fs.hpp>
 #include <crashlog.hpp>
 #include <fmt/format.h>
-#include <asp/fs/fs.hpp>
 #include <hash.hpp>
 #include <iostream>
 #include <iterator>
 #include <optional>
+#include <resources.hpp>
+#include <server/DownloadManager.hpp>
 #include <string>
 #include <string_view>
 #include <unordered_set>
 #include <vector>
-
-#include <server/DownloadManager.hpp>
-#include <Geode/ui/Popup.hpp>
 
 using namespace geode::prelude;
 
@@ -1472,4 +1475,112 @@ void Loader::Impl::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> set
             }), setting);
         }
     }
+
+    auto* mod = setting->getMod();
+    if (mod == nullptr || !mod->isLoaded()) {
+        return;
+    }
+
+    if (!m_keybindSettingToActionId.contains(setting.get())) {
+        auto getNextActionId = [this, &setting](int group, int& nextId) {
+            int actionId = nextId;
+
+            if ((actionId / 10000) > group) {
+                actionId = m_nextMiscActionId;
+                m_nextMiscActionId++;
+                log::warn(
+                    "No free action IDs in group {} for {}:{}, using fallback {}",
+                    group,
+                    setting->getModID(),
+                    setting->getKey(),
+                    actionId
+                );
+            }
+            else {
+                nextId++;
+            }
+
+            return actionId;
+        };
+
+        KeybindCategory category = setting->getCategory().value_or(KeybindCategory::Universal);
+        int actionId = 0;
+
+        switch (category) {
+            case KeybindCategory::Universal:
+                actionId =
+                    getNextActionId(static_cast<int>(GJActionGroup::Global), m_nextUniversalActionId);
+                break;
+            case KeybindCategory::Gameplay:
+                actionId =
+                    getNextActionId(static_cast<int>(GJActionGroup::Gameplay), m_nextGameplayActionId);
+                break;
+            case KeybindCategory::Editor:
+                actionId =
+                    getNextActionId(static_cast<int>(GJActionGroup::Editor), m_nextEditorActionId);
+                break;
+        }
+
+        m_keybindSettingToActionId[setting.get()] = actionId;
+        m_actionIdToKeybindSetting[actionId] = setting;
+        m_actionIdToKeybindSettingName[actionId] = setting->getDisplayName();
+    }
+}
+
+std::shared_ptr<KeybindSettingV3> Loader::Impl::keybindSettingForActionId(int action) {
+    if (auto it = m_actionIdToKeybindSetting.find(action); it != m_actionIdToKeybindSetting.end()) {
+        return it->second;
+    }
+
+    return nullptr;
+}
+
+std::optional<ZStringView> Loader::Impl::keybindNameForActionId(int action) {
+    if (auto it = m_actionIdToKeybindSettingName.find(action);
+        it != m_actionIdToKeybindSettingName.end()) {
+        return it->second;
+    }
+
+    return std::nullopt;
+}
+
+int Loader::Impl::actionForKeybindSetting(KeybindSettingV3* setting) {
+    if (auto it = m_keybindSettingToActionId.find(setting); it != m_keybindSettingToActionId.end()) {
+        return it->second;
+    }
+
+    return 0;
+}
+
+std::vector<int> Loader::Impl::getActionsForKeybindCategory(std::optional<KeybindCategory> category) {
+    auto mods = this->getAllMods();
+    std::erase_if(mods, [](Mod* mod) {
+        return !mod->isLoaded();
+    });
+    std::ranges::sort(mods, [](Mod* a, Mod* b) {
+        auto order = utils::string::caseInsensitiveCompare(a->getName(), b->getName());
+        if (order != 0) {
+            return order < 0;
+        }
+        return a->getID() < b->getID();
+    });
+
+    std::vector<int> result;
+    for (auto* mod : mods) {
+        for (auto const& key : mod->getSettingKeys()) {
+            auto setting = typeinfo_pointer_cast<KeybindSettingV3>(mod->getSetting(key));
+            if (!setting) {
+                continue;
+            }
+            if (category && setting->getCategory() != category) {
+                continue;
+            }
+            int id = this->actionForKeybindSetting(setting.get());
+            if (id == 0) {
+                continue;
+            }
+            result.push_back(id);
+        }
+    }
+    return result;
 }

@@ -1,8 +1,10 @@
-#include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <algorithm>
 
 using namespace geode::prelude;
 
@@ -32,7 +34,6 @@ public:
     void ccTouchMoved(CCTouch* touch, CCEvent* event);
     void ccTouchEnded(CCTouch* touch, CCEvent* event);
     void ccTouchCancelled(CCTouch* touch, CCEvent* event);
-    void scrollToTop();
     void setupScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical);
 };
 
@@ -143,11 +144,6 @@ void ScrollLayer::Impl::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
     }
 }
 
-void ScrollLayer::Impl::scrollToTop() {
-    auto listTopScrollPos = -m_self->m_contentLayer->getContentHeight() + m_self->getContentHeight();
-    m_self->m_contentLayer->setPositionY(listTopScrollPos);
-}
-
 void ScrollLayer::Impl::setupScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical) {
     m_scrollWheelEnabled = scrollWheelEnabled;
 
@@ -180,13 +176,12 @@ GenericContentLayer* GenericContentLayer::create(float width, float height) {
 GenericContentLayer::GenericContentLayer() : m_impl(std::make_unique<GenericContentLayer::Impl>(this)) {}
 GenericContentLayer::~GenericContentLayer() = default;
 
-void GenericContentLayer::setPosition(CCPoint const& pos) { 
-    m_impl->setPosition(pos); 
+void GenericContentLayer::setPosition(CCPoint const& pos) {
+    m_impl->setPosition(pos);
 }
 
-
-void ScrollLayer::visit() { 
-    m_impl->visit(); 
+void ScrollLayer::visit() {
+    m_impl->visit();
 }
 
 // TODO: 2.209
@@ -195,16 +190,16 @@ bool ScrollLayer::scrollWheel(float y, float x) {
     return true;
 }
 
-void ScrollLayer::enableScrollWheel(bool enable) { 
-    m_impl->enableScrollWheel(enable); 
+void ScrollLayer::enableScrollWheel(bool enable) {
+    m_impl->enableScrollWheel(enable);
 }
 
-bool ScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) { 
-    return m_impl->ccTouchBegan(touch, event); 
+bool ScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    return m_impl->ccTouchBegan(touch, event);
 }
 
-void ScrollLayer::ccTouchMoved(CCTouch* touch, CCEvent* event) { 
-    m_impl->ccTouchMoved(touch, event); 
+void ScrollLayer::ccTouchMoved(CCTouch* touch, CCEvent* event) {
+    m_impl->ccTouchMoved(touch, event);
 }
 
 void ScrollLayer::ccTouchEnded(CCTouch* touch, CCEvent* event) {
@@ -215,8 +210,33 @@ void ScrollLayer::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
     m_impl->ccTouchCancelled(touch, event);
 }
 
-void ScrollLayer::scrollToTop() { 
-    m_impl->scrollToTop(); 
+bool ScrollLayer::touchInsideClip(cocos2d::CCPoint const& worldPoint) {
+    if (!m_cutContent) {
+        return true;
+    }
+
+    auto local = this->convertToNodeSpace(worldPoint);
+
+    return CCRect{CCPointZero, this->getContentSize()}.containsPoint(local);
+}
+
+float ScrollLayer::getScrollFromTop() const {
+    float viewHeight = this->getContentHeight();
+    float contentHeight = this->m_contentLayer->getContentHeight();
+    return this->m_contentLayer->getPositionY() - (viewHeight - contentHeight);
+}
+
+void ScrollLayer::scrollToFromTop(float offset) {
+    float viewHeight = this->getContentHeight();
+    float contentHeight = this->m_contentLayer->getContentHeight();
+    float maxOffset = std::max(0.f, contentHeight - viewHeight);
+    this->m_contentLayer->setPositionY(
+        (viewHeight - contentHeight) + std::clamp(offset, 0.f, maxOffset)
+    );
+}
+
+void ScrollLayer::scrollToTop() {
+    this->scrollToFromTop(0.f);
 }
 
 ScrollLayer::ScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical) :
