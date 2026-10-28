@@ -228,7 +228,7 @@ namespace geode {
 
     class GEODE_DLL NewRichTextArea : public SimpleTextArea {
     public:
-        using ValidateArgs = geode::Function<geode::Result<>(const std::string&)>;
+        using ValidateArgs = geode::Function<bool(const std::string&)>;
         using CreateCallback = geode::Function<cocos2d::CCNode*(const std::string&, const std::string&)>;
         using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, const std::string&)>;
 
