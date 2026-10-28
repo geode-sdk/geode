@@ -39,7 +39,7 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
             if (auto sett = typeinfo_pointer_cast<KeybindSettingV3>(mod->getSetting(key))) {
                 if (!addedSubtitle) {
                     m_settings.push_back(TitleSettingNodeV3::create(
-                        mod->getName(), "Test popup", m_listSize.width
+                        mod->getName(), m_listSize.width
                     ));
                     addedSubtitle = true;
                 }

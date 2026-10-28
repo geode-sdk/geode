@@ -11,7 +11,7 @@
 static bool matchSearch(SettingNode* node, ZStringView query) {
     auto trimmedQuery = string::trim(query);
     bool addToList = false;
-    double weighted = 0;
+    double weighted = .0;
     if (auto setting = node->getSetting()) {
         if (auto name = setting->getName()) {
             addToList |= weightedFuzzyMatch(setting->getKey(), trimmedQuery, 0.5, weighted);
@@ -41,18 +41,18 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
 
     m_noElasticity = true;
 
-    const auto spacing = spacingForTabs ? 25.f : 0.f;
-    m_listSize = CCSize(346, 200 - spacing);
+    const auto spacing = spacingForTabs ? 25.f : .0f;
+    m_listSize = CCSize{346.f, 200.f - spacing};
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
     layerBG->setContentSize(m_listSize);
     layerBG->ignoreAnchorPointForPosition(false);
-    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, ccp(0, -spacing / 2));
+    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, {.0f, -spacing / 2.f});
 
     auto searchContainer = CCMenu::create();
-    searchContainer->setContentSize({ m_listSize.width, 30 });
+    searchContainer->setContentSize({ m_listSize.width, 30.f });
 
-    m_searchInput = TextInput::create((m_listSize.width - 15) / .7f - 40, "Search settings...");
+    m_searchInput = TextInput::create((m_listSize.width - 15.f) / .7f - 40.f, "Search settings...");
     m_searchInput->setTextAlign(TextInputAlign::Left);
     m_searchInput->setScale(.7f);
     m_searchInput->setCallback([this](auto const&) {
@@ -60,20 +60,24 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
         m_list->moveToTop();
     });
     m_searchInput->setID("search-input");
-    searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0), ccp(0, .5f));
+    searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, {7.5f, .0f}, {.0f, .5f});
 
-    auto searchClearSpr = GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png", nullptr, m_forceDisableTheme);
-    searchClearSpr->setScale(.45f);
-    m_searchClearBtn = CCMenuItemSpriteExtra::create(
-        searchClearSpr, this, menu_selector(BaseSettingsPopup::onClearSearch)
+    m_searchClearBtn = Button::createWithNode(
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png", nullptr, m_forceDisableTheme),
+        [this](auto) {
+            m_searchInput->setString("");
+            this->updateState();
+            m_list->moveToTop();
+        }
     );
     m_searchClearBtn->setID("clear-search-button");
-    searchContainer->addChildAtPosition(m_searchClearBtn, Anchor::Right, ccp(-20, 0));
+    m_searchClearBtn->setScale(.45f);
+    searchContainer->addChildAtPosition(m_searchClearBtn, Anchor::Right, {-20.f, .0f});
 
-    layerBG->addChildAtPosition(searchContainer, Anchor::Top, ccp(0, 0), ccp(.5f, 1));
+    layerBG->addChildAtPosition(searchContainer, Anchor::Top, {.0f, .0f}, {.5f, 1.f});
 
-    m_list = ScrollLayer::create(m_listSize - ccp(0, searchContainer->getContentHeight()));
-    m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
+    m_list = ScrollLayer::create(m_listSize - CCSize{.0f, searchContainer->getContentHeight()});
+    m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(.0f));
     m_list->setTouchEnabled(true);
     m_list->moveToTop();
 
@@ -88,46 +92,87 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
 
     m_mainLayer->addChildAtPosition(
         createGeodeListBorders(m_listSize, m_forceDisableTheme),
-        Anchor::Center, ccp(0, -spacing / 2)
+        Anchor::Center, {.0f, -spacing / 2.f}
     );
 
     auto scrollBar = Scrollbar::create(m_list);
     m_mainLayer->addChildAtPosition(
         scrollBar, Anchor::Center,
-        ccp(layerBG->getContentWidth() / 2 + 10, -spacing / 2)
+        {layerBG->getContentWidth() / 2.f + 10.f, -spacing / 2.f}
     );
 
     // buttons
 
     m_applyMenu = CCMenu::create();
-    m_applyMenu->setContentWidth(150);
-    m_applyMenu->setLayout(RowLayout::create());
+    m_applyMenu->setContentWidth(150.f);
+    m_applyMenu->setLayout(RowLayout::create()->setAutoScale(false));
     m_applyMenu->setTouchPriority(buttonPriority);
 
-    auto restartBtnSpr = createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme);
-    restartBtnSpr->setScale(.6f);
-    m_restartBtn = CCMenuItemSpriteExtra::create(
-        restartBtnSpr, this, menu_selector(BaseSettingsPopup::onRestart)
+    m_restartBtn = Button::createWithNode(
+        createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme),
+        [this](auto) {
+            // Update button state to let user know it's restarting but it might take a bit
+            m_restartBtn->setEnabled(false);
+            static_cast<ButtonSprite*>(m_restartBtn->getDisplayNode())->setString("Restarting...");
+
+            // Actually restart
+            Loader::get()->queueInMainThread([] {
+                // Delayed by 2 frames - one is needed to render the "Restarting text"
+                Loader::get()->queueInMainThread([] {
+                    // the other never finishes rendering because the game actually restarts at this point
+                    game::restart(true);
+                });
+            });
+        }
     );
+    m_restartBtn->setID("restart-button");
+    m_restartBtn->setScale(.6f);
     m_restartBtn->setVisible(false);
-    m_applyMenu->addChildAtPosition(m_restartBtn, Anchor::Bottom, ccp(0, 20));
+    m_applyMenu->addChild(m_restartBtn);
 
     m_applyBtnSpr = createGeodeButton("Apply", true, GeodeButtonSprite::Default, m_forceDisableTheme);
-    m_applyBtnSpr->setScale(.6f);
-    m_applyBtn = CCMenuItemSpriteExtra::create(
-        m_applyBtnSpr, this, menu_selector(BaseSettingsPopup::onApply)
+    m_applyBtn = Button::createWithNode(
+        m_applyBtnSpr,
+        [this](auto) {
+            bool someChangesMade = false;
+            for (auto& sett : m_settings) {
+                if (sett->hasUncommittedChanges()) {
+                    sett->commit();
+                    someChangesMade = true;
+                }
+            }
+            if (!someChangesMade) {
+                FLAlertLayer::create("Info", "No changes have been made.", "OK")->show();
+            }
+        }
     );
-    m_applyMenu->addChildAtPosition(m_applyBtn, Anchor::Bottom, ccp(0, 20));
+    m_applyBtn->setID("apply-button");
+    m_applyBtn->setScale(.6f);
+    m_applyMenu->addChild(m_applyBtn);
 
-    m_mainLayer->addChildAtPosition(m_applyMenu, Anchor::Bottom, ccp(0, 20));
+    m_mainLayer->addChildAtPosition(m_applyMenu, Anchor::Bottom, {.0f, 20.f});
 
-    auto resetBtnSpr = createGeodeButton("Reset All", true, GeodeButtonSprite::Default, m_forceDisableTheme);
-    resetBtnSpr->setScale(.6f);
-
-    auto resetBtn = CCMenuItemSpriteExtra::create(
-        resetBtnSpr, this, menu_selector(BaseSettingsPopup::onResetAll)
+    auto resetBtn = Button::createWithNode(
+        createGeodeButton("Reset All", true, GeodeButtonSprite::Default, m_forceDisableTheme),
+        [this](auto) {
+            createQuickPopup(
+                "Reset All",
+                "Are you sure you want to <cr>reset</c> ALL settings "
+                "to <cy>default</c>?",
+                "Cancel", "Reset",
+                [this](auto, bool btn2) {
+                    if (btn2) {
+                        for (auto& sett : m_settings) {
+                            sett->resetToDefault();
+                        }
+                    }
+                }
+            );
+        }
     );
-    m_buttonMenu->addChildAtPosition(resetBtn, Anchor::BottomLeft, ccp(45, 20));
+    resetBtn->setID("reset-settings-button");
+    resetBtn->setScale(.6f);
+    m_mainLayer->addChildAtPosition(resetBtn, Anchor::BottomLeft, {45.f, 20.f});
 
     m_changeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
         this->updateState(node);
@@ -135,54 +180,6 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     });
 
     return true;
-}
-
-void BaseSettingsPopup::onApply(CCObject*) {
-    bool someChangesMade = false;
-    for (auto& sett : m_settings) {
-        if (sett->hasUncommittedChanges()) {
-            sett->commit();
-            someChangesMade = true;
-        }
-    }
-    if (!someChangesMade) {
-        FLAlertLayer::create("Info", "No changes have been made.", "OK")->show();
-    }
-}
-void BaseSettingsPopup::onRestart(CCObject*) {
-    // Update button state to let user know it's restarting but it might take a bit
-    m_restartBtn->setEnabled(false);
-    static_cast<ButtonSprite*>(m_restartBtn->getNormalImage())->setString("Restarting...");
-    m_restartBtn->updateSprite();
-
-    // Actually restart
-    Loader::get()->queueInMainThread([] {
-        // Delayed by 2 frames - one is needed to render the "Restarting text"
-        Loader::get()->queueInMainThread([] {
-            // the other never finishes rendering because the game actually restarts at this point
-            game::restart(true);
-        });
-    });
-}
-void BaseSettingsPopup::onResetAll(CCObject*) {
-    createQuickPopup(
-        "Reset All",
-        "Are you sure you want to <cr>reset</c> ALL settings "
-        "to <cy>default</c>?",
-        "Cancel", "Reset",
-        [this](auto, bool btn2) {
-            if (btn2) {
-                for (auto& sett : m_settings) {
-                    sett->resetToDefault();
-                }
-            }
-        }
-    );
-}
-void BaseSettingsPopup::onClearSearch(CCObject*) {
-    m_searchInput->setString("");
-    this->updateState();
-    m_list->moveToTop();
 }
 
 bool BaseSettingsPopup::shouldShow(SettingNode* node) const {
@@ -271,7 +268,7 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
         m_applyBtn->setEnabled(false);
     }
 
-    auto clearSpr = static_cast<GeodeSquareSprite*>(m_searchClearBtn->getNormalImage());
+    auto clearSpr = static_cast<GeodeSquareSprite*>(m_searchClearBtn->getDisplayNode());
     m_searchClearBtn->setEnabled(hasSearch);
     clearSpr->setColor(hasSearch ? ccWHITE : ccGRAY);
     clearSpr->setOpacity(hasSearch ? 255 : 90);

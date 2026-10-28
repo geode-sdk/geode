@@ -26,7 +26,7 @@ protected:
     );
     void doSet();
     void onRemove(CCObject*);
-    void onSet(CCObject*);
+    void onSet();
 
     void keyBackClicked();
     void keyDown(enumKeyCodes, double);
@@ -51,19 +51,16 @@ protected:
 
     bool init(
         std::shared_ptr<KeybindSettingV3> setting,
-        std::vector<Keybind> const& keybinds,
+        std::vector<Keybind> keybinds,
         Function<void(std::vector<Keybind>)> callback
     );
     void updateKeybinds();
-    void onAdd(CCObject*);
-    void onSave(CCObject*);
-    void onKeybind(CCObject*);
     void onClose(CCObject*) override;
 
 public:
     static KeybindListPopup* create(
         std::shared_ptr<KeybindSettingV3> setting,
-        std::vector<Keybind> const& keybinds,
+        std::vector<Keybind> keybinds,
         Function<void(std::vector<Keybind>)> callback
     );
 };
