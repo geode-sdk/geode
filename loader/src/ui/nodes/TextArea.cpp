@@ -377,6 +377,8 @@ public:
     size_t m_idx = 0;
 
     void parseRichText();
+    CCLabelBMFont* getErrorText();
+
     char current();
     std::optional<char> peek();
     void advance(int offset = 1);
@@ -481,19 +483,17 @@ void NewRichTextArea::RichImpl::parseRichText() {
                 m_emojiRegistry.insert(m_intermediates.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
                     auto str8 = string::utf32ToUtf8(str32);
                     if (str8.isErr()) {
-                        // Unless you somehow got a unicode character in the intermediate
-                        // this shouldn't really happen but handle it just in case
                         log::error("Could not parse UTF-32: {}", str8.unwrapErr());
-                        return CCNode::create();
+                        // This will likely be able to tell you
+                        // something went wrong
+                        return this->getErrorText();
                     }
                     auto str = str8.unwrap();
 
                     auto start = str.rfind(":", idx - 1);
                     if (start == std::string::npos) {
-                        // Unless something went *horribly* wrong while parsing
-                        // this should be unreachable
                         log::error("Missing ending ':' on intermediate (RichTextArea)\n\nText: {}, Index: {}", str, idx);
-                        return CCNode::create();
+                        return this->getErrorText();
                     }
                     auto inter = str.substr(start + 1, idx - start - 1);
 
@@ -512,10 +512,8 @@ void NewRichTextArea::RichImpl::parseRichText() {
 
                     auto key = std::ranges::find(m_keys, keyStr, &RichKey::id);
                     if (key == m_keys.end()) {
-                        // Unless something went wrong while parsing
-                        // this shouldn't happen
                         log::error("Could not find key '{}'", keyStr);
-                        return CCNode::create();
+                        return this->getErrorText();
                     }
 
                     if (key->create) {
@@ -552,6 +550,12 @@ void NewRichTextArea::RichImpl::parseRichText() {
         newText += m_text.substr(keyStart);
     }
     m_text = newText;
+}
+
+CCLabelBMFont* NewRichTextArea::RichImpl::getErrorText() {
+    auto ret = CCLabelBMFont::create("ERROR", "bigFont.fnt");
+    ret->setColor({ 255, 0, 0 });
+    return ret;
 }
 
 char NewRichTextArea::RichImpl::current() {
