@@ -591,7 +591,7 @@ void RichTextArea::RichImpl::registerTag(const std::string& ir) {
 
             if (tag->iterator) {
                 for (auto& c : CCArrayExt(ret->getChildren())) {
-                    tag->iterator(static_cast<CCFontSprite*>(c), std::move(arg));
+                    tag->iterator(static_cast<CCFontSprite*>(c), arg);
                 }
             }
 
@@ -683,7 +683,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     // Default tags
     this->addRichTag(
         "flip",
-        [](CCFontSprite* spr, std::string) {
+        [](CCFontSprite* spr, auto) {
             spr->setFlipY(true);
         },
         false
@@ -696,7 +696,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
             auto num = utils::numFromString<float>(arg);
             return num.isOk();
         },
-        [](CCFontSprite* ch, std::string arg) {
+        [](CCFontSprite* ch, const std::string& arg) {
             auto num = utils::numFromString<float>(arg);
             if (num.isErr()) {
                 // This should not happen but just in case
@@ -713,7 +713,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         true,
         [](const std::string& arg) {
             auto font = BitmapFont::load(std::string(arg).c_str());
-            return font == nullptr;
+            return font != nullptr;
         },
         [this](std::string text, std::string arg) {
             auto label = Label::create(text, arg);

@@ -111,7 +111,7 @@ namespace geode {
     public:
         using ValidateArgs = geode::Function<bool(const std::string&)>;
         using CreateCallback = geode::Function<cocos2d::CCNode*(std::string, std::string)>;
-        using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, std::string)>;
+        using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, const std::string&)>;
 
         static RichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.f);
         static RichTextArea* create(std::string text, std::string font, float scale, float width);
