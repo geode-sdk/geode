@@ -581,7 +581,7 @@ void RichTextArea::RichImpl::registerTag(const std::string& ir) {
         }
 
         if (tag->create) {
-            return tag->create(split[1], arg);
+            return tag->create(std::move(split[1]), std::move(arg));
         } else {
             // geode::Label doesn't have an easy method to add per-character
             // effects (ty quads) so we have to resort to this
@@ -591,7 +591,7 @@ void RichTextArea::RichImpl::registerTag(const std::string& ir) {
 
             if (tag->iterator) {
                 for (auto& c : CCArrayExt(ret->getChildren())) {
-                    tag->iterator(static_cast<CCFontSprite*>(c), arg);
+                    tag->iterator(static_cast<CCFontSprite*>(c), std::move(arg));
                 }
             }
 
@@ -683,7 +683,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     // Default tags
     this->addRichTag(
         "flip",
-        [](CCFontSprite* spr, auto) {
+        [](CCFontSprite* spr, std::string) {
             spr->setFlipY(true);
         },
         false
@@ -692,11 +692,11 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     this->addRichTag(
         "size",
         true,
-        [](std::string_view arg) {
+        [](const std::string& arg) {
             auto num = utils::numFromString<float>(arg);
             return num.isOk();
         },
-        [](CCFontSprite* ch, std::string_view arg) {
+        [](CCFontSprite* ch, std::string arg) {
             auto num = utils::numFromString<float>(arg);
             if (num.isErr()) {
                 // This should not happen but just in case
@@ -711,12 +711,12 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     this->addRichTag(
         "font",
         true,
-        [](std::string_view arg) {
+        [](const std::string& arg) {
             auto font = BitmapFont::load(std::string(arg).c_str());
             return font == nullptr;
         },
-        [this](std::string_view text, std::string_view arg) {
-            auto label = Label::create(std::string(text), std::string(arg));
+        [this](std::string text, std::string arg) {
+            auto label = Label::create(text, arg);
             label->setColor(to3B(m_impl->m_color));
             label->setOpacity(m_impl->m_color.a);
             return label;
@@ -726,14 +726,14 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     this->addRichTag(
         "link",
         true,
-        [](std::string_view arg) {
+        [](const std::string& arg) {
             if (arg.contains("#:")) {
                 return false;
             }
             auto lower = string::toLower(std::string(arg));
             return lower.starts_with("https://") || lower.starts_with("http://") || lower.starts_with("mailto://");
         },
-        [this](std::string_view text, std::string_view arg) {
+        [this](std::string text, std::string arg) {
             auto link = Button::createWithLabel(std::string(text), m_impl->m_font, [arg](auto) {
                 web::openLinkInBrowser(std::string(arg));
             });

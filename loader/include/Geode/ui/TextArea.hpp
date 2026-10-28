@@ -75,7 +75,7 @@ namespace geode {
      *
      * By default this class contains the following tags by default:
      * - flip
-     * - size (usage: <size=2.0> or <size-2.0>)
+     * - size (usage: <size=2.0>)
      * - font (usage: <font=someFont.fnt>)
      * - link (usage: <link=https://example.com>)
      *
@@ -83,7 +83,7 @@ namespace geode {
      * @example ```cpp
      * richTextArea->addRichTag(
      *     "tagID",
-     *     [](CCFontSprite* spr, std::string_view args) {
+     *     [](CCFontSprite* spr, std::string arg) {
      *         // This function will manually modify every character
      *         // in the label. This class uses a combination of geode::Label and
      *         // CCLabelBMFont under the hood to make this possible
@@ -96,7 +96,7 @@ namespace geode {
      * @example ```cpp
      * richTextArea->addRichTag(
      *     "tagID",
-     *     [](std::string_view text, std::string_view args) {
+     *     [](std::string text, std::string arg) {
      *         // If you want to add a button for example, you can
      *         // add one like so
      *         auto btn = Button::createWithLabel("Button!", "bigFont.fnt", []{
@@ -109,9 +109,9 @@ namespace geode {
      */
     class GEODE_DLL RichTextArea : public SimpleTextArea {
     public:
-        using ValidateArgs = geode::Function<bool(std::string_view)>;
-        using CreateCallback = geode::Function<cocos2d::CCNode*(std::string_view, std::string_view)>;
-        using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, std::string_view)>;
+        using ValidateArgs = geode::Function<bool(const std::string&)>;
+        using CreateCallback = geode::Function<cocos2d::CCNode*(std::string, std::string)>;
+        using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, std::string)>;
 
         static RichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.f);
         static RichTextArea* create(std::string text, std::string font, float scale, float width);
