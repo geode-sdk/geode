@@ -372,11 +372,12 @@ public:
     std::vector<RichKey> m_keys;
     EmojiRegistry m_emojiRegistry;
     std::string m_rawText;
-    std::deque<std::u32string> m_intermediates; // I hate lifetimes
+    std::deque<std::u32string> m_keyIRs;
 
     size_t m_idx = 0;
 
     void parseRichText();
+    void registerKey(const std::string& ir);
     CCLabelBMFont* getErrorText();
 
     char current();
@@ -471,69 +472,14 @@ void NewRichTextArea::RichImpl::parseRichText() {
                     break;
                 }
                 text = m_text.substr(m_idx, close - m_idx);
-                std::string repl = fmt::format(
+                std::string ir = fmt::format(
                     ":{}{}|{}:",
                     id, args.empty() ? "" : "-" + args,
                     text
                 );
-                newText += repl;
+                newText += ir;
+                this->registerKey(ir);
                 this->advance((close + id.size() + 2) - m_idx);
-
-                m_intermediates.emplace_back(std::u32string(repl.begin(), repl.end()));
-                m_emojiRegistry.insert(m_intermediates.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
-                    auto str8 = string::utf32ToUtf8(str32);
-                    if (str8.isErr()) {
-                        log::error("Could not parse UTF-32: {}", str8.unwrapErr());
-                        // This will likely be able to tell you
-                        // something went wrong
-                        return this->getErrorText();
-                    }
-                    auto str = str8.unwrap();
-
-                    auto start = str.rfind(":", idx - 1);
-                    if (start == std::string::npos) {
-                        log::error("Missing ending ':' on intermediate (RichTextArea)\n\nText: {}, Index: {}", str, idx);
-                        return this->getErrorText();
-                    }
-                    auto inter = str.substr(start + 1, idx - start - 1);
-
-                    // Split text and key
-                    auto split = string::split(inter, "|");
-
-                    std::string keyStr;
-                    std::string arg;
-                    if (string::contains(split[0], "-")) {
-                        auto k = string::split(split[0], "-");
-                        keyStr = k[0];
-                        arg = k[1];
-                    } else {
-                        keyStr = split[0];
-                    }
-
-                    auto key = std::ranges::find(m_keys, keyStr, &RichKey::id);
-                    if (key == m_keys.end()) {
-                        log::error("Could not find key '{}'", keyStr);
-                        return this->getErrorText();
-                    }
-
-                    if (key->create) {
-                        return key->create(split[1], arg);
-                    } else {
-                        // geode::Label doesn't have an easy method to add per-character
-                        // effects (ty quads) so we have to resort to this
-                        auto ret = CCLabelBMFont::create(split[1].c_str(), m_font.c_str());
-                        ret->setColor(to3B(m_color));
-                        ret->setOpacity(m_color.a);
-
-                        if (key->iterator) {
-                            for (auto& c : CCArrayExt(ret->getChildren())) {
-                                key->iterator(static_cast<CCFontSprite*>(c), arg);
-                            }
-                        }
-
-                        return ret;
-                    }
-                });
 
                 state = ParseState::Normal;
                 id.clear();
@@ -550,6 +496,64 @@ void NewRichTextArea::RichImpl::parseRichText() {
         newText += m_text.substr(keyStart);
     }
     m_text = newText;
+}
+
+void NewRichTextArea::RichImpl::registerKey(const std::string& ir) {
+    m_keyIRs.emplace_back(std::u32string(ir.begin(), ir.end()));
+    m_emojiRegistry.insert(m_keyIRs.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
+        auto str8 = string::utf32ToUtf8(str32);
+        if (str8.isErr()) {
+            log::error("Could not parse UTF-32: {}", str8.unwrapErr());
+            // This will likely be able to tell you
+            // something went wrong
+            return this->getErrorText();
+        }
+        auto str = str8.unwrap();
+
+        auto start = str.rfind(":", idx - 1);
+        if (start == std::string::npos) {
+            log::error("Missing ending ':' on intermediate (RichTextArea)\n\nText: {}, Index: {}", str, idx);
+            return this->getErrorText();
+        }
+        auto inter = str.substr(start + 1, idx - start - 1);
+
+        // Split text and key
+        auto split = string::split(inter, "|");
+
+        std::string keyStr;
+        std::string arg;
+        if (string::contains(split[0], "-")) {
+            auto k = string::split(split[0], "-");
+            keyStr = k[0];
+            arg = k[1];
+        } else {
+            keyStr = split[0];
+        }
+
+        auto key = std::ranges::find(m_keys, keyStr, &RichKey::id);
+        if (key == m_keys.end()) {
+            log::error("Could not find key '{}'", keyStr);
+            return this->getErrorText();
+        }
+
+        if (key->create) {
+            return key->create(split[1], arg);
+        } else {
+            // geode::Label doesn't have an easy method to add per-character
+            // effects (ty quads) so we have to resort to this
+            auto ret = CCLabelBMFont::create(split[1].c_str(), m_font.c_str());
+            ret->setColor(to3B(m_color));
+            ret->setOpacity(m_color.a);
+
+            if (key->iterator) {
+                for (auto& c : CCArrayExt(ret->getChildren())) {
+                    key->iterator(static_cast<CCFontSprite*>(c), arg);
+                }
+            }
+
+            return ret;
+        }
+    });
 }
 
 CCLabelBMFont* NewRichTextArea::RichImpl::getErrorText() {
