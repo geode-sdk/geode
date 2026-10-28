@@ -11,7 +11,7 @@ class BaseSettingsPopup : public GeodePopup {
 protected:
     ScrollLayer* m_list = nullptr;
     std::vector<Ref<SettingNode>> m_settings;
-    CCMenu* m_applyMenu = nullptr;
+    CCNode* m_applyMenu = nullptr;
     Button* m_applyBtn = nullptr;
     Button* m_restartBtn = nullptr;
     ButtonSprite* m_applyBtnSpr = nullptr;

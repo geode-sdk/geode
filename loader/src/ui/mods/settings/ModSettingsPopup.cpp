@@ -17,16 +17,18 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
         }
     }
 
-    auto foldersMenu = CCMenu::create();
+    auto foldersMenu = CCNode::create();
+    foldersMenu->setID("folders-menu");
     foldersMenu->setContentSize({ .0f, 30.f });
     foldersMenu->setAnchorPoint({1.f, .0f});
     foldersMenu->setLayout(RowLayout::create()
-        ->setGap(5)
+        ->setGap(5.f)
         ->setDefaultScaleLimits(.1f, .6f)
         ->setAxisAlignment(AxisAlignment::End)
         ->setAxisReverse(true)
         ->setAutoGrowAxis(30.f)
-        ->setGrowCrossAxis(true));
+        ->setGrowCrossAxis(true)
+    );
     m_mainLayer->addChildAtPosition(foldersMenu, Anchor::BottomRight, {-9.f, 10.f});
 
     auto createFolderButton = [this, foldersMenu](ZStringView subSprName, Button::ButtonCallback callback) {

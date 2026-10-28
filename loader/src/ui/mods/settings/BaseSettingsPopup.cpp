@@ -49,7 +49,8 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     layerBG->ignoreAnchorPointForPosition(false);
     m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, {.0f, -spacing / 2.f});
 
-    auto searchContainer = CCMenu::create();
+    auto searchContainer = CCNode::create();
+    searchContainer->setID("search-menu");
     searchContainer->setContentSize({ m_listSize.width, 30.f });
 
     m_searchInput = TextInput::create((m_listSize.width - 15.f) / .7f - 40.f, "Search settings...");
@@ -78,13 +79,10 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
 
     m_list = ScrollLayer::create(m_listSize - CCSize{.0f, searchContainer->getContentHeight()});
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(.0f));
+
+    m_list->setID("settings-list");
     m_list->setTouchEnabled(true);
     m_list->moveToTop();
-
-    const int buttonPriority = m_list->getTouchPriority() - 1;
-
-    m_buttonMenu->setTouchPriority(buttonPriority);
-    searchContainer->setTouchPriority(buttonPriority);
 
     layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
 
@@ -103,10 +101,11 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
 
     // buttons
 
-    m_applyMenu = CCMenu::create();
+    m_applyMenu = CCNode::create();
+    m_applyMenu->setID("apply-menu");
     m_applyMenu->setContentWidth(150.f);
-    m_applyMenu->setLayout(RowLayout::create()->setAutoScale(false));
-    m_applyMenu->setTouchPriority(buttonPriority);
+    m_applyMenu->setAnchorPoint({.5f, .5f});
+    m_applyMenu->setLayout(RowLayout::create()->setDefaultScaleLimits(.1f, .6f));
 
     m_restartBtn = Button::createWithNode(
         createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme),
@@ -126,7 +125,6 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
         }
     );
     m_restartBtn->setID("restart-button");
-    m_restartBtn->setScale(.6f);
     m_restartBtn->setVisible(false);
     m_applyMenu->addChild(m_restartBtn);
 
@@ -147,7 +145,6 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
         }
     );
     m_applyBtn->setID("apply-button");
-    m_applyBtn->setScale(.6f);
     m_applyMenu->addChild(m_applyBtn);
 
     m_mainLayer->addChildAtPosition(m_applyMenu, Anchor::Bottom, {.0f, 20.f});

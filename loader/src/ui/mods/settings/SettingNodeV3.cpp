@@ -40,9 +40,11 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     this->addChildAtPosition(m_impl->bg, Anchor::Center);
 
     m_impl->nameMenu = CCNode::create();
+    m_impl->nameMenu->setID("name-menu");
     m_impl->nameMenu->setContentWidth(width / 2.f + 25.f);
 
     m_impl->nameLabel = Label::create(setting ? setting->getDisplayName() : "", "bigFont.fnt");
+    m_impl->nameLabel->setID("setting-name-label");
     m_impl->nameLabel->setLimitLabelWidth(width - 25.f, 0.4f);
     m_impl->nameMenu->addChild(m_impl->nameLabel);
 
@@ -57,6 +59,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
                 this->onDescription(nullptr);
             }
         );
+        m_impl->descButton->setID("info-button");
         m_impl->descButton->setScale(.5f);
         m_impl->nameMenu->addChild(m_impl->descButton);
     }
@@ -67,6 +70,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
             this->onReset(nullptr);
         }
     );
+    m_impl->resetButton->setID("reset-setting-button");
     m_impl->resetButton->setScale(.5f);
     m_impl->nameMenu->addChild(m_impl->resetButton);
 
@@ -74,6 +78,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     this->addChildAtPosition(m_impl->nameMenu, Anchor::Left, {10.f, .0f}, {.0f, .5f});
 
     m_impl->buttonMenu = CCMenu::create();
+    m_impl->buttonMenu->setID("button-menu");
     m_impl->buttonMenu->setContentSize({ width / 2.f - 55.f, 30.f });
     m_impl->buttonMenu->setLayout(AnchorLayout::create());
     this->addChildAtPosition(m_impl->buttonMenu, Anchor::Right, {-10.f, .0f}, {1.f, .5f});
