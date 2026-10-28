@@ -571,6 +571,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
                 m_refreshingModCount -= 1;
                 return;
             }
+            this->setupActionIds(node);
         }
 
         m_refreshingModCount -= 1;
@@ -1474,55 +1475,59 @@ void Loader::Impl::onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> set
             }), setting);
         }
     }
+}
 
-    auto* mod = setting->getMod();
-    if (mod == nullptr || !mod->isLoaded()) {
-        return;
-    }
-
-    if (!m_keybindSettingToActionId.contains(setting.get())) {
-        auto getNextActionId = [this, &setting](int group, int& nextId) {
-            int actionId = nextId;
-
-            if ((actionId / 10000) > group) {
-                actionId = m_nextMiscActionId;
-                m_nextMiscActionId++;
-                log::warn(
-                    "No free action IDs in group {} for {}:{}, using fallback {}",
-                    group,
-                    setting->getModID(),
-                    setting->getKey(),
-                    actionId
-                );
-            }
-            else {
-                nextId++;
-            }
-
-            return actionId;
-        };
-
-        KeybindCategory category = setting->getCategory().value_or(KeybindCategory::Universal);
-        int actionId = 0;
-
-        switch (category) {
-            case KeybindCategory::Universal:
-                actionId =
-                    getNextActionId(static_cast<int>(GJActionGroup::Global), m_nextUniversalActionId);
-                break;
-            case KeybindCategory::Gameplay:
-                actionId =
-                    getNextActionId(static_cast<int>(GJActionGroup::Gameplay), m_nextGameplayActionId);
-                break;
-            case KeybindCategory::Editor:
-                actionId =
-                    getNextActionId(static_cast<int>(GJActionGroup::Editor), m_nextEditorActionId);
-                break;
+void Loader::Impl::setupActionIds(const Mod* mod) {
+    for (auto const& key : mod->getSettingKeys()) {
+        auto setting = typeinfo_pointer_cast<KeybindSettingV3>(mod->getSetting(key));
+        if (!setting) {
+            continue;
         }
 
-        m_keybindSettingToActionId[setting.get()] = actionId;
-        m_actionIdToKeybindSetting[actionId] = setting;
-        m_actionIdToKeybindSettingName[actionId] = setting->getDisplayName();
+        if (!m_keybindSettingToActionId.contains(setting.get())) {
+            auto getNextActionId = [this, &setting](int group, int& nextId) {
+                int actionId = nextId;
+
+                if ((actionId / 10000) > group) {
+                    actionId = m_nextMiscActionId;
+                    m_nextMiscActionId++;
+                    log::warn(
+                        "No free action IDs in group {} for {}:{}, using fallback {}",
+                        group,
+                        setting->getModID(),
+                        setting->getKey(),
+                        actionId
+                    );
+                }
+                else {
+                    nextId++;
+                }
+
+                return actionId;
+            };
+
+            KeybindCategory category = setting->getCategory().value_or(KeybindCategory::Universal);
+            int actionId = 0;
+
+            switch (category) {
+                case KeybindCategory::Universal:
+                    actionId =
+                        getNextActionId(static_cast<int>(GJActionGroup::Global), m_nextUniversalActionId);
+                    break;
+                case KeybindCategory::Gameplay:
+                    actionId =
+                        getNextActionId(static_cast<int>(GJActionGroup::Gameplay), m_nextGameplayActionId);
+                    break;
+                case KeybindCategory::Editor:
+                    actionId =
+                        getNextActionId(static_cast<int>(GJActionGroup::Editor), m_nextEditorActionId);
+                    break;
+            }
+
+            m_keybindSettingToActionId[setting.get()] = actionId;
+            m_actionIdToKeybindSetting[actionId] = setting;
+            m_actionIdToKeybindSettingName[actionId] = setting->getDisplayName();
+        }
     }
 }
 

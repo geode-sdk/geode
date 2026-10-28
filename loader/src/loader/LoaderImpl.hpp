@@ -188,6 +188,7 @@ namespace geode {
         int m_nextEditorActionId = LAST_ROBTOP_EDITOR_ACTION_ID + 1;
         int m_nextMiscActionId = FIRST_FALLBACK_ACTION_ID;
 
+        void setupActionIds(const Mod* mod);
         void onKeybindSettingChanged(std::shared_ptr<KeybindSettingV3> setting, std::vector<Keybind> const& keybinds);
         std::shared_ptr<KeybindSettingV3> keybindSettingForActionId(int action);
         std::optional<ZStringView> keybindNameForActionId(int action);
