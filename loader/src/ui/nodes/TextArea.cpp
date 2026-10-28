@@ -372,6 +372,9 @@ public:
     std::vector<RichKey> m_keys;
     EmojiRegistry m_emojiRegistry;
     std::string m_rawText;
+
+    RichKey* m_currentKey = nullptr;
+    size_t m_keyPos;
     std::deque<std::u32string> m_keyIRs;
 
     size_t m_idx = 0;
@@ -412,14 +415,12 @@ void NewRichTextArea::RichImpl::parseRichText() {
     std::string newText;
     ParseState state = ParseState::Normal;
 
-    RichKey* key;
     std::string id;
     std::string args;
     std::string text;
-    size_t keyStart = 0;
 
     auto handleError = [&] {
-        newText += m_text.substr(keyStart, m_idx - keyStart + 1);
+        newText += m_text.substr(m_keyPos, m_idx - m_keyPos + 1);
         state = ParseState::Normal;
         id.clear();
         args.clear();
@@ -445,7 +446,7 @@ void NewRichTextArea::RichImpl::parseRichText() {
                         newText += c;
                         break;
                     }
-                    keyStart = m_idx;
+                    m_keyPos = m_idx;
                     state = ParseState::ParseKey;
                 } else {
                     newText += c;
@@ -459,14 +460,14 @@ void NewRichTextArea::RichImpl::parseRichText() {
                         handleError();
                         break;
                     }
-                    key = &*match;
+                    m_currentKey = &*match;
                     state = *p == '>' ? ParseState::ParseText : ParseState::ParseArgs;
                     this->advance();
                 }
                 break;
             case ParseState::ParseArgs:
                 if (c == '>') {
-                    if (!key->validate(args)) {
+                    if (!m_currentKey->validate(args)) {
                         handleError();
                         break;
                     }
@@ -527,7 +528,7 @@ void NewRichTextArea::RichImpl::parseRichText() {
 
     // If the parser ever stopped abruptly
     if (state != ParseState::Normal) {
-        newText += m_text.substr(keyStart);
+        newText += m_text.substr(m_keyPos);
     }
     m_text = newText;
 }
