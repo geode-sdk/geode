@@ -368,22 +368,22 @@ using namespace geode::prelude;
 
 class RichTextArea::RichImpl : public SimpleTextAreaImpl {
 public:
-    std::vector<RichKey> m_keys;
+    std::vector<RichTag> m_tags;
     EmojiRegistry m_emojiRegistry;
     std::string m_rawText;
-    std::deque<std::u32string> m_keyIRs;
+    std::deque<std::u32string> m_tagIRs;
 
     size_t m_idx = 0;
 
     void parseRichText();
-    void registerKey(const std::string& ir);
+    void registerTag(const std::string& ir);
     CCLabelBMFont* getErrorText();
 
     char current();
     std::optional<char> peek();
     void advance(int offset = 1);
 
-    void addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback, CharIterator iterator, bool updateText);
+    void addRichTag(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback, CharIterator iterator, bool updateText);
     void updateRichText();
 
     Label* createLabel(std::string text, float top) override;
@@ -411,14 +411,14 @@ void RichTextArea::RichImpl::parseRichText() {
     std::string newText;
     ParseState state = ParseState::Normal;
 
-    RichKey* key;
+    RichTag* tag;
     std::string id;
     std::string args;
     std::string text;
-    size_t keyPos;
+    size_t tagPos;
 
     auto handleError = [&] {
-        newText += m_text.substr(keyPos, m_idx - keyPos + 1);
+        newText += m_text.substr(tagPos, m_idx - tagPos + 1);
         state = ParseState::Normal;
         id.clear();
         args.clear();
@@ -444,7 +444,7 @@ void RichTextArea::RichImpl::parseRichText() {
                         newText += c;
                         break;
                     }
-                    keyPos = m_idx;
+                    tagPos = m_idx;
                     state = ParseState::ParseKey;
                 } else {
                     newText += c;
@@ -453,14 +453,14 @@ void RichTextArea::RichImpl::parseRichText() {
             case ParseState::ParseKey:
                 id += c;
                 if (auto p = this->peek(); p && (*p == '>' || *p == '=' || *p == '-')) {
-                    auto match = std::ranges::find(m_keys, id, &RichKey::id);
-                    if (match == m_keys.end()) {
+                    auto match = std::ranges::find(m_tags, id, &RichTag::id);
+                    if (match == m_tags.end()) {
                         handleError();
                         break;
                     }
-                    key = &*match;
+                    tag = &*match;
                     if (*p == '>') {
-                        if (key->requireArgs) {
+                        if (tag->requireArgs) {
                             handleError();
                             break;
                         }
@@ -473,11 +473,11 @@ void RichTextArea::RichImpl::parseRichText() {
                 break;
             case ParseState::ParseArgs:
                 if (c == '>') {
-                    if (args.empty() && key->requireArgs) {
+                    if (args.empty() && tag->requireArgs) {
                         handleError();
                         break;
                     }
-                    if (!key->validate(args)) {
+                    if (!tag->validate(args)) {
                         handleError();
                         break;
                     }
@@ -497,7 +497,7 @@ void RichTextArea::RichImpl::parseRichText() {
                 if (c == '\n') {
                     auto ir = makeIR();
                     newText += ir + "\n";
-                    this->registerKey(ir);
+                    this->registerTag(ir);
                     text.clear();
                     break;
                 }
@@ -523,7 +523,7 @@ void RichTextArea::RichImpl::parseRichText() {
                 }
                 auto ir = makeIR();
                 newText += ir;
-                this->registerKey(ir);
+                this->registerTag(ir);
                 state = ParseState::Normal;
                 id.clear();
                 args.clear();
@@ -536,14 +536,14 @@ void RichTextArea::RichImpl::parseRichText() {
 
     // If the parser ever stopped abruptly
     if (state != ParseState::Normal) {
-        newText += m_text.substr(keyPos);
+        newText += m_text.substr(tagPos);
     }
     m_text = newText;
 }
 
-void RichTextArea::RichImpl::registerKey(const std::string& ir) {
-    m_keyIRs.emplace_back(std::u32string(ir.begin(), ir.end()));
-    m_emojiRegistry.insert(m_keyIRs.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
+void RichTextArea::RichImpl::registerTag(const std::string& ir) {
+    m_tagIRs.emplace_back(std::u32string(ir.begin(), ir.end()));
+    m_emojiRegistry.insert(m_tagIRs.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
         auto str8 = string::utf32ToUtf8(str32);
         if (str8.isErr()) {
             log::error("Could not parse UTF-32: {}", str8.unwrapErr());
@@ -560,27 +560,27 @@ void RichTextArea::RichImpl::registerKey(const std::string& ir) {
         }
         auto inter = str.substr(start + 1, idx - start - 1);
 
-        // Split text and key
+        // Split text and id
         auto split = string::split(inter, "|");
 
-        std::string keyStr;
+        std::string idStr;
         std::string arg;
         if (string::contains(split[0], "-")) {
             auto k = string::split(split[0], "-");
-            keyStr = k[0];
+            idStr = k[0];
             arg = k[1];
         } else {
-            keyStr = split[0];
+            idStr = split[0];
         }
 
-        auto key = std::ranges::find(m_keys, keyStr, &RichKey::id);
-        if (key == m_keys.end()) {
-            log::error("Could not find key '{}'", keyStr);
+        auto tag = std::ranges::find(m_tags, idStr, &RichTag::id);
+        if (tag == m_tags.end()) {
+            log::error("Could not find tag '{}'", idStr);
             return this->getErrorText();
         }
 
-        if (key->create) {
-            return key->create(split[1], arg);
+        if (tag->create) {
+            return tag->create(split[1], arg);
         } else {
             // geode::Label doesn't have an easy method to add per-character
             // effects (ty quads) so we have to resort to this
@@ -588,9 +588,9 @@ void RichTextArea::RichImpl::registerKey(const std::string& ir) {
             ret->setColor(to3B(m_color));
             ret->setOpacity(m_color.a);
 
-            if (key->iterator) {
+            if (tag->iterator) {
                 for (auto& c : CCArrayExt(ret->getChildren())) {
-                    key->iterator(static_cast<CCFontSprite*>(c), arg);
+                    tag->iterator(static_cast<CCFontSprite*>(c), arg);
                 }
             }
 
@@ -621,7 +621,7 @@ void RichTextArea::RichImpl::advance(int offset) {
     m_idx += offset;
 }
 
-void RichTextArea::RichImpl::addRichKey(
+void RichTextArea::RichImpl::addRichTag(
     std::string id,
     bool requireArgs,
     ValidateArgs validate,
@@ -629,7 +629,7 @@ void RichTextArea::RichImpl::addRichKey(
     CharIterator iterator,
     bool updateText
 ) {
-    m_keys.emplace_back(std::move(id), requireArgs, std::move(validate), std::move(create), std::move(iterator));
+    m_tags.emplace_back(std::move(id), requireArgs, std::move(validate), std::move(create), std::move(iterator));
     if (updateText) {
         m_text = m_rawText;
         this->updateRichText();
@@ -674,7 +674,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
     m_richImpl->m_rawText = m_impl->m_text;
 
-    this->addRichKey("red", [](CCFontSprite* ch, std::string_view args) {
+    this->addRichTag("red", [](CCFontSprite* ch, std::string_view args) {
         ch->setColor({ 255, 0, 0 });
     }, false);
 
@@ -682,36 +682,36 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     return true;
 }
 
-void RichTextArea::addRichKey(std::string id, CreateCallback create, bool updateText) {
-    addRichKey(std::move(id), false, std::move(create), updateText);
+void RichTextArea::addRichTag(std::string id, CreateCallback create, bool updateText) {
+    addRichTag(std::move(id), false, std::move(create), updateText);
 }
 
-void RichTextArea::addRichKey(std::string id, bool requireArgs, CreateCallback create, bool updateText) {
-    m_richImpl->addRichKey(std::move(id), false, [](auto) { return true; }, std::move(create), nullptr, updateText);
+void RichTextArea::addRichTag(std::string id, bool requireArgs, CreateCallback create, bool updateText) {
+    m_richImpl->addRichTag(std::move(id), false, [](auto) { return true; }, std::move(create), nullptr, updateText);
 }
 
-void RichTextArea::addRichKey(std::string id, ValidateArgs validate, CreateCallback create, bool updateText) {
-    addRichKey(std::move(id), false, std::move(validate), std::move(create), updateText);
+void RichTextArea::addRichTag(std::string id, ValidateArgs validate, CreateCallback create, bool updateText) {
+    addRichTag(std::move(id), false, std::move(validate), std::move(create), updateText);
 }
 
-void RichTextArea::addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback create, bool updateText) {
-    m_richImpl->addRichKey(std::move(id), requireArgs, std::move(validate), std::move(create), nullptr, updateText);
+void RichTextArea::addRichTag(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback create, bool updateText) {
+    m_richImpl->addRichTag(std::move(id), requireArgs, std::move(validate), std::move(create), nullptr, updateText);
 }
 
-void RichTextArea::addRichKey(std::string id, CharIterator iterator, bool updateText) {
-    addRichKey(std::move(id), false, std::move(iterator), updateText);
+void RichTextArea::addRichTag(std::string id, CharIterator iterator, bool updateText) {
+    addRichTag(std::move(id), false, std::move(iterator), updateText);
 }
 
-void RichTextArea::addRichKey(std::string id, bool requireArgs, CharIterator iterator, bool updateText) {
-    m_richImpl->addRichKey(std::move(id), requireArgs, [](auto) { return true; }, nullptr, std::move(iterator), updateText);
+void RichTextArea::addRichTag(std::string id, bool requireArgs, CharIterator iterator, bool updateText) {
+    m_richImpl->addRichTag(std::move(id), requireArgs, [](auto) { return true; }, nullptr, std::move(iterator), updateText);
 }
 
-void RichTextArea::addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText) {
-    addRichKey(std::move(id), false, std::move(validate), std::move(iterator), updateText);
+void RichTextArea::addRichTag(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText) {
+    addRichTag(std::move(id), false, std::move(validate), std::move(iterator), updateText);
 }
 
-void RichTextArea::addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CharIterator iterator, bool updateText) {
-    m_richImpl->addRichKey(std::move(id), requireArgs, std::move(validate), nullptr, std::move(iterator), updateText);
+void RichTextArea::addRichTag(std::string id, bool requireArgs, ValidateArgs validate, CharIterator iterator, bool updateText) {
+    m_richImpl->addRichTag(std::move(id), requireArgs, std::move(validate), nullptr, std::move(iterator), updateText);
 }
 
 std::string RichTextArea::getText() const {

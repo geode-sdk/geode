@@ -83,84 +83,84 @@ namespace geode {
         static RichTextArea* create(std::string text, std::string font, float scale, float width);
 
         /**
-         * Add a custom rich text key
+         * Add a custom rich text tag
          *
-         * @param id The ID of the key
-         * @param create Function to create a custom node for the key
+         * @param id The ID of the tag
+         * @param create Function to create a custom node for the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          */
-        void addRichKey(std::string id, CreateCallback create, bool updateText = true);
+        void addRichTag(std::string id, CreateCallback create, bool updateText = true);
 
         /**
-         * Add a custom rich text key
+         * Add a custom rich text tag
          *
-         * @param id The ID of the key
-         * @param requireArgs Whether to require arguments for this key
-         * @param create Function to create a custom node for the key
+         * @param id The ID of the tag
+         * @param requireArgs Whether to require arguments for this tag
+         * @param create Function to create a custom node for the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          */
-        void addRichKey(std::string id, bool requireArgs, CreateCallback create, bool updateText = true);
+        void addRichTag(std::string id, bool requireArgs, CreateCallback create, bool updateText = true);
 
         /**
-         * Add a custom rich text key
+         * Add a custom rich text tag
          *
-         * @param id The ID of the key
-         * @param validateArgs Function to validate the arguments given to this key
-         * @param create Function to create a custom node for the key
+         * @param id The ID of the tag
+         * @param validateArgs Function to validate the arguments given to this tag
+         * @param create Function to create a custom node for the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          */
-        void addRichKey(std::string id, ValidateArgs validate, CreateCallback create, bool updateText = true);
+        void addRichTag(std::string id, ValidateArgs validate, CreateCallback create, bool updateText = true);
 
         /**
-         * Add a custom rich text key
+         * Add a custom rich text tag
          *
-         * @param id The ID of the key
-         * @param requireArgs Whether to require arguments for this key
-         * @param validateArgs Function to validate the arguments given to this key
-         * @param create Function to create a custom node for the key
+         * @param id The ID of the tag
+         * @param requireArgs Whether to require arguments for this tag
+         * @param validateArgs Function to validate the arguments given to this tag
+         * @param create Function to create a custom node for the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          */
-        void addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback create, bool updateText = true);
+        void addRichTag(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback create, bool updateText = true);
 
         /**
-         * Add a custom rich text key
+         * Add a custom rich text tag
          *
-         * @param id The ID of the key
-         * @param iterator Function to apply effects to each character in the key
+         * @param id The ID of the tag
+         * @param iterator Function to apply effects to each character in the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          */
-        void addRichKey(std::string id, CharIterator iterator, bool updateText = true);
+        void addRichTag(std::string id, CharIterator iterator, bool updateText = true);
 
         /**
-         * Add a custom rich text key
+         * Add a custom rich text tag
          *
-         * @param id The ID of the key
-         * @param requireArgs Whether to require arguments for this key
-         * @param iterator Function to apply effects to each character in the key
+         * @param id The ID of the tag
+         * @param requireArgs Whether to require arguments for this tag
+         * @param iterator Function to apply effects to each character in the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          */
-        void addRichKey(std::string id, bool requireArgs, CharIterator iterator, bool updateText = true);
+        void addRichTag(std::string id, bool requireArgs, CharIterator iterator, bool updateText = true);
 
         /**
-         * Add a custom rich text key
+         * Add a custom rich text tag
          *
-         * @param id The ID of the key
-         * @param validateArgs Function to validate the arguments given to this key
-         * @param iterator Function to apply effects to each character in the key
+         * @param id The ID of the tag
+         * @param validateArgs Function to validate the arguments given to this tag
+         * @param iterator Function to apply effects to each character in the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          */
-        void addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText = true);
+        void addRichTag(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText = true);
 
         /**
-         * Add a custom rich text key
+         * Add a custom rich text tag
          *
-         * @param id The ID of the key
-         * @param requireArgs Whether to require arguments for this key
-         * @param validateArgs Function to validate the arguments given to this key
-         * @param iterator Function to apply effects to each character in the key
+         * @param id The ID of the tag
+         * @param requireArgs Whether to require arguments for this tag
+         * @param validateArgs Function to validate the arguments given to this tag
+         * @param iterator Function to apply effects to each character in the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          */
-        void addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CharIterator iterator, bool updateText = true);
+        void addRichTag(std::string id, bool requireArgs, ValidateArgs validate, CharIterator iterator, bool updateText = true);
 
         std::string getText() const override;
 
@@ -169,7 +169,7 @@ namespace geode {
         RichTextArea() : SimpleTextArea() {}
         ~RichTextArea() = default;
 
-        struct RichKey {
+        struct RichTag {
             std::string id;
             bool requireArgs;
             ValidateArgs validate;
