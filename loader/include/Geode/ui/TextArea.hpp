@@ -177,6 +177,7 @@ namespace geode {
             CharIterator iterator;
         };
 
+        // I hate pImpl with inheritance
         class RichImpl;
         RichImpl* m_richImpl;
         std::unique_ptr<SimpleTextAreaImpl> createImpl() override;
