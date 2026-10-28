@@ -684,7 +684,6 @@ bool NewRichTextArea::init(std::string font, std::string text, float scale, floa
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
     m_richImpl->m_rawText = m_impl->m_text;
 
-    // TODO: Register default keys
     this->addRichKey("red", [](CCFontSprite* ch, std::string_view args) {
         ch->setColor({ 255, 0, 0 });
     }, false);
