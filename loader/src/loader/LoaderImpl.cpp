@@ -33,7 +33,6 @@
 #include <iostream>
 #include <iterator>
 #include <optional>
-#include <resources.hpp>
 #include <server/DownloadManager.hpp>
 #include <string>
 #include <string_view>
