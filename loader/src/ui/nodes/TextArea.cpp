@@ -387,6 +387,7 @@ public:
     void updateRichText();
 
     Label* createLabel(std::string text, float top) override;
+    void setTextImpl(std::string text) override;
 
     RichTextArea* m_self = nullptr;
     RichImpl(RichTextArea* self) : m_self(self), SimpleTextAreaImpl(self) {}
@@ -646,6 +647,11 @@ Label* RichTextArea::RichImpl::createLabel(std::string text, float top) {
     if (!label) return nullptr;
     label->setEmojiRegistry(m_emojiRegistry);
     return label;
+}
+
+void RichTextArea::RichImpl::setTextImpl(std::string text) {
+    m_text = std::move(text);
+    this->updateRichText();
 }
 
 RichTextArea* RichTextArea::create(std::string text, std::string font, float scale) {
