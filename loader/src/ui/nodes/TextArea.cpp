@@ -643,7 +643,7 @@ bool NewRichTextArea::init(std::string font, std::string text, float scale, floa
     // TODO: Register default keys
     this->addRichKey("red", [](CCFontSprite* ch, std::string_view args) {
         ch->setColor({ 255, 0, 0 });
-    });
+    }, false);
 
     m_richImpl->parseRichText();
     m_richImpl->updateContainer();
