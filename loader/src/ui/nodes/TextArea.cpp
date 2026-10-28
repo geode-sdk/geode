@@ -680,9 +680,68 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
     m_richImpl->m_rawText = m_impl->m_text;
 
-    this->addRichTag("red", [](CCFontSprite* ch, std::string_view args) {
-        ch->setColor({ 255, 0, 0 });
-    }, false);
+    // Default tags
+    this->addRichTag(
+        "flip",
+        [](CCFontSprite* spr, auto) {
+            spr->setFlipY(true);
+        },
+        false
+    );
+
+    this->addRichTag(
+        "size",
+        true,
+        [](std::string_view arg) {
+            auto num = utils::numFromString<float>(arg);
+            return num.isOk();
+        },
+        [](CCFontSprite* ch, std::string_view arg) {
+            auto num = utils::numFromString<float>(arg);
+            if (num.isErr()) {
+                // This should not happen but just in case
+                log::error("Could not convert to float: {}", num.unwrapErr());
+                return;
+            }
+            ch->setScale(num.unwrap());
+        }, false
+    );
+
+    // !!!
+    this->addRichTag(
+        "font",
+        true,
+        [](std::string_view arg) {
+            auto font = BitmapFont::load(std::string(arg).c_str());
+            return font == nullptr;
+        },
+        [this](std::string_view text, std::string_view arg) {
+            auto label = Label::create(std::string(text), std::string(arg));
+            label->setColor(to3B(m_impl->m_color));
+            label->setOpacity(m_impl->m_color.a);
+            return label;
+        }, false
+    );
+
+    this->addRichTag(
+        "link",
+        true,
+        [](std::string_view arg) {
+            if (arg.contains("#:")) {
+                return false;
+            }
+            auto lower = string::toLower(std::string(arg));
+            return lower.starts_with("https://") || lower.starts_with("http://") || lower.starts_with("mailto://");
+        },
+        [this](std::string_view text, std::string_view arg) {
+            auto link = Button::createWithLabel(std::string(text), m_impl->m_font, [arg](auto) {
+                web::openLinkInBrowser(std::string(arg));
+            });
+            link->setColor({ 150, 255, 255 });
+            link->setOpacity(m_impl->m_color.a);
+            return link;
+        }, false
+    );
 
     m_richImpl->updateRichText();
     return true;

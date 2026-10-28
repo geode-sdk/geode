@@ -73,6 +73,12 @@ namespace geode {
     /**
      * A SimpleTextArea with rich text support
      *
+     * By default this class contains the following tags by default:
+     * - flip
+     * - size (usage: <size=2.0> or <size-2.0>)
+     * - font (usage: <font=someFont.fnt>)
+     * - link (usage: <link=https://example.com>)
+     *
      * You can add a custom tag with `addRichTag`:
      * @example ```cpp
      * richTextArea->addRichTag(
@@ -97,27 +103,6 @@ namespace geode {
      *             log::info("My button was pressed!")
      *         });
      *         return btn;
-     *     }
-     * );
-     * ```
-     *
-     * Tags can also take arguments with "-" or "=":
-     * @example ```cpp
-     * auto richTextArea = RichTextArea::create("Here's some <tagID-h>text!</tagID>");
-     * richTextArea->addRichTag(
-     *     "tagID",
-     *     true, // This will make the tag *always* require an argument, anything else will throw an error
-     *     [](std::string_view args) {
-     *         // This function is meant to validate the argument's syntax
-     *         // For this example we don't care so we just return true
-     *         return true;
-     *     },
-     *     [](CCFontSprite* spr, std::string_view args) {
-     *         if (args == "h") {
-     *             spr->setFlipX(true);
-     *         } else {
-     *             spr->setFlipY(true);
-     *         }
      *     }
      * );
      * ```
