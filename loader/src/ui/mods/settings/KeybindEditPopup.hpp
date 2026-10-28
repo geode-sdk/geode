@@ -21,7 +21,7 @@ protected:
 
     bool init(
         std::shared_ptr<KeybindSettingV3> setting,
-        Keybind const& keybind,
+        Keybind keybind,
         Function<void(Keybind const&)> callback
     );
     void doSet();
@@ -36,7 +36,7 @@ protected:
 public:
     static KeybindEditPopup* create(
         std::shared_ptr<KeybindSettingV3> setting,
-        Keybind const& keybind,
+        Keybind keybind,
         Function<void(Keybind const&)> callback
     );
 };

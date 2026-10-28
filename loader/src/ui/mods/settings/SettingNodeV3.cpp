@@ -812,7 +812,7 @@ bool KeybindSettingNodeV3::init(std::shared_ptr<KeybindSettingV3> setting, float
         return false;
 
     m_currentValue = setting->getValue();
-    this->getButtonMenu()->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End));
+    this->getButtonMenu()->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::End)->setAutoScale(false));
 
     if (auto category = setting->getCategory()) {
         const char* catSpr;
@@ -863,7 +863,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
                 this->onKeybind(index);
             }
         );
-        button->setScale(.5f);
+        button->setScale(.6f);
         buttonMenu->addChild(button);
         index += 1;
     }
@@ -873,7 +873,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
             this->onKeybind();
         }
     );
-    plusButton->setScale(.5f);
+    plusButton->setScale(.6f);
     buttonMenu->addChild(plusButton);
     buttonMenu->updateLayout();
 
@@ -883,14 +883,13 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
             buttonMenu->removeChild(*it, false);
         }
 
-        auto moreSprite = createGeodeButton("...", true);
-        moreSprite->setScale(.5f);
         auto moreButton = Button::createWithNode(
-            moreSprite,
+            createGeodeButton("...", true),
             [this](auto) {
                 this->onExtra(nullptr);
             }
         );
+        moreButton->setScale(.6f);
         buttonMenu->addChild(moreButton);
 
         buttonMenu->updateLayout();

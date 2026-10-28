@@ -13,11 +13,10 @@ CCNode* createKeybindButton(Keybind const& keybind) {
 
 bool KeybindEditPopup::init(
     std::shared_ptr<KeybindSettingV3> setting,
-    Keybind const& keybind,
+    Keybind keybind,
     Function<void(Keybind const&)> callback
 ) {
-    if (!GeodePopup::init(220, 170))
-        return false;
+    if (!GeodePopup::init(220, 170)) return false;
 
     this->setTitle(setting->getDisplayName());
     m_noElasticity = true;
@@ -29,10 +28,11 @@ bool KeybindEditPopup::init(
         m_mainLayer->addChildAtPosition(fromModLabel, Anchor::Top, ccp(0, -40));
     }
 
-    m_setting = setting;
+    m_setting = std::move(setting);
     m_callback = std::move(callback);
-    m_currentKeybind = keybind;
+    m_currentKeybind = std::move(keybind);
     auto bottomMenu = CCNode::create();
+    bottomMenu->setAnchorPoint({.5f, .5f});
     bottomMenu->setContentWidth(220.f);
 
     if (keybind.key == KEY_None) {
@@ -95,9 +95,9 @@ void KeybindEditPopup::updateLabel() {
         }
         if (*m_originalKeybind != m_currentKeybind) {
             m_originalKeybindContainer = CCNode::create();
-            m_originalKeybindContainer->setContentWidth(200);
             m_originalKeybindContainer->setScale(.4f);
-            m_originalKeybindContainer->setAnchorPoint(ccp(.5f, .5f));
+            m_originalKeybindContainer->setContentWidth(200);
+            m_originalKeybindContainer->setAnchorPoint({.5f, .5f});
 
             auto originalKeybindInfoStart = Label::create("(Previous: ", "bigFont.fnt");
             originalKeybindInfoStart->setColor(ccc3(55, 255, 55));
@@ -174,11 +174,11 @@ void KeybindEditPopup::keyDown(enumKeyCodes, double) {
 
 KeybindEditPopup* KeybindEditPopup::create(
     std::shared_ptr<KeybindSettingV3> setting,
-    Keybind const& keybind,
+    Keybind keybind,
     Function<void(Keybind const&)> callback
 ) {
     auto ret = new KeybindEditPopup();
-    if (ret->init(setting, keybind, std::move(callback))) {
+    if (ret->init(std::move(setting), std::move(keybind), std::move(callback))) {
         ret->autorelease();
         return ret;
     }
@@ -271,6 +271,7 @@ void KeybindListPopup::updateKeybinds() {
         button->setTag(index);
 
         auto menu = CCNode::create();
+        menu->setAnchorPoint({.5f, .5f});
         menu->setContentSize({ 190.f, button->getScaledContentHeight() });
         menu->addChild(button);
 
