@@ -549,7 +549,7 @@ void RichTextArea::RichImpl::registerKey(const std::string& ir) {
 
         auto start = str.rfind(":", idx - 1);
         if (start == std::string::npos) {
-            log::error("Missing ending ':' on intermediate (RichTextArea)\n\nText: {}, Index: {}", str, idx);
+            log::error("Missing ending ':' on intermediate (RichTextArea)");
             return this->getErrorText();
         }
         auto inter = str.substr(start + 1, idx - start - 1);
