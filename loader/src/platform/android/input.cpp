@@ -1,4 +1,5 @@
 #include <Geode/cocos/CCDirector.h>
+#include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
 #include <Geode/cocos/keypad_dispatcher/CCKeypadDispatcher.h>
 #include <Geode/cocos/actions/CCActionManager.h>
 #include <Geode/cocos/platform/CCEGLView.h>
