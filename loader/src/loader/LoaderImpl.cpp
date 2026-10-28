@@ -1,6 +1,5 @@
 #include "LoaderImpl.hpp"
 
-#include "Geode/loader/SettingV3.hpp"
 #include "LogImpl.hpp"
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
@@ -17,6 +16,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/SettingV3.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/file.hpp>
