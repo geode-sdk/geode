@@ -376,7 +376,6 @@ public:
 
     size_t m_idx = 0;
 
-
     void parseRichText();
     char current();
     std::optional<char> peek();
@@ -642,6 +641,9 @@ bool NewRichTextArea::init(std::string font, std::string text, float scale, floa
     m_richImpl->m_rawText = m_impl->m_text;
 
     // TODO: Register default keys
+    this->addRichKey("red", [](CCFontSprite* ch, std::string_view args) {
+        ch->setColor({ 255, 0, 0 });
+    });
 
     m_richImpl->parseRichText();
     m_richImpl->updateContainer();
