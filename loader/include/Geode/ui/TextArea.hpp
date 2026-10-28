@@ -42,7 +42,7 @@ namespace geode {
         void setWrappingMode(WrappingMode mode);
         WrappingMode getWrappingMode();
         void setText(std::string text);
-        std::string getText();
+        virtual std::string getText() const;
         void setMaxLines(size_t maxLines);
         size_t getMaxLines();
         void setWidth(float width);
@@ -249,6 +249,8 @@ namespace geode {
         void addRichKey(std::string id, CharIterator iterator, bool updateText = true);
 
         void addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText = true);
+
+        std::string getText() const override;
 
         void updateRichText();
     protected:

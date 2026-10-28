@@ -306,7 +306,7 @@ void geode::SimpleTextArea::setText(std::string text) {
     m_impl->setTextImpl(std::move(text));
 }
 
-std::string geode::SimpleTextArea::getText() {
+std::string geode::SimpleTextArea::getText() const {
     return m_impl->m_text;
 }
 
@@ -687,6 +687,10 @@ void NewRichTextArea::addRichKey(std::string id, CharIterator iterator, bool upd
 void NewRichTextArea::addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText) {
     m_richImpl->addRichKey(std::move(id), std::move(validate), nullptr, std::move(iterator), updateText);
 }
+
+std::string NewRichTextArea::getText() const {
+    return m_richImpl->m_rawText;
+};
 
 void NewRichTextArea::updateRichText() {
     m_richImpl->m_text = m_richImpl->m_rawText;
