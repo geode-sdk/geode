@@ -232,14 +232,6 @@ namespace geode {
         using CreateCallback = geode::Function<cocos2d::CCNode*(std::string_view, std::string_view)>;
         using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, std::string_view)>;
 
-        struct RichKey {
-            std::string id;
-            bool requireArgs;
-            ValidateArgs validate;
-            CreateCallback create;
-            CharIterator iterator;
-        };
-
         static NewRichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.f);
         static NewRichTextArea* create(std::string text, std::string font, float scale, float width);
 
@@ -265,6 +257,14 @@ namespace geode {
     protected:
         NewRichTextArea() : SimpleTextArea() {}
         ~NewRichTextArea() = default;
+
+        struct RichKey {
+            std::string id;
+            bool requireArgs;
+            ValidateArgs validate;
+            CreateCallback create;
+            CharIterator iterator;
+        };
 
         class RichImpl;
         RichImpl* m_richImpl;
