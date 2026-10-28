@@ -400,8 +400,10 @@ enum class ParseState {
     ParseKey,
     /// Parse the opening tag's arguments
     ParseArgs,
-    /// Parse the rest up-until the closing tag
-    ParseRest
+    /// Parse the text in between the tags
+    ParseText,
+    /// Parse the closing tag
+    ParseClosing
 };
 
 void NewRichTextArea::RichImpl::parseRichText() {
@@ -422,6 +424,15 @@ void NewRichTextArea::RichImpl::parseRichText() {
         id.clear();
         args.clear();
         text.clear();
+    };
+
+    // IR = Intermediate Representation
+    auto makeIR = [&] -> std::string {
+        return fmt::format(
+            ":{}{}|{}:",
+            id, args.empty() ? "" : "-" + args,
+            text
+        );
     };
 
     while (m_idx < m_text.size()) {
@@ -449,7 +460,7 @@ void NewRichTextArea::RichImpl::parseRichText() {
                         break;
                     }
                     key = &*match;
-                    state = *p == '>' ? ParseState::ParseRest : ParseState::ParseArgs;
+                    state = *p == '>' ? ParseState::ParseText : ParseState::ParseArgs;
                     this->advance();
                 }
                 break;
@@ -459,28 +470,51 @@ void NewRichTextArea::RichImpl::parseRichText() {
                         handleError();
                         break;
                     }
-                    state = ParseState::ParseRest;
+                    state = ParseState::ParseText;
                     break;
                 }
                 args += c;
                 break;
-            case ParseState::ParseRest: {
-                auto close = m_text.find(fmt::format("</{}>", id), m_idx);
-                if (close == std::string::npos) {
-                    newText += m_text.substr(keyStart);
-                    state = ParseState::Normal;
+            case ParseState::ParseText:
+                if (c == '<') {
+                    if (auto p = this->peek(); p && *p == '/') {
+                        state = ParseState::ParseClosing;
+                    } else {
+                        // TODO: Handle nested tag
+                        state = ParseState::ParseClosing;
+                    }
                     break;
                 }
-                text = m_text.substr(m_idx, close - m_idx);
-                std::string ir = fmt::format(
-                    ":{}{}|{}:",
-                    id, args.empty() ? "" : "-" + args,
-                    text
-                );
+                if (c == '\n') {
+                    auto ir = makeIR();
+                    newText += ir + "\n";
+                    this->registerKey(ir);
+                    text.clear();
+                    break;
+                }
+                text += c;
+                break;
+            case ParseState::ParseClosing: {
+                if (c == '/') {
+                    this->advance();
+                }
+                std::string closeID;
+                while (m_idx < m_text.size() && this->current() != '>') {
+                    char ch = this->current();
+                    closeID += ch;
+                    this->advance();
+                }
+                if (m_idx >= m_text.size()) {
+                    handleError();
+                    break;
+                }
+                if (closeID != id) {
+                    handleError();
+                    break;
+                }
+                auto ir = makeIR();
                 newText += ir;
                 this->registerKey(ir);
-                this->advance((close + id.size() + 2) - m_idx);
-
                 state = ParseState::Normal;
                 id.clear();
                 args.clear();
@@ -491,7 +525,7 @@ void NewRichTextArea::RichImpl::parseRichText() {
         this->advance();
     }
 
-    // If the parser stopped abruptly (*cough cough* unfinished tags)
+    // If the parser ever stopped abruptly
     if (state != ParseState::Normal) {
         newText += m_text.substr(keyStart);
     }
