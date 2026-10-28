@@ -24,6 +24,7 @@ namespace geode {
      * - Custom text alignment
      * - Configurable and automatic word wrapping
      * - Line padding
+     * - Color tag support (for custom tags use `RichTextArea`)
      *
      * Contact me on Discord (\@smjs) if you have any questions, suggestions or bugs.
     */
@@ -69,6 +70,9 @@ namespace geode {
 
     // abb2k and xblazegmd were here :)
 
+    /**
+     * A SimpleTextArea with rich text support
+     */
     class GEODE_DLL RichTextArea : public SimpleTextArea {
     public:
         using ValidateArgs = geode::Function<bool(std::string_view)>;
@@ -78,20 +82,84 @@ namespace geode {
         static RichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.f);
         static RichTextArea* create(std::string text, std::string font, float scale, float width);
 
+        /**
+         * Add a custom rich text key
+         *
+         * @param id The ID of the key
+         * @param create Function to create a custom node for the key
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         */
         void addRichKey(std::string id, CreateCallback create, bool updateText = true);
 
+        /**
+         * Add a custom rich text key
+         *
+         * @param id The ID of the key
+         * @param requireArgs Whether to require arguments for this key
+         * @param create Function to create a custom node for the key
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         */
         void addRichKey(std::string id, bool requireArgs, CreateCallback create, bool updateText = true);
 
+        /**
+         * Add a custom rich text key
+         *
+         * @param id The ID of the key
+         * @param validateArgs Function to validate the arguments given to this key
+         * @param create Function to create a custom node for the key
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         */
         void addRichKey(std::string id, ValidateArgs validate, CreateCallback create, bool updateText = true);
 
+        /**
+         * Add a custom rich text key
+         *
+         * @param id The ID of the key
+         * @param requireArgs Whether to require arguments for this key
+         * @param validateArgs Function to validate the arguments given to this key
+         * @param create Function to create a custom node for the key
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         */
         void addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback create, bool updateText = true);
 
+        /**
+         * Add a custom rich text key
+         *
+         * @param id The ID of the key
+         * @param iterator Function to apply effects to each character in the key
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         */
         void addRichKey(std::string id, CharIterator iterator, bool updateText = true);
 
+        /**
+         * Add a custom rich text key
+         *
+         * @param id The ID of the key
+         * @param requireArgs Whether to require arguments for this key
+         * @param iterator Function to apply effects to each character in the key
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         */
         void addRichKey(std::string id, bool requireArgs, CharIterator iterator, bool updateText = true);
 
+        /**
+         * Add a custom rich text key
+         *
+         * @param id The ID of the key
+         * @param validateArgs Function to validate the arguments given to this key
+         * @param iterator Function to apply effects to each character in the key
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         */
         void addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText = true);
 
+        /**
+         * Add a custom rich text key
+         *
+         * @param id The ID of the key
+         * @param requireArgs Whether to require arguments for this key
+         * @param validateArgs Function to validate the arguments given to this key
+         * @param iterator Function to apply effects to each character in the key
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         */
         void addRichKey(std::string id, bool requireArgs, ValidateArgs validate, CharIterator iterator, bool updateText = true);
 
         std::string getText() const override;
