@@ -459,7 +459,15 @@ void RichTextArea::RichImpl::parseRichText() {
                         break;
                     }
                     key = &*match;
-                    state = *p == '>' ? ParseState::ParseText : ParseState::ParseArgs;
+                    if (*p == '>') {
+                        if (key->requireArgs) {
+                            handleError();
+                            break;
+                        }
+                        state = ParseState::ParseText;
+                    } else {
+                        state = ParseState::ParseArgs;
+                    }
                     this->advance();
                 }
                 break;
@@ -482,10 +490,8 @@ void RichTextArea::RichImpl::parseRichText() {
                 if (c == '<') {
                     if (auto p = this->peek(); p && *p == '/') {
                         state = ParseState::ParseClosing;
-                    } else {
-                        // TODO: Handle nested tag
-                        state = ParseState::ParseClosing;
                     }
+                    // TODO: Handle nested tags
                     break;
                 }
                 if (c == '\n') {
