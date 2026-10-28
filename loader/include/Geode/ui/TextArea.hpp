@@ -250,6 +250,7 @@ namespace geode {
 
         void addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText = true);
 
+        void updateRichText();
     protected:
         NewRichTextArea() : SimpleTextArea() {}
         ~NewRichTextArea() = default;

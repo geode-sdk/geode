@@ -382,6 +382,7 @@ public:
     void advance(int offset = 1);
 
     void addRichKey(std::string id, ValidateArgs validate, CreateCallback, CharIterator iterator, bool updateText);
+    void updateRichText();
 
     Label* createLabel(std::string text, float top) override;
 
@@ -580,9 +581,13 @@ void NewRichTextArea::RichImpl::addRichKey(
     m_keys.emplace_back(std::move(id), std::move(validate), std::move(create), std::move(iterator));
     if (updateText) {
         m_text = m_rawText;
-        this->parseRichText();
-        this->updateContainer();
+        this->updateRichText();
     }
+}
+
+void NewRichTextArea::RichImpl::updateRichText() {
+    this->parseRichText();
+    this->updateContainer();
 }
 
 Label* NewRichTextArea::RichImpl::createLabel(std::string text, float top) {
@@ -614,6 +619,19 @@ NewRichTextArea* NewRichTextArea::create(std::string font, std::string text, flo
     return nullptr;
 }
 
+bool NewRichTextArea::init(std::string font, std::string text, float scale, float width, const bool artificialWidth) {
+    if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
+    m_richImpl->m_rawText = m_impl->m_text;
+
+    // TODO: Register default keys
+    this->addRichKey("red", [](CCFontSprite* ch, std::string_view args) {
+        ch->setColor({ 255, 0, 0 });
+    }, false);
+
+    m_richImpl->updateRichText();
+    return true;
+}
+
 void NewRichTextArea::addRichKey(std::string id, CreateCallback create, bool updateText) {
     m_richImpl->addRichKey(std::move(id), [](auto) { return true; }, std::move(create), nullptr, updateText);
 }
@@ -630,18 +648,9 @@ void NewRichTextArea::addRichKey(std::string id, ValidateArgs validate, CharIter
     m_richImpl->addRichKey(std::move(id), std::move(validate), nullptr, std::move(iterator), updateText);
 }
 
-bool NewRichTextArea::init(std::string font, std::string text, float scale, float width, const bool artificialWidth) {
-    if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
-    m_richImpl->m_rawText = m_impl->m_text;
-
-    // TODO: Register default keys
-    this->addRichKey("red", [](CCFontSprite* ch, std::string_view args) {
-        ch->setColor({ 255, 0, 0 });
-    }, false);
-
-    m_richImpl->parseRichText();
-    m_richImpl->updateContainer();
-    return true;
+void NewRichTextArea::updateRichText() {
+    m_richImpl->m_text = m_richImpl->m_rawText;
+    m_richImpl->updateRichText();
 }
 
 std::unique_ptr<SimpleTextAreaImpl> NewRichTextArea::createImpl() {
