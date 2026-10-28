@@ -255,12 +255,13 @@ namespace geode {
         ~NewRichTextArea() = default;
 
         class RichImpl;
+        RichImpl* m_richImpl;
         std::unique_ptr<SimpleTextAreaImpl> createImpl() override;
-        RichImpl* richImpl();
 
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
     private:
         static NewRichTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
+        void addRichKey(std::string id, ValidateArgs validate, CreateCallback, CharIterator iterator, bool updateText);
     };
 
     class GEODE_DLL RichTextArea : public SimpleTextArea, public cocos2d::CCTouchDelegate {

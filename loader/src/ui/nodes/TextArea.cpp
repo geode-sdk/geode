@@ -2,7 +2,10 @@
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/terminate.hpp>
 #include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
+#include <deque>
+#include <memory>
 #include <optional>
 #include <regex>
 #include <fmt/chrono.h>
@@ -368,20 +371,243 @@ class NewRichTextArea::RichImpl : public SimpleTextAreaImpl {
 public:
     std::vector<RichKey> m_keys;
     EmojiRegistry m_emojiRegistry;
+    std::string m_rawText;
+    std::deque<std::u32string> m_intermediates; // I hate lifetimes
+
+    size_t m_idx = 0;
+
+
+    void parseRichText();
+    char current();
+    std::optional<char> peek();
+    void advance(int offset = 1);
+
+    void addRichKey(std::string id, ValidateArgs validate, CreateCallback, CharIterator iterator, bool updateText);
+
+    Label* createLabel(std::string text, float top) override;
 
     NewRichTextArea* m_self = nullptr;
     RichImpl(NewRichTextArea* self) : m_self(self), SimpleTextAreaImpl(self) {}
 };
 
+enum class ParseState {
+    /// Normal state, don't parse anything
+    Normal,
+    /// Parse the opening tag
+    ParseKey,
+    /// Parse the opening tag's arguments
+    ParseArgs,
+    /// Parse the rest up-until the closing tag
+    ParseRest
+};
+
+void NewRichTextArea::RichImpl::parseRichText() {
+    m_idx = 0;
+    m_rawText = m_text;
+    std::string newText;
+    ParseState state = ParseState::Normal;
+
+    RichKey* key;
+    std::string id;
+    std::string args;
+    std::string text;
+    size_t keyStart = 0;
+
+    auto handleError = [&] {
+        newText += m_text.substr(keyStart, m_idx - keyStart + 1);
+        state = ParseState::Normal;
+        id.clear();
+        args.clear();
+        text.clear();
+    };
+
+    while (m_idx < m_text.size()) {
+        char c = this->current();
+        switch (state) {
+            case ParseState::Normal:
+                if (c == '<') {
+                    auto p = this->peek();
+                    if (p && *p == '/') {
+                        newText += c;
+                        break;
+                    }
+                    keyStart = m_idx;
+                    state = ParseState::ParseKey;
+                } else {
+                    newText += c;
+                }
+                break;
+            case ParseState::ParseKey:
+                id += c;
+                if (auto p = this->peek(); p && (*p == '>' || *p == '=' || *p == '-')) {
+                    auto match = std::ranges::find(m_keys, id, &RichKey::id);
+                    if (match == m_keys.end()) {
+                        handleError();
+                        break;
+                    }
+                    key = &*match;
+                    state = *p == '>' ? ParseState::ParseRest : ParseState::ParseArgs;
+                    this->advance();
+                }
+                break;
+            case ParseState::ParseArgs:
+                if (c == '>') {
+                    if (!key->validate(args)) {
+                        handleError();
+                        break;
+                    }
+                    state = ParseState::ParseRest;
+                    break;
+                }
+                args += c;
+                if (auto p = this->peek(); p && *p == '>') {
+                    if (!key->validate(args)) {
+                        handleError();
+                        break;
+                    }
+                    state = ParseState::ParseRest;
+                    this->advance();
+                }
+                break;
+            case ParseState::ParseRest: {
+                auto close = m_text.find(fmt::format("</{}>", id), m_idx);
+                if (close == std::string::npos) {
+                    newText += m_text.substr(keyStart);
+                    state = ParseState::Normal;
+                    break;
+                }
+                text = m_text.substr(m_idx, close - m_idx);
+                std::string repl = fmt::format(":{}|{}:", id, text);
+                newText += repl;
+                this->advance((close + id.size() + 2) - m_idx);
+
+                m_intermediates.emplace_back(std::u32string(repl.begin(), repl.end()));
+                m_emojiRegistry.insert(m_intermediates.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
+                    auto str8 = string::utf32ToUtf8(str32);
+                    if (str8.isErr()) {
+                        // Unless you somehow got a unicode character in the intermediate
+                        // this shouldn't really happen but handle it just in case
+                        log::error("Could not parse UTF-32: {}", str8.unwrapErr());
+                        return CCNode::create();
+                    }
+                    auto str = str8.unwrap();
+
+                    auto end = str.find(":", idx + 1);
+                    if (end == std::string::npos) {
+                        // Unless something went *horribly* wrong while parsing
+                        // this should be unreachable
+                        utils::unreachable("Missing ending ':' on intermediate (RichTextArea)");
+                    }
+                    auto inter = str.substr(idx + 1, end - idx - 1);
+
+                    // Split text and key
+                    auto split = string::split(inter, "|");
+
+                    std::string keyStr;
+                    std::string arg;
+                    if (string::contains(split[0], "-")) {
+                        auto k = string::split(split[0], "-");
+                        keyStr = k[0];
+                        arg = k[1];
+                    } else if (string::contains(split[0], "=")) {
+                        auto k = string::split(split[0], "=");
+                        keyStr = k[0];
+                        arg = k[1];
+                    } else {
+                        keyStr = split[0];
+                    }
+
+                    auto key = std::ranges::find(m_keys, keyStr, &RichKey::id);
+                    if (key == m_keys.end()) {
+                        // Unless something went wrong while parsing
+                        // this shouldn't happen
+                        log::error("Could not find key '{}'", keyStr);
+                        return CCNode::create();
+                    }
+
+                    if (key->create) {
+                        return key->create(split[1], arg);
+                    } else {
+                        // geode::Label doesn't have an easy method to add per-character
+                        // effects (ty quads) so we have to resort to this
+                        auto ret = CCLabelBMFont::create(split[1].c_str(), m_font.c_str());
+                        ret->setScale(m_scale);
+                        ret->setColor(to3B(m_color));
+                        ret->setOpacity(m_color.a);
+
+                        if (key->iterator) {
+                            for (auto& c : CCArrayExt(ret->getChildren())) {
+                                key->iterator(static_cast<CCFontSprite*>(c), arg);
+                            }
+                        }
+
+                        return ret;
+                    }
+                });
+
+                state = ParseState::Normal;
+                id.clear();
+                args.clear();
+                text.clear();
+                break;
+            }
+        }
+        this->advance();
+    }
+
+    // If the parser stopped abruptly (*cough cough* unfinished tags)
+    if (state != ParseState::Normal) {
+        newText += m_text.substr(keyStart);
+    }
+    m_text = newText;
+}
+
+char NewRichTextArea::RichImpl::current() {
+    return m_text[m_idx];
+}
+
+std::optional<char> NewRichTextArea::RichImpl::peek() {
+    auto i = m_idx + 1;
+    if (i >= m_text.size()) {
+        return std::nullopt;
+    }
+    return m_text[i];
+}
+
+void NewRichTextArea::RichImpl::advance(int offset) {
+    m_idx += offset;
+}
+
+void NewRichTextArea::RichImpl::addRichKey(
+    std::string id,
+    ValidateArgs validate,
+    CreateCallback create,
+    CharIterator iterator,
+    bool updateText
+) {
+    m_keys.emplace_back(std::move(id), std::move(validate), std::move(create), std::move(iterator));
+    if (updateText) {
+        this->parseRichText();
+        this->updateContainer();
+    }
+}
+
+Label* NewRichTextArea::RichImpl::createLabel(std::string text, float top) {
+    auto label = SimpleTextAreaImpl::createLabel(text, top);
+    if (!label) return nullptr;
+    label->setEmojiRegistry(m_emojiRegistry);
+    return label;
+}
+
 NewRichTextArea* NewRichTextArea::create(std::string text, std::string font, float scale) {
-    return NewRichTextArea::create(
+    return create(
         std::move(font), std::move(text), scale,
         CCDirector::sharedDirector()->getWinSize().width / 2, false
     );
 }
 
 NewRichTextArea* NewRichTextArea::create(std::string text, std::string font, float scale, float width) {
-    return NewRichTextArea::create(std::move(font), std::move(text), scale, width, true);
+    return create(std::move(font), std::move(text), scale, width, true);
 }
 
 NewRichTextArea* NewRichTextArea::create(std::string font, std::string text, float scale, float width, const bool artificialWidth) {
@@ -395,9 +621,37 @@ NewRichTextArea* NewRichTextArea::create(std::string font, std::string text, flo
     return nullptr;
 }
 
+void NewRichTextArea::addRichKey(std::string id, CreateCallback create, bool updateText) {
+    m_richImpl->addRichKey(std::move(id), [](auto) { return true; }, std::move(create), nullptr, updateText);
+}
+
+void NewRichTextArea::addRichKey(std::string id, ValidateArgs validate, CreateCallback create, bool updateText) {
+    m_richImpl->addRichKey(std::move(id), std::move(validate), std::move(create), nullptr, updateText);
+}
+
+void NewRichTextArea::addRichKey(std::string id, CharIterator iterator, bool updateText) {
+    m_richImpl->addRichKey(std::move(id), [](auto) { return true; }, nullptr, std::move(iterator), updateText);
+}
+
+void NewRichTextArea::addRichKey(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText) {
+    m_richImpl->addRichKey(std::move(id), std::move(validate), nullptr, std::move(iterator), updateText);
+}
+
 bool NewRichTextArea::init(std::string font, std::string text, float scale, float width, const bool artificialWidth) {
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
+    m_richImpl->m_rawText = m_impl->m_text;
+
+    // TODO: Register default keys
+
+    m_richImpl->parseRichText();
+    m_richImpl->updateContainer();
     return true;
+}
+
+std::unique_ptr<SimpleTextAreaImpl> NewRichTextArea::createImpl() {
+    auto ret = std::make_unique<RichImpl>(this);
+    m_richImpl = ret.get();
+    return ret;
 }
 
 class RichTextArea::RichImpl : public SimpleTextAreaImpl {
