@@ -1183,7 +1183,7 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
                     auto const& pair = it->second;
 
                     createQuickPopup(
-                        fmt::format("Modtober 20{}", year),
+                        fmt::format("Modtober 20{}", year).c_str(),
                         fmt::format(
                             "This mod was an entry for {}Modtober 20{}</c>, a contest to create "
                             "the best mod with the theme <cc>\"{}\"</c>",
