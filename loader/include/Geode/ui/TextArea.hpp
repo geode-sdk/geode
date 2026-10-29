@@ -75,9 +75,8 @@ namespace geode {
      *
      * By default this class contains the following tags by default:
      * - flip
-     * - size (usage: <size=2.0>)
-     * - font (usage: <font=someFont.fnt>)
-     * - link (usage: <link=https://example.com>)
+     * - font
+     * - link
      *
      * You can add a custom tag with `addRichTag`:
      * @example ```cpp
