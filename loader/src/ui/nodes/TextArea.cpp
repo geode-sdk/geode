@@ -406,6 +406,10 @@ enum class ParseState {
     ParseClosing
 };
 
+// HOW PARSING WORKS:
+// - Parse the tags (e.g. "<t-1>tag<t>")
+// - Convert them to an "intermediate" (e.g. "!!![t-1|tag]")
+// - Add that intermediate to the emoji registry and work from there
 void RichTextArea::RichImpl::parseRichText() {
     m_idx = 0;
     m_rawText = m_text;
@@ -426,10 +430,9 @@ void RichTextArea::RichImpl::parseRichText() {
         text.clear();
     };
 
-    // IR = Intermediate Representation
     auto makeIR = [&] -> std::string {
         return fmt::format(
-            ":{}{}|{}:",
+            "!!![{}{}|{}]",
             id, args.empty() ? "" : "-" + args,
             text
         );
@@ -554,9 +557,9 @@ void RichTextArea::RichImpl::registerTag(const std::string& ir) {
         }
         auto str = str8.unwrap();
 
-        auto start = str.rfind(":", idx - 1);
+        auto start = str.rfind("[", idx - 1);
         if (start == std::string::npos) {
-            log::error("Missing ending ':' on intermediate (RichTextArea)");
+            log::error("Could not find opening '['");
             return this->getErrorText();
         }
         auto inter = str.substr(start + 1, idx - start - 1);
