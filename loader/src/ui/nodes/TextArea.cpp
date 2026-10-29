@@ -2,8 +2,6 @@
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/web.hpp>
-#include <Geode/utils/terminate.hpp>
-#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 #include <deque>
 #include <memory>
 #include <optional>
