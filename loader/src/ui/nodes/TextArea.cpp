@@ -397,7 +397,7 @@ enum class ParseState {
     /// Normal state, don't parse anything
     Normal,
     /// Parse the opening tag
-    ParseKey,
+    ParseTag,
     /// Parse the opening tag's arguments
     ParseArgs,
     /// Parse the text in between the tags
@@ -449,12 +449,12 @@ void RichTextArea::RichImpl::parseRichText() {
                         break;
                     }
                     tagPos = m_idx;
-                    state = ParseState::ParseKey;
+                    state = ParseState::ParseTag;
                 } else {
                     newText += c;
                 }
                 break;
-            case ParseState::ParseKey:
+            case ParseState::ParseTag:
                 id += c;
                 if (auto p = this->peek(); p && (*p == '>' || *p == '=' || *p == '-')) {
                     auto match = std::ranges::find(m_tags, id, &RichTag::id);
