@@ -64,7 +64,7 @@ namespace geode {
     };
 
     GEODE_DLL FLAlertLayer* createQuickPopup(
-        ZStringView title, std::string content, ZStringView btn1, ZStringView btn2 = "",
+        ZStringView title, std::string content, ZStringView btn1, ZStringView btn2 = nullptr,
         geode::Function<void(FLAlertLayer*, bool)> selected = nullptr, bool doShow = true, bool cancelledByEscape = false
     );
 
