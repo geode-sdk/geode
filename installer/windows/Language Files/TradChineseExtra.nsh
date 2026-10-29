@@ -9,9 +9,9 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Setup會幫您卸載$(^NameDA)�
 
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nGeometry Dash不在這文件夾，請再試一遍！"
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\n您的Geometry Dash版本太舊了，不適合Geode的版本！"
-${LangFileString} GEODE_TEXT_GD_RUNNING "Please close Geometry Dash before installing Geode."
+${LangFileString} GEODE_TEXT_GD_RUNNING "安裝Geode之前，請關閉Geometry Dash。"
 ${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "這文件夾已經安裝了不同的遊戲修改器加載器！$\r$\nGeode會改寫那些遊戲修改器加載器。 (the dll trademark)"
-${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "Installing VS Runtime. Check the taskbar for any new open windows..."
+${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "正在安裝VS Runtime. 請去任務欄找新的應用窗口…"
 
 ; uninstaller
 
