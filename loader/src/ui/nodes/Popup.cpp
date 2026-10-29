@@ -15,8 +15,8 @@ using namespace geode::prelude;
 //         node->setPosition(node->getPosition() + offset);
 
 //         if (node->isIgnoreAnchorPointForPosition()) {
-//             node->setPosition(node->getPosition() + node->getScaledContentSize() * node->getAnchorPoint());
-//             node->ignoreAnchorPointForPosition(false);
+//             node->setPosition(node->getPosition() + node->getScaledContentSize() *
+//             node->getAnchorPoint()); node->ignoreAnchorPointForPosition(false);
 //         }
 
 //         constexpr int LEFT   = 0b0001;
@@ -50,7 +50,7 @@ using namespace geode::prelude;
 //             case BOTTOM:         anchor = Anchor::Bottom; break;
 //         }
 
-//         auto anchorPos = AnchorLayout::getAnchoredPosition(in, anchor, ccp(0, 0));
+//         auto anchorPos = AnchorLayout::getAnchoredPosition(in, anchor, {});
 //         node->setLayoutOptions(
 //             AnchorLayoutOptions::create()
 //                 ->setAnchor(anchor)
@@ -82,46 +82,48 @@ void Popup::registerWithTouchDispatcher() {
     CCTouchDispatcher::get()->addTargetedDelegate(this, -500, true);
 }
 
-bool Popup::init(
-    float width, float height, char const* bg, CCRect bgRect
-) {
-    m_size = CCSize{ width, height };
-    
+bool Popup::init(float width, float height, ZStringView bg, CCRect bgRect) {
+    m_size = CCSize{width, height};
+
     CCTouchDispatcher::get()->registerForcePrio(this, 2, 0);
 
-    if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
+    if (!this->initWithColor({0, 0, 0, 105})) return false;
 
     m_noElasticity = GameManager::get()->getGameVariable(GameVar::FastMenu);
 
     auto winSize = CCDirector::get()->getWinSize();
 
     m_mainLayer = CCLayer::create();
+    m_mainLayer->setID("main-layer");
     this->addChild(m_mainLayer);
 
     m_bgSprite = NineSlice::create(bg, bgRect);
+    m_bgSprite->setID("background");
     m_bgSprite->setContentSize(m_size);
-    m_bgSprite->setPosition(winSize.width / 2, winSize.height / 2);
+    m_bgSprite->setPosition({winSize.width / 2.f, winSize.height / 2.f});
     m_mainLayer->addChild(m_bgSprite);
 
     m_buttonMenu = CCMenu::create();
+    m_buttonMenu->setID("button-menu");
     m_buttonMenu->setZOrder(100);
     m_mainLayer->addChild(m_buttonMenu);
 
     m_mainLayer->ignoreAnchorPointForPosition(false);
-    m_mainLayer->setPosition(winSize / 2);
+    m_mainLayer->setPosition(winSize / 2.f);
     m_mainLayer->setContentSize(m_size);
-    m_mainLayer->setLayout(
-        CopySizeLayout::create()
-            ->add(m_buttonMenu)
-            ->add(m_bgSprite)
-    );
+    m_mainLayer->setLayout(CopySizeLayout::create()->add(m_buttonMenu)->add(m_bgSprite));
 
     this->setTouchEnabled(true);
 
-    m_closeBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_closeBtn_001.png", 0.8f, [this](auto btn) {
-        this->onClose(btn);
-    });
-    m_buttonMenu->addChildAtPosition(m_closeBtn, geode::Anchor::TopLeft, { 3.f, -3.f });
+    m_closeBtn = Button::createWithSpriteFrameName(
+        "GJ_closeBtn_001.png",
+        [this](auto btn) {
+            this->onClose(btn);
+        });
+    m_closeBtn->setID("close-button");
+    m_closeBtn->setScale(.8f);
+    m_closeBtn->setZOrder(100);
+    m_mainLayer->addChildAtPosition(m_closeBtn, Anchor::TopLeft, {3.f, -3.f});
 
     this->setKeypadEnabled(true);
     this->setTouchEnabled(true);
@@ -129,7 +131,7 @@ bool Popup::init(
     return true;
 }
 
-bool Popup::init(CCSize size, char const* bg, CCRect bgRect) {
+bool Popup::init(CCSize size, ZStringView bg, CCRect bgRect) {
     return this->init(size.width, size.height, bg, bgRect);
 }
 
@@ -149,35 +151,21 @@ void Popup::onClose(CCObject*) {
     this->removeFromParent();
 }
 
-void Popup::setTitle(
-    ZStringView title,
-    const char* font,
-    float scale,
-    float offset
-) {
+void Popup::setTitle(ZStringView title, ZStringView font, float scale, float offset) {
     if (!m_title) {
         m_title = Label::create("", font);
         m_title->setZOrder(2);
         m_mainLayer->addChildAtPosition(m_title, Anchor::Top, {0, -offset});
     }
 
+    m_title->setID("title-label");
     m_title->setText(title);
     m_title->setLimitLabelWidth(m_size.width - 20.f, scale, .1f);
 }
 
-void Popup::setCloseButtonSpr(CCSprite* spr, float scale) {
-    // Store original attributes of the close button
-    auto origSize = m_closeBtn->getContentSize();
-    Ref orig = m_closeBtn->getNormalImage();
-
-    // Replace the close button sprite
-    m_closeBtn->setNormalImage(spr);
-
-    // Restore size and position
-    spr->setScale(scale);
-    spr->setPosition(orig->getPosition());
-    spr->setAnchorPoint(orig->getAnchorPoint());
-    m_closeBtn->setContentSize(origSize);
+void Popup::setCloseButtonSpr(CCNode* spr, float scale) {
+    m_closeBtn->setDisplayNode(spr);
+    m_closeBtn->setScale(scale);
 }
 
 Popup::CloseEvent Popup::listenForClose() {
@@ -186,7 +174,7 @@ Popup::CloseEvent Popup::listenForClose() {
 
 class QuickPopup : public FLAlertLayer, public FLAlertLayerProtocol {
 protected:
-    geode::Function<void(FLAlertLayer*, bool)> m_selected;
+    Function<void(FLAlertLayer*, bool)> m_selected;
     bool m_cancelledByEscape;
     bool m_usedEscape = false;
 
@@ -206,13 +194,23 @@ protected:
 
 public:
     static QuickPopup* create(
-        char const* title, std::string content, char const* btn1, char const* btn2,
-        float width, geode::Function<void(FLAlertLayer*, bool)> selected, bool cancelledByEscape
+        ZStringView title, std::string content, ZStringView btn1, ZStringView btn2, float width,
+        Function<void(FLAlertLayer*, bool)> selected, bool cancelledByEscape
     ) {
         auto inst = new QuickPopup;
         inst->m_selected = std::move(selected);
         inst->m_cancelledByEscape = cancelledByEscape;
-        if (inst->init(inst, title, std::move(content), btn1, btn2, width, false, .0f, 1.0f)) {
+        if (inst->init(
+                inst,
+                title.c_str(),
+                std::move(content),
+                btn1.c_str(),
+                btn2.empty() ? nullptr : btn2.c_str(),
+                width,
+                false,
+                .0f,
+                1.f
+            )) {
             inst->autorelease();
             return inst;
         }
@@ -223,8 +221,8 @@ public:
 };
 
 FLAlertLayer* geode::createQuickPopup(
-    char const* title, std::string content, char const* btn1, char const* btn2, float width,
-    geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+    ZStringView title, std::string content, ZStringView btn1, ZStringView btn2, float width,
+    Function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
 ) {
     auto ret = QuickPopup::create(title, std::move(content), btn1, btn2, width, std::move(selected), cancelledByEscape);
     if (doShow) {
@@ -234,8 +232,8 @@ FLAlertLayer* geode::createQuickPopup(
 }
 
 FLAlertLayer* geode::createQuickPopup(
-    char const* title, std::string content, char const* btn1, char const* btn2,
-    geode::Function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
+    ZStringView title, std::string content, ZStringView btn1, ZStringView btn2,
+    Function<void(FLAlertLayer*, bool)> selected, bool doShow, bool cancelledByEscape
 ) {
     return createQuickPopup(title, std::move(content), btn1, btn2, 350.f, std::move(selected), doShow, cancelledByEscape);
 }
