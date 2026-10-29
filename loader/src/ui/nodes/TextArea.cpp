@@ -696,14 +696,12 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
             auto num = utils::numFromString<float>(arg);
             return num.isOk();
         },
-        [](CCFontSprite* ch, const std::string& arg) {
-            auto num = utils::numFromString<float>(arg);
-            if (num.isErr()) {
-                // This should not happen but just in case
-                log::error("Could not convert to float: {}", num.unwrapErr());
-                return;
-            }
-            ch->setScale(num.unwrap());
+        [this](std::string text, std::string arg) {
+            auto label = Label::create(text, m_impl->m_font);
+            label->setScale(utils::numFromString<float>(arg).unwrapOr(1.f));
+            label->setColor(to3B(m_impl->m_color));
+            label->setOpacity(m_impl->m_color.a);
+            return label;
         }, false
     );
 
