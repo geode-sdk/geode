@@ -142,11 +142,14 @@ namespace geode {
         KeyboardModifier modifiers = KeyboardModifier::None;
 
         Keybind() = default;
-        Keybind(cocos2d::enumKeyCodes key, KeyboardModifier modifiers) noexcept
-            : key(key), modifiers(modifiers) {}
 
+        Keybind(cocos2d::enumKeyCodes key, KeyboardModifier modifiers) noexcept :
+            key(key), modifiers(modifiers) {}
+
+        static GEODE_DLL Keybind fromVanillaChord(int chord);
         static GEODE_DLL Result<Keybind> fromString(std::string_view str);
         GEODE_DLL std::string toString() const;
+        GEODE_DLL std::optional<int> toVanillaChord() const;
         GEODE_DLL cocos2d::CCNode* createNode() const;
 
         bool operator==(Keybind const& other) const noexcept {

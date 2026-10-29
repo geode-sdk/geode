@@ -20,6 +20,8 @@
 #include <sys/system_properties.h>
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
+#include <Geode/cocos/actions/CCActionManager.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 
 using namespace geode::prelude;
 
@@ -363,13 +365,27 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
     class Exit : public CCObject {
     public:
         void restart() {
-            // TODO v6: handle safe mode
             JniMethodInfo t;
             if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "restartGame", "()V")) {
                 t.env->CallStaticVoidMethod(t.classID, t.methodID);
 
                 t.env->DeleteLocalRef(t.classID);
             }
+        }
+
+        void restartSafe() {
+            JniMethodInfo t;
+            if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "restartGame", "(Z)V")) {
+                t.env->CallStaticVoidMethod(t.classID, t.methodID, true);
+
+                t.env->DeleteLocalRef(t.classID);
+                return;
+            }
+
+            clearJNIException();
+
+            // only normal restart is supported on older launchers
+            restart();            
         }
     };
     // Not implemented
@@ -380,11 +396,19 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
     }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
-    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
-        CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::restart)),
-        nullptr
-    ), CCDirector::get()->getRunningScene(), false);
+    if (safeMode) {
+        CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+            CCDelayTime::create(0.5f),
+            CCCallFunc::create(nullptr, callfunc_selector(Exit::restartSafe)),
+            nullptr
+        ), CCDirector::get()->getRunningScene(), false);
+    } else {
+        CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+            CCDelayTime::create(0.5f),
+            CCCallFunc::create(nullptr, callfunc_selector(Exit::restart)),
+            nullptr
+        ), CCDirector::get()->getRunningScene(), false);
+    }
 }
 
 static const char* permissionToName(Permission permission) {

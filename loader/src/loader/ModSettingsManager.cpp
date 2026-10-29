@@ -3,6 +3,7 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/StringMap.hpp>
 #include "ModImpl.hpp"
+#include "../utils/KeyboardImpl.hpp"
 
 using namespace geode::prelude;
 
@@ -113,7 +114,7 @@ private:
             // Both of these are just enumKeyCodes turned into an integer
             case hash("geode.custom-keybinds/controller"):
             case hash("geode.custom-keybinds/keyboard"): {
-                return static_cast<enumKeyCodes>(code);
+                return migrateOldKeyCode(code);
             } break;
 
             // This is a special enum in CK (with two members lol)
