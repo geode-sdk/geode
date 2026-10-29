@@ -34,6 +34,7 @@ namespace geode {
         void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
         void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
         bool touchInsideClip(cocos2d::CCPoint const&) override;
+        bool scrollWheel(float y, float) override;
 
         void visit() override;
 
@@ -52,17 +53,40 @@ namespace geode {
             cocos2d::CCSize const& size, bool scrollWheelEnabled = true, bool vertical = true
         );
 
-        bool scrollWheel(float y, float) override;
         void enableScrollWheel(bool enable = true);
         float getScrollFromTop() const;
         void scrollToFromTop(float offset);
         void scrollToTop();
+        cocos2d::CCClippingNode* getClippingNode() const;
 
         void setCancelTouchLimit(float limit);
         float getCancelTouchLimit() const;
 
         void setStealingTouches(bool steal);
         bool isStealingTouches() const;
+
+        /**
+         * Only allows touches to pass through in the area of the scroll layer
+         * Enabled by default
+         */
+        void enableTouchClipping(bool clip);
+        bool hasTouchClipping() const;
+
+        /**
+         * Only allows the mouse wheel to scroll while the mouse is in the area of the scroll layer
+         * Enabled by default
+         */
+        void enableScrollClipping(bool clip);
+        bool hasScrollClipping() const;
+
+        /**
+         * A stencil is a node that's used to clip the rect of the scroll layer
+         * The content size of the stencil is updated to match the scroll layer's
+         * Its also useful to know the stencil node is set to position 0,0 with anchor point 0,0
+         * So you can set the stencil to a NineSlice and have rounded corners
+         */
+        void setStencil(cocos2d::CCNode* stencil);
+        cocos2d::CCNode* getStencil() const;
 
         /**
          * If you're using ScrollLayer to create a list, this helper function

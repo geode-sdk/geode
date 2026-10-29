@@ -5,6 +5,7 @@
 #include <Geode/binding/UILayer.hpp>
 #include <Geode/mapping/CCLayer.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/loader/SettingV3.hpp>
 #include <vector>
 
 using namespace geode::prelude;
@@ -20,6 +21,14 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
             );
         }
         GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("Z Order based touch dispatcher");
+    }
+
+    static bool debugLogsEnabled() {
+        static bool ret = Mod::get()->getSettingValue<bool>("enable-touch-dispatcher-debug-logs");
+        listenForSettingChanges<bool>("enable-touch-dispatcher-debug-logs", [&](bool value) {
+            ret = value;
+        });
+        return ret;
     }
 
     template <class Handler>
@@ -249,6 +258,9 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
                 claimed = delegate->ccTouchBegan(touch, event);
 
                 if (claimed) {
+                    if (debugLogsEnabled())
+                        log::debug("Node {}({}) claimed touch", path.leaf(), path.leaf()->getID());
+
                     claimedTouches->addObject(touch);
                 }
             }
@@ -324,6 +336,9 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
 
         for (auto& path : registeredPaths) {
             auto delegate = path.handler->getDelegate();
+
+            if (debugLogsEnabled())
+                log::debug("Node {}({}) is standard handler", path.leaf(), path.leaf()->getID());
 
             switch (m_sHandlerHelperData[index].m_type) {
                 case CCTOUCHBEGAN: delegate->ccTouchesBegan(touches, event); break;
