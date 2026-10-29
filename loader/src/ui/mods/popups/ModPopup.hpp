@@ -1,13 +1,12 @@
 #pragma once
 
-#include "../../GeodeStyle.hpp"
-#include "../UpdateModListState.hpp"
-#include "../sources/ModSource.hpp"
-
-#include <Geode/ui/Label.hpp>
+#include <Geode/ui/Popup.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/NineSlice.hpp>
-#include <Geode/ui/Popup.hpp>
+#include <Geode/ui/Label.hpp>
+#include "../sources/ModSource.hpp"
+#include "../../GeodeStyle.hpp"
+#include "../UpdateModListState.hpp"
 #include <server/DownloadManager.hpp>
 
 using namespace geode::prelude;

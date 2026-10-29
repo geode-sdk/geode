@@ -1,21 +1,20 @@
 #pragma once
 
-#include "UpdateModListState.hpp"
+#include <Geode/ui/General.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/TextArea.hpp>
+#include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/binding/SetTextPopupDelegate.hpp>
+#include <Geode/binding/SetIDPopupDelegate.hpp>
+#include <Geode/cocos/cocoa/CCObject.h>
 #include "list/ModItem.hpp"
 #include "list/ModList.hpp"
 #include "sources/ModListSource.hpp"
-
-#include <Geode/binding/SetIDPopupDelegate.hpp>
-#include <Geode/binding/SetTextPopupDelegate.hpp>
-#include <Geode/cocos/cocoa/CCObject.h>
-#include <Geode/loader/Setting.hpp>
-#include <Geode/ui/General.hpp>
-#include <Geode/ui/IconButtonSprite.hpp>
-#include <Geode/ui/Label.hpp>
-#include <Geode/ui/NineSlice.hpp>
-#include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/TextArea.hpp>
+#include "UpdateModListState.hpp"
 #include <server/DownloadManager.hpp>
+#include <Geode/loader/Setting.hpp>
 
 using namespace geode::prelude;
 

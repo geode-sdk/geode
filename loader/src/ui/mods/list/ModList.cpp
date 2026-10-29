@@ -1,22 +1,20 @@
 #include "ModList.hpp"
-
-#include "../../GeodeStyle.hpp"
-#include "../ModsLayer.hpp"
-#include "../popups/FiltersPopup.hpp"
-#include "../popups/ModtoberPopup.hpp"
-#include "../popups/SortPopup.hpp"
-#include "ModListItem.hpp"
-
 #include <Geode/cocos/actions/CCActionInterval.h>
-#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 #include <Geode/loader/ModEvent.hpp>
+#include <Geode/utils/cocos.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/Label.hpp>
-#include <Geode/ui/Notification.hpp>
-#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include <Geode/utils/ColorProvider.hpp>
-#include <Geode/utils/cocos.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/ui/Notification.hpp>
+#include "../popups/ModtoberPopup.hpp"
+#include "../popups/FiltersPopup.hpp"
+#include "../popups/SortPopup.hpp"
+#include "../../GeodeStyle.hpp"
+#include "../ModsLayer.hpp"
+#include "ModListItem.hpp"
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
@@ -52,8 +50,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     }
 
     m_list = ScrollLayer::create(size);
-
-    this->addChildAtPosition(m_list, Anchor::BottomLeft, { .0f, .0f }, { .0f, .0f });
+    this->addChildAtPosition(m_list, Anchor::Bottom, {-m_list->getScaledContentWidth() / 2.f, .0f});
 
     m_topContainer = CCNode::create();
     m_topContainer->setID("top-container");

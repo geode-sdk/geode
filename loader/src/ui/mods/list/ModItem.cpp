@@ -1,25 +1,25 @@
 #include "ModItem.hpp"
 
-#include "../ModsLayer.hpp"
+#include <optional>
+#include <string>
+#include <vector>
 
+#include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <Geode/ui/GeodeUI.hpp>
-#include <Geode/ui/Label.hpp>
-#include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/NineSlice.hpp>
-#include <Geode/ui/SimpleAxisLayout.hpp>
-#include <Geode/utils/ColorProvider.hpp>
-#include <optional>
+#include <Geode/ui/MDPopup.hpp>
+#include <Geode/ui/Label.hpp>
 #include <server/DownloadManager.hpp>
-#include <string>
 #include <ui/GeodeStyle.hpp>
-#include <ui/mods/popups/DevPopup.hpp>
 #include <ui/mods/popups/ModPopup.hpp>
-#include <ui/mods/sources/ModListSource.hpp>
+#include <ui/mods/popups/DevPopup.hpp>
 #include <ui/mods/sources/ModSource.hpp>
-#include <vector>
+#include <ui/mods/sources/ModListSource.hpp>
+#include "../ModsLayer.hpp"
 
 bool ModItem::init(ModSource&& source, bool listItem) {
     if (!ModListItem::init()) return false;
