@@ -3,6 +3,7 @@
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include "../sources/ModSource.hpp"
 #include "../GeodeStyle.hpp"
@@ -26,15 +27,15 @@ protected:
     CCMenu* m_installMenu;
     CCMenuItemToggler* m_enableBtn;
     CCMenuItemToggler* m_reenableBtn;
-    CCMenuItemSpriteExtra* m_uninstallBtn;
-    CCMenuItemSpriteExtra* m_installBtn;
-    CCMenuItemSpriteExtra* m_unavailableBtn;
-    CCMenuItemSpriteExtra* m_updateBtn;
-    CCMenuItemSpriteExtra* m_cancelBtn;
-    geode::Label* m_installStatusLabel;
+    Button* m_uninstallBtn;
+    Button* m_installBtn;
+    Button* m_unavailableBtn;
+    Button* m_updateBtn;
+    Button* m_cancelBtn;
+    Label* m_installStatusLabel;
     NineSlice* m_installBG;
     NineSlice* m_settingsBG;
-    geode::Label* m_enabledStatusLabel;
+    Label* m_enabledStatusLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
     CCNode* m_currentTabPage = nullptr;
@@ -52,28 +53,30 @@ protected:
     async::TaskHolder<server::ServerResult<server::ServerModUpdateOneCheck>> m_checkUpdateListener;
     ListenerHandle m_downloadListener;
 
+    enum class RepoPlatform {
+        Unknown,
+        GitHub,
+        GitLab,
+        Codeberg,
+        GitGay,
+    };
+
     bool init(ModSource&& src);
+    CCNode* createContainer(CCSize const& size);
+    RepoPlatform getRepoPlatform(ZStringView url);
+    ZStringView getPlatformSprite(std::optional<std::string> const& url);
     void updateState();
 
-    void setStatIcon(CCNode* stat, const char* spr);
-    void setStatLabel(CCNode* stat, ZStringView value, bool noValue = false, ccColor3B color = ccWHITE);
-    void setStatValue(CCNode* stat, std::optional<std::string> const& value);
+    void setStatIcon(CCNode* stat, ZStringView spr);
+    void setStatLabel(CCNode* stat, std::string value, bool noValue = false, ccColor3B color = ccWHITE);
+    void setStatValue(CCNode* stat, std::optional<std::string> value);
 
     void onLoadServerInfo(server::ServerResult<server::ServerModMetadata> result);
     void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
     void onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result);
 
-    void onTab(CCObject* sender);
     void onEnable(CCObject*);
-    void onInstall(CCObject*);
-    void onUninstall(CCObject*);
-    void onCancelDownload(CCObject*);
-
-    void onSettings(CCObject*);
-    void onLink(CCObject*);
-    void onSupport(CCObject*);
-    void onModtober24Info(CCObject*);
-    void onModtober25Info(CCObject*);
+    void onInstall();
 
     bool availableForInstall() const;
 
