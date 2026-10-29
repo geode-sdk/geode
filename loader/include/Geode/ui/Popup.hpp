@@ -5,6 +5,7 @@
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/function.hpp>
+#include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/Layout.hpp>
 #include <Geode/ui/NineSlice.hpp>
