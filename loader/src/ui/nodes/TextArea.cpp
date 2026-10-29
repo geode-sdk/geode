@@ -377,7 +377,7 @@ public:
 
     void parseRichText();
     void registerTag(const std::string& ir);
-    CCLabelBMFont* getErrorText();
+    Label* getErrorText();
 
     char current();
     std::optional<char> peek();
@@ -603,8 +603,8 @@ void RichTextArea::RichImpl::registerTag(const std::string& ir) {
     });
 }
 
-CCLabelBMFont* RichTextArea::RichImpl::getErrorText() {
-    auto ret = CCLabelBMFont::create("ERROR", m_font.c_str());
+Label* RichTextArea::RichImpl::getErrorText() {
+    auto ret = Label::create("ERROR", m_font.c_str());
     ret->setColor({ 255, 0, 0 });
     return ret;
 }
