@@ -551,8 +551,6 @@ void RichTextArea::RichImpl::registerTag(const std::string& ir) {
         auto str8 = string::utf32ToUtf8(str32);
         if (str8.isErr()) {
             log::error("Could not parse UTF-32: {}", str8.unwrapErr());
-            // This will likely be able to tell you
-            // something went wrong
             return this->getErrorText();
         }
         auto str = str8.unwrap();
@@ -560,6 +558,7 @@ void RichTextArea::RichImpl::registerTag(const std::string& ir) {
         auto start = str.rfind("[", idx - 1);
         if (start == std::string::npos) {
             log::error("Could not find opening '['");
+            log::info("THIS SHOULD BE UNREACHABLE. REPORT THIS BUG TO THE GEODE DEVELOPERS");
             return this->getErrorText();
         }
         auto inter = str.substr(start + 1, idx - start - 1);
@@ -580,6 +579,7 @@ void RichTextArea::RichImpl::registerTag(const std::string& ir) {
         auto tag = std::ranges::find(m_tags, idStr, &RichTag::id);
         if (tag == m_tags.end()) {
             log::error("Could not find tag '{}'", idStr);
+            log::info("THIS SHOULD BE UNREACHABLE. REPORT THIS BUG TO THE GEODE DEVELOPERS");
             return this->getErrorText();
         }
 
@@ -604,7 +604,7 @@ void RichTextArea::RichImpl::registerTag(const std::string& ir) {
 }
 
 CCLabelBMFont* RichTextArea::RichImpl::getErrorText() {
-    auto ret = CCLabelBMFont::create("ERROR", "bigFont.fnt");
+    auto ret = CCLabelBMFont::create("ERROR", m_font.c_str());
     ret->setColor({ 255, 0, 0 });
     return ret;
 }
