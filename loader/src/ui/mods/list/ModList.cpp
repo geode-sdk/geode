@@ -53,7 +53,8 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_list = ScrollLayer::create(size);
     // scroll clipping doesn't make sense when its the main (and only) scroll layer onscreen
     m_list->enableScrollClipping(false);
-    this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
+    m_list->setAnchorPoint(ccp(0.5f, 0));
+    this->addChildAtPosition(m_list, Anchor::Bottom);
 
     m_topContainer = CCNode::create();
     m_topContainer->setID("top-container");

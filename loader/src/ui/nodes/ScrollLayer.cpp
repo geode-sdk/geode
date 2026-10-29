@@ -173,7 +173,7 @@ void ScrollLayer::Impl::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
 
 void ScrollLayer::Impl::setupScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical) {
     m_self->ignoreAnchorPointForPosition(false);
-    m_self->setAnchorPoint(CCPointZero);
+    m_self->setAnchorPoint(ccp(0.5f, 0.5f));
 
     m_scrollWheelEnabled = scrollWheelEnabled;
 
