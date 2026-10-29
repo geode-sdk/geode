@@ -200,17 +200,12 @@ public:
         auto inst = new QuickPopup;
         inst->m_selected = std::move(selected);
         inst->m_cancelledByEscape = cancelledByEscape;
+
         if (inst->init(
-                inst,
-                title.c_str(),
-                std::move(content),
-                btn1.c_str(),
-                btn2.empty() ? nullptr : btn2.c_str(),
-                width,
-                false,
-                .0f,
-                1.f
-            )) {
+            inst, title.c_str(), std::move(content),
+            btn1.c_str(), btn2.empty() ? nullptr : btn2.c_str(),
+            width, false, .0f, 1.f
+        )) {
             inst->autorelease();
             return inst;
         }
