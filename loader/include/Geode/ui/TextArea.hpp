@@ -82,7 +82,7 @@ namespace geode {
      * @example ```cpp
      * richTextArea->addRichTag(
      *     "tagID",
-     *     [](CCFontSprite* spr, std::string arg) {
+     *     [](CCFontSprite* spr, const std::string& arg) {
      *         // This function will manually modify every character
      *         // in the label. This class uses a combination of geode::Label and
      *         // CCLabelBMFont under the hood to make this possible
