@@ -7,6 +7,7 @@
 #include <Geode/modify/CCMouseDispatcher.hpp>
 #include <Geode/modify/CCTouchDispatcher.hpp>
 #include <Geode/modify/EditorUI.hpp>
+#include <Geode/modify/GJBaseGameLayer.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <vector>
 
@@ -481,8 +482,6 @@ struct ZOrderMouseDispatcher : Modify<ZOrderMouseDispatcher, CCMouseDispatcher> 
         return true;
     }
 };
-
-#include <Geode/modify/GJBaseGameLayer.hpp>
 
 struct ZOrderUILayerHelper : Modify<ZOrderUILayerHelper, GJBaseGameLayer> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Z Order based touch dispatcher");
