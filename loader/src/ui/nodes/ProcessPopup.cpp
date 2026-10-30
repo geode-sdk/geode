@@ -1,5 +1,6 @@
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/ProcessPopup.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
