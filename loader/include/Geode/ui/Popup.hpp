@@ -50,13 +50,13 @@ namespace geode {
         void keyDown(cocos2d::enumKeyCodes key, double p1) override;
 
         void setTitle(
-            ZStringView title,
+            std::string title,
             ZStringView font = "goldFont.fnt",
             float scale = .7f,
             float offset = 20.f
         );
 
-        void setCloseButtonSpr(cocos2d::CCNode* spr, float scale = 1.f);
+        void setCloseButtonSpr(CCNode* spr, float scale = 1.f);
 
         /**
          * Returns an event filter that listens for when this popup is closed
