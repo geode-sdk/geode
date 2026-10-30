@@ -8,8 +8,6 @@
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/MenuLayer.hpp>
-#include <Geode/binding/SetIDPopup.hpp>
-#include <Geode/binding/SetTextPopup.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
 #include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
@@ -28,13 +26,98 @@
 #include <Geode/utils/ranges.hpp>
 #include <loader/LoaderImpl.hpp>
 
+std::string ModsSetPagePopup::offsetPageStr(ZStringView current, int64_t by, size_t end) {
+    auto currentRes = numFromString<size_t>(current);
+    if (currentRes.isErr()) return "1";
+
+    auto cur = std::move(currentRes).unwrap();
+    auto to = cur + by;
+    if (cur < 1 || to < 1) return current;
+    if (cur > end || to > end) return numToString(end);
+    return numToString(to);
+};
+
+bool ModsSetPagePopup::init(size_t current, size_t begin, size_t end) {
+    if (!GeodePopup::init(210.f, 125.f)) return false;
+
+    this->setID("go-to-page"_spr);
+    this->setTitle("Go to Page");
+
+    auto input = TextInput::create(55.f, "Num");
+    input->setID("page-input");
+    input->setCommonFilter(CommonFilter::Uint);
+    m_mainLayer->addChildAtPosition(input, Anchor::Center);
+
+    auto prev = Button::createWithSpriteFrameName(
+        "edit_leftBtn_001.png",
+        [this, input, begin, end](auto) {
+            input->setString(this->offsetPageStr(input->getString(), -1, end));
+        }
+    );
+    prev->setScale(.925f);
+    m_mainLayer->addChildAtPosition(prev, Anchor::Center, {-45.f, .0f});
+
+    auto next = Button::createWithSpriteFrameName(
+        "edit_rightBtn_001.png",
+        [this, input, begin, end](auto) {
+            input->setString(this->offsetPageStr(input->getString(), 1, end));
+        }
+    );
+    next->setScale(.925f);
+    m_mainLayer->addChildAtPosition(next, Anchor::Center, {45.f, .0f});
+
+    auto reset = Button::createWithSpriteFrameName(
+        "GJ_resetBtn_001.png",
+        [input, current](auto) {
+            input->setString(numToString(current));
+        }
+    );
+    reset->setScale(.875f);
+    m_mainLayer->addChildAtPosition(reset, Anchor::TopRight, {-20.f, -20.f});
+
+    auto submit = Button::createWithNode(
+        createGeodeButton("Go", true),
+        [this, input, end](auto) {
+            auto res = numFromString<size_t>(input->getString());
+            if (res.isErr()) {
+                Notification::create("Invalid number!", NotificationIcon::Error)->show();
+                return;
+            }
+
+            size_t num = std::move(res).unwrap();
+            if (num > end) num = end;
+            if (num <= 0) num = 1;
+
+            m_callback(num);
+        }
+    );
+    submit->setID("submit-button");
+    submit->setScale(.825f);
+    m_mainLayer->addChildAtPosition(submit, Anchor::Bottom, {.0f, 22.5f});
+
+    return true;
+};
+
+void ModsSetPagePopup::setCallback(Callback cb) {
+    m_callback = std::move(cb);
+};
+
+ModsSetPagePopup* ModsSetPagePopup::create(size_t current, size_t begin, size_t end) {
+    auto ret = new ModsSetPagePopup();
+    if (ret->init(current, begin, end)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+};
+
 bool ModsStatusNode::init() {
-    if (!CCNode::init())
-        return false;
+    if (!CCNode::init()) return false;
 
     this->ignoreAnchorPointForPosition(false);
     this->setAnchorPoint({ .5f, 1.f });
-    this->setContentSize({ 300, 35 });
+    this->setContentSize({ 300.f, 35.f });
     this->setID("ModsStatusNode");
 
     m_statusBG = NineSlice::create("black-square.png"_spr);
@@ -307,8 +390,7 @@ ModsStatusNode* ModsStatusNode::create() {
 }
 
 bool ModsLayer::init() {
-    if (!CCLayer::init())
-        return false;
+    if (!CCLayer::init()) return false;
 
     this->setID("ModsLayer");
 
@@ -645,14 +727,18 @@ bool ModsLayer::init() {
     m_pageMenu->addChild(m_pageLabel);
 
     m_goToPageBtn = Button::createWithSpriteFrameName("gj_navDotBtn_on_001.png", [this](auto) {
-        auto popup = SetIDPopup::create(
+        auto popup = ModsSetPagePopup::create(
             m_lists.at(m_currentSource)->getPage() + 1,
-            1, m_currentSource->getPageCount().value(),
-            "Go to Page", "Go",
-            true, 1, 60.f, false, false
+            1, m_currentSource->getPageCount().value()
         );
-        popup->m_delegate = this;
-        popup->setID("go-to-page"_spr);
+        popup->setCallback([this, popup](size_t num) {
+            if (num > 0) num -= 1;
+            if (m_currentSource) {
+                m_lists.at(m_currentSource)->gotoPage(num);
+            }
+
+            popup->onClose(nullptr);
+        });
         popup->show();
     });
     m_goToPageBtn->setID("go-to-page-button");
@@ -775,15 +861,6 @@ void ModsLayer::keyDown(enumKeyCodes key, double p1) {
 
 void ModsLayer::keyBackClicked() {
     this->onBack();
-}
-
-void ModsLayer::setIDPopupClosed(SetIDPopup* popup, int num) {
-    if (popup->getID() == "go-to-page"_spr) {
-        if (num > 0) num -= 1;
-        if (m_currentSource) {
-            m_lists.at(m_currentSource)->gotoPage(num);
-        }
-    }
 }
 
 void ModsLayer::updateState() {

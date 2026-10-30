@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GeodeStyle.hpp"
+#include <Geode/Result.hpp>
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextArea.hpp>
@@ -7,8 +9,6 @@
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
-#include <Geode/binding/SetTextPopupDelegate.hpp>
-#include <Geode/binding/SetIDPopupDelegate.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
 #include "list/ModItem.hpp"
 #include "list/ModList.hpp"
@@ -18,6 +18,22 @@
 #include <Geode/loader/Setting.hpp>
 
 using namespace geode::prelude;
+
+class ModsSetPagePopup : public GeodePopup {
+protected:
+    using Callback = Function<void(size_t)>;
+
+    Callback m_callback = nullptr;
+
+    std::string offsetPageStr(ZStringView current, int64_t by, size_t end);
+
+    bool init(size_t current, size_t begin, size_t end);
+
+public:
+    static ModsSetPagePopup* create(size_t current, size_t begin, size_t end);
+
+    void setCallback(Callback cb);
+};
 
 class ModsStatusNode : public CCNode {
 protected:
@@ -52,7 +68,7 @@ public:
     static ModsStatusNode* create();
 };
 
-class ModsLayer : public CCLayer, public SetIDPopupDelegate {
+class ModsLayer : public CCLayer {
 protected:
     CCNode* m_frame;
     std::vector<Button*> m_tabs;
@@ -71,7 +87,6 @@ protected:
 
     void keyDown(enumKeyCodes key, double) override;
     void keyBackClicked() override;
-    void setIDPopupClosed(SetIDPopup*, int value) override;
 
     void onDisplay(ModListDisplay display);
     void onBack();
