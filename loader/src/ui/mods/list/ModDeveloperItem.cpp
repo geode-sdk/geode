@@ -1,25 +1,24 @@
 #include "ModDeveloperItem.hpp"
 
-#include "../UpdateModListState.hpp"
-#include "ui/mods/list/ModDeveloperItem.hpp"
-
-#include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/ui/Layout.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/platform/CCPlatformMacros.h>
-#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 #include <Geode/cocos/sprite_nodes/CCSprite.h>
+#include <Geode/DefaultInclude.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <Geode/ui/Label.hpp>
-#include <Geode/ui/Layout.hpp>
-#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/TextArea.hpp>
-#include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/ColorProvider.hpp>
 #include <ccTypes.h>
 #include <fmt/format.h>
+#include "ui/mods/list/ModDeveloperItem.hpp"
+#include "../UpdateModListState.hpp"
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 
 bool ModDeveloperItem::init(
     DevListPopup* popup,
@@ -28,23 +27,33 @@ bool ModDeveloperItem::init(
     std::optional<std::string> displayName,
     bool addMoreButton
 ) {
-    if (!CCNode::init()) return false;
-
+    if (!CCNode::init()) {
+        return false;
+    }
     m_popup = popup;
 
     this->setContentSize(size);
-    this->setAnchorPoint({0.5f, 0.5f});
+    this->setAnchorPoint({ 0.5f, 0.5f });
 
     ccColor4B bgColor = ColorProvider::get()->color("mod-developer-item-bg"_spr);
 
     m_bg = NineSlice::create("square02b_001.png");
     m_bg->setColor(to3B(bgColor));
     m_bg->setOpacity(bgColor.a);
-    m_bg->setScaleMultiplier(.3f);
-    m_bg->setContentSize({size.width, size.height});
-    this->addChildAtPosition(m_bg, Anchor::Center);
+    m_bg->setScale(.3f);
+    m_bg->setContentSize(CCSize {
+        size.width,
+        size.height
+    } / m_bg->getScale());
+    this->addChildAtPosition(
+        m_bg,
+        Anchor::Center
+    );
 
-    auto label = Label::create(displayName.has_value() ? std::move(*displayName) : developer, "bigFont.fnt");
+    auto label = Label::create(
+        displayName.has_value() ? std::move(*displayName) : developer,
+        "bigFont.fnt"
+    );
 
     // Left + Right + Space between
     constexpr float paddings = 30.0f;
@@ -53,7 +62,11 @@ bool ModDeveloperItem::init(
     label->setScale(0.4f);
     label->setAnchorPoint({0.0f, 0.5f});
 
-    this->addChildAtPosition(label, Anchor::Left, {5, 0});
+    this->addChildAtPosition(
+        label,
+        Anchor::Left,
+        {5, 0}
+    );
 
     if (addMoreButton) {
         auto menu = CCMenu::create();
@@ -61,10 +74,12 @@ bool ModDeveloperItem::init(
 
         auto more = createGeodeButton("More");
 
-        auto btn = CCMenuItemSpriteExtra::create(more, this, menu_selector(ModDeveloperItem::onMoreByThisDev));
+        auto btn = CCMenuItemSpriteExtra::create(
+            more, this, menu_selector(ModDeveloperItem::onMoreByThisDev)
+        );
         btn->setUserObject(CCString::create(developer));
         menu->addChild(btn);
-        menu->setContentSize({size.width / 2, size.height});
+        menu->setContentSize({size.width/2, size.height});
         menu->setScale(0.6f);
 
         menu->setLayout(
@@ -77,7 +92,11 @@ bool ModDeveloperItem::init(
                 ->setGap(5.0f)
         );
 
-        this->addChildAtPosition(menu, Anchor::Right, {-3, 0});
+        this->addChildAtPosition(
+            menu,
+            Anchor::Right,
+            {-3, 0}
+        );
     }
 
     return true;
@@ -97,7 +116,7 @@ ModDeveloperItem* ModDeveloperItem::create(
     bool addMoreButton
 ) {
     auto ret = new ModDeveloperItem();
-    if (ret->init(popup, std::move(developer), size, std::move(displayName), addMoreButton)) {
+    if (ret->init(popup, developer, size, displayName, addMoreButton)) {
         ret->autorelease();
         return ret;
     }

@@ -31,8 +31,8 @@ protected:
     };
 
     NineSlice* m_statusBG;
-    Label* m_status;
-    Label* m_statusPercentage;
+    geode::Label* m_status;
+    geode::Label* m_statusPercentage;
     Slider* m_progressBar;
     CCNode* m_loadingCircle;
     CCMenu* m_btnMenu;
@@ -63,7 +63,7 @@ protected:
     ModListSource* m_currentSource = nullptr;
     std::unordered_map<ModListSource*, Ref<ModList>> m_lists;
     CCMenu* m_pageMenu;
-    Label* m_pageLabel;
+    geode::Label* m_pageLabel;
     CCMenuItemSpriteExtra* m_goToPageBtn;
     ModsStatusNode* m_statusNode;
     ListenerHandle m_updateStateHandle;
