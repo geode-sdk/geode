@@ -112,6 +112,10 @@ void NumberInputPopup::setCallback(Callback cb) {
     m_impl->m_callback = std::move(cb);
 }
 
+void NumberInputPopup::resetCallback() {
+    m_impl->m_callback = nullptr;
+}
+
 NumberInputPopup* NumberInputPopup::create(
     int64_t current, int64_t min, int64_t max,
     std::string title, ZStringView btnText,
@@ -134,35 +138,3 @@ NumberInputPopup* NumberInputPopup::create(
     delete ret;
     return nullptr;
 }
-
-// testing this shit
-
-#include <Geode/ui/PopupManager.hpp>
-#include <Geode/modify/MenuLayer.hpp>
-
-class $modify(MenuLayer) {
-    bool init() {
-        if (!MenuLayer::init()) return false;
-
-        if (auto menu = getChildByID("main-menu")) menu->setVisible(false);
-
-        queueInMainThread([]() {
-            auto popup = NumberInputPopup::create(
-                5, 1, 100,
-                "Pick a number!", "Submit",
-                "GE_button_05.png"_spr, "GE_square01.png"_spr, CircleBaseColor::DarkPurple,
-                65.f
-            );
-            popup->setCallback([](NumberInputPopup* self, int64_t num) {
-                auto yes = num > random::generate<int64_t>(1, 100);
-                Notification::create(
-                    yes ? "Lucky!" : "Unlucky...",
-                    yes ? NotificationIcon::Success : NotificationIcon::Error
-                )->show();
-            });
-            popup->show();
-        });
-
-        return true;
-    };
-};
