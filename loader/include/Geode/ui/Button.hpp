@@ -237,6 +237,20 @@ namespace geode {
         virtual bool isEnabled();
 
         /**
+         * Set if the button swallows touches or not (default true)
+         */
+        void setSwallowTouches(bool swallow);
+        bool isSwallowingTouches();
+
+        /**
+         * Set the distance that must be dragged before the touch is cancelled.
+         * Useful for scroll layers in combination with swallow touches off.
+         * 0 = never cancel, default 0
+         */
+        void setDragCancelDistance(float distance);
+        float getDragCancelDistance();
+
+        /**
          * Get the selected state of the button
          */
         virtual bool isSelected();
