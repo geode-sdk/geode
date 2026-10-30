@@ -1,399 +1,488 @@
-#include "mods/ModsLayer.hpp"
-#include <Geode/cocos/base_nodes/CCNode.h>
-#include <Geode/loader/Dirs.hpp>
-#include <Geode/ui/GeodeUI.hpp>
-#include <Geode/ui/MDPopup.hpp>
-#include <Geode/ui/LoadingSpinner.hpp>
-#include <Geode/ui/Label.hpp>
-#include <Geode/ui/LazySprite.hpp>
-#include <Geode/utils/ColorProvider.hpp>
-#include <Geode/utils/web.hpp>
-#include <server/Server.hpp>
 #include "GeodeStyle.hpp"
-#include "mods/settings/ModSettingsPopup.hpp"
-#include "mods/settings/KeybindsPopup.hpp"
-#include "mods/popups/ModPopup.hpp"
 
-class LoadServerModLayer : public Popup {
-protected:
-    enum class MetadataLoaded {
-        NotLoaded = 0,
-        Loaded = 1,
-        Error = 2,
-    };
+#include <GUI/CCControlExtension/CCScale9Sprite.h>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/cocos/textures/CCTextureCache.h>
+#include <Geode/loader/ModEvent.hpp>
+#include <Geode/loader/Priority.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Style.hpp>
+#include <Geode/utils/ColorProvider.hpp>
+#include <Geode/utils/cocos.hpp>
 
-    std::string m_id;
-    ListenerHandle m_listenerHandle;
-    ListenerHandle m_versionListenerHandle;
-    arc::Notify m_metadataLoaded;
-    std::atomic<MetadataLoaded> m_metadataLoadedState{MetadataLoaded::NotLoaded};
-    async::TaskHolder<Result<server::ServerModMetadata, server::ServerError>> m_listener;
-    async::TaskHolder<Result<server::ServerModVersion, server::ServerError>> m_versionListener;
+using namespace geode::prelude;
 
-    std::optional<server::ServerModMetadata> m_loadedMod;
+$on_mod(Loaded) {
+    // todo: these names should probably be shorter so they fit in SSO...
+    ColorProvider::get()->define("mod-list-bg"_spr, {25, 17, 37, 255});
+    ColorProvider::get()->define("mod-list-version-label"_spr, ccc3(112, 235, 41));
+    ColorProvider::get()->define("mod-list-version-bg-updates-available"_spr, ccc3(88, 202, 255));
+    ColorProvider::get()->define("mod-list-version-label-updates-available"_spr, ccc3(88, 202, 255));
+    ColorProvider::get()->define("mod-list-version-bg-deprecated"_spr, ccc3(255, 135, 88));
+    ColorProvider::get()->define("mod-list-restart-required-label"_spr, ccc3(153, 245, 245));
+    ColorProvider::get()->define("mod-list-restart-required-label-bg"_spr, ccc3(123, 156, 163));
+    ColorProvider::get()->define("mod-list-outdated-label"_spr, ccc3(245, 153, 245));
+    ColorProvider::get()->define("mod-list-outdated-label-bg"_spr, ccc3(156, 123, 163));
+    ColorProvider::get()->define("mod-list-deprecated-label"_spr, ccc3(255, 135, 88));
+    ColorProvider::get()->define("mod-list-deprecated-label-bg"_spr, ccc3(175, 93, 60));
+    ColorProvider::get()->define("mod-list-search-bg"_spr, {83, 65, 109, 255});
+    ColorProvider::get()->define("mod-list-updates-available-bg"_spr, {139, 89, 173, 255});
+    ColorProvider::get()->define("mod-list-updates-available-bg-2"_spr, {45, 110, 222, 255});
+    ColorProvider::get()->define("mod-list-errors-found"_spr, {235, 35, 112, 255});
+    ColorProvider::get()->define("mod-list-errors-found-2"_spr, {245, 27, 27, 255});
+    ColorProvider::get()->define("mod-list-gray"_spr, {205, 205, 205, 255});
+    ColorProvider::get()->define("mod-list-tab-deselected-bg"_spr, {26, 24, 29, 255});
+    ColorProvider::get()->define("mod-list-tab-selected-bg"_spr, {168, 147, 185, 255});
+    ColorProvider::get()->define("mod-list-tab-selected-bg-alt"_spr, {147, 163, 185, 255});
+    ColorProvider::get()->define("mod-list-featured-color"_spr, {240, 211, 42, 255});
+    ColorProvider::get()->define("mod-list-enabled"_spr, {120, 255, 100, 255});
+    ColorProvider::get()->define("mod-list-disabled"_spr, {255, 120, 100, 255});
+    ColorProvider::get()->define("mod-list-recommended-bg"_spr, ccc3(25, 255, 167));
+    ColorProvider::get()->define("mod-list-recommended-by"_spr, ccc3(25, 255, 167));
+    ColorProvider::get()->define("mod-list-recommended-by-2"_spr, ccc3(47, 255, 255));
+    ColorProvider::get()->define("mod-problems-item-bg"_spr, {255, 255, 255, 15});
+    ColorProvider::get()->define("mod-developer-item-bg"_spr, {255, 255, 255, 15});
+    ColorProvider::get()->define("mod-list-paid-color"_spr, {0, 255, 63, 255});
 
-    bool init(std::string id) {
-        if (!Popup::init(180.f, 100.f, "square01_001.png"))
-            return false;
+    ColorProvider::get()->define("keybinds-list-category-label"_spr, ccc3(148, 116, 155));
 
-        m_closeBtn->setVisible(false);
+    // Only used when GD theme is active
+    ColorProvider::get()->define("mods-layer-gd-bg"_spr, {0, 102, 255, 255});
 
-        this->setTitle("Loading mod...");
+    ColorProvider::get()->define("swelvy-bg-0"_spr, {244, 212, 142, 255});
+    ColorProvider::get()->define("swelvy-bg-1"_spr, {245, 174, 125, 255});
+    ColorProvider::get()->define("swelvy-bg-2"_spr, {236, 137, 124, 255});
+    ColorProvider::get()->define("swelvy-bg-3"_spr, {213, 105, 133, 255});
+    ColorProvider::get()->define("swelvy-bg-4"_spr, {173, 84, 146, 255});
+    ColorProvider::get()->define("swelvy-bg-5"_spr, {113, 74, 154, 255});
 
-        auto spinner = LoadingSpinner::create(40);
-        m_mainLayer->addChildAtPosition(spinner, Anchor::Center, ccp(0, -10));
-
-        m_id = std::move(id);
-
-        m_listener.spawn(
-            server::getMod(m_id),
-            [this](auto result) {
-                this->onModRequest(std::move(result));
-            }
-        );
-
-        return true;
-    }
-
-    void onModRequest(Result<server::ServerModMetadata, server::ServerError> result) {
-        if (result.isOk()) {
-            // Copy info first as onClose may free the listener which will free the event
-            auto info = std::move(result).unwrap();
-            m_loadedMod = std::move(info);
-
-            m_metadataLoadedState.store(MetadataLoaded::Loaded);
-
-            m_versionListener.spawn(
-                server::getModVersion(m_id),
-                [this](auto result) {
-                    this->onVersionRequest(std::move(result));
-                }
+    auto updateColors = +[](std::string_view themeName) {
+        std::string theme;
+        ThemeIDProvidingEvent().send(theme);
+        if (theme == "geometry-dash") {
+            ColorProvider::get()->override("mod-list-bg"_spr, {168, 85, 44, 255});
+            ColorProvider::get()->override(
+                "mod-list-version-bg-updates-available"_spr, {220, 190, 0, 120}
             );
+            ColorProvider::get()->override("mod-list-search-bg"_spr, {114, 63, 31, 255});
+            ColorProvider::get()->override("mod-list-tab-deselected-bg"_spr, {54, 31, 16, 255});
+            ColorProvider::get()->override("mod-list-tab-selected-bg"_spr, {248, 200, 43, 255});
+            ColorProvider::get()->override("mod-list-tab-selected-bg-alt"_spr, {156, 185, 147, 255});
+            ColorProvider::get()->override("mod-list-restart-required-label"_spr, ccc3(10, 226, 255));
+            ColorProvider::get()->override("mod-list-restart-required-label-bg"_spr, ccc3(0, 174, 180));
+            ColorProvider::get()->override("mod-list-errors-found"_spr, {255, 0, 0, 255});
+            ColorProvider::get()->override("mod-list-errors-found-2"_spr, {235, 35, 112, 255});
+            ColorProvider::get()->override("mod-problems-item-bg"_spr, {0, 0, 0, 75});
+            ColorProvider::get()->override("mod-developer-item-bg"_spr, {0, 0, 0, 75});
+            ColorProvider::get()->override("keybinds-list-category-label"_spr, ccc3(156, 185, 147));
         }
         else {
-            this->onClose(nullptr);
-            FLAlertLayer::create(
-                "Error Loading Mod",
-                fmt::format("Unable to find mod with the ID <cr>{}</c>!", m_id),
-                "OK"
-            )->show();
-
-            m_metadataLoadedState.store(MetadataLoaded::Error);
+            if (theme == "rainbow") {
+                ColorProvider::get()->override("swelvy-bg-0"_spr, {216, 132, 132, 255});
+                ColorProvider::get()->override("swelvy-bg-1"_spr, {210, 189, 119, 255});
+                ColorProvider::get()->override("swelvy-bg-2"_spr, {195, 212, 136, 255});
+                ColorProvider::get()->override("swelvy-bg-3"_spr, {95, 184, 134, 255});
+                ColorProvider::get()->override("swelvy-bg-4"_spr, {100, 174, 189, 255});
+                ColorProvider::get()->override("swelvy-bg-5"_spr, {118, 90, 148, 255});
+            }
+            else if (theme == "geode") {
+                ColorProvider::get()->reset("swelvy-bg-0"_spr);
+                ColorProvider::get()->reset("swelvy-bg-1"_spr);
+                ColorProvider::get()->reset("swelvy-bg-2"_spr);
+                ColorProvider::get()->reset("swelvy-bg-3"_spr);
+                ColorProvider::get()->reset("swelvy-bg-4"_spr);
+                ColorProvider::get()->reset("swelvy-bg-5"_spr);
+            }
+            ColorProvider::get()->reset("mod-list-bg"_spr);
+            ColorProvider::get()->reset("mod-list-version-bg-updates-available"_spr);
+            ColorProvider::get()->reset("mod-list-search-bg"_spr);
+            ColorProvider::get()->reset("mod-list-tab-deselected-bg"_spr);
+            ColorProvider::get()->reset("mod-list-tab-selected-bg"_spr);
+            ColorProvider::get()->reset("mod-list-tab-selected-bg-alt"_spr);
+            ColorProvider::get()->reset("mod-list-restart-required-label"_spr);
+            ColorProvider::get()->reset("mod-list-restart-required-label-bg"_spr);
+            ColorProvider::get()->reset("mod-problems-item-bg"_spr);
+            ColorProvider::get()->reset("mod-developer-item-bg"_spr);
+            ColorProvider::get()->reset("keybinds-list-category-label"_spr);
         }
-        m_metadataLoaded.notifyOne(true);
-    }
+    };
 
-    void onVersionRequest(Result<server::ServerModVersion, server::ServerError> result) {
-        // this is promised non optional by this point
-        auto info = std::move(*m_loadedMod);
+    // Update colors when the theme is changed
+    listenForSettingChanges<std::string_view>("used-theme", updateColors);
 
-        if (result.isOk()) {
-            // i don't actually think there's a better way to do this
-            // sorry guys
+    Loader::get()->queueInMainThread([updateColors = updateColors] {
+        // this code is ran during static init, where settings aren't loaded yet, and
+        // getSettingValue will always return false. because of that, we have to delay it until next
+        // frame.
+        updateColors(Mod::get()->getSettingValue<std::string_view>("used-theme"));
 
-            info.versions = {std::move(result).unwrap()};
+        if (Mod::get()->getSettingValue<bool>("enable-geode-theme")) {
+            Mod::get()->setSettingValue<std::string_view>("used-theme", "Geode");
+            Mod::get()->setSettingValue<bool>("enable-geode-theme", false);
         }
+    });
 
-        // if there's an error, just load whatever the last fetched version was
-        // (this can happen for mods not on current gd version)
+    ThemeIDProvidingEvent()
+        .listen(
+            [](std::string& idOut) {
+                if (!idOut.empty()) return; // someone overrode it already
 
-        this->onClose(nullptr);
-        // Run this on next frame because otherwise the popup is unable to call server::getMod for some reason
-        Loader::get()->queueInMainThread([info = std::move(info)]() mutable {
-            ModPopup::create(ModSource(std::move(info)))->show();
-        });
-    }
-
-public:
-    arc::Future<bool> listen() const {
-        co_await m_metadataLoaded.notified();
-        m_metadataLoaded.notifyOne(true);
-        co_return m_metadataLoadedState.load() == MetadataLoaded::Loaded;
-    }
-
-    static LoadServerModLayer* create(std::string id) {
-        auto ret = new LoadServerModLayer();
-        if (ret->init(std::move(id))) {
-            ret->autorelease();
-            return ret;
-        }
-        delete ret;
-        return nullptr;
-    }
-};
-
-void geode::openModsList() {
-    ModsLayer::scene();
+                auto theme = Mod::get()->getSettingValue<std::string_view>("used-theme");
+                static std::unordered_map<std::string_view, std::string> themeMap = {
+                    {"Geode", "geode"},
+                    {"Geometry Dash", "geometry-dash"},
+                    {"Rainbow", "rainbow"},
+                    {"Sapphire", "sapphire"},
+                };
+                if (themeMap.contains(theme)) {
+                    idOut = themeMap[theme];
+                }
+                else {
+                    // default fallback provided by us
+                    idOut = "geode";
+                }
+                return;
+            },
+            Priority::Last
+        )
+        .leak();
 }
 
-void geode::openIssueReportPopup(Mod* mod) {
-    if (mod->getMetadata().getIssues()) {
-        MDPopup::create(
-            "Issue Report",
-                fmt::format(
-                    "Please report the issue to the mod that caused the crash.\n"
-                    "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-                    "latest crash log(s) from `{}`",
-                    dirs::getCrashlogsDir()
-                ),
-            "OK", "Open Folder",
-            [mod](bool btn2) {
-                if (btn2) {
-                    file::openFolder(dirs::getCrashlogsDir());
-                    return;
-                }
+ButtonSprite* createTagLabel(ZStringView text, std::pair<ccColor3B, ccColor3B> const& color) {
+    auto label = ButtonSprite::create(text.c_str(), "bigFont.fnt", "white-square.png"_spr, .8f);
+    label->m_label->setColor(color.first);
+    label->m_BGSprite->setColor(color.second);
+    return label;
+}
 
-                auto issues = mod->getMetadata().getIssues();
-                if (issues && issues->getURL()) {
-                    auto& url = *issues->getURL();
-                    web::openLinkInBrowser(url);
-                }
-            }
-        )->show();
+IconButtonSprite* createTagLabelWithIcon(
+    CCNode* icon, ZStringView text, std::pair<ccColor3B, ccColor3B> const& color
+) {
+    auto label = IconButtonSprite::create("white-square.png"_spr, icon, text.c_str(), "bigFont.fnt");
+    label->getLabel()->setColor(color.first);
+    label->getBg()->setColor(color.second);
+    return label;
+}
+
+ButtonSprite* createGeodeTagLabel(server::ServerTag const& tag) {
+    return createTagLabel(tag.displayName, geodeTagColors(tag));
+}
+
+std::pair<ccColor3B, ccColor3B> geodeTagColors(server::ServerTag const& tag) {
+    static std::array TAG_COLORS{
+        std::make_pair(ccc3(240, 233, 255), ccc3(130, 123, 163)),
+        std::make_pair(ccc3(234, 255, 245), ccc3(123, 163, 136)),
+        std::make_pair(ccc3(240, 252, 255), ccc3(123, 152, 163)),
+        std::make_pair(ccc3(255, 253, 240), ccc3(163, 157, 123)),
+        std::make_pair(ccc3(255, 242, 240), ccc3(163, 128, 123)),
+    };
+    if (tag.name == "modtober24") {
+        return std::make_pair(ccc3(225, 236, 245), ccc3(82, 139, 201));
+    }
+    if (tag.name == "api") {
+        return std::make_pair(ccc3(173, 190, 217), ccc3(128, 132, 140));
+    }
+    return TAG_COLORS[hash(tag.name) % 5932 % TAG_COLORS.size()];
+}
+
+ListBorders* geode::createGeodeListBorders(CCSize const& size, bool forceDisableTheme) {
+    auto ret = ListBorders::create();
+    bool const geodeTheme = isGeodeTheme(forceDisableTheme);
+    if (geodeTheme) {
+        ret->setSpriteFrames("geode-list-top.png"_spr, "geode-list-side.png"_spr, 2);
+        ret->setContentSize(size);
     }
     else {
-        MDPopup::create(
-            "Issue Report",
-            fmt::format(
-                "Please report your issue on the "
-                "[#support](https://discord.com/channels/911701438269386882/979352389985390603) "
-                "channel in the [Geode Discord Server](https://discord.gg/9e43WMKzhp)\n\n"
-                "If your issue relates to a <cr>game crash</c>, <cb>please include</c> the "
-                "latest crash log(s) from `{}`",
-                dirs::getCrashlogsDir()
-            ),
-            "OK"
-        )->show();
+        ret->setContentSize(size + ccp(5, 5));
+    }
+    return ret;
+}
+
+bool geode::isGeodeTheme(bool forceDisableTheme) {
+    if (forceDisableTheme) return false;
+    if (Mod::get()->getSettingValue<bool>("enable-geode-theme")) return true;
+    std::string theme;
+    ThemeIDProvidingEvent().send(theme);
+    return theme != "geometry-dash";
+}
+
+bool GeodePopup::init(float width, float height, GeodePopupStyle style, bool forceDisableTheme) {
+    m_forceDisableTheme = forceDisableTheme;
+
+    bool const geodeTheme = isGeodeTheme(forceDisableTheme);
+    ZStringView bg;
+    switch (style) {
+        default:
+        case GeodePopupStyle::Default:
+            bg = geodeTheme ? "GE_square01.png"_spr : "GJ_square01.png";
+            break;
+        case GeodePopupStyle::Alt:
+            bg = geodeTheme ? "GE_square02.png"_spr : "GJ_square02.png";
+            break;
+        case GeodePopupStyle::Alt2:
+            bg = geodeTheme ? "GE_square03.png"_spr : "GJ_square02.png";
+            break;
+    }
+
+    if (!Popup::init(width, height, bg.c_str())) return false;
+
+    this->setCloseButtonSpr(
+        CircleButtonSprite::createWithSpriteFrameName(
+            "close.png"_spr,
+            .85f,
+            (geodeTheme ? (style == GeodePopupStyle::Default ? CircleBaseColor::DarkPurple :
+                                                               CircleBaseColor::DarkAqua) :
+                          CircleBaseColor::Green)
+        )
+    );
+
+    return true;
+}
+
+class GeodeSquareSprite::Impl final {
+public:
+    bool* m_stateSrc = nullptr;
+    bool m_state = false;
+    bool m_forceDisableTheme = false;
+    CCSprite* m_topSprite;
+};
+
+GeodeSquareSprite::GeodeSquareSprite() : m_impl(std::make_unique<Impl>()) {};
+GeodeSquareSprite::~GeodeSquareSprite() {};
+
+bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme) {
+    if (!CCSprite::initWithFile(
+            isGeodeTheme(forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png"
+        ))
+        if (!CCSprite::initWithFile("GJ_button_01.png")) return false;
+
+    m_impl->m_stateSrc = state;
+    m_impl->m_topSprite = top;
+    m_impl->m_forceDisableTheme = forceDisableTheme;
+
+    limitNodeSize(top, m_obContentSize * .65f, 2.f, .1f);
+    this->addChildAtPosition(top, Anchor::Center);
+
+    // Only schedule update if there is a need to do so
+    if (state != nullptr) {
+        this->scheduleUpdate();
+    }
+
+    return true;
+}
+
+void GeodeSquareSprite::updateImage() {
+    this->setTexture(
+        CCTextureCache::get()->addImage(
+            (m_impl->m_state ? "GJ_button_02.png" :
+                               (isGeodeTheme(m_impl->m_forceDisableTheme) ? "GE_button_05.png"_spr :
+                                                                            "GJ_button_01.png")),
+            false
+        )
+    );
+}
+
+void GeodeSquareSprite::update(float dt) {
+    CCSprite::update(dt);
+    if (m_impl->m_stateSrc && m_impl->m_state != *m_impl->m_stateSrc) {
+        m_impl->m_state = *m_impl->m_stateSrc;
+        this->updateImage();
     }
 }
 
-void geode::openSupportPopup(Mod* mod) {
-    openSupportPopup(mod->getMetadata());
-}
-
-void geode::openSupportPopup(ModMetadata const& metadata) {
-    MDPopup::create(
-        fmt::format("Support {}", metadata.getName()),
-        metadata.getSupportInfo().value_or(
-            "Developing mods takes a lot of time and effort! "
-            "Consider <cy>supporting the developers</c> of your favorite mods "
-            "to show them thanks for all their hard work <3"
-        ),
-        "OK"
-    )->show();
-}
-
-void geode::openInfoPopup(Mod* mod) {
-    ModPopup::create(mod)->show();
-}
-std::optional<arc::TaskHandle<bool>> geode::openInfoPopup(std::string modID) {
-    if (auto mod = Loader::get()->getInstalledMod(modID)) {
-        openInfoPopup(mod);
-        return std::nullopt;
+GeodeSquareSprite* GeodeSquareSprite::create(ZStringView top, bool* state, bool forceDisableTheme) {
+    auto ret = new GeodeSquareSprite();
+    if (ret->init(CCSprite::create(top.c_str()), state, forceDisableTheme)) {
+        ret->autorelease();
+        return ret;
     }
-
-    auto popup = LoadServerModLayer::create(std::move(modID));
-    return async::spawn([popup = Ref(popup)] mutable -> arc::Future<bool> {
-        auto ret = co_await popup->listen();
-        if (ret) {
-            geode::queueInMainThread([popup = std::move(popup)] {
-                popup->show();
-            });
-        }
-
-        // move it again to avoid destroying in async code, yes this is a potential double move but it doesn't really matter
-        geode::queueInMainThread([popup = std::move(popup)] {});
-
-        co_return ret;
-    });
-}
-
-void geode::openChangelogPopup(Mod* mod) {
-    auto popup = ModPopup::create(mod);
-    popup->loadTab(ModPopup::Tab::Changelog);
-    popup->show();
-}
-
-void geode::openSettingsPopup(Mod* mod) {
-    openSettingsPopup(mod, true);
-}
-Popup* geode::openSettingsPopup(Mod* mod, bool disableGeodeTheme) {
-    if (mod->hasSettings()) {
-        auto popup = ModSettingsPopup::create(mod, disableGeodeTheme);
-        popup->show();
-        return popup;
-    }
+    delete ret;
     return nullptr;
 }
 
-Popup* geode::openKeybindsPopup(std::optional<KeybindCategory> category, Mod* mod) {
-    auto tab = KeybindsPopupTab::All;
-    if (category) switch (*category) {
-        case KeybindCategory::Universal: tab = KeybindsPopupTab::Universal; break;
-        case KeybindCategory::Gameplay: tab = KeybindsPopupTab::Gameplay; break;
-        case KeybindCategory::Editor: tab = KeybindsPopupTab::Editor; break;
+GeodeSquareSprite* GeodeSquareSprite::createWithSpriteFrameName(
+    ZStringView top, bool* state, bool forceDisableTheme
+) {
+    auto ret = new GeodeSquareSprite();
+    if (ret->init(CCSprite::createWithSpriteFrameName(top.c_str()), state, forceDisableTheme)) {
+        ret->autorelease();
+        return ret;
     }
-
-    auto popup = KeybindsPopup::create(tab, mod);
-    popup->show();
-    return popup;
+    delete ret;
+    return nullptr;
 }
 
-using ModLogoSrc = std::variant<Mod*, std::string, asp::fs::Path>;
+CCSprite* GeodeSquareSprite::getTopSprite() const {
+    return m_impl->m_topSprite;
+}
 
-class ModLogoSprite : public CCNodeRGBA {
-protected:
-    LazySprite* m_sprite;
-    std::string m_modID;
-    async::TaskHolder<Result<ByteVector, server::ServerError>> m_listener;
-
-    bool init(ModLogoSrc&& src) {
-        if (!CCNode::init())
-            return false;
-
-        this->setAnchorPoint({ .5f, .5f });
-        this->setContentSize({ 50, 50 });
-
-        m_sprite = LazySprite::create(this->getContentSize());
-        this->addChildAtPosition(m_sprite, Anchor::Center);
-
-        std::visit(makeVisitor {
-            [this](Mod* mod) {
-                m_modID = mod->getID();
-
-                m_sprite->setLoadCallback([this](Result<> res) {
-                    this->onLoaded(std::move(res));
-                });
-
-                // Load from Resources
-                if (!mod->isInternal()) {
-                    m_sprite->loadFromFile(dirs::getModRuntimeDir() / mod->getID() / "logo.png");
-                } else {
-                    // We only support lazySprite for this because i have no idea how to better integrate this
-                    auto listener = NodeProvidingEvent("geode-mod-logo-sprite"_spr).listen([this](cocos2d::CCNode*& nodeOut, std::string_view theme) -> void {
-                        auto sprite = typeinfo_cast<LazySprite*>(nodeOut);
-                        if (!sprite) return; // someone overrode it, which will probably break maybe
-
-                        if (theme == "rainbow") {
-                            m_sprite->initWithSpriteFrameName("geode-logo-alternate.png"_spr);
-                        }
-                        else if (theme == "sapphire") {
-                            m_sprite->initWithSpriteFrameName("sapphire-logo.png"_spr);
-                        }
-                        else {
-                            m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
-                        }
-                    }, Priority::Last);
-                    CCNode* ptr = m_sprite;
-                    NodeProvidingEvent("geode-mod-logo-sprite"_spr).send(ptr);
-
-                    // fallback
-                    if (ptr != m_sprite) {
-                        m_sprite->initWithSpriteFrameName("geode-logo.png"_spr);
-                    }
-                }
-            },
-            [this](std::string const& id) {
-                m_modID = id;
-
-                // Asynchronously fetch from server
-                m_listener.spawn(
-                    server::getModLogo(id),
-                    [this](auto result) {
-                        this->onFetch(std::move(result));
-                    }
-                );
-            },
-            [this](asp::fs::Path const& path) {
-                m_sprite->setLoadCallback([this](Result<> res) {
-                    this->onLoaded(std::move(res));
-                });
-
-                if (auto unzip = file::Unzip::create(path)) {
-                    if (auto logo = unzip.unwrap().extract("logo.png")) {
-                        m_sprite->loadFromData(std::move(logo).unwrap());
-                    }
-                }
-
-                // if the logo.png was not found then switch to fallback label
-                if (!m_sprite->isLoading()) {
-                    this->onLoadFailed(true);
-                }
-            },
-        }, src);
-
-        // This is a default ID, nothing should ever rely on the ID of any ModLogoSprite being this
-        this->setID(Mod::get()->expandSpriteName(fmt::format("sprite-{}", m_modID)));
-
-        ModLogoUIEvent().send(this, m_modID, std::nullopt);
-
-        return true;
+void GeodeSquareSprite::setState(bool state) {
+    if (!m_impl->m_stateSrc) {
+        m_impl->m_state = state;
+        this->updateImage();
     }
+}
 
-    void doPostEvent() {
-        ModLogoUIEvent().send(this, m_modID, std::nullopt);
-    }
+CCNode* geode::createLoadingCircle(float sideLength, ZStringView id) {
+    auto spinner = LoadingSpinner::create(sideLength);
+    spinner->setID(id);
+    return spinner;
+}
 
-    void onLoaded(Result<> res) {
-        if (!res) {
-            log::debug("Failed to load image: {}", res.err().value_or(std::string{}));
-            this->onLoadFailed(true);
-            return;
-        }
-
-        limitNodeSize(m_sprite, m_obContentSize, 99.f, 0.f);
-        this->doPostEvent();
-    }
-
-    void onLoadFailed(bool postEvent) {
-        // Fallback to default logo if the image failed to load
-        auto sprite = Label::create("N/A", "bigFont.fnt");
-        sprite->setPosition(this->getScaledContentSize() / 2.f + CCSize{1.f, 2.f});
-        sprite->setOpacity(90);
-        limitNodeSize(sprite, m_obContentSize, 99.f, 0.f);
-        this->addChildAtPosition(sprite, Anchor::Center);
-
-        this->doPostEvent();
-    }
-
-    void onFetch(Result<ByteVector, server::ServerError> result) {
-        // Set default sprite on error
-        if (result.isErr()) {
-            this->onLoadFailed(true);
-        }
-        // Otherwise load downloaded sprite to memory
-        else {
-            m_sprite->setLoadCallback([this](Result<> res) {
-                this->onLoaded(std::move(res));
-            });
-            m_sprite->loadFromData(std::move(result).unwrap());
+ZStringView geode::getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDisableTheme) {
+    if (isGeodeTheme(forceDisableTheme)) {
+        switch (spr) {
+            default:
+            case GeodeButtonSprite::Default: return "GE_button_05.png"_spr;
+            case GeodeButtonSprite::Install: return "GE_button_01.png"_spr;
+            case GeodeButtonSprite::Delete: return "GJ_button_06.png";
+            case GeodeButtonSprite::Enable: return "GJ_button_01.png";
+            case GeodeButtonSprite::Gray: return "GJ_button_05.png";
         }
     }
+    else {
+        switch (spr) {
+            default:
+            case GeodeButtonSprite::Default: return "GJ_button_01.png";
+            case GeodeButtonSprite::Install: return "GE_button_01.png"_spr;
+            case GeodeButtonSprite::Delete: return "GJ_button_06.png";
+            case GeodeButtonSprite::Enable: return "GJ_button_02.png";
+            case GeodeButtonSprite::Gray: return "GJ_button_05.png";
+        }
+    }
+}
 
+IconButtonSprite* geode::createGeodeButton(
+    CCNode* icon, ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme
+) {
+    return IconButtonSprite::create(
+        getGeodeButtonSpriteName(bg, forceDisableTheme).c_str(),
+        icon,
+        text.c_str(),
+        gold ? "goldFont.fnt" : "bigFont.fnt"
+    );
+}
+
+IconButtonSprite* geode::createGeodeButton(
+    CCNode* icon, ZStringView text, GeodeButtonSprite bg, bool forceDisableTheme
+) {
+    return createGeodeButton(icon, text, false, bg, forceDisableTheme);
+}
+
+ButtonSprite* geode::createGeodeButton(
+    ZStringView text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme
+) {
+    return ButtonSprite::create(
+        text.c_str(),
+        width,
+        absolute,
+        gold ? "goldFont.fnt" : "bigFont.fnt",
+        getGeodeButtonSpriteName(bg, forceDisableTheme).c_str(),
+        0.0f,
+        .8f
+    );
+}
+
+ButtonSprite* geode::createGeodeButton(
+    ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme
+) {
+    return ButtonSprite::create(
+        text.c_str(),
+        gold ? "goldFont.fnt" : "bigFont.fnt",
+        getGeodeButtonSpriteName(bg, forceDisableTheme).c_str(),
+        .8f
+    );
+}
+
+CircleButtonSprite* geode::createGeodeCircleButton(
+    CCSprite* top, float scale, CircleBaseSize size, bool altColor, bool forceDisableTheme
+) {
+    auto const geodeTheme = isGeodeTheme(forceDisableTheme);
+    auto ret = CircleButtonSprite::create(
+        top,
+        geodeTheme ? (altColor ? CircleBaseColor::DarkAqua : CircleBaseColor::DarkPurple) :
+                     CircleBaseColor::Green,
+        size
+    );
+    ret->setTopRelativeScale(scale);
+    return ret;
+}
+
+class GeodeTabSprite::Impl final {
 public:
-    static ModLogoSprite* create(ModLogoSrc&& src) {
-        auto ret = new ModLogoSprite();
-        if (ret->init(std::move(src))) {
-            ret->autorelease();
-            return ret;
-        }
-        delete ret;
-        return nullptr;
-    }
+    NineSlice* m_deselectedBG = nullptr;
+    NineSlice* m_selectedBG = nullptr;
+    cocos2d::CCSprite* m_icon = nullptr;
+    Label* m_label = nullptr;
 };
 
-CCNode* geode::createDefaultLogo() {
-    return ModLogoSprite::create(ModLogoSrc(nullptr));
+GeodeTabSprite::GeodeTabSprite() : m_impl(std::make_unique<Impl>()) {};
+GeodeTabSprite::~GeodeTabSprite() {};
+
+bool GeodeTabSprite::init(ZStringView iconFrame, std::string text, float width, bool altColor) {
+    if (!CCNode::init()) return false;
+
+    CCSize const itemSize{width, 35};
+    CCSize const iconSize{18, 18};
+
+    this->setContentSize(itemSize);
+    this->setAnchorPoint({.5f, .5f});
+
+    m_impl->m_deselectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
+    m_impl->m_deselectedBG->setScale(.8f);
+    m_impl->m_deselectedBG->setContentSize(itemSize / .8f);
+    m_impl->m_deselectedBG->setColor("mod-list-tab-deselected-bg"_cc3b);
+    this->addChildAtPosition(m_impl->m_deselectedBG, Anchor::Center);
+
+    m_impl->m_selectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
+    m_impl->m_selectedBG->setScale(.8f);
+    m_impl->m_selectedBG->setContentSize(itemSize / .8f);
+    m_impl->m_selectedBG->setColor(to3B(
+        ColorProvider::get()->color(
+            altColor ? "mod-list-tab-selected-bg-alt"_spr : "mod-list-tab-selected-bg"_spr
+        )
+    ));
+    this->addChildAtPosition(m_impl->m_selectedBG, Anchor::Center);
+
+    m_impl->m_icon = CCSprite::createWithSpriteFrameName(iconFrame.c_str());
+    limitNodeSize(m_impl->m_icon, iconSize, 3.f, .1f);
+    this->addChildAtPosition(m_impl->m_icon, Anchor::Left, ccp(16, 0), false);
+
+    m_impl->m_label = Label::create(std::move(text), "bigFont.fnt");
+    m_impl->m_label->setLimitLabelWidth(
+        this->getContentWidth() - 45, std::clamp(width * .0045f, .35f, .55f), .1f
+    );
+    m_impl->m_label->setAnchorPoint({.5f, .5f});
+    this->addChildAtPosition(
+        m_impl->m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false
+    );
+
+    return true;
 }
 
-CCNode* geode::createModLogo(Mod* mod) {
-    return ModLogoSprite::create(ModLogoSrc(mod));
+GeodeTabSprite* GeodeTabSprite::create(
+    ZStringView iconFrame, std::string text, float width, bool altColor
+) {
+    auto ret = new GeodeTabSprite();
+    if (ret->init(iconFrame, std::move(text), width, altColor)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
 }
 
-CCNode* geode::createModLogo(asp::fs::PathView geodePackage) {
-    return ModLogoSprite::create(ModLogoSrc(asp::fs::Path{geodePackage}));
+void GeodeTabSprite::select(bool selected) {
+    m_impl->m_deselectedBG->setVisible(!selected);
+    m_impl->m_selectedBG->setVisible(selected);
 }
 
-CCNode* geode::createServerModLogo(std::string id) {
-    return ModLogoSprite::create(ModLogoSrc(std::move(id)));
+void GeodeTabSprite::disable(bool disabled) {
+    auto color = disabled ? ccc3(95, 95, 95) : ccc3(255, 255, 255);
+    m_impl->m_deselectedBG->setColor(color);
+    m_impl->m_selectedBG->setColor(color);
+    m_impl->m_icon->setColor(color);
+    m_impl->m_label->setColor(color);
 }

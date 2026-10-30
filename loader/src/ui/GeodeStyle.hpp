@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Geode/ui/Style.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/Popup.hpp>
+#include <Geode/ui/Style.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <server/Server.hpp>
 
