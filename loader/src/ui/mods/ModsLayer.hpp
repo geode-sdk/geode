@@ -71,7 +71,7 @@ public:
 class ModsLayer : public CCLayer {
 protected:
     CCNode* m_frame;
-    std::vector<Button*> m_tabs;
+    std::vector<Ref<Button>> m_tabs;
     ModListSource* m_currentSource = nullptr;
     std::unordered_map<ModListSource*, Ref<ModList>> m_lists;
     CCNode* m_pageMenu;
@@ -80,7 +80,7 @@ protected:
     ModsStatusNode* m_statusNode;
     ListenerHandle m_updateStateHandle;
     bool m_showSearch = true;
-    std::vector<Button*> m_displayBtns;
+    std::vector<Ref<Button>> m_displayBtns;
     ModListDisplay m_modListDisplay;
 
     bool init();
