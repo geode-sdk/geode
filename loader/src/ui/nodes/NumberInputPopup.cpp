@@ -19,7 +19,7 @@ public:
         if (to > max) return numToString(max);
 
         return numToString(to);
-    };
+    }
 };
 
 NumberInputPopup::NumberInputPopup() : m_impl(std::make_unique<Impl>()) {}
