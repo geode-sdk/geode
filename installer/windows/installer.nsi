@@ -55,6 +55,7 @@
     !insertmacro GEODE_LANGUAGE "SpanishInternational"
     !insertmacro GEODE_LANGUAGE "Italian"
     !insertmacro GEODE_LANGUAGE "Swedish"
+    !insertmacro GEODE_LANGUAGE "Hungarian"
     !insertmacro GEODE_LANGUAGE "Greek"
     !insertmacro GEODE_LANGUAGE "Finnish"
     !insertmacro GEODE_LANGUAGE "Polish"
