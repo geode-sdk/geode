@@ -1,6 +1,8 @@
 #pragma once
 
+#include "BasedButtonSprite.hpp"
 #include "Popup.hpp"
+
 #include <Geode/utils/function.hpp>
 
 namespace geode {

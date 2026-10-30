@@ -1,6 +1,8 @@
 #include <Geode/ui/NumberInputPopup.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/general.hpp>
 
 using namespace geode::prelude;
 
@@ -47,7 +49,7 @@ bool NumberInputPopup::init(int64_t current, int64_t min, int64_t max, std::stri
     );
     m_mainLayer->addChildAtPosition(container, Anchor::Center);
 
-    auto input = TextInput::create((inputWidth > maxWidth) ? maxWidth : inputWidth, "Num");
+    auto input = TextInput::create((inputWidth <= maxWidth) ? inputWidth : maxWidth, "Num");
     input->setID("page-input");
     input->setCommonFilter(CommonFilter::Int);
     input->setString(numToString(current));
