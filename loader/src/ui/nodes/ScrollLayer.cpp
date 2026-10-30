@@ -110,6 +110,9 @@ void ScrollLayer::Impl::visit() {
 
 bool ScrollLayer::Impl::scrollWheel(float y, float x) {
     if (m_scrollWheelEnabled) {
+        if (!geode::cocos::nodeIsVisible(m_self))
+            return false;
+
         if (m_scrollClipping) {
             #ifdef GEODE_IS_DESKTOP
             if (!pointInsideRect(geode::cocos::getMousePos()))
