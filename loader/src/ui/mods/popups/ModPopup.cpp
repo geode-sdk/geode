@@ -3,6 +3,7 @@
 #include "../../../internal/about.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include "ConfirmUninstallPopup.hpp"
+#include "DevPopup.hpp"
 #include "server/DownloadManager.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
@@ -115,7 +116,8 @@ bool ModPopup::init(ModSource&& src) {
     auto leftColumn = CCNode::create();
     leftColumn->setContentSize({145.f, mainContainer->getContentHeight()});
 
-    m_titleContainer = CCMenu::create();
+    m_titleContainer = CCNode::create();
+    m_titleContainer->setID("title-container");
     m_titleContainer->setContentSize({leftColumn->getContentWidth(), 25});
     m_titleContainer->setAnchorPoint({.5f, .5f});
 
@@ -174,8 +176,16 @@ bool ModPopup::init(ModSource&& src) {
 
     auto dev = Label::create(fmt::format("By {}", m_source.formatDevelopers()), "goldFont.fnt");
     dev->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .35f, .05f);
-    dev->setID("mod-developer-label");
-    m_titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, {devAndTitlePos, m_titleContainer->getContentHeight() * .25f}, {.0f, .5f});
+
+    auto devBtn = Button::createWithNode(
+        dev,
+        [this](auto) {
+            DevListPopup::create(m_source)->show();
+        }
+    );
+    devBtn->setID("mod-developer-label");
+    devBtn->setScaleMultiplier(1.125f);
+    m_titleContainer->addChildAtPosition(devBtn, Anchor::BottomLeft, {devAndTitlePos + (devBtn->getScaledContentWidth() / 2.f), m_titleContainer->getContentHeight() * .25f});
 
     // Suggestions
     // todo: bring this back once we add "suggestions" in mod.json
@@ -227,8 +237,17 @@ bool ModPopup::init(ModSource&& src) {
     idLabel->setLimitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
     idLabel->setColor({150, 150, 150});
     idLabel->setOpacity(140);
-    idLabel->setID("mod-id-label");
-    leftColumn->addChild(idLabel);
+
+    auto idBtn = Button::createWithNode(
+        idLabel,
+        [this](auto) {
+            clipboard::write(m_source.getID());
+            Notification::create("Copied to clipboard", NotificationIcon::Success)->show();
+        }
+    );
+    idBtn->setID("mod-id-label");
+    idBtn->setScaleMultiplier(1.25f);
+    leftColumn->addChild(idBtn);
 
     auto statsContainer = CCNode::create();
     statsContainer->setContentSize({leftColumn->getContentWidth(), 80});
@@ -543,11 +562,7 @@ bool ModPopup::init(ModSource&& src) {
     m_installStatusLabel->setVisible(false);
     m_installMenu->addChild(m_installStatusLabel);
 
-    m_installMenu->setLayout(
-        RowLayout::create()
-            ->setDefaultScaleLimits(.1f, 1)
-            ->setAxisAlignment(AxisAlignment::Center)
-    );
+    m_installMenu->setLayout(RowLayout::create()->setAutoScale(false));
     installContainer->addChildAtPosition(m_installMenu, Anchor::Center);
 
     leftColumn->addChild(installContainer);
@@ -556,20 +571,17 @@ bool ModPopup::init(ModSource&& src) {
 
     auto linksContainer = this->createContainer({leftColumn->getContentWidth() - 40, 30});
 
-    auto linksMenu = CCMenu::create();
+    auto linksMenu = CCNode::create();
+    linksMenu->setID("links-container");
     linksMenu->ignoreAnchorPointForPosition(false);
     linksMenu->setContentSize(linksContainer->getContentSize() - CCSize{10.f, 10.f});
     linksMenu->setAnchorPoint({.5f, .5f});
-    linksMenu->setID("links-container");
-
-    // alias for ccmenuitemext callbacks
-    using CCMIExtCallback = Function<void(Button*)>;
 
     struct ModLinkButton {
         std::string id;
         std::string sprite;
         std::optional<std::string> url;
-        CCMIExtCallback callback = nullptr;
+        Button::ButtonCallback callback = nullptr;
     };
 
     auto linkButtons = std::array{
@@ -684,17 +696,15 @@ bool ModPopup::init(ModSource&& src) {
     };
 
     for (auto& tab : mdTabs) {
-        auto spr = GeodeTabSprite::create(tab.sprite.c_str(), tab.label.c_str(), 140, m_source.asServer());
+        auto spr = GeodeTabSprite::create(tab.sprite.c_str(), tab.label.c_str(), 140.f, m_source.asServer());
 
         auto btn = Button::createWithNode(
             spr,
-            [this, tab = tab.tab](auto) {
-                this->loadTab(tab);
+            [this, t = tab.tab](auto) {
+                this->loadTab(t);
             }
         );
         btn->setID(std::move(tab.id));
-        btn->setTag(static_cast<int>(tab.tab));
-
         tabsMenu->addChild(btn);
 
         m_tabs.insert({tab.tab, {spr, nullptr}});
@@ -1273,7 +1283,7 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
     }
 }
 
-void ModPopup::loadTab(ModPopup::Tab tab) {
+void ModPopup::loadTab(Tab tab) {
     // Remove current page
     if (m_currentTabPage) {
         m_currentTabPage->removeFromParent();
