@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Geode/ui/Popup.hpp>
+#include "../../GeodeStyle.hpp"
 #include "../sources/ModListSource.hpp"
-#include "../GeodeStyle.hpp"
+
+#include <Geode/ui/Popup.hpp>
 
 using namespace geode::prelude;
 

@@ -65,4 +65,3 @@ void ModListItem::updateDisplay(float width, ModListDisplay display) {
     m_targetWidth = width;
     this->updateState();
 }
-

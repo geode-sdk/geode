@@ -3,7 +3,7 @@
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include "../sources/ModListSource.hpp"
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 #include <server/Server.hpp>
 #include <Geode/utils/async.hpp>
 

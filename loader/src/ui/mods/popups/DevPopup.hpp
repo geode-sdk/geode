@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 #include "../sources/ModSource.hpp"
 #include <server/Server.hpp>
 

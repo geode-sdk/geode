@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 
 using namespace geode::prelude;
 

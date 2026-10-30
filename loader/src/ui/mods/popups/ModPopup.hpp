@@ -5,7 +5,7 @@
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Label.hpp>
 #include "../sources/ModSource.hpp"
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 #include "../UpdateModListState.hpp"
 #include <server/DownloadManager.hpp>
 

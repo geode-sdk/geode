@@ -11,7 +11,7 @@
 #include "../popups/ModtoberPopup.hpp"
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
 #include "ModListItem.hpp"
 #include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
@@ -804,4 +804,3 @@ ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingD
     delete ret;
     return nullptr;
 }
-

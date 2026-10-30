@@ -8,7 +8,7 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
-#include <ui/mods/GeodeStyle.hpp>
+#include <ui/GeodeStyle.hpp>
 
 using namespace geode::prelude;
 
