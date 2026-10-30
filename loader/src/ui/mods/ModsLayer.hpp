@@ -5,6 +5,7 @@
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/binding/SetTextPopupDelegate.hpp>
 #include <Geode/binding/SetIDPopupDelegate.hpp>
@@ -31,14 +32,14 @@ protected:
     };
 
     NineSlice* m_statusBG;
-    geode::Label* m_status;
-    geode::Label* m_statusPercentage;
+    Label* m_status;
+    Label* m_statusPercentage;
     Slider* m_progressBar;
     CCNode* m_loadingCircle;
-    CCMenu* m_btnMenu;
-    CCMenuItemSpriteExtra* m_viewBtn;
-    CCMenuItemSpriteExtra* m_cancelBtn;
-    CCMenuItemSpriteExtra* m_restartBtn;
+    CCNode* m_btnMenu;
+    Button* m_viewBtn;
+    Button* m_cancelBtn;
+    Button* m_restartBtn;
     ListenerHandle m_updateStateHandle;
     ListenerHandle m_downloadHandle;
     DownloadState m_lastState = DownloadState::None;
@@ -47,11 +48,6 @@ protected:
     bool init();
     void updateState();
 
-    void onRestart(CCObject*);
-    void onViewErrors(CCObject*);
-    void onConfirm(CCObject*);
-    void onCancel(CCObject*);
-
 public:
     static ModsStatusNode* create();
 };
@@ -59,16 +55,16 @@ public:
 class ModsLayer : public CCLayer, public SetIDPopupDelegate {
 protected:
     CCNode* m_frame;
-    std::vector<CCMenuItemSpriteExtra*> m_tabs;
+    std::vector<Button*> m_tabs;
     ModListSource* m_currentSource = nullptr;
     std::unordered_map<ModListSource*, Ref<ModList>> m_lists;
-    CCMenu* m_pageMenu;
-    geode::Label* m_pageLabel;
-    CCMenuItemSpriteExtra* m_goToPageBtn;
+    CCNode* m_pageMenu;
+    Label* m_pageLabel;
+    Button* m_goToPageBtn;
     ModsStatusNode* m_statusNode;
     ListenerHandle m_updateStateHandle;
     bool m_showSearch = true;
-    std::vector<CCMenuItemSpriteExtra*> m_displayBtns;
+    std::vector<Button*> m_displayBtns;
     ModListDisplay m_modListDisplay;
 
     bool init();
@@ -77,18 +73,8 @@ protected:
     void keyBackClicked() override;
     void setIDPopupClosed(SetIDPopup*, int value) override;
 
-    void onTab(CCObject* sender);
-    void onOpenModsFolder(CCObject*);
-    void onAddModFromFile(CCObject*);
-    void onRestartGD(CCObject*);
-    void onDisplay(CCObject*);
-    void onSearch(CCObject*);
-    void onGoToPage(CCObject*);
-    void onRefreshList(CCObject*);
-    void onTheme(CCObject*);
-    void onSettings(CCObject*);
-    void onKeybinds(CCObject*);
-    void onBack(CCObject*);
+    void onDisplay(ModListDisplay display);
+    void onBack();
 
     void updateState();
 
