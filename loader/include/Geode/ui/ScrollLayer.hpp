@@ -34,7 +34,6 @@ namespace geode {
         void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
         void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
         bool touchInsideClip(cocos2d::CCPoint const&) override;
-        bool scrollWheel(float y, float) override;
 
         void visit() override;
 
@@ -57,6 +56,7 @@ namespace geode {
         float getScrollFromTop() const;
         void scrollToFromTop(float offset);
         void scrollToTop();
+        bool scrollWheel(float y, float) override;
         cocos2d::CCClippingNode* getClippingNode() const;
 
         void setCancelTouchLimit(float limit);
