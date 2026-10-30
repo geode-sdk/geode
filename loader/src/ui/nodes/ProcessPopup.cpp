@@ -2,6 +2,7 @@
 #include <Geode/ui/ProcessPopup.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 
