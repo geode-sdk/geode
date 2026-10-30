@@ -1019,7 +1019,7 @@ public:
     static CCAnimate* create(CCAnimation *pAnimation);
     CC_SYNTHESIZE_NV_RETAIN(CCAnimation*, m_pAnimation, Animation)
 public:
-    gd::vector<float>* m_pSplitTimes;
+    std::vector<float>* m_pSplitTimes;
     int                m_nNextFrame;
     CCSpriteFrame*  m_pOrigFrame;
        unsigned int    m_uExecutedLoops;

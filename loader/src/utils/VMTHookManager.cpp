@@ -174,7 +174,7 @@ Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
         // so let's do that
         // this will get skipped if the same function is used in different
         // instances with different types but still replace the table
-        if (m_physicalHooks.count({ emptyFunc, originalFunc }) == 0) {
+        if (!m_physicalHooks.contains({ emptyFunc, originalFunc })) {
             // log::debug("Creating the original");
             auto hook = Hook::create(emptyFunc, originalFunc, displayName, handlerMetadata, tulip::hook::HookMetadata{
                 .m_priority = INT_MAX
@@ -201,7 +201,7 @@ Result<std::optional<std::shared_ptr<Hook>>> VMTHookManager::Impl::addHook(
         return Ok(std::nullopt);
     }
 
-    if (m_physicalHooks.count({ value.empty, newFunc }) > 0) {
+    if (m_physicalHooks.contains({ value.empty, newFunc })) {
         // already added a physical hook for this function, just add to detours
         // log::debug("Already added a physical hook for this function, just adding to detours");
         detours.push_back(newFunc);

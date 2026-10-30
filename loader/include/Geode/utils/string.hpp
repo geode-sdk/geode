@@ -6,7 +6,7 @@
 #include <vector>
 #include <span>
 #include <compare>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include "../DefaultInclude.hpp"
 #include <Geode/Result.hpp>
@@ -50,11 +50,6 @@ namespace geode::utils::string {
     /// @param str UTF-8 string view
     /// @return UTF-32 encoded std::u32string, or an error
     GEODE_DLL Result<std::u32string> utf8ToUtf32(std::string_view str);
-
-    /// Convert path to UTF-8 string
-    /// @param path filesystem path
-    /// @return UTF-8 encoded std::string
-    GEODE_DLL std::string pathToString(std::filesystem::path const& path);
 
     GEODE_DLL void toLowerIP(std::string& str);
     GEODE_DLL std::string toLower(std::string str);
@@ -110,11 +105,25 @@ namespace geode::utils::string {
     GEODE_DLL bool startsWith(std::string_view str, std::string_view prefix);
     GEODE_DLL bool endsWith(std::string_view str, std::string_view suffix);
 
+    // note: this has to be `int` for some time because MSVC STL made an abi breaking change to `std::strong_ordering`,
+    // so a function returning `strong_ordering` is not ABI safe
+    namespace detail {
+        GEODE_DLL int caseInsensitiveCompare(std::string_view a, std::string_view b);
+    }
+
     /**
      * Similar to strcmp, but case insensitive.
      * Uses std::tolower, but could change in the future for better locale support
+     * @return -1 if a < b, 0 if a == b, 1 if a > b
      */
-    GEODE_DLL std::strong_ordering caseInsensitiveCompare(std::string_view a, std::string_view b);
+    inline std::strong_ordering caseInsensitiveCompare(std::string_view a, std::string_view b) {
+        switch (detail::caseInsensitiveCompare(a, b)) {
+            case -1: return std::strong_ordering::less;
+            case 0: return std::strong_ordering::equal;
+            case 1: return std::strong_ordering::greater;
+            default: return std::strong_ordering::equal;
+        }
+    }
 
     inline bool equalsIgnoreCase(std::string_view a, std::string_view b) {
         return caseInsensitiveCompare(a, b) == std::strong_ordering::equal;

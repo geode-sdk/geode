@@ -62,15 +62,6 @@ Result<std::u32string> utils::string::utf8ToUtf32(std::string_view str) {
     return Ok(std::move(result));
 }
 
-std::string utils::string::pathToString(std::filesystem::path const& path) {
-#ifdef GEODE_IS_WINDOWS
-    return utils::string::wideToUtf8(path.native());
-#else
-    return path.string();
-#endif
-}
-
-
 bool utils::string::startsWith(std::string_view str, std::string_view prefix) {
     return str.rfind(prefix, 0) == 0;
 }
@@ -176,11 +167,11 @@ std::vector<char> utils::string::split(std::string_view str) {
 }
 
 bool utils::string::contains(std::string_view str, std::string_view subs) {
-    return str.find(subs) != std::string::npos;
+    return str.contains(subs);
 }
 
 bool utils::string::contains(std::string_view str, std::string::value_type c) {
-    return str.find(c) != std::string::npos;
+    return str.contains(c);
 }
 
 bool utils::string::containsAny(std::string_view str, std::span<std::string const> subs) {
@@ -272,7 +263,7 @@ std::string utils::string::filter(std::string_view str, std::string_view allowed
     std::string ret;
     ret.reserve(str.size());
     for (char c : str) {
-        if (allowed.find(c) != std::string::npos) {
+        if (allowed.contains(c)) {
             ret.push_back(c);
         }
     }
@@ -283,7 +274,7 @@ std::string utils::string::remove(std::string_view str, std::string_view disallo
     std::string ret;
     ret.reserve(str.size());
     for (char c : str) {
-        if (disallowed.find(c) == std::string::npos) {
+        if (!disallowed.contains(c)) {
             ret.push_back(c);
         }
     }
@@ -300,19 +291,19 @@ std::string utils::string::normalize(std::string str) {
     return str;
 }
 
-std::strong_ordering utils::string::caseInsensitiveCompare(std::string_view str1, std::string_view str2) {
+int utils::string::detail::caseInsensitiveCompare(std::string_view str1, std::string_view str2) {
     for (size_t i = 0; i < str1.size() && i < str2.size(); i++) {
         auto const a = std::tolower(str1[i]);
         auto const b = std::tolower(str2[i]);
         if (a < b) {
-            return std::strong_ordering::less;
+            return -1;
         } else if (a > b) {
-            return std::strong_ordering::greater;
+            return 1;
         }
     }
     if (str1.size() < str2.size())
-        return std::strong_ordering::less;
+        return -1;
     else if (str1.size() > str2.size())
-        return std::strong_ordering::greater;
-    return std::strong_ordering::equal;
+        return 1;
+    return 0;
 }

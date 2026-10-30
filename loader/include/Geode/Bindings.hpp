@@ -9,16 +9,17 @@
 #include <Geode/Enums.hpp>
 
 #include <Geode/DefaultInclude.hpp>
-#include <Geode/utils/addresser.hpp>
-#include <cocos-ext.h>
-#include <cocos2d.h>
 #include <fmod.hpp>
 #include <stdint.h>
 #include <type_traits>
+#include <array>
 #include <unordered_map>
 #include <algorithm>
 
 #define CLASSPARAM(...)
 #define STRUCTPARAM(...)
+
+#include <Geode/cocos/cocoa/CCGeometry.h>
+#include <Geode/cocos/include/ccTypes.h>
 
 #include <Geode/GeneratedBinding.hpp>

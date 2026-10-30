@@ -31,7 +31,6 @@
 #include <../support/zip_support/ZipUtils.h>
 #include <../support/zip_support/ioapi.h>
 #include <../support/zip_support/unzip.h>
-#include <Geode/c++stl/gdstdlib.hpp>
 #include <assert.h>
 #include <ccMacros.h>
 #include <map>

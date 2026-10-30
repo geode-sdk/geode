@@ -150,12 +150,15 @@ typedef enum
     KEY_LaunchApp1 = 0xB6,
     KEY_LaunchApp2 = 0xB7,
     KEY_OEM1 = 0xBA,
-    KEY_OEMPlus = 0xB8,
+    KEY_OEMPlus = 0xBB,
     KEY_OEMComma = 0xBC,
     KEY_OEMMinus = 0xBD,
     KEY_OEMPeriod = 0xBE,
     KEY_OEM2 = 0xBF,
     KEY_OEM3 = 0xC0,
+    // Brazilian ABNT2 keyboards (VK_ABNT_C1 / VK_ABNT_C2)
+    KEY_ABNT1 = 0xC1,
+    KEY_ABNT2 = 0xC2,
     KEY_OEM4 = 0xDB,
     KEY_OEM5 = 0xDC,
     KEY_OEM6 = 0xDD,
@@ -222,18 +225,24 @@ typedef enum
     CONTROLLER2_RTHUMBSTICK_RIGHT = 0x414,
 
     // Geode additions
-    KEY_GraveAccent = 0x1000,
-    KEY_OEMEqual = 0x1001,
-    KEY_LeftBracket = 0x1002,
-    KEY_RightBracket = 0x1003,
-    KEY_Backslash = 0x1004,
-    KEY_Semicolon = 0x1005,
-    KEY_Apostrophe = 0x1006,
-    KEY_Slash = 0x1007,
+    // Readable aliases for the native OEM codes (US layout names).
+    // These used to be separate codes in GD < 2.208 (0x1000+),
+    // but GD binds and labels use the native ones
+    KEY_GraveAccent = KEY_OEM3,
+    KEY_OEMEqual = KEY_OEMPlus,
+    KEY_LeftBracket = KEY_OEM4,
+    KEY_RightBracket = KEY_OEM6,
+    KEY_Backslash = KEY_OEM5,
+    KEY_Semicolon = KEY_OEM1,
+    KEY_Apostrophe = KEY_OEM7,
+    KEY_Slash = KEY_OEM2,
+    // Keys used by some non-US keyboard layouts
+    KEY_World1 = KEY_OEM102,
+
+    // Keys with no native code
+    // Numpad equals (the main = key is KEY_OEMEqual)
     KEY_Equal = 0x1008,
     KEY_NumEnter = 0x1009,
-    // Keys used by some non-US keyboard layouts
-    KEY_World1 = 0x100A,
     KEY_World2 = 0x100B,
 
     // Mouse buttons (excluding clicks)
@@ -258,7 +267,7 @@ public:
 
     virtual void keyUp(enumKeyCodes key, double) {}
 
-    //pretty certain there's no fields, based on initializer
+    virtual bool handleAction(int, bool, double) { return false; }
 };
 
 // @note RobTop Addition
@@ -279,6 +288,9 @@ public:
     virtual bool initWithDelegate(CCKeyboardDelegate* pDelegate);
 
     void setDelegate(CCKeyboardDelegate* pDelegate);
+
+    // TODO unsure about position
+    // virtual bool handleAction(int, bool, double);
 
 public:
     CCKeyboardDelegate* m_pDelegate;

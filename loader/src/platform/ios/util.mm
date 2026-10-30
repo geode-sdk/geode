@@ -16,6 +16,8 @@ using namespace geode::prelude;
 #include <Geode/binding/AppDelegate.hpp>
 #include <Geode/binding/MenuLayer.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/cocos/actions/CCActionManager.h>
+#include <Geode/cocos/platform/ios/CCEGLView.h>
 #include <Geode/Utils.hpp>
 #include <mach-o/utils.h>
 #include <objc/runtime.h>
@@ -113,7 +115,7 @@ UIViewController* getCurrentViewController() {
     return rootViewController;
 }
 
-bool utils::file::openFolder(std::filesystem::path const& path) {
+bool utils::file::openFolder(asp::fs::PathView path) {
     std::string newPath = fmt::format("{}://{}", getenv("GEODEINJECT_LOADED") ? "filza" : "shareddocuments", path);
     NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:newPath.c_str()]];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
@@ -139,7 +141,7 @@ GEODE_DLL arc::Future<file::PickResult> file::pick(file::PickMode mode, file::Fi
         }
 
         NSURL *FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp.file"]];
-        if (options.defaultPath && !options.defaultPath->parent_path().empty()) {
+        if (options.defaultPath && options.defaultPath->parent()) {
             FileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:options.defaultPath->c_str()]];
         }
         else if (options.defaultPath) {
@@ -178,7 +180,7 @@ GEODE_DLL arc::Future<file::PickResult> file::pick(file::PickMode mode, file::Fi
         PickerDelegate_instance = [[PickerDelegate alloc] initWithCompletion:^(NSArray<NSURL*>* urls) {
             PickerDelegate_instance = nil;
 
-            std::vector<std::filesystem::path> paths;
+            std::vector<asp::fs::Path> paths;
             if (urls && urls.count > 0) {
                 for (NSURL* url : urls) {
                     if (url && url.path) {
@@ -245,7 +247,7 @@ GEODE_DLL arc::Future<file::PickManyResult> file::pickMany(file::FilePickOptions
             PickerDelegate_instance = nil;
 
             if (urls && urls.count > 0) {
-                std::vector<std::filesystem::path> paths;
+                std::vector<asp::fs::Path> paths;
                 if (urls && urls.count > 0) {
                     for (NSURL* url : urls) {
                         if (url && url.path) {
@@ -255,7 +257,7 @@ GEODE_DLL arc::Future<file::PickManyResult> file::pickMany(file::FilePickOptions
                 }
                 (void)sender.send(Ok(std::move(paths)));
             } else {
-                (void)sender.send(Ok(std::vector<std::filesystem::path>()));
+                (void)sender.send(Ok(std::vector<asp::fs::Path>()));
             }
         }];
 
@@ -311,11 +313,12 @@ void geode::utils::game::exit(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart(bool save) {
-    if (save) {
+void geode::utils::game::restart(bool saveData, bool safeMode) {
+    if (saveData) {
         AppDelegate::get()->trySaveGame(true);
     }
 
+    // TODO: someone clean this up to have safeMode as pSelector as I cannot think rn
     class Exit : public CCObject {
         public:
         void shutdown() {
@@ -332,13 +335,35 @@ void geode::utils::game::restart(bool save) {
                  )->show();
             }
         }
+        void shutdownSafe() {
+            NSURL* url = [NSURL URLWithString:@"geode://relaunch?safeMode=1"];
+            if ([[UIApplication sharedApplication] canOpenURL:url]) {
+                GameEvent(GameEventType::Exiting).send();
+                [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+            } else {
+                // this would only happen if you don't have the launcher
+                FLAlertLayer::create(
+                     "Unavailable",
+                     "Restarting is currently <cr>unavailable</c>. Please <cy>restart the game</c> manually.",
+                     "OK"
+                 )->show();
+            }
+        }
     };
 
-    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
-        CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
-        nullptr
-    ), CCDirector::get()->getRunningScene(), false);
+    if (safeMode) {
+        CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+            CCDelayTime::create(0.5f),
+            CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdownSafe)),
+            nullptr
+        ), CCDirector::get()->getRunningScene(), false);
+    } else {
+        CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+            CCDelayTime::create(0.5f),
+            CCCallFunc::create(nullptr, callfunc_selector(Exit::shutdown)),
+            nullptr
+        ), CCDirector::get()->getRunningScene(), false);
+    }
 }
 
 void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
@@ -352,34 +377,34 @@ CCPoint cocos::getMousePos() {
 namespace {
     std::string s_savedBaseDir = "";
 
-    std::filesystem::path getBaseDir() {
+    asp::fs::Path getBaseDir() {
         if (!s_savedBaseDir.empty()) {
-            return std::filesystem::path(s_savedBaseDir);
+            return asp::fs::Path(s_savedBaseDir);
         }
 
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths firstObject];
 
-        std::filesystem::path documentsPath = [documentsDirectory UTF8String];
+        asp::fs::Path documentsPath = [documentsDirectory UTF8String];
 
-        s_savedBaseDir = documentsPath;
-        return std::filesystem::path(documentsPath);
+        s_savedBaseDir = documentsPath.string();
+        return asp::fs::Path(documentsPath);
     }
 }
 
-std::filesystem::path dirs::getGameDir() {
+asp::fs::Path dirs::getGameDir() {
     return getBaseDir() / "game";
 }
 
-std::filesystem::path dirs::getModRuntimeDir() {
+asp::fs::Path dirs::getModRuntimeDir() {
     return dirs::getGeodeDir() / "unzipped";
 }
 
-std::filesystem::path dirs::getSaveDir() {
+asp::fs::Path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
-std::filesystem::path dirs::getResourcesDir() {
+asp::fs::Path dirs::getResourcesDir() {
     return [[[NSBundle mainBundle] resourcePath] UTF8String];
 }
 

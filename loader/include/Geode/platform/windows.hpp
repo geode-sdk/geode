@@ -4,14 +4,22 @@
 #pragma warning(disable : 4251) // dll-interface
 #pragma warning(disable : 4244) // narrowing conversion
 
-#include <Windows.h>
-#include <cstring>
+#include "_casts_shared.hpp"
+
+#include <optional>
 #include <type_traits>
 #include <typeinfo>
-#include <memory>
-#include <optional>
 #include <intrin.h>  // for _ReadWriteBarrier
-#include "_casts_shared.hpp"
+
+#ifndef _WINDOWS_
+struct HINSTANCE__;
+using HINSTANCE = HINSTANCE__*;
+using HMODULE = HINSTANCE;
+using FARPROC = __int64 (__stdcall *)();
+using LPCSTR = const char*;
+extern "C" __declspec(dllimport) HMODULE __stdcall GetModuleHandleW(wchar_t const* lpModuleName);
+extern "C" __declspec(dllimport) FARPROC __stdcall GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
+#endif
 
 namespace geode {
     struct PlatformInfo {
@@ -24,7 +32,7 @@ namespace geode {
         uint32_t buildNumber;
         // from SYSTEM_INFO
         uint32_t arch;
-        
+
         std::optional<std::string> wineVersion;
     };
 
@@ -37,18 +45,6 @@ namespace geode {
     }
 
     template <class T>
-    GEODE_INLINE inline void doNotOptimize(T const& value) {
-        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
-        _ReadWriteBarrier();
-    }
-
-    template <class T>
-    GEODE_INLINE inline void doNotOptimize(T& value) {
-        internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
-        _ReadWriteBarrier();
-    }
-
-    template <class T>
     GEODE_INLINE inline void doNotOptimize(T&& value) {
         internal::useCharPointer(&reinterpret_cast<char const volatile&>(value));
         _ReadWriteBarrier();
@@ -57,7 +53,7 @@ namespace geode {
 
 namespace geode::base {
     GEODE_NOINLINE inline uintptr_t get() {
-        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
+        static uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
         return base;
     }
 
@@ -198,7 +194,7 @@ namespace geode::cast {
         return typeDesc->m_typeDescriptorName;
     }
 
-    /// Returns a value that can be used to compare the inheritance depth of two objects. 
+    /// Returns a value that can be used to compare the inheritance depth of two objects.
     /// Objects with a higher return value are derived from more classes. Returns -1 for null pointers.
     inline int getComparableDepth(void const* ptr) {
         if (!ptr) {

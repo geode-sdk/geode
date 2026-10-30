@@ -2,6 +2,7 @@
 
 #include <Geode/binding/CCContentLayer.hpp>
 #include <Geode/binding/CCScrollLayerExt.hpp>
+#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <memory>
 
 namespace geode {
@@ -32,6 +33,7 @@ namespace geode {
         void ccTouchMoved(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
         void ccTouchEnded(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
         void ccTouchCancelled(cocos2d::CCTouch*, cocos2d::CCEvent*) override;
+        bool touchInsideClip(cocos2d::CCPoint const&) override;
 
         void visit() override;
 
@@ -50,8 +52,10 @@ namespace geode {
             cocos2d::CCSize const& size, bool scrollWheelEnabled = true, bool vertical = true
         );
 
-        void scrollWheel(float y, float) override;
+        bool scrollWheel(float y, float) override;
         void enableScrollWheel(bool enable = true);
+        float getScrollFromTop() const;
+        void scrollToFromTop(float offset);
         void scrollToTop();
 
         void setCancelTouchLimit(float limit);
@@ -61,8 +65,8 @@ namespace geode {
         bool isStealingTouches() const;
 
         /**
-         * If you're using ScrollLayer to create a list, this helper function 
-         * can be used to create a `ColumnLayout` with reasonable defaults for 
+         * If you're using ScrollLayer to create a list, this helper function
+         * can be used to create a `ColumnLayout` with reasonable defaults for
          * a list.
          * @example ```cpp
          * list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout());`

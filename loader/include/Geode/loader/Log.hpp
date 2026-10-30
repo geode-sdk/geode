@@ -9,8 +9,7 @@
 #include <Geode/loader/Event.hpp>
 #include <Geode/Result.hpp>
 #include <ccTypes.h>
-#include <chrono>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <asp/time/SystemTime.hpp>
 #include "Formatter.hpp"
 
@@ -27,7 +26,7 @@ namespace geode {
         template <typename... Args>
         inline void logImpl(Severity severity, Mod* mod, format::FmtStr<Args...> str, Args&&... args) {
             [&]<typename... Ts>(Ts&&... args) {
-                vlogImpl(severity, mod, str, fmt::make_format_args(args...));
+                vlogImpl(severity, mod, str.get(), fmt::make_format_args(args...));
             }(format::wrap(std::forward<Args>(args))...);
         }
 
@@ -57,7 +56,7 @@ namespace geode {
         }
 
         /// Returns the path to the current log file
-        GEODE_DLL std::filesystem::path const& getCurrentLogPath();
+        GEODE_DLL asp::fs::PathView getCurrentLogPath();
 
         GEODE_DLL void pushNest(Mod* mod);
         GEODE_DLL void popNest(Mod* mod);

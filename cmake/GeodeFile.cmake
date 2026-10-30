@@ -1,4 +1,4 @@
-set(GEODE_CLI_MINIMUM_VERSION 1.0.5)
+set(GEODE_CLI_MINIMUM_VERSION 3.9.0)
 
 # Find Geode CLI
 if (NOT DEFINED GEODE_CLI OR GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
@@ -20,12 +20,11 @@ else()
     # Remove program name
     string(REPLACE "geode " "" GEODE_CLI_VERSION ${GEODE_CLI_VERSION})
 
-    # Need at least v1.0.5 (--shut-up arg in geode package resources)
     if (${GEODE_CLI_VERSION} VERSION_LESS ${GEODE_CLI_MINIMUM_VERSION})
         message(FATAL_ERROR
             "Found Geode CLI: ${GEODE_CLI}, however it is version ${GEODE_CLI_VERSION} "
             "while minimum required is version ${GEODE_CLI_MINIMUM_VERSION}. Please update: "
-            "https://github.com/geode-sdk/cli/releases/latest"
+            "https://docs.geode-sdk.org/getting-started/geode-cli"
         )
     endif()
 
@@ -35,13 +34,13 @@ else()
     message(STATUS "Found Geode CLI: ${GEODE_CLI} (version ${GEODE_CLI_VERSION})")
 endif()
 
-# Clear cache of mods being built so mods from earlier 
+# Clear cache of mods being built so mods from earlier
 # configures dont appear on the list
 set(GEODE_MODS_BEING_BUILT "" CACHE INTERNAL "GEODE_MODS_BEING_BUILT")
 
 # todo: add EXTERNAL argument that takes a list of external mod ids
-# current workaround is to manually append to GEODE_MODS_BEING_BUILT before 
-# calling setup_geode_mod if the mod depends on external dependencies that 
+# current workaround is to manually append to GEODE_MODS_BEING_BUILT before
+# calling setup_geode_mod if the mod depends on external dependencies that
 # aren't being built
 function(setup_geode_mod proname)
     # Get DONT_INSTALL argument
@@ -89,7 +88,6 @@ function(setup_geode_mod proname)
     string(JSON TARGET_GEODE_VERSION GET "${MOD_JSON}" "geode")
     string(JSON TARGET_GD_VERSION GET "${MOD_JSON}" "gd" "${GEODE_TARGET_PLATFORM_JSON}")
     string(JSON MOD_HAS_API ERROR_VARIABLE MOD_DOESNT_HAVE_API GET "${MOD_JSON}" "api")
-    string(JSON MOD_HAS_DEPS ERROR_VARIABLE MOD_DOESNT_HAVE_DEPS GET "${MOD_JSON}" "dependencies")
 
     string(REGEX REPLACE "([0-9]+\\.[0-9]+)\\.[0-9]+" "\\1" TARGET_GEODE_VERSION_SHORT ${TARGET_GEODE_VERSION})
     string(REGEX REPLACE "([0-9]+\\.[0-9]+)\\.[0-9]+" "\\1" GEODE_VERSION_SHORT ${GEODE_VERSION_FULL})
@@ -101,12 +99,12 @@ function(setup_geode_mod proname)
             "Mod ${MOD_ID} is made for Geode version ${TARGET_GEODE_VERSION} but you have ${GEODE_VERSION_FULL} SDK installed. Please change the Geode version in your mod.json. "
         )
     endif()
-    
+
     if ("${TARGET_GD_VERSION}" STREQUAL "${GEODE_GD_VERSION}" OR "${TARGET_GD_VERSION}" STREQUAL "*")
         message(STATUS "Mod ${MOD_ID} is compiling for Geometry Dash version ${TARGET_GD_VERSION}")
     else()
         message(FATAL_ERROR
-            "Mod ${MOD_ID} is made for Geometry Dash version ${TARGET_GD_VERSION} but this version of Geode is for GD version ${GEODE_GD_VERSION}. Please change the Geometry Dash version in your mod.json. "
+            "Mod ${MOD_ID} is made for Geometry Dash version ${TARGET_GD_VERSION} but this version of Geode is for GD version ${GEODE_GD_VERSION}. Please change the Geometry Dash version in your mod.json and delete the build folder. "
         )
     endif()
 
@@ -122,14 +120,6 @@ function(setup_geode_mod proname)
         list(APPEND GEODE_MODS_BEING_BUILT ${SETUP_GEODE_MOD_EXTERNALS})
     endif()
 
-    # For CLI >=v2.4.0, there's an option to disable updating index because 
-    # Github Actions on Mac just returns 403 for no reason
-    if (GEODE_DONT_UPDATE_INDEX AND (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.4.0"))
-        set(DONT_UPDATE_INDEX_ARG "--dont-update-index")
-    else()
-        set(DONT_UPDATE_INDEX_ARG "")
-    endif()
-
     # Zstd option for smaller .geode file sizes
     if (GEODE_PACKAGE_ZSTD)
         set(ZSTD_ARG "--zstd")
@@ -138,35 +128,14 @@ function(setup_geode_mod proname)
     endif()
 
     # Check dependencies using CLI
-    if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "3.2.0")
-        execute_process(
-            COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
-                --externals ${GEODE_MODS_BEING_BUILT} ${DONT_UPDATE_INDEX_ARG}
-                --platform ${GEODE_TARGET_PLATFORM_SHORT}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMAND_ERROR_IS_FATAL ANY
-        )
-    elseif (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.0.0")
-        message(WARNING "If you use platform-specific dependencies, upgrade Geode CLI to version 3.2.0 or greater!")
-        execute_process(
-            COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
-                --externals ${GEODE_MODS_BEING_BUILT} ${DONT_UPDATE_INDEX_ARG}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMAND_ERROR_IS_FATAL ANY
-        )
-    elseif (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.0")
-        execute_process(
-            COMMAND ${GEODE_CLI} package setup ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-                --externals ${GEODE_MODS_BEING_BUILT}
-            COMMAND_ERROR_IS_FATAL ANY
-        )
-    elseif (MOD_HAS_DEPS)
-        message(FATAL_ERROR
-            "CLI is version ${GEODE_CLI_VERSION}, but using dependencies "
-            "requires at least 1.4.0 - please update your CLI"
-        )
-    endif()
-    
+    execute_process(
+        COMMAND ${GEODE_CLI} project check ${CMAKE_CURRENT_BINARY_DIR}
+            --externals ${GEODE_MODS_BEING_BUILT}
+            --platform ${GEODE_TARGET_PLATFORM_SHORT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+
     # Check if --install should be passed
     if (SETUP_GEODE_MOD_DONT_INSTALL OR GEODE_DONT_INSTALL_MODS)
         message(STATUS "Skipping installing ${proname}")
@@ -187,7 +156,7 @@ function(setup_geode_mod proname)
         if (HAS_HEADERS)
             add_custom_target(${proname}_PACKAGE ALL
                 DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
-                COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+                COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR}
                     --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}> $<TARGET_PDB_FILE:${proname}>
                     --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
                     ${INSTALL_ARG} ${PDB_ARG} ${ZSTD_ARG}
@@ -196,7 +165,7 @@ function(setup_geode_mod proname)
         else()
             add_custom_target(${proname}_PACKAGE ALL
                 DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
-                COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+                COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR}
                     --binary $<TARGET_FILE:${proname}> $<TARGET_PDB_FILE:${proname}>
                     --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
                     ${INSTALL_ARG} ${PDB_ARG} ${ZSTD_ARG}
@@ -207,7 +176,7 @@ function(setup_geode_mod proname)
         # this adds the .lib file on windows, which is needed for linking with the headers
         add_custom_target(${proname}_PACKAGE ALL
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
-            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR}
                 --binary $<TARGET_FILE:${proname}> $<TARGET_LINKER_FILE:${proname}>
                 --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
                 ${INSTALL_ARG} ${ZSTD_ARG}
@@ -216,7 +185,7 @@ function(setup_geode_mod proname)
     else()
         add_custom_target(${proname}_PACKAGE ALL
             DEPENDS ${proname} ${CMAKE_CURRENT_SOURCE_DIR}/mod.json
-            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR} 
+            COMMAND ${GEODE_CLI} package new ${CMAKE_CURRENT_SOURCE_DIR}
                 --binary $<TARGET_FILE:${proname}>
                 --output ${CMAKE_CURRENT_BINARY_DIR}/${MOD_ID}.geode
                 ${INSTALL_ARG} ${ZSTD_ARG}
@@ -234,23 +203,19 @@ function(setup_geode_mod proname)
         # Iterate dependency directories
         foreach(dir ${dirs})
             if (IS_DIRECTORY ${dir})
-                
-                # v1.4.1 fixes optional dependencies
-                if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "1.4.1")
-                    # Read dep info
-                    file(READ "${dir}/geode-dep-options.json" DEP_JSON)
-                    string(JSON required GET "${DEP_JSON}" "required")
+                # if the entry point for cmake script exists, include it
+                set(main_cmake "${dir}/cmake/DependencyMain.cmake")
+                if (EXISTS ${main_cmake})
+                    include(${main_cmake})
+                endif()
 
-                    # If this is not a required dependency, don't link it
-                    if (NOT ${required})
-                        continue()
-                    endif()
-                else()
-                    message(WARNING
-                        "You are using CLI v1.4.0, which has a bug with optional "
-                        "dependencies - update to v1.4.1 if you want to use "
-                        "optional dependencies!"
-                    )
+                # Read dep info
+                file(READ "${dir}/geode-dep-options.json" DEP_JSON)
+                string(JSON required GET "${DEP_JSON}" "required")
+
+                # If this is not a required dependency, don't link it
+                if (NOT ${required})
+                    continue()
                 endif()
 
                 # Otherwise add all .libs or whatever the platform's library type is
@@ -286,7 +251,7 @@ function(setup_geode_mod proname)
             target_include_directories(${proname} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/geode-deps")
         endif()
         target_link_libraries(${proname} ${SETUP_GEODE_MOD_LINK_TYPE} ${libs_to_link})
-        
+
     endif()
 
     # Add package target + make output name the mod id
@@ -324,14 +289,14 @@ endfunction()
 function(package_geode_resources_now proname src dest header_dest)
     if (GEODE_DISABLE_CLI_CALLS)
         message(WARNING
-            "package_geode_resources_now called, but GEODE_DISABLE_CLI_CALLS 
-            is set to true - Faking output result in case you only wish to 
-            analyze the project statically, do not expect built project to 
+            "package_geode_resources_now called, but GEODE_DISABLE_CLI_CALLS
+            is set to true - Faking output result in case you only wish to
+            analyze the project statically, do not expect built project to
             function properly"
         )
         set(HEADER_FILE
-            "#include <unordered_map>\n\n"
-            "static const std::unordered_map<std::string, std::string> "
+            "#pragma once \n #include <unordered_map>\n\n"
+            "static inline const std::unordered_map<std::string, std::string> "
             "LOADER_RESOURCE_HASHES {}\;\n"
         )
         file(WRITE ${header_dest} ${HEADER_FILE})
@@ -347,7 +312,7 @@ function(package_geode_resources_now proname src dest header_dest)
         )
         return()
     endif()
-    
+
     message(STATUS "Packaging resources now from ${src} into ${dest}")
 
     execute_process(
@@ -387,7 +352,7 @@ function(package_geode_resources_now proname src dest header_dest)
         list(FIND HASHED_EXTENSIONS "${FILE_EXTENSION}" FILE_SHOULD_HASH)
 
         if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_HASH EQUAL -1)
-            
+
             file(SHA256 ${file} COMPUTED_HASH)
             file(SIZE ${file} FILE_SIZE)
             message(STATUS "Hashed ${file} to ${COMPUTED_HASH} (${FILE_SIZE} bytes)")
@@ -400,14 +365,14 @@ function(package_geode_resources_now proname src dest header_dest)
         list(FIND HASHED_TEXT_EXTENSIONS "${FILE_EXTENSION}" FILE_SHOULD_TEXT_HASH)
 
         if (NOT FILE_NAME STREQUAL ".geode_cache" AND NOT FILE_SHOULD_TEXT_HASH EQUAL -1)
-            
+
             # create list of lines form the contens of a file
             file(STRINGS ${file} LINES ENCODING UTF-8)
             list(JOIN LINES "" JOINED)
             # compute hash of the lines
             string(LENGTH "${JOINED}" FILE_SIZE)
             string(SHA256 COMPUTED_HASH "${JOINED}")
-            
+
             message(STATUS "Hashed ${file} to ${COMPUTED_HASH} (${FILE_SIZE} bytes)")
             list(APPEND HEADER_FILE "\t{ \"${FILE_NAME}\", \"${COMPUTED_HASH}\" },\n")
 

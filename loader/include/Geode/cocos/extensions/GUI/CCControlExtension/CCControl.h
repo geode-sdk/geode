@@ -32,7 +32,7 @@
 
 #include "CCInvocation.h"
 #include "CCControlUtils.h"
-#include "../../../include/cocos2d.h"
+#include "../../../layers_scenes_transitions_nodes/CCLayer.h"
 
 NS_CC_EXT_BEGIN
 
@@ -285,7 +285,7 @@ public:
 private:
     int  getHandleOfControlEvent(CCControlEvent controlEvent);
 private:
-    gd::map<int,int> m_mapHandleOfControlEvent;
+    std::map<int,int> m_mapHandleOfControlEvent;
 };
 
 // end of GUI group

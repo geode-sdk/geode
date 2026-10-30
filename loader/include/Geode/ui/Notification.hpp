@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cocos2d.h>
-#include <cocos-ext.h>
 #include <Geode/binding/TextAlertPopup.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Label.hpp>
 
 namespace geode {
     constexpr auto NOTIFICATION_DEFAULT_TIME = 1.8f;
@@ -34,7 +33,7 @@ namespace geode {
         void waitThenHide();
 
         NineSlice* getBG();
-        cocos2d::CCLabelBMFont* getLabel();
+        geode::Label* getLabel();
         cocos2d::CCNodeRGBA* getContent();
 
     public:

@@ -1,8 +1,7 @@
-#include <Geode/DefaultInclude.hpp>
+#include <Geode/platform/cplatform.h>
 
 #ifndef GEODE_IS_IOS
 
-#include <Geode/cocos/include/cocos2d.h>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
 
 using namespace geode::prelude;
@@ -11,13 +10,27 @@ class $modify(CCKeyboardDispatcher) {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("CCKeyboardDispatcher new keys")
 
     const char* keyToString(enumKeyCodes key) {
-        if (key == KEY_C) return "C";
-
-        if (key < 0x405) {
-            return CCKeyboardDispatcher::keyToString(key);
-        }
-
         switch (key) {
+            // gd added these in 2.209, names these "OEM1" etc
+            case KEY_GraveAccent:
+                return "`";
+            case KEY_OEMEqual:
+                return "=";
+            case KEY_LeftBracket:
+                return "[";
+            case KEY_RightBracket:
+                return "]";
+            case KEY_Backslash:
+                return "\\";
+            case KEY_Semicolon:
+                return ";";
+            case KEY_Apostrophe:
+                return "'";
+            case KEY_Slash:
+                return "/";
+            case KEY_World1:
+                return "INTL-1";
+
             case CONTROLLER2_A:
                 return "Controller2_A";
             case CONTROLLER2_B:
@@ -78,28 +91,11 @@ class $modify(CCKeyboardDispatcher) {
                 return "Controller_RTHUMBSTICK_LEFT";
             case CONTROLLER_RTHUMBSTICK_RIGHT:
                 return "Controller_RTHUMBSTICK_RIGHT";
-            case KEY_GraveAccent:
-                return "`";
-            case KEY_OEMEqual:
-                return "=";
-            case KEY_LeftBracket:
-                return "[";
-            case KEY_RightBracket:
-                return "]";
-            case KEY_Backslash:
-                return "\\";
-            case KEY_Semicolon:
-                return ";";
-            case KEY_Apostrophe:
-                return "'";
-            case KEY_Slash:
-                return "/";
+            // codes gd doesn't have at all
             case KEY_Equal:
-                return "=";
+                return "NumEqual";
             case KEY_NumEnter:
                 return "NumEnter";
-            case KEY_World1:
-                return "INTL-1";
             case KEY_World2:
                 return "INTL-2";
             case MOUSE_4:
@@ -121,7 +117,7 @@ class $modify(CCKeyboardDispatcher) {
             case CONTROLLER2_R3:
                 return "Controller2_R3";
             default:
-                return CCKeyboardDispatcher::keyToString(KEY_Unknown);
+                return CCKeyboardDispatcher::keyToString(key);
         }
     }
 };

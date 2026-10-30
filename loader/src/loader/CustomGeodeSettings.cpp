@@ -1,8 +1,10 @@
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/ModEvent.hpp>
 #include <Geode/ui/Notification.hpp>
 #include <Geode/loader/SettingV3.hpp>
 #include <ui/mods/GeodeStyle.hpp>
 #include <ui/mods/ModsLayer.hpp>
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 
 using namespace geode::prelude;
 

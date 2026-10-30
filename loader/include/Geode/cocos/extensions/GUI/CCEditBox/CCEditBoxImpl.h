@@ -26,7 +26,6 @@
 #ifndef __CCEditBoxIMPL_H__
 #define __CCEditBoxIMPL_H__
 
-#include "../../../include/cocos2d.h"
 #include "../../ExtensionMacros.h"
 #include "CCEditBox.h"
 

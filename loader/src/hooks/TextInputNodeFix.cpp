@@ -1,6 +1,7 @@
-#include <Geode/modify/CCTextInputNode.hpp>
+#include <Geode/platform/cplatform.h>
 
 #ifdef GEODE_IS_ANDROID
+#include <Geode/modify/CCTextInputNode.hpp>
 
 using namespace geode::prelude;
 

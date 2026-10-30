@@ -8,7 +8,7 @@
 #include <Geode/utils/string.hpp>
 
 #include <string>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 
 using namespace geode::prelude;
 
@@ -36,7 +36,7 @@ namespace layout {
 }
 
 // dont judge
-std::filesystem::path g_crashlogPath;
+asp::fs::Path g_crashlogPath;
 std::wstring g_crashlogText;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -251,7 +251,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return 0;
 }
 
-bool showCustomCrashlogWindow(std::string text, std::filesystem::path const& crashlogPath) {
+bool showCustomCrashlogWindow(std::string text, asp::fs::PathView crashlogPath) {
     static constexpr auto WINDOW_CLASS_NAME = L"GeodeCrashHandlerWindow";
 
     auto wtext = utils::string::utf8ToWide(text);

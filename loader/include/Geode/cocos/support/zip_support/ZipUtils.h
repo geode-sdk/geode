@@ -25,7 +25,7 @@ THE SOFTWARE.
 #define __SUPPORT_ZIPUTILS_H__
 
 #include <string>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include "../../platform/CCPlatformDefine.h"
 #include "../../platform/CCPlatformConfig.h"
 #include "../../include/ccMacros.h"
@@ -150,19 +150,19 @@ namespace cocos2d
         */
         static void ccSetPvrEncryptionKey(unsigned int keyPart1, unsigned int keyPart2, unsigned int keyPart3, unsigned int keyPart4);
 
-        static gd::string base64DecodeEnc(gd::string const&, gd::string);
-        static gd::string base64EncodeEnc(gd::string const&, gd::string);
-        static gd::string base64URLDecode(gd::string const&);
-        static gd::string base64URLEncode(gd::string const&);
-        static int ccDeflateMemory(unsigned char* data, unsigned int size, unsigned char** out);
+        static std::string base64DecodeEnc(std::string const&, std::string);
+        static std::string base64EncodeEnc(std::string const&, std::string);
+        static std::string base64URLDecode(std::string const&);
+        static std::string base64URLEncode(std::string const&);
+        static int ccDeflateMemory(unsigned char* data, unsigned int size, unsigned char** out, int unk);
         static int ccDeflateMemoryWithHint(unsigned char*, unsigned int, unsigned char**, unsigned int);
-        static gd::string compressString(gd::string const& data, bool encrypt, int encryptionKey);
-        static gd::string decompressString(gd::string const& data, bool encrypt, int encryptionKey);
-        static gd::string decompressString2(unsigned char* data, bool encrypt, int size, int encryptionKey);
-        static gd::string encryptDecrypt(gd::string const& data, int encryptionKey);
-        static gd::string encryptDecryptWKey(gd::string const&, gd::string);
-        static unsigned char hexToChar(const gd::string&);
-        static gd::string urlDecode(const gd::string&);
+        static std::string compressString(std::string const& data, bool encrypt, int level, int encryptionKey);
+        static std::string decompressString(std::string const& data, bool encrypt, int encryptionKey);
+        static std::string decompressString2(unsigned char* data, bool encrypt, int size, int encryptionKey);
+        static std::string encryptDecrypt(std::string const& data, int encryptionKey);
+        static std::string encryptDecryptWKey(std::string const&, std::string);
+        static unsigned char hexToChar(const std::string&);
+        static std::string urlDecode(const std::string&);
 
     private:
         static int ccInflateMemoryWithHint(unsigned char *in, unsigned int inLength, unsigned char **out, unsigned int *outLength,
@@ -216,7 +216,7 @@ namespace cocos2d
          */
         bool isLoaded() const;
 
-        bool unzipAllTo(std::filesystem::path const& path);
+        bool unzipAllTo(asp::fs::Path const& path);
 
         /**
         * Regenerate accessible file list based on a new filter string.

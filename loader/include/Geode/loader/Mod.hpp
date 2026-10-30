@@ -23,7 +23,7 @@
 #include <unordered_map>
 #include <vector>
 #include <arc/future/Future.hpp>
-#include "Signal.hpp"
+// #include "Signal.hpp"
 
 namespace geode {
     template <class T>
@@ -82,7 +82,7 @@ namespace geode {
         friend void GEODE_CALL ::geode_implicit_load(Mod*);
 
         void settingReact(geode::Function<void()> fn);
-        
+
         matjson::Value& getSaveContainerTemp();
     public:
         // no copying
@@ -99,13 +99,13 @@ namespace geode {
         std::vector<std::string> getDevelopers() const;
         std::optional<std::string> getDescription() const;
         std::optional<std::string> getDetails() const;
-        std::filesystem::path getPackagePath() const;
+        asp::fs::Path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isLoaded() const;
         /**
-         * Whether the mod is currently enabled, or marked as to be enabled 
+         * Whether the mod is currently enabled, or marked as to be enabled
          * after a restart. Useful for UI
-         * @note This does not communicate whether the mod is actually 
+         * @note This does not communicate whether the mod is actually
          * *loaded* – for that, use `Mod::isLoaded`
          */
         bool isOrWillBeEnabled() const;
@@ -114,17 +114,17 @@ namespace geode {
 
         ModMetadata const& getMetadata() const;
 
-        std::filesystem::path getTempDir() const;
+        asp::fs::Path getTempDir() const;
         /**
          * Get the path to the mod's platform binary (.dll on Windows, .dylib
          * on Mac & iOS, .so on Android)
          */
-        std::filesystem::path getBinaryPath() const;
+        asp::fs::Path getBinaryPath() const;
         /**
          * Get the path to the mod's runtime resources directory (contains all
          * of its resources)
          */
-        std::filesystem::path getResourcesDir() const;
+        asp::fs::Path getResourcesDir() const;
 
         /**
          * Get the dependency settings for a specific dependency via its ID. For
@@ -162,18 +162,18 @@ namespace geode {
          * Get the mod's save directory path
          * `geode::dirs::getModsSaveDir()`/{mod_id}/
          */
-        std::filesystem::path getSaveDir() const;
+        asp::fs::Path getSaveDir() const;
         /**
          * Get the mod's config directory path
          * `geode::dirs::getModConfigDir()`/{mod_id}/
          */
-        std::filesystem::path getConfigDir(bool create = true) const;
+        asp::fs::Path getConfigDir(bool create = true) const;
         /**
          * Get the mod's persistent directory path
          * This directory is not deleted even when Geode/mod is uninstalled
          * `geode::dirs::getModPersistentDir()`/{mod_id}/
          */
-        std::filesystem::path getPersistentDir(bool create = true) const;
+        asp::fs::Path getPersistentDir(bool create = true) const;
 
         /**
          * Returns true if this mod has any settings
@@ -262,27 +262,26 @@ namespace geode {
             return T();
         }
 
-        template <class T>
-        comm::Signal<T> makeSettingSignal(std::string_view key) {
-            comm::Signal<T> sig = getSettingValue<T>(key);
-            settingReact([=, this] { setSettingValue<T>(key, *sig); });
+        // template <class T>
+        // comm::Signal<T> makeSettingSignal(std::string_view key) {
+        //     comm::Signal<T> sig = getSettingValue<T>(key);
+        //     settingReact([=, this] { setSettingValue<T>(key, *sig); });
 
-            listenForSettingChanges(key, [=](T value) mutable {
-                *sig = value;
-            }, this);
+        //     listenForSettingChanges(key, [=](T value) mutable {
+        //         *sig = value;
+        //     }, this);
 
-            return sig;
-        }
+        //     return sig;
+        // }
 
-        template <class T>
-        T setSettingValue(std::string_view key, T const& value) {
-            using S = typename SettingTypeForValueType<T>::SettingType;
+        template <class T, typename S = typename SettingTypeForValueType<T>::SettingType, typename Ret = typename S::ValueType>
+        Ret setSettingValue(std::string_view key, T const& value) {
             if (auto sett = cast::typeinfo_pointer_cast<S>(this->getSetting(key))) {
                 auto old = sett->getValue();
                 sett->setValue(value);
                 return old;
             }
-            return T();
+            return Ret{};
         }
 
         bool hasSavedValue(std::string_view key);
@@ -330,7 +329,7 @@ namespace geode {
                 if constexpr (requires(Elem const& a, Elem const& b) { { a == b } -> std::convertible_to<bool>; }) {
                     if (old == value) return old;
                 }
-            } 
+            }
             else if constexpr (requires(T const& a, T const& b) { { a == b } -> std::convertible_to<bool>; }) {
                 if (old == value) return old;
             }

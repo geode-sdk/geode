@@ -2,9 +2,12 @@
 
 #include <coroutine>
 #include <Geode/DefaultInclude.hpp>
-#include "Task.hpp"
+#include <Geode/Result.hpp>
 #include <concepts>
+#include <Geode/cocos/cocoa/CCArray.h>
 #include <arc/future/Future.hpp>
+#include <arc/task/Task.hpp>
+#include <arc/runtime/Runtime.hpp>
 
 namespace geode::utils::coro {
     /**
@@ -213,7 +216,7 @@ namespace geode::utils::coro {
         Result<void, E> result;
 
         bool await_ready() const noexcept { return result.isOk(); }
-        void await_resume() const noexcept { return; }
+        void await_resume() const noexcept {}
 
         template <std::convertible_to<Result<void, E>> Q>
         ResultAwaiter(Q&& res) : result(std::forward<Q>(res)) {}
@@ -226,7 +229,7 @@ namespace geode::utils::coro {
     };
 
     template <typename T>
-    concept ConvertibleToTask = requires(T t) { Task(t); };
+    concept ConvertibleToFuture = requires(T t) { arc::Future(std::move(t)); };
 
     /// Utility to spawn coroutines from non-coroutine code.
     static struct {
@@ -235,25 +238,17 @@ namespace geode::utils::coro {
             return fn();
         }
 
-        template <std::invocable F> requires (ConvertibleToTask<std::invoke_result_t<F>> && std::copy_constructible<F>)
+        template <std::invocable F> requires (ConvertibleToFuture<std::invoke_result_t<F>> && std::copy_constructible<F>)
         decltype(auto) operator<<(F&& fn) {
-            auto ptr_fn = new F(fn);
-
-            auto task = (*ptr_fn)();
-
-            task.listen([ptr_fn](auto const&){
-                delete ptr_fn;
-            });
-
-            return std::make_tuple(std::move(task));
+            auto wrap = [](F fn) -> arc::Future<void> {
+                co_await fn();
+            };
+            return std::make_tuple(arc::spawn(wrap(std::forward<F>(fn))));
         }
 
-        template <typename T> requires ConvertibleToTask<T>
+        template <typename T> requires ConvertibleToFuture<T>
         decltype(auto) operator<<(T&& item) {
-            auto task = Task(std::forward<T>(item));
-            task.listen([](auto const&){});
-
-            return std::make_tuple(std::move(task));
+            return std::make_tuple(arc::spawn(std::forward<T>(item)));
         }
 
         template <typename T>
@@ -265,7 +260,7 @@ namespace geode::utils::coro {
     template <typename T = void, typename E = std::string>
     using TryResult = std::conditional_t<std::same_as<T, void>, std::tuple<Result<void, E>>, Result<T, E>>;
 
-    #define $async(...) geode::utils::coro::spawn << [__VA_ARGS__]() -> geode::Task<void>
+    #define $async(...) geode::utils::coro::spawn << [__VA_ARGS__]() -> arc::Future<void>
     #define $try geode::utils::coro::spawn << [&]() -> geode::utils::coro::TryResult
 };
 

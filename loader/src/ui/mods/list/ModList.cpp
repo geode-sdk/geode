@@ -1,8 +1,10 @@
 #include "ModList.hpp"
 #include <Geode/cocos/actions/CCActionInterval.h>
+#include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/Notification.hpp>
@@ -12,6 +14,7 @@
 #include "../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
 #include "ModListItem.hpp"
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 
 static size_t getDisplayPageSize(ModListSource* src, ModListDisplay display) {
     if (src->isLocalModsOnly() && Mod::get()->getSettingValue<bool>("infinite-local-mods-list")) {
@@ -92,7 +95,8 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
         m_updateAllContainer->addChildAtPosition(m_updateAllBG, Anchor::Center);
 
-        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false);
+        // TODO: 2.209
+        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false, 0);
         m_updateCountLabel->setID("update-count-label");
         m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
 
@@ -160,9 +164,10 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
             m_errorsContainer->addChildAtPosition(errorsBG, Anchor::Center);
 
+            // TODO: 2.209 (change to Label?)
             auto errorsLabel = TextArea::create(
                 "There were <cy>errors</c> loading some mods",
-                "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false
+                "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false, 0
             );
             errorsLabel->setID("errors-label");
             m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
@@ -290,7 +295,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         limitNodeWidth(banner, size.width, 1.f, .1f);
         menu->addChildAtPosition(banner, Anchor::Center);
 
-        auto label = CCLabelBMFont::create("Modtober 2025 is Here!", "bigFont.fnt");
+        auto label = Label::create("Modtober 2025 is Here!", "bigFont.fnt");
         label->setScale(.5f);
         menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
 
@@ -375,9 +380,9 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_statusContainer->setAnchorPoint({ .5f, .5f });
     m_statusContainer->ignoreAnchorPointForPosition(false);
 
-    m_statusTitle = CCLabelBMFont::create("", "bigFont.fnt");
+    m_statusTitle = Label::create("", "bigFont.fnt");
     m_statusTitle->setID("status-title-label");
-    m_statusTitle->setAlignment(kCCTextAlignmentCenter);
+    m_statusTitle->setAlignment(Label::Alignment::Center);
     m_statusContainer->addChild(m_statusTitle);
 
     m_statusDetailsBtn = CCMenuItemSpriteExtra::create(
@@ -429,7 +434,7 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
 
         // Create items
         bool first = true;
-        for (auto item : list) {
+        for (auto& item : list) {
             // Add separators between items after the first one
             if (!first) {
                 // auto separator = CCLayerColor::create(
@@ -732,7 +737,7 @@ void ModList::showStatus(ModListStatus status, ZStringView message, std::optiona
 
     // Update status
     bool hasDetails = details.has_value();
-    m_statusTitle->setString(message.c_str());
+    m_statusTitle->setText(message);
     m_statusDetails->setText(std::move(details).value_or(""));
 
     // Update status visibility

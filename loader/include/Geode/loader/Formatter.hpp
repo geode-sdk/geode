@@ -1,11 +1,13 @@
 #pragma once
 
 #include "../utils/function.hpp"
-#include "../utils/cocos.hpp"
+#include "../utils/casts.hpp"
+#include <Geode/cocos/cocoa/CCObject.h>
+#include <Geode/cocos/include/ccTypes.h>
 #include "../utils/addresser.hpp"
 #include "Event.hpp"
 #include <Geode/Result.hpp>
-#include <arc/future/PollableMetadata.hpp>
+#include <arc/util/Typename.hpp>
 #include <ccTypes.h>
 #include <string_view>
 #include <matjson.hpp>
@@ -26,6 +28,10 @@ namespace geode {
 
     class Mod;
     GEODE_DLL std::string format_as(Mod*);
+
+    namespace cocos {
+        GEODE_DLL std::string_view getObjectName(cocos2d::CCObject const* obj);
+    }
 }
 
 template <typename T, typename E>
@@ -267,7 +273,7 @@ struct fmt::formatter<geode::format::Wrapper> {
         auto res = geode::format::LogFormatEvent<cocos2d::CCObject>().send(output, wrapper.m_obj, specifier);
 
         std::string tagString;
-        if (wrapper.m_obj->getTag() != cocos2d::kCCNodeTagInvalid) {
+        if (wrapper.m_obj->getTag() != -1 /* kCCNodeTagInvalid */) {
             tagString = fmt::format(" ({})", wrapper.m_obj->getTag());
         }
 

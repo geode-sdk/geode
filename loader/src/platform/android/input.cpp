@@ -1,7 +1,11 @@
+#include <Geode/cocos/CCDirector.h>
+#include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/cocos/keypad_dispatcher/CCKeypadDispatcher.h>
+#include <Geode/cocos/robtop/mouse_dispatcher/CCMouseDispatcher.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/utils/AndroidEvent.hpp>
 #include <Geode/utils/Keyboard.hpp>
 #include <Geode/Prelude.hpp>
-#include <cocos2d.h>
 #include <android/keycodes.h>
 #include <android/input.h>
 #include <jni.h>
@@ -357,9 +361,9 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
 constexpr auto g_scrollFactor = -13.0f;
 
 extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalScrollEvent(
-    JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jfloat scrollX, jfloat scrollY
+    JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jfloat scrollX, jfloat scrollY, jfloat mouseX, jfloat mouseY
 ) {
-    if (AndroidRichInputEvent().send(timestamp, deviceId, eventSource, AndroidScrollInput(scrollX, scrollY)) != ListenerResult::Propagate) {
+    if (AndroidRichInputEvent().send(timestamp, deviceId, eventSource, AndroidScrollInput(scrollX, scrollY, mouseX, mouseY)) != ListenerResult::Propagate) {
         return;
     }
 
@@ -367,6 +371,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         return;
     }
 
+    // TODO in v6 (aka remind me in a week bc I don't want to impl windows/mac side of this): add new dispatchScrollMSG params
     cocos2d::CCDirector::sharedDirector()->getMouseDispatcher()->dispatchScrollMSG(
         scrollY * g_scrollFactor, scrollX * g_scrollFactor
     );
@@ -457,7 +462,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
     }
 }
 
-AndroidScrollInput::AndroidScrollInput(float scrollX, float scrollY) : m_scrollX(scrollX), m_scrollY(scrollY) {}
+AndroidScrollInput::AndroidScrollInput(float scrollX, float scrollY, float mouseX, float mouseY) : m_scrollX(scrollX), m_scrollY(scrollY), m_mouseX(mouseX), m_mouseY(mouseY) {}
 
 float AndroidScrollInput::scrollX() const {
     return m_scrollX;
@@ -465,6 +470,14 @@ float AndroidScrollInput::scrollX() const {
 
 float AndroidScrollInput::scrollY() const {
     return m_scrollY;
+}
+
+float AndroidScrollInput::mouseX() const {
+    return m_mouseX;
+}
+
+float AndroidScrollInput::mouseY() const {
+    return m_mouseY;
 }
 
 AndroidKeyInput::AndroidKeyInput(int keycode, int modifiers, bool isDown, int repeatCount)
@@ -517,6 +530,8 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceRemov
     geode::AndroidInputDeviceEvent().send(deviceId, geode::AndroidInputDeviceStatus::Removed);
 }
 
+/*
+// no longer necessary in 2.209
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_resizeSurface(
     JNIEnv* env, jobject, jint width, jint height
@@ -529,3 +544,4 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_resizeSurface(
     cocos2d::CCDirector::sharedDirector()->setViewport();
     cocos2d::CCDirector::sharedDirector()->setProjection(cocos2d::kCCDirectorProjection2D);
 }
+*/

@@ -1,11 +1,9 @@
 #include <Geode/modify/Field.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <Geode/modify/Field.hpp>
 #include <Geode/modify/CCNode.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/StringMap.hpp>
-#include <cocos2d.h>
 #include <queue>
 #include <stack>
 
@@ -22,7 +20,7 @@ struct ProxyCCNode;
 class GeodeNodeMetadata final : public cocos2d::CCObject {
 private:
     StringMap<FieldContainer*> m_classFieldContainers;
-    std::string m_id = "";
+    std::string m_id;
     Ref<Layout> m_layout = nullptr;
     Ref<LayoutOptions> m_layoutOptions = nullptr;
     StringMap<Ref<CCObject>> m_userObjects;
@@ -148,7 +146,6 @@ public:
 };
 
 // proxy forwards
-#include <Geode/modify/CCNode.hpp>
 struct ProxyCCNode : Modify<ProxyCCNode, CCNode> {
     virtual CCObject* getUserObject() {
         if (auto asNode = typeinfo_cast<CCNode*>(this)) {
@@ -351,7 +348,7 @@ public:
         if (m_next) {
             switch (m_nextOp) {
                 case Op::ImmediateChild: str += " > "; break;
-                case Op::DescendantChild: str += " "; break;
+                case Op::DescendantChild: str += ' '; break;
             }
             str += m_next->toString();
         }
@@ -491,10 +488,10 @@ void CCNode::updateAnchoredPosition(Anchor anchor, CCPoint const& offset, CCPoin
 namespace {
     template <class T, size_t N>
     struct LocalStack {
-        std::array<T, N> m_stack;
+        std::array<T, N> m_stack{};
         size_t m_index = 0;
 
-        LocalStack() : m_stack{0} {}
+        LocalStack() {}
 
         bool push(T value) {
             m_index++;
@@ -518,14 +515,14 @@ namespace {
         }
     };
 
-    static thread_local LocalStack<void*, 32> s_lockStack;
+    thread_local LocalStack<void*, 32> s_lockStack;
 }
 
 
 namespace geode {
     // okay so you might be asking why the hell this exists
     // i'm asking the same question
-    // so basically, cocos devs decided it was a very good idea to allocate 
+    // so basically, cocos devs decided it was a very good idea to allocate
     // twice for every ccnode instead of once cause why not
     // which means there is a new call in the constructor of ccnode
     // thats not _that_ bad on its own, but the problem is that there is no
@@ -536,8 +533,8 @@ namespace geode {
     // them will crash. i have no idea why this hasn't came up sooner, i did
     // not touch any code related to it yet it started to crash in v5
     // for some reason. this is basically a hack for that, if we set the value
-    // to be, you know, a null class, then it won't crash. well, at least 
-    // that's the hope 
+    // to be, you know, a null class, then it won't crash. well, at least
+    // that's the hope
     class NullComponentContainer final {
     private:
         NullComponentContainer() {}
@@ -556,7 +553,7 @@ namespace geode {
         virtual void visit(float) {}
 
         static void operator delete(void* ptr) {
-            // this is a disgusting hack oh my god 
+            // this is a disgusting hack oh my god
         }
     };
 }

@@ -26,7 +26,7 @@
 #ifndef __AssetsManager__
 #define __AssetsManager__
 
-#include "../../include/cocos2d.h"
+#include "../../cocoa/CCObject.h"
 #include "../ExtensionMacros.h"
 
 #if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT) && (CC_TARGET_PLATFORM != CC_PLATFORM_WP8)
@@ -110,7 +110,7 @@ public:
 
     /* @brief Gets current version code.
      */
-    gd::string getVersion();
+    std::string getVersion();
 
     /* @brief Deletes recorded version code.
      */
@@ -179,15 +179,15 @@ private:
 
 public:
     //! The path to store downloaded resources.
-    gd::string _storagePath;
+    std::string _storagePath;
 
     //! The version of downloaded resources.
-    gd::string _version;
+    std::string _version;
 
-    gd::string _packageUrl;
-    gd::string _versionFileUrl;
+    std::string _packageUrl;
+    std::string _versionFileUrl;
 
-    gd::string _downloadedVersion;
+    std::string _downloadedVersion;
 
     CURL *_curl;
     Helper *_schedule;

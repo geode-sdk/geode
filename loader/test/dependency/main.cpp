@@ -133,7 +133,7 @@ class MySettingValue;
 // }
 
 struct MyMenuLayer : Modify<MyMenuLayer, MenuLayer> {
-    void onMoreGames(CCObject*) {
+    void onNewgrounds(CCObject*) {
         TestEvent().send("Event system works!");
         if (Mod::get()->getSettingValue<bool>("its-raining-after-all")) {
             FLAlertLayer::create("Damn", ":(", "OK")->show();
@@ -197,6 +197,20 @@ Result<int> api::addNumbers(int a, int b) {
     return Ok(a + b);
 }
 
+Result<int> api::addNumbers(int a, int b, int c) {
+    return Ok(a + b + c);
+}
+
+float api::addNumbers(float a, float b) {
+    return a + b;
+}
+
 Result<int> api::Test::addNumbers(int a, int b) {
     return Ok(a + b);
+}
+
+int api::randomNumber() {
+    // chosen by fair dice roll.
+    // guaranteed to be random.
+    return 4;
 }

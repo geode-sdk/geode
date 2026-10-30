@@ -28,7 +28,8 @@ THE SOFTWARE.
 #ifndef __CCScale9Sprite_H__
 #define __CCScale9Sprite_H__
 
-#include "../../../include/cocos2d.h"
+#include "../../../sprite_nodes/CCSprite.h"
+#include "../../../sprite_nodes/CCSpriteBatchNode.h"
 #include "../../ExtensionMacros.h"
 
 NS_CC_EXT_BEGIN

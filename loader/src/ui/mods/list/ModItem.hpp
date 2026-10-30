@@ -6,6 +6,7 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <server/DownloadManager.hpp>
@@ -54,12 +55,12 @@ protected:
     CCNode* m_logo;
     CCNode* m_infoContainer;
     CCNode* m_titleContainer;
-    Ref<CCLabelBMFont> m_titleLabel;
-    CCLabelBMFont* m_versionLabel;
+    Ref<Label> m_titleLabel;
+    Label* m_versionLabel;
     CCNode* m_developers;
     CCNode* m_recommendedBy;
     NineSlice* m_description;
-    CCLabelBMFont* m_developerLabel;
+    Label* m_developerLabel;
     ButtonSprite* m_restartRequiredLabel;
     ButtonSprite* m_outdatedLabel;
     ButtonSprite* m_deprecatedLabel;
@@ -78,7 +79,7 @@ protected:
     Ref<CCNode> m_badgeContainer = nullptr;
     Ref<CCNode> m_downloadCountContainer;
     Ref<CCNode> m_updatedAtContainer;
-    CCLabelBMFont* m_versionDownloadSeparator;
+    Label* m_versionDownloadSeparator;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable
@@ -104,7 +105,7 @@ public:
 };
 
 /**
- * Standalone ModItem that you give a Mod ID to and it'll either show the mod 
+ * Standalone ModItem that you give a Mod ID to and it'll either show the mod
  * if it's installed or fetch from server if it is not
  */
 class AnyModItem : public ModListItem {

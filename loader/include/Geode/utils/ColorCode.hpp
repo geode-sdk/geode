@@ -1,9 +1,11 @@
 #pragma once
-
+#include <GUI/CCControlExtension/CCControlUtils.h>
 #include <Geode/Result.hpp>
-#include <string_view>
-#include <cocos-ext.h>
+
+#include <algorithm>
 #include <ccTypes.h>
+#include <fmt/format.h>
+#include <string_view>
 
 namespace geode {
     template<typename T>

@@ -1,4 +1,5 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/cocos.hpp>
 
@@ -345,8 +346,8 @@ CCSize EditorButtonSprite::getMaxTopSize() const {
 
 TabButtonSprite* TabButtonSprite::create(char const* text, TabBaseColor color, TabBaseSize size) {
     auto ret = new TabButtonSprite();
-    auto label = CCLabelBMFont::create(text, "bigFont.fnt");
-    label->limitLabelWidth(75.f, .6f, .1f);
+    auto label = Label::create(text, "bigFont.fnt");
+    label->setLimitLabelWidth(75.f, .6f, .1f);
     if (ret->init(
         label, BaseType::Tab,
         static_cast<int>(size), static_cast<int>(color)

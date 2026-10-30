@@ -26,7 +26,7 @@
 #ifndef __CCEditBoxIMPLWIN_H__
 #define __CCEditBoxIMPLWIN_H__
 
-#include "../../../include/cocos2d.h"
+#include "../../../platform/CCPlatformConfig.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
 
@@ -81,8 +81,8 @@ public:
     EditBoxInputFlag    m_eEditBoxInputFlag;
     KeyboardReturnType  m_eKeyboardReturnType;
 
-    gd::string m_strText;
-    gd::string m_strPlaceHolder;
+    std::string m_strText;
+    std::string m_strPlaceHolder;
 
     ccColor3B m_colText;
     ccColor3B m_colPlaceHolder;

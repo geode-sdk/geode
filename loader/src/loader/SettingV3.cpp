@@ -319,7 +319,7 @@ namespace enable_if_parsing {
             }
             std::string_view ty = "setting";
             std::string_view value = word;
-            if (word.find(':') != std::string::npos) {
+            if (word.contains(':')) {
                 ty = word.substr(0, word.find(':'));
                 value = word.substr(word.find(':') + 1);
             }
@@ -328,11 +328,11 @@ namespace enable_if_parsing {
                     std::string modID = m_defaultModID;
                     std::string settingID = std::string(value);
                     // mod.id/setting-id
-                    if (value.find('/') != std::string::npos) {
+                    if (value.contains('/')) {
                         modID = value.substr(0, value.find('/'));
                         settingID = value.substr(value.find('/') + 1);
                     }
-                    if (!ModMetadata::validateID(std::string(modID))) {
+                    if (!ModMetadata::validateID(modID)) {
                         return Err("Invalid mod ID '{}'", modID);
                     }
                     return Ok(std::make_unique<RequireSettingEnabled>(modID, settingID));
@@ -342,7 +342,7 @@ namespace enable_if_parsing {
                     std::string modID = m_defaultModID;
                     std::string savedValue = std::string(value);
                     // mod.id/setting-id
-                    if (value.find('/') != std::string::npos) {
+                    if (value.contains('/')) {
                         modID = value.substr(0, value.find('/'));
                         savedValue = value.substr(value.find('/') + 1);
                     }
@@ -624,11 +624,11 @@ InfoSettingV3::InfoSettingV3(PrivateMarker) : m_impl(std::make_shared<Impl>()) {
 Result<std::shared_ptr<InfoSettingV3>> InfoSettingV3::parse(std::string key, std::string modID, matjson::Value const& json) {
     auto ret = std::make_shared<InfoSettingV3>(PrivateMarker());
     auto root = checkJson(json, "InfoSettingV3");
-    ret->init(std::move(key), std::move(modID), root);
+    ret->init(key, modID, root);
     ret->parseNameAndDescription(root);
 
     if (!ret->getDescription() || ret->getDescription()->empty()) {
-        return Err("Setting '{}' in mod {} - Description must not be empty!", std::move(key), std::move(modID));
+        return Err("Setting '{}' in mod {} - Description must not be empty!", key, modID);
     }
 
     std::optional<std::string> color;
@@ -1040,12 +1040,12 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string key, std
     auto root = checkJson(json, "FileSettingV3");
     ret->parseBaseProperties(key, modID, root);
 
-    ret->setDefaultValue(ret->getDefaultValue().make_preferred());
+    ret->setDefaultValue(ret->getDefaultValue().makePreferred());
 
     // Replace known paths like `{gd-save-dir}/`
     try {
         ret->setDefaultValue(fmt::format(
-            fmt::runtime(utils::string::pathToString(ret->getDefaultValue())),
+            fmt::runtime(ret->getDefaultValue().string()),
             fmt::arg("gd_dir", dirs::getGameDir()),
             fmt::arg("gd_save_dir", dirs::getSaveDir()),
             fmt::arg("mod_config_dir", dirs::getModConfigDir() / modID),
@@ -1096,20 +1096,19 @@ Result<std::shared_ptr<FileSettingV3>> FileSettingV3::parse(std::string key, std
     return root.ok(ret);
 }
 
-Result<> FileSettingV3::isValid(std::filesystem::path const& value) const {
+Result<> FileSettingV3::isValid(asp::fs::PathView value) const {
     // This is because people tend to put `"default": "Please pick a good file"`
     // which is clever and good UX but also a hack so I also need to hack to support that
     if (value == this->getDefaultValue()) {
         return Ok();
     }
-    std::error_code ec;
     if (m_impl->folder) {
-        if (!std::filesystem::is_directory(value, ec)) {
+        if (!value.isDir()) {
             return Err("Value must be a folder");
         }
     }
     else {
-        if (!std::filesystem::is_regular_file(value, ec)) {
+        if (!value.isFile()) {
             return Err("Value must be a file");
         }
     }

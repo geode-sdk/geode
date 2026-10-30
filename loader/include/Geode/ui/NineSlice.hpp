@@ -1,7 +1,9 @@
 #pragma once
 
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
+#include <Geode/cocos/sprite_nodes/CCSpriteFrame.h>
 #include <Geode/utils/ZStringView.hpp>
-#include <cocos2d.h>
 
 namespace geode {
     class GEODE_DLL NineSlice : public cocos2d::CCNodeRGBA {

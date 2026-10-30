@@ -6,8 +6,9 @@
 #include <Geode/binding/LevelBrowserLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Loader.hpp>
-#include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/BreakLine.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/cocos.hpp>
@@ -22,6 +23,7 @@
 #include <memory>
 #include <server/Server.hpp>
 #include <regex>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 
 using namespace geode::prelude;
 
@@ -44,14 +46,14 @@ public:
 
 MDTextArea::MDTextArea() : m_impl(std::make_unique<Impl>()) {}
 
-static auto mustLabel(ZStringView font) -> CCLabelBMFont* {
-    auto label = CCLabelBMFont::create("", font.c_str());
+static auto mustLabel(ZStringView font) -> Label* {
+    auto label = Label::create("", font.c_str());
 
     // missing geode textures, this can happen if the user has no textures and opens something that has an MDTextArea
     // to avoid crashing in TextRenderer, just use chatFont.fnt as a fallback
     if (!label) {
         log::error("Missing font {}, using fallback!", font);
-        label = CCLabelBMFont::create("", "chatFont.fnt");
+        label = Label::create("", "chatFont.fnt");
     }
 
     return label;
@@ -127,7 +129,7 @@ Result<ccColor3B> colorForIdentifier(std::string tag) {
         return cc3bFromHexString(sv.substr(2));
     }
     // Support the old form of <carbitaryletters hex>
-    else if (tag.find(' ') != std::string::npos) {
+    else if (tag.contains(' ')) {
         return cc3bFromHexString(string::trim(tag.substr(tag.find(' ') + 1)));
     }
     else {
@@ -217,7 +219,7 @@ void MDTextArea::onLink(CCObject* pSender) {
 void MDTextArea::onGDProfile(CCObject* pSender) {
     auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto profile = std::string(href->getCString());
-    profile = profile.substr(profile.find(":") + 1);
+    profile = profile.substr(profile.find(':') + 1);
     auto res = numFromString<int>(profile);
     if (res.isErr()) {
         FLAlertLayer::create(
@@ -235,7 +237,7 @@ void MDTextArea::onGDProfile(CCObject* pSender) {
 void MDTextArea::onGDLevel(CCObject* pSender) {
     auto href = static_cast<CCString*>(static_cast<CCNode*>(pSender)->getUserObject());
     auto level = std::string(href->getCString());
-    level = level.substr(level.find(":") + 1);
+    level = level.substr(level.find(':') + 1);
     auto res = numFromString<int>(level);
     if (res.isErr()) {
         FLAlertLayer::create(
@@ -359,7 +361,7 @@ struct MDParser {
                         float spriteWidth = 0.0f;
                         float spriteHeight = 0.0f;
 
-                        for (auto [key, value] : imgArguments) {
+                        for (auto& [key, value] : imgArguments) {
                             if (key == "scale") {
                                 auto scaleRes = utils::numFromString<float>(value);
                                 if (scaleRes) {
@@ -381,7 +383,7 @@ struct MDParser {
                         }
 
                         if (utils::string::startsWith(s_lastImage, "frame:")) {
-                            s_lastImage = s_lastImage.substr(s_lastImage.find(":") + 1);
+                            s_lastImage = s_lastImage.substr(s_lastImage.find(':') + 1);
                             isFrame = true;
                         }
                         CCSprite* spr = nullptr;
@@ -778,9 +780,9 @@ struct MDParser {
     }
 };
 
-std::string MDParser::s_lastLink = "";
+std::string MDParser::s_lastLink;
 bool MDParser::s_lastLinkWasAuto = false;
-std::string MDParser::s_lastImage = "";
+std::string MDParser::s_lastImage;
 bool MDParser::s_isOrderedList = false;
 size_t MDParser::s_orderedListNum = 0;
 bool MDParser::s_isCodeBlock = false;

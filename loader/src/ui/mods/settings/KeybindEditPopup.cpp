@@ -1,5 +1,6 @@
 #include "KeybindEditPopup.hpp"
 
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/Scrollbar.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
 
@@ -22,7 +23,7 @@ bool KeybindEditPopup::init(
     m_noElasticity = true;
 
     if (auto mod = setting->getMod()) {
-        auto fromModLabel = CCLabelBMFont::create(mod->getName().c_str(), "bigFont.fnt");
+        auto fromModLabel = Label::create(mod->getName(), "bigFont.fnt");
         fromModLabel->setScale(.4f);
         fromModLabel->setColor(ccc3(55, 155, 255));
         m_mainLayer->addChildAtPosition(fromModLabel, Anchor::Top, ccp(0, -40));
@@ -88,14 +89,14 @@ void KeybindEditPopup::updateLabel() {
             m_originalKeybindContainer->setScale(.4f);
             m_originalKeybindContainer->setAnchorPoint(ccp(.5f, .5f));
 
-            auto originalKeybindInfoStart = CCLabelBMFont::create("(Previous: ", "bigFont.fnt");
+            auto originalKeybindInfoStart = Label::create("(Previous: ", "bigFont.fnt");
             originalKeybindInfoStart->setColor(ccc3(55, 255, 55));
             m_originalKeybindContainer->addChild(originalKeybindInfoStart);
 
             auto originalKeybind = m_originalKeybind->createNode();
             m_originalKeybindContainer->addChild(originalKeybind);
-            
-            auto originalKeybindInfoEnd = CCLabelBMFont::create(")", "bigFont.fnt");
+
+            auto originalKeybindInfoEnd = Label::create(")", "bigFont.fnt");
             originalKeybindInfoEnd->setColor(ccc3(55, 255, 55));
             m_originalKeybindContainer->addChild(originalKeybindInfoEnd);
 
@@ -108,7 +109,7 @@ void KeybindEditPopup::updateLabel() {
         m_keybindNode->removeFromParent();
     }
     if (m_currentKeybind.key == KEY_None && m_currentKeybind.modifiers == KeyboardModifier::None) {
-        auto label = CCLabelBMFont::create("Press a key...", "bigFont.fnt");
+        auto label = Label::create("Press a key...", "bigFont.fnt");
         label->setOpacity(150);
         label->setScale(.75f);
         m_keybindNode = label;

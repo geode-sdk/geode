@@ -14,23 +14,19 @@ namespace geode {
     namespace async {}
 }
 
-namespace cocos2d {
-    namespace extension {}
-}
+namespace cocos2d::extension {}
 
-namespace geode {
-    namespace prelude {
-        using namespace ::geode;
-        using namespace ::geode::addresser;
-        using namespace ::geode::cast;
-        using namespace ::geode::cocos;
-        using namespace ::geode::helper;
-        using namespace ::geode::utils;
-        using namespace ::geode::op;
-        using namespace ::geode::stream;
-        using namespace ::geode::view;
-        using namespace ::geode::async;
-        using namespace ::cocos2d;
-        using namespace ::cocos2d::extension;
-    }
+namespace geode::prelude {
+    using namespace ::geode;
+    using namespace ::geode::addresser;
+    using namespace ::geode::cast;
+    using namespace ::geode::cocos;
+    using namespace ::geode::helper;
+    using namespace ::geode::utils;
+    using namespace ::geode::op;
+    using namespace ::geode::stream;
+    using namespace ::geode::view;
+    using namespace ::geode::async;
+    using namespace ::cocos2d;
+    using namespace ::cocos2d::extension;
 }

@@ -1,9 +1,10 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
+#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 #include <Geode/utils/function.hpp>
+#include <Geode/ui/Label.hpp>
 #include <memory>
-#include <cocos2d.h>
 
 namespace geode {
     class SimpleTextAreaImpl;
@@ -50,7 +51,7 @@ namespace geode {
         float getScale() override;
         void setLinePadding(float padding);
         float getLinePadding();
-        std::vector<cocos2d::CCLabelBMFont*> getLines();
+        std::vector<geode::Label*> getLines();
         float getHeight();
         float getLineHeight();
 

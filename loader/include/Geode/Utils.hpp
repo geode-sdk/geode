@@ -12,7 +12,6 @@
 #include "utils/permission.hpp"
 #include "utils/random.hpp"
 #include "utils/general.hpp"
-#include "utils/timer.hpp"
 #include "utils/ObjcHook.hpp"
 #include "utils/ZStringView.hpp"
 #include "utils/StringBuffer.hpp"

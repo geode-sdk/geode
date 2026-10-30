@@ -316,7 +316,7 @@ std::vector<StackFrame> CrashContext::getStacktrace() {
     free(messages);
 
     // parse extra information (debug data)
-    for (auto& [i, dframe] : asp::iter::consume(addr2Line()).enumerate()) {
+    for (auto [i, dframe] : asp::iter::consume(addr2Line()).enumerate()) {
         frames[i].file = std::move(dframe.file);
         frames[i].line = dframe.line;
     }

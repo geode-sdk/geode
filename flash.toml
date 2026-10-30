@@ -4,7 +4,7 @@
 
 [project]
 name = "Geode"
-version = "" # dont bother
+version = ""                                          # dont bother
 repository = "https://github.com/geode-sdk/geode"
 tree = "https://github.com/geode-sdk/geode/tree/main"
 icon = "loader/resources/logos/geode-circle.png"
@@ -37,27 +37,20 @@ repository = "https://github.com/dankmeme01/arc"
 [[sources]]
 name = "Geode"
 dir = "loader/include"
-include = [
-    "Geode/**/*.hpp",
-    "Geode/**/*.h",
-]
+include = ["Geode/**/*.hpp", "Geode/**/*.h"]
 exclude = [
     "Geode/Modify.hpp",
     "Geode/modify/Comparer.hpp",
     "Geode/platform/*.hpp",
-    "Geode/c++stl/**/*.hpp",
-    "Geode/c++stl/**/*.h",
     "Geode/fmod/fmod_android.h",
     # All of the relevant cocos headers are included through Geode headers
-    "Geode/cocos/**/*.h"
+    "Geode/cocos/**/*.h",
 ]
 
 [[sources]]
 name = "Bindings"
 dir = "build-docs/bindings/bindings"
-include = [
-    "Geode/binding/*.hpp"
-]
+include = ["Geode/binding/*.hpp"]
 # Bindings are generated at compile time
 exists-online = false
 
@@ -69,26 +62,27 @@ patterns-name = [
     "^tinyxml2$",
     "^format_as$",
     # operator overloads
-    "^operator\\W"
+    "^operator\\W",
 ]
 patterns-full = [
     "^geode::modifier",
     "^geode::prelude",
     "^geode::stl",
-    "^geode::geode_internal"
+    "^geode::geode_internal",
 ]
 
 # CMake options
 
 [cmake]
 config-args = [
-    "-G", "Ninja",
+    "-G",
+    "Ninja",
     "-DCMAKE_CXX_COMPILER=Clang",
     "-DCMAKE_C_COMPILER=Clang",
     "-DGEODE_BUILDING_DOCS=On",
     "-DGEODE_PLATFORM_NAME=Win64",
     "-DGEODE_CODEGEN_CMAKE_ARGS=-DCMAKE_CXX_COMPILER=Clang;-DCMAKE_C_COMPILER=Clang",
-    "-DWIN32=On"
+    "-DWIN32=On",
 ]
 build-dir = "build-docs"
 

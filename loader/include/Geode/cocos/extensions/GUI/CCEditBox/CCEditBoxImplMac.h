@@ -26,7 +26,7 @@
 #ifndef __CCEditBoxIMPLMAC_H__
 #define __CCEditBoxIMPLMAC_H__
 
-#include "../../../include/cocos2d.h"
+#include "../../../platform/CCPlatformConfig.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 

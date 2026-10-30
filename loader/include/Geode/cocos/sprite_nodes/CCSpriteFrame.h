@@ -165,9 +165,9 @@ public:
     CCPoint m_obOffsetInPixels;
     CCSize m_obOriginalSizeInPixels;
     CCTexture2D *m_pobTexture;
-    gd::string  m_strTextureFilename;
+    std::string  m_strTextureFilename;
     // @note RobTop Addition
-    CC_SYNTHESIZE_NV(gd::string, m_strFrameName, FrameName);
+    CC_SYNTHESIZE_NV(std::string, m_strFrameName, FrameName);
 };
 
 // end of sprite_nodes group

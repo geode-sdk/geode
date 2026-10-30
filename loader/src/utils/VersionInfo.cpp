@@ -9,7 +9,7 @@ using namespace geode::prelude;
 Result<VersionTag> VersionTag::parse(std::stringstream& str) {
     std::string iden;
     while ('a' <= str.peek() && str.peek() <= 'z') {
-        iden += str.get();
+        iden += (char)str.get();
     }
     if (str.fail()) {
         return Err("Unable to parse tag");
@@ -34,7 +34,7 @@ Result<VersionTag> VersionTag::parse(std::stringstream& str) {
 }
 
 std::string VersionTag::toSuffixString() const {
-    std::string res = "";
+    std::string res;
     switch (value) {
         case Alpha: res += "-alpha"; break;
         case Beta: res += "-beta"; break;
@@ -47,7 +47,7 @@ std::string VersionTag::toSuffixString() const {
 }
 
 std::string VersionTag::toString() const {
-    std::string res = "";
+    std::string res;
     switch (value) {
         case Alpha: res += "Alpha"; break;
         case Beta: res += "Beta"; break;
@@ -144,15 +144,15 @@ Result<ComparableVersionInfo> ComparableVersionInfo::parse(std::string string) {
         compare = VersionCompare::MoreEq;
         string.erase(0, 2);
     }
-    else if (string.starts_with("=")) {
+    else if (string.starts_with('=')) {
         compare = VersionCompare::Exact;
         string.erase(0, 1);
     }
-    else if (string.starts_with("<")) {
+    else if (string.starts_with('<')) {
         compare = VersionCompare::Less;
         string.erase(0, 1);
     }
-    else if (string.starts_with(">")) {
+    else if (string.starts_with('>')) {
         compare = VersionCompare::More;
         string.erase(0, 1);
     }

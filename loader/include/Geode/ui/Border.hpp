@@ -1,6 +1,7 @@
 #pragma once
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
+#include <Geode/cocos/include/ccTypes.h>
 
-#include <cocos2d.h>
 
 namespace geode {
     class GEODE_DLL Border : public cocos2d::CCLayerColor {
