@@ -10,15 +10,18 @@ class NumberInputPopup::Impl final {
 public:
     Callback m_callback = nullptr;
 
-    std::string offsetPageStr(std::string_view current, int64_t by, int64_t max) {
+    int64_t m_max = 1;
+    int64_t m_min = 0;
+
+    std::string offsetPageStr(std::string_view current, int64_t by) {
         auto currentRes = numFromString<int64_t>(current);
-        if (currentRes.isErr()) return "1";
+        if (currentRes.isErr()) return std::string{current};
 
         auto cur = std::move(currentRes).unwrap();
         auto to = cur + by;
 
-        if (to < 1) return std::string{current};
-        if (to > max) return numToString(max);
+        if (to < m_min) return numToString(m_min);
+        if (to > m_max) return numToString(m_max);
 
         return numToString(to);
     }
@@ -29,6 +32,9 @@ NumberInputPopup::~NumberInputPopup() {}
 
 bool NumberInputPopup::init(int64_t current, int64_t min, int64_t max, std::string title, ZStringView btnText, ZStringView btnBg, ZStringView bg, CircleBaseColor closeBtnColor, float inputWidth) {
     if (!Popup::init({210.f, 125.f}, bg.c_str())) return false;
+
+    m_impl->m_max = max;
+    m_impl->m_min = min;
 
     this->setTitle(std::move(title));
     this->setCloseButtonSpr(CircleButtonSprite::createWithSpriteFrameName("close.png"_spr, .875f, closeBtnColor), .825f);
@@ -56,8 +62,8 @@ bool NumberInputPopup::init(int64_t current, int64_t min, int64_t max, std::stri
 
     auto prev = Button::createWithSpriteFrameName(
         "edit_leftBtn_001.png",
-        [this, input, min, max](auto) {
-            input->setString(m_impl->offsetPageStr(input->getString(), -1, max));
+        [this, input](auto) {
+            input->setString(m_impl->offsetPageStr(input->getString(), -1));
         }
     );
     prev->setID("decrement-button");
@@ -65,8 +71,8 @@ bool NumberInputPopup::init(int64_t current, int64_t min, int64_t max, std::stri
 
     auto next = Button::createWithSpriteFrameName(
         "edit_rightBtn_001.png",
-        [this, input, min, max](auto) {
-            input->setString(m_impl->offsetPageStr(input->getString(), 1, max));
+        [this, input](auto) {
+            input->setString(m_impl->offsetPageStr(input->getString(), 1));
         }
     );
     next->setID("increment-button");
