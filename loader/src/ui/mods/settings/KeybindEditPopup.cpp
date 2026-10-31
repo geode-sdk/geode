@@ -215,7 +215,7 @@ bool KeybindListPopup::init(
 
     m_mainLayer->addChildAtPosition(createGeodeListBorders({ 190.f, 150.f }), Anchor::Center, {-5.f, 5.f});
 
-    auto bottomMenu = CCMenu::create();
+    auto bottomMenu = CCNode::create();
     bottomMenu->setContentWidth(220.f);
 
     auto addButton = Button::createWithNode(

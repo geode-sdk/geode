@@ -14,7 +14,7 @@ enum class KeybindsPopupTab : int8_t {
 class KeybindsPopup : public BaseSettingsPopup {
 protected:
     KeybindsPopupTab m_tab = KeybindsPopupTab::All;
-    CCMenu* m_tabsMenu;
+    CCNode* m_tabsMenu;
 
     bool init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool forceDisableTheme);
     bool shouldShow(SettingNode* node) const override;

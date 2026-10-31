@@ -1,11 +1,11 @@
 #pragma once
 
 #include <Geode/loader/Setting.hpp>
-#include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/ColorChannelSprite.hpp>
 #include <Geode/ui/SliderNode.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/Toggler.hpp>
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include <ui/mods/GeodeStyle.hpp>
@@ -18,7 +18,7 @@ using namespace geode::prelude;
 
 class TitleSettingNodeV3 : public SettingNodeV3 {
 protected:
-    CCMenuItemToggler* m_collapseToggle = nullptr;
+    Toggler* m_collapseToggle = nullptr;
 
     bool init(std::shared_ptr<TitleSettingV3> setting, float width);
 
@@ -74,7 +74,7 @@ public:
 
 class BoolSettingNodeV3 : public SettingValueNodeV3<BoolSettingV3> {
 protected:
-    CCMenuItemToggler* m_toggle = nullptr;
+    Toggler* m_toggle = nullptr;
 
     bool init(std::shared_ptr<BoolSettingV3> setting, float width);
     void updateState(CCNode* invoker) override;
@@ -203,8 +203,10 @@ protected:
             m_slider->setMax(setting->getMaxValue().value_or(+100.f));
             m_slider->setSnapStep(setting->getSliderSnap());
 
-            // TODO: somehow hide zeroes at the end
-            m_slider->linkTextInput(m_input, 3);
+            unsigned int precision = 0; // only way i thought of removing the decimals when linking to slidernode
+            if constexpr (std::is_same_v<FloatSettingV3, S>) precision = 3;
+
+            m_slider->linkTextInput(m_input, precision);
 
             m_slider->setValue(setting->getValue());
 
