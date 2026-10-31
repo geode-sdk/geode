@@ -447,6 +447,11 @@ void RichTextArea::RichImpl::parseRichText() {
                 addReplacementStr();
                 i += tag.length() + 1;
                 stack.pop_front();
+
+                if (!stack.empty()) {
+                    auto prev = stack.at(0);
+                    replString += prev.replacementStrPrefix();
+                }
                 continue;
             }
 
