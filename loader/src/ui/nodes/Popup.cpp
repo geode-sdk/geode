@@ -83,7 +83,7 @@ bool Popup::init(
     float width, float height, char const* bg, CCRect bgRect
 ) {
     m_size = CCSize{ width, height };
-    CCTouchDispatcher::get()->registerForcePrio(this, 2);
+    CCTouchDispatcher::get()->registerForcePrio(this, 2, 0);
 
     if (!this->initWithColor({ 0, 0, 0, 105 })) return false;
     

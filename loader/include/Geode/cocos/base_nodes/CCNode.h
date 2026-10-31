@@ -358,6 +358,11 @@ public:
     virtual void  setPositionY(float y);
     virtual float getPositionY(void);
 
+    // @note RobTop Addition
+    virtual void offsetPosition(float, float);
+    // @note RobTop Addition
+    virtual void applyScale(float);
+
 
     /**
      * Changes the X skew angle of the node in degrees.
@@ -1969,7 +1974,10 @@ public:
 
     // 2.2 additions
     bool m_bUseChildIndex;
-    bool m_bUnkBool2;
+    union {
+        bool m_bUnkBool2;
+        bool m_bDisableScheduling;
+    };
 };
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)

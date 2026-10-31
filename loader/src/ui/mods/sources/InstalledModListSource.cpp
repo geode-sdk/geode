@@ -286,7 +286,7 @@ std::string InstalledModListSource::getNoModsFoundError() const {
         return "No mods found :(\n"
             "(You probably haven't updated\n"
             "or installed any since the\n"
-            "release of Geode for GD 2.2081)";
+            "release of Geode for GD 2.2091)";
     }
     return ModListSource::getNoModsFoundError();
 }

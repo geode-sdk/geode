@@ -14,7 +14,7 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
         fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{:.100}</c>?", mod->getName()),
         "chatFont.fnt",
         1.f, m_size.width - 35,
-        ccp(.5f, .5f), 20.f, false
+        ccp(.5f, .5f), 20.f, false, 0
     );
     m_mainLayer->addChildAtPosition(text, Anchor::Center, ccp(0, 20));
 

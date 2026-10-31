@@ -100,6 +100,7 @@ std::string Loader::Impl::getGameVersion() {
     // temporary workaround - the bundle version is 2.207 although the actual game is 2.2074
     if (version == "2.207") return "2.2074";
     if (version == "2.208") return "2.2081";
+    if (version == "2.209") return "2.2091";
 
     return version;
 }

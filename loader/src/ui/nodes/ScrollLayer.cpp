@@ -1,6 +1,8 @@
 #include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/utils/cocos.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/cocos/include/cocos2d.h>
+#include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
+#include <Geode/utils/cocos.hpp>
 
 using namespace geode::prelude;
 
@@ -187,8 +189,9 @@ void ScrollLayer::visit() {
     m_impl->visit(); 
 }
 
-void ScrollLayer::scrollWheel(float y, float x) { 
-    m_impl->scrollWheel(y, x); 
+bool ScrollLayer::scrollWheel(float y, float x) {
+    m_impl->scrollWheel(y, x);
+    return true;
 }
 
 void ScrollLayer::enableScrollWheel(bool enable) { 

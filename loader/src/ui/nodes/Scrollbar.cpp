@@ -223,8 +223,9 @@ void Scrollbar::ccTouchCancelled(CCTouch* t, CCEvent* e) {
 void Scrollbar::ccTouchMoved(CCTouch* t, CCEvent* e) { 
     m_impl->ccTouchMoved(t, e); 
 }
-void Scrollbar::scrollWheel(float x, float y) { 
-    m_impl->scrollWheel(x, y); 
+bool Scrollbar::scrollWheel(float x, float y) {
+    m_impl->scrollWheel(x, y);
+    return true;
 }
 void Scrollbar::registerWithTouchDispatcher() { 
     m_impl->registerWithTouchDispatcher(); 

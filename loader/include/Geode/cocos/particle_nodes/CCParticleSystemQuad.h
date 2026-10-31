@@ -119,7 +119,7 @@ struct ParticleStruct
     float frictionRot = .0f;
     float frictionRotVar = .0f;
 
-    gd::string sFrame;
+    std::string sFrame;
 };
 
 /**
@@ -161,6 +161,8 @@ public:
     GLushort m_uParticleIdx;
     // @note Robtop Addition
     GLubyte m_uOpacity;
+    // @note Robtop Addition
+    void* m_pUnk;
 
 public:
     /**

@@ -319,7 +319,7 @@ bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width
     auto infoLabel = TextArea::create(
         setting->getDescription().value_or(""),
         "chatFont.fnt", .65f, bg->getContentWidth() - 45,
-        ccp(.4999f, .4999f), 12, false
+        ccp(.4999f, .4999f), 12, false, 0
     );
 
     this->setContentHeight(30 + infoLabel->getContentHeight());

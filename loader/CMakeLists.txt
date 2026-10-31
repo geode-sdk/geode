@@ -358,7 +358,7 @@ endif()
 add_subdirectory(test)
 
 # Add install target on CLI >= 2.10.0 (which adds `geode profile path`)
-if (NOT GEODE_BUILDING_DOCS)
+if (NOT GEODE_BUILDING_DOCS AND DEFINED GEODE_CLI_VERSION)
 	# nest this because when building docs GEODE_CLI_VERSION is not defined
 	if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.10.0")
 		execute_process(

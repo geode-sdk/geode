@@ -92,7 +92,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
         m_updateAllContainer->addChildAtPosition(m_updateAllBG, Anchor::Center);
 
-        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false);
+        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false, 0);
         m_updateCountLabel->setID("update-count-label");
         m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
 
@@ -162,7 +162,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
             auto errorsLabel = TextArea::create(
                 "There were <cy>errors</c> loading some mods",
-                "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false
+                "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false, 0
             );
             errorsLabel->setID("errors-label");
             m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));

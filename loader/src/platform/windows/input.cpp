@@ -1,6 +1,10 @@
+#include <Windows.h>
+#include <Xinput.h>
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/cocos/text_input_node/CCIMEDispatcher.h>
+#include <Geode/loader/Event.hpp>
 #include <Geode/modify/CCApplication.hpp>
 #include <Geode/modify/CCEGLView.hpp>
 #include <Geode/utils/Keyboard.hpp>
@@ -9,6 +13,37 @@
 #include <queue>
 
 using namespace geode::prelude;
+
+// found in cocos2d::CCEGLView::scanCodeForPositionalKey
+static constexpr std::array<uint8_t, 128> SCAN_CODE_TO_KEY = {
+    0, VK_ESCAPE,
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+    VK_OEM_MINUS, VK_OEM_PLUS, VK_BACK, VK_TAB,
+    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
+    VK_OEM_4, VK_OEM_6, VK_RETURN, VK_CONTROL,
+    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
+    VK_OEM_1, VK_OEM_7, VK_OEM_3, VK_SHIFT, VK_OEM_5,
+    'Z', 'X', 'C', 'V', 'B', 'N', 'M',
+    VK_OEM_COMMA, VK_OEM_PERIOD, VK_OEM_2, VK_SHIFT, VK_MULTIPLY,
+    VK_MENU, VK_SPACE, VK_CAPITAL,
+    VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10,
+    VK_NUMLOCK, VK_SCROLL, VK_HOME, VK_UP, VK_PRIOR, VK_SUBTRACT, VK_LEFT,
+    VK_CLEAR, VK_RIGHT, VK_ADD, VK_END, VK_DOWN, VK_NEXT, VK_INSERT, VK_DELETE,
+    VK_SNAPSHOT, 0, VK_OEM_102, VK_F11, VK_F12, VK_CLEAR, VK_OEM_WSCTRL,
+    VK_OEM_FINISH, VK_OEM_JUMP, VK_EREOF, VK_OEM_BACKTAB, VK_OEM_AUTO,
+    0, 0, VK_ZOOM, VK_HELP, VK_F13, VK_F14, VK_F15, VK_F16, VK_F17, VK_F18,
+    VK_F19, VK_F20, VK_F21, VK_F22, VK_F23, VK_OEM_PA3, 0, VK_OEM_RESET, 0,
+    0xC1, 0, 0, VK_F24, 0, 0, 0, 0, VK_OEM_PA1, VK_TAB, 0, 0xC2, 0,
+};
+
+static uint16_t remapPositionalKey(uint16_t vkey, uint16_t scanCode, uint16_t flags) {
+    if (vkey >= VK_NUMPAD0 && vkey <= VK_DIVIDE && vkey != VK_SEPARATOR) return vkey;
+    if ((flags & (RI_KEY_E0 | RI_KEY_E1)) != 0) return vkey;
+    if (scanCode >= 128) return vkey;
+
+    auto remapped = SCAN_CODE_TO_KEY[scanCode];
+    return remapped != 0 ? remapped : vkey;
+}
 
 struct RawInputEvent {
     double timestamp = 0.0;
@@ -101,16 +136,16 @@ struct KeyInfo {
 
 class KeyStateTracker {
 private:
-    std::unordered_map<uint32_t, bool> m_keyStates;
+    std::unordered_map<uint64_t, bool> m_keyStates;
     KeyboardModifier m_currentMods = KeyboardModifier::None;
 
-    static uint32_t makeKey(uint16_t vkey, uint16_t scanCode, bool isE0) {
-        return (static_cast<uint32_t>(vkey) << 16) | (static_cast<uint32_t>(scanCode) << 1) |
-            (isE0 ? 1 : 0);
+    static uint64_t makeKey(uint16_t vkey, uint16_t scanCode, bool isE0) {
+        return (static_cast<uint64_t>(vkey) << 17) | (static_cast<uint64_t>(scanCode) << 1) |
+            (isE0 ? 1u : 0u);
     }
 
-    static void unmakeKey(uint32_t key, uint16_t& vkey, uint16_t& scanCode, bool& isE0) {
-        vkey = static_cast<uint16_t>(key >> 16);
+    static void unmakeKey(uint64_t key, uint16_t& vkey, uint16_t& scanCode, bool& isE0) {
+        vkey = static_cast<uint16_t>(key >> 17);
         scanCode = static_cast<uint16_t>((key >> 1) & 0xFFFF);
         isE0 = (key & 1) != 0;
     }
@@ -126,7 +161,7 @@ public:
     }
 
     bool updateState(uint16_t vkey, uint16_t scanCode, bool isE0, bool isDown) {
-        uint32_t key = makeKey(vkey, scanCode, isE0);
+        uint64_t key = makeKey(vkey, scanCode, isE0);
 
         bool wasDown = false;
         auto it = m_keyStates.find(key);
@@ -188,6 +223,11 @@ public:
 
 static HWND g_rawInputHWND, g_mainWindowHWND;
 static WNDPROC g_originalRawInputProc = nullptr;
+
+constexpr uint16_t VK_NUMPAD_UP = 0x11B;
+constexpr uint16_t VK_NUMPAD_DOWN = 0x11C;
+constexpr uint16_t VK_NUMPAD_LEFT = 0x11D;
+constexpr uint16_t VK_NUMPAD_RIGHT = 0x11E;
 
 static enumKeyCodes keyToKeyCode(uint16_t vkey, bool isE0) {
     switch (vkey) {
@@ -270,6 +310,11 @@ static enumKeyCodes keyToKeyCode(uint16_t vkey, bool isE0) {
         case VK_LEFT: return enumKeyCodes::KEY_Left;
         case VK_RIGHT: return enumKeyCodes::KEY_Right;
 
+        case VK_NUMPAD_UP: return enumKeyCodes::KEY_Up;
+        case VK_NUMPAD_DOWN: return enumKeyCodes::KEY_Down;
+        case VK_NUMPAD_LEFT: return enumKeyCodes::KEY_Left;
+        case VK_NUMPAD_RIGHT: return enumKeyCodes::KEY_Right;
+
         case VK_CAPITAL: return enumKeyCodes::KEY_CapsLock;
         case VK_SCROLL: return enumKeyCodes::KEY_ScrollLock;
         case VK_NUMLOCK: return enumKeyCodes::KEY_Numlock;
@@ -301,6 +346,9 @@ static enumKeyCodes keyToKeyCode(uint16_t vkey, bool isE0) {
         case VK_OEM_6: return enumKeyCodes::KEY_RightBracket;
         case VK_OEM_3: return enumKeyCodes::KEY_GraveAccent;
         case VK_OEM_102: return enumKeyCodes::KEY_World1;
+        case VK_OEM_8: return enumKeyCodes::KEY_OEM8;
+        case 0xC1: return enumKeyCodes::KEY_ABNT1; // VK_ABNT_C1
+        case 0xC2: return enumKeyCodes::KEY_ABNT2; // VK_ABNT_C2
         case VK_OEM_COMMA: return enumKeyCodes::KEY_OEMComma;
         case VK_OEM_PERIOD: return enumKeyCodes::KEY_OEMPeriod;
 
@@ -345,6 +393,9 @@ static uint16_t scanCodeToExtendedFKey(uint16_t scanCode) {
 
 static uint16_t getActualVKey(uint16_t vkey, uint16_t scanCode, uint16_t flags) {
     bool isE0 = (flags & RI_KEY_E0) != 0;
+    HKL layout = GetKeyboardLayout(0);
+
+    vkey = remapPositionalKey(vkey, scanCode, flags);
 
     // Remap vkey if it's 0 or 255 (unknown)
     if (vkey == 0 || vkey == 255) {
@@ -352,7 +403,7 @@ static uint16_t getActualVKey(uint16_t vkey, uint16_t scanCode, uint16_t flags) 
         if (isE0) {
             mappedScanCode |= 0xE000;
         }
-        vkey = static_cast<uint16_t>(MapVirtualKeyEx(mappedScanCode, MAPVK_VSC_TO_VK_EX, GetKeyboardLayout(0)));
+        vkey = static_cast<uint16_t>(MapVirtualKeyEx(mappedScanCode, MAPVK_VSC_TO_VK_EX, layout));
         if (vkey == 0) {
             vkey = scanCodeToExtendedFKey(scanCode);
         }
@@ -363,7 +414,7 @@ static uint16_t getActualVKey(uint16_t vkey, uint16_t scanCode, uint16_t flags) 
         case VK_CONTROL: return isE0 ? VK_RCONTROL : VK_LCONTROL;
         case VK_MENU: return isE0 ? VK_RMENU : VK_LMENU;
         case VK_SHIFT:
-            return MapVirtualKeyEx(scanCode, MAPVK_VSC_TO_VK_EX, GetKeyboardLayout(0));
+            return MapVirtualKeyEx(scanCode, MAPVK_VSC_TO_VK_EX, layout);
     }
 }
 
@@ -499,14 +550,26 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
 
         if (result == ListenerResult::Propagate && keyCode != KEY_Unknown) {
             auto* ime = CCIMEDispatcher::sharedDispatcher();
-            if (keyCode == enumKeyCodes::KEY_Backspace && isDown) {
-                ime->dispatchDeleteBackward();
-            } else if (keyCode == enumKeyCodes::KEY_Delete && isDown) {
-                ime->dispatchDeleteForward();
-            } else if (keyCode == enumKeyCodes::KEY_Left && isDown) {
-                ime->dispatchInsertText("a", 1, enumKeyCodes::KEY_Left);
-            } else if (keyCode == enumKeyCodes::KEY_Right && isDown) {
-                ime->dispatchInsertText("a", 1, enumKeyCodes::KEY_Right);
+            if (isDown) {
+                switch (keyCode) {
+                    case enumKeyCodes::KEY_Backspace:
+                        ime->dispatchDeleteBackward();
+                        break;
+                    case enumKeyCodes::KEY_Delete:
+                        ime->dispatchDeleteForward();
+                        break;
+                    case enumKeyCodes::KEY_Left:
+                    case enumKeyCodes::KEY_Right:
+                    case enumKeyCodes::KEY_Up:
+                    case enumKeyCodes::KEY_Down:
+                        ime->dispatchInsertText("a", 1, keyCode);
+                        break;
+                    case enumKeyCodes::KEY_Enter:
+                        ime->dispatchInsertText("\n", 1, keyCode);
+                        break;
+                    default:
+                        break;
+                }
             }
 
             auto* keyboardDispatcher = CCKeyboardDispatcher::get();
@@ -588,6 +651,24 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                             data.timestamp
                         );
                     }
+                } else if (data.button == Right && isDown && result == ListenerResult::Propagate) {
+                    this->handleRightClick(m_fMouseX, m_fMouseY);
+                } else if ((data.button == Button4 || data.button == Button5) && result == ListenerResult::Propagate) {
+                    if (!isDown || !CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
+                        auto* kbDispatcher = CCKeyboardDispatcher::get();
+                        kbDispatcher->updateModifierKeys(
+                            data.modifiers & KeyboardModifier::Shift,
+                            data.modifiers & KeyboardModifier::Control,
+                            data.modifiers & KeyboardModifier::Alt,
+                            data.modifiers & KeyboardModifier::Super
+                        );
+                        kbDispatcher->dispatchKeyboardMSG(
+                            MouseInputData::buttonToKeyCode(data.button),
+                            isDown,
+                            false,
+                            data.timestamp
+                        );
+                    }
                 }
             }
         }
@@ -600,7 +681,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         }
 
         // update mouse position
-        POINT p;
+        POINT p{};
         float newX = m_fMouseX;
         float newY = m_fMouseY;
 
@@ -684,6 +765,14 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         // window is created on a different thread, so it needs time to initialize
         queueInMainThread([]{ attemptHookRawInput(); });
     }
+
+    void clearQueuedInput() {
+        CCEGLView::clearQueuedInput();
+
+        // clearQueuedInput should've released all keys already
+        RawInputQueue::get().clear();
+        KeyStateTracker::get().clear();
+    }
 };
 
 static void GLFWFocusCallback(GLFWwindow* window, int focused) {
@@ -691,7 +780,6 @@ static void GLFWFocusCallback(GLFWwindow* window, int focused) {
     // rarely might be null somehow
     if (!view) return;
 
-    static_cast<DummyEGLView*>(view)->onGLFWWindowFocus(window, focused);
     if (!focused) {
         // technically a race condition, but you have to be the most unlucky person alive for it to happen,
         // and i really didn't want to add mutexes to KeyStateTracker just for window unfocus event
@@ -716,6 +804,8 @@ static void GLFWFocusCallback(GLFWwindow* window, int focused) {
             });
         }
     }
+
+    static_cast<DummyEGLView*>(view)->onGLFWWindowFocus(window, focused);
 }
 
 struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
@@ -723,11 +813,11 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
         if (!controller) return;
 
         auto timestamp = getInputTimestamp();
-        if (XInputGetState(controller->m_userIndex, &controller->m_xinputState) != ERROR_SUCCESS) {
+        if (XInputGetState(controller->m_userIndex, reinterpret_cast<XINPUT_STATE*>(&controller->m_xinputState)) != ERROR_SUCCESS) {
             return;
         }
 
-        XINPUT_STATE state = controller->m_xinputState;
+        XINPUT_STATE& state = *reinterpret_cast<XINPUT_STATE*>(&controller->m_xinputState);
         auto* dispatcher = CCKeyboardDispatcher::get();
 
         int player2Offset = userIndex > 1 ? 1 : 0;
@@ -773,35 +863,37 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
         if (isADown != controller->m_buttonA) {
             controller->m_buttonA = isADown;
 
-            KeyboardInputData data(
-                static_cast<enumKeyCodes>(static_cast<int>(CONTROLLER_A) + player2Offset),
-                isADown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
-                {},
-                timestamp,
-                KeyboardModifier::None
-            );
-
-            if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {
-                // A button simulates a mouse click
-                auto eglView = CCEGLView::get();
-                if (m_bMouseControl && !eglView->m_bShouldHideCursor && !eglView->m_bCursorLocked) {
-                    INPUT input{};
-                    if (isADown) {
-                        eglView->capture();
-                        input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-                    } else {
-                        eglView->releaseCapture();
-                        input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-                    }
-                    SendInput(1, &input, sizeof(input));
-                }
-
-                dispatcher->dispatchKeyboardMSG(
-                    data.key,
-                    data.action != KeyboardInputData::Action::Release,
-                    data.action == KeyboardInputData::Action::Repeat,
-                    data.timestamp
+            if (!dispatcher->getCaptureMode()) {
+                KeyboardInputData data(
+                    static_cast<enumKeyCodes>(static_cast<int>(CONTROLLER_A) + player2Offset),
+                    isADown ? KeyboardInputData::Action::Press : KeyboardInputData::Action::Release,
+                    {},
+                    timestamp,
+                    KeyboardModifier::None
                 );
+
+                if (KeyboardInputEvent(data.key).send(data) == ListenerResult::Propagate) {
+                    // A button simulates a mouse click
+                    auto eglView = CCEGLView::get();
+                    if (m_bMouseControl && !eglView->m_bShouldHideCursor && !eglView->m_bCursorLocked) {
+                        INPUT input{};
+                        if (isADown) {
+                            eglView->capture();
+                            input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+                        } else {
+                            eglView->releaseCapture();
+                            input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+                        }
+                        SendInput(1, &input, sizeof(input));
+                    }
+
+                    dispatcher->dispatchKeyboardMSG(
+                        data.key,
+                        data.action != KeyboardInputData::Action::Release,
+                        data.action == KeyboardInputData::Action::Repeat,
+                        data.timestamp
+                    );
+                }
             }
         }
 
@@ -811,8 +903,8 @@ struct GeodeControllerInput : Modify<GeodeControllerInput, CCApplication> {
         handleButton(XINPUT_GAMEPAD_LEFT_SHOULDER, CONTROLLER_LB, controller->m_lb);
         handleButton(XINPUT_GAMEPAD_RIGHT_SHOULDER, CONTROLLER_RB, controller->m_rb);
 
-        handleTrigger(controller->m_xinputState.Gamepad.bLeftTrigger, CONTROLLER_LT, controller->m_lt);
-        handleTrigger(controller->m_xinputState.Gamepad.bRightTrigger, CONTROLLER_RT, controller->m_rt);
+        handleTrigger(reinterpret_cast<XINPUT_STATE*>(&controller->m_xinputState)->Gamepad.bLeftTrigger, CONTROLLER_LT, controller->m_lt);
+        handleTrigger(reinterpret_cast<XINPUT_STATE*>(&controller->m_xinputState)->Gamepad.bRightTrigger, CONTROLLER_RT, controller->m_rt);
 
         handleButton(XINPUT_GAMEPAD_START, CONTROLLER_Start, controller->m_start);
 
