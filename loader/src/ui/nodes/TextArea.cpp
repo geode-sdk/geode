@@ -474,7 +474,6 @@ void RichTextArea::RichImpl::parseRichText() {
     }
 
     if (!stack.empty()) {
-        replString += "]";
         addReplacementStr();
     }
 
