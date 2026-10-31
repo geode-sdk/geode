@@ -1,5 +1,5 @@
 #include <Geode/cocos/cocoa/CCGeometry.h>
-#include <Geode/cocos/platform/CCEGLView.h>
+#include <Geode/cocos/include/cocos2d.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
