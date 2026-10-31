@@ -25,9 +25,9 @@ namespace geode {
 
     protected:
         cocos2d::CCSize m_size;
-        NineSlice* m_bgSprite;
+        NineSlice* m_bgSprite = nullptr;
         Label* m_title = nullptr;
-        Button* m_closeBtn;
+        Button* m_closeBtn = nullptr;
 
         ~Popup();
         void registerWithTouchDispatcher() override;
