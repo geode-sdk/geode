@@ -36,7 +36,7 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
     );
     cancelBtn->setScale(.85f);
     cancelBtn->setScaleMultiplier(1.125f);
-    m_buttonMenu->addChildAtPosition(cancelBtn, Anchor::Bottom, {-52.f, 28.f});
+    m_mainLayer->addChildAtPosition(cancelBtn, Anchor::Bottom, {-52.f, 28.f});
 
     auto uninstallBtn = Button::createWithNode(
         ButtonSprite::create("Uninstall", "goldFont.fnt", "GJ_button_01.png", .8f),
@@ -65,7 +65,7 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
     );
     uninstallBtn->setScale(.85f);
     uninstallBtn->setScaleMultiplier(1.125f);
-    m_buttonMenu->addChildAtPosition(uninstallBtn, Anchor::Bottom, {42.f, 28.f});
+    m_mainLayer->addChildAtPosition(uninstallBtn, Anchor::Bottom, {42.f, 28.f});
 
     return true;
 }
