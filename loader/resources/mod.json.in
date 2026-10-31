@@ -125,6 +125,12 @@
             ],
             "requires-restart": true
         },
+        "enable-touch-dispatcher-debug-logs": {
+            "type": "bool",
+			"name": "Enable Touch Dispatcher Logs",
+			"description": "Logs information when a node claims a touch.\nThese are sent as debug logs so make sure your console log level is set to debug",
+			"default": false
+        },
         "restart-button": {
             "type": "bool",
             "default": false,

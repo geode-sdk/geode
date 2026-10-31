@@ -39,7 +39,7 @@ public:
     cocos2d::CCSize m_size;
     NineSlice* m_bgSprite = nullptr;
     cocos2d::CCMenu* m_content = nullptr;
-    CCScrollLayerExt* m_scrollLayer = nullptr;
+    geode::ScrollLayer* m_scrollLayer = nullptr;
     TextRenderer* m_renderer = nullptr;
     bool m_compatibilityMode = false;
 };
@@ -189,12 +189,12 @@ bool MDTextArea::init(std::string str, CCSize const& size) {
 
     auto content = MDContentLayer::create(m_impl->m_content, m_impl->m_size.width, m_impl->m_size.height);
     m_impl->m_scrollLayer->m_contentLayer = content;
-    m_impl->m_scrollLayer->addChild(content);
+    m_impl->m_scrollLayer->getClippingNode()->addChild(content);
     content->addChild(m_impl->m_content);
 
     m_impl->m_scrollLayer->setTouchEnabled(true);
 
-    this->addChild(m_impl->m_scrollLayer);
+    this->addChildAtPosition(m_impl->m_scrollLayer, Anchor::Center);
 
     this->updateLabel();
 
