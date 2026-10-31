@@ -371,6 +371,25 @@ public:
     std::string m_rawText;
     std::deque<std::u32string> m_tagIRs;
 
+    struct TagInstance {
+        RichTag* tag;
+        std::string id;
+        std::string arg;
+
+        bool verifyArgs() {
+            if (arg.empty() && tag->requireArgs) return false;
+            if (tag->validate) {
+                return tag->validate(arg);
+            } else {
+                return true;
+            }
+        }
+
+        inline std::string replacementStrPrefix() {
+            return fmt::format("!!![{}{}|", id, arg.empty() ? "" : "-" + arg);
+        }
+    };
+
     void parseRichText();
     void registerTag(const std::string& ir);
     Label* getErrorText();
@@ -389,7 +408,7 @@ void RichTextArea::RichImpl::parseRichText() {
     m_rawText = m_text;
 
     std::string newText;
-    std::deque<RichTag*> stack;
+    std::deque<TagInstance> stack;
     std::string replString;
 
     auto addReplacementStr = [&] {
@@ -419,7 +438,7 @@ void RichTextArea::RichImpl::parseRichText() {
                     newText += c;
                     continue;
                 }
-                auto t = std::ranges::find(stack, tag.substr(1), &RichTag::id);
+                auto t = std::ranges::find(stack, tag.substr(1), &TagInstance::id);
                 if (t == stack.end()) {
                     newText += c;
                     continue;
@@ -446,13 +465,9 @@ void RichTextArea::RichImpl::parseRichText() {
                 newText += c;
                 continue;
             }
-            auto richTag = &*it;
+            auto instance = TagInstance{ &*it, std::move(id), std::move(arg) };
 
-            if (arg.empty() && richTag->requireArgs) {
-                newText += c;
-                continue;
-            }
-            if (richTag->validate && !richTag->validate(arg)) {
+            if (instance.verifyArgs()) {
                 newText += c;
                 continue;
             }
@@ -461,9 +476,9 @@ void RichTextArea::RichImpl::parseRichText() {
                 addReplacementStr();
             }
 
-            replString += fmt::format("!!![{}{}|", id, arg.empty() ? "" : "-" + arg);
+            replString += instance.replacementStrPrefix();
             i += tag.length() + 1;
-            stack.push_front(richTag);
+            stack.push_front(std::move(instance));
         } else {
             if (!stack.empty()) {
                 replString += c;
