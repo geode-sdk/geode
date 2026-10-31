@@ -306,7 +306,7 @@ bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width
     label->lockBGWidth(true);
     label->setTextScale(.65f);
     label->setBGOpacity(100);
-    label->setBGColor(setting->getColor().value_or({255, 135, 88}));
+    label->setBGColor(setting->getColor().value_or(ccColor3B{255, 135, 88}));
 
     this->addChildAtPosition(label, Anchor::Center);
 
