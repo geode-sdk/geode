@@ -391,10 +391,17 @@ public:
     };
 
     void parseRichText();
-    void registerTag(const std::string& ir);
+    void registerTag(std::string const& ir);
     Label* getErrorText();
 
-    void addRichTag(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback, CharIterator iterator, bool updateText);
+    void addRichTag(
+        std::string id,
+        bool requireArgs,
+        ValidateArgs validate,
+        CreateCallback,
+        CharIterator iterator,
+        bool updateText
+    );
     void updateRichText();
 
     Label* createLabel(std::string text, float top) override;
@@ -487,6 +494,7 @@ void RichTextArea::RichImpl::parseRichText() {
         } else if (c == '\n') {
             if (!stack.empty()) {
                 auto current = stack.at(0);
+
                 addReplacementStr();
                 newText += c;
                 replString += current.replacementStrPrefix();
@@ -509,7 +517,7 @@ void RichTextArea::RichImpl::parseRichText() {
     m_text = newText;
 }
 
-void RichTextArea::RichImpl::registerTag(const std::string& ir) {
+void RichTextArea::RichImpl::registerTag(std::string const& ir) {
     m_tagIRs.emplace_back(std::u32string(ir.begin(), ir.end()));
     m_emojiRegistry.insert(m_tagIRs.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
         auto str8 = string::utf32ToUtf8(str32);
@@ -581,7 +589,13 @@ void RichTextArea::RichImpl::addRichTag(
     CharIterator iterator,
     bool updateText
 ) {
-    m_tags.emplace_back(std::move(id), requireArgs, std::move(validate), std::move(create), std::move(iterator));
+    m_tags.emplace_back(
+        std::move(id),
+        requireArgs,
+        std::move(validate),
+        std::move(create),
+        std::move(iterator)
+    );
     if (updateText) {
         m_text = m_rawText;
         this->updateRichText();
@@ -616,7 +630,7 @@ RichTextArea* RichTextArea::create(std::string text, std::string font, float sca
     return create(std::move(font), std::move(text), scale, width, true);
 }
 
-RichTextArea* RichTextArea::create(std::string font, std::string text, float scale, float width, const bool artificialWidth) {
+RichTextArea* RichTextArea::create(std::string font, std::string text, float scale, float width, bool const artificialWidth) {
     auto ret = new RichTextArea();
     ret->m_impl = ret->createImpl();
     if (ret->init(std::move(font), std::move(text), scale, width, artificialWidth)) {
@@ -627,7 +641,7 @@ RichTextArea* RichTextArea::create(std::string font, std::string text, float sca
     return nullptr;
 }
 
-bool RichTextArea::init(std::string font, std::string text, float scale, float width, const bool artificialWidth) {
+bool RichTextArea::init(std::string font, std::string text, float scale, float width, bool const artificialWidth) {
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
     m_richImpl->m_rawText = m_impl->m_text;
     m_richImpl->m_emojiRegistry = EmojiRegistry::vanillaEmojis();
@@ -645,7 +659,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     this->addRichTag(
         "font",
         true,
-        [](const std::string& arg) {
+        [](std::string const& arg) {
             auto font = BitmapFont::load(std::string(arg).c_str());
             return font != nullptr;
         },
@@ -660,7 +674,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     this->addRichTag(
         "link",
         true,
-        [](const std::string& arg) {
+        [](std::string const& arg) {
             if (arg.contains("#:")) {
                 return false;
             }

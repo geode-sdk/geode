@@ -108,9 +108,9 @@ namespace geode {
      */
     class GEODE_DLL RichTextArea : public SimpleTextArea {
     public:
-        using ValidateArgs = geode::Function<bool(const std::string&)>;
+        using ValidateArgs = geode::Function<bool(std::string const&)>;
         using CreateCallback = geode::Function<cocos2d::CCNode*(std::string, std::string)>;
-        using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, const std::string&)>;
+        using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, std::string const&)>;
 
         static RichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.f);
         static RichTextArea* create(std::string text, std::string font, float scale, float width);
@@ -215,8 +215,8 @@ namespace geode {
         RichImpl* m_richImpl;
         std::unique_ptr<SimpleTextAreaImpl> createImpl() override;
 
-        bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
+        bool init(std::string font, std::string text, float scale, float width, bool const artificialWidth);
     private:
-        static RichTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
+        static RichTextArea* create(std::string font, std::string text, float scale, float width, bool const artificialWidth);
     };
 }
