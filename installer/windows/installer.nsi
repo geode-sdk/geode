@@ -68,6 +68,7 @@
     !insertmacro GEODE_LANGUAGE "SimpChinese"
     !insertmacro GEODE_LANGUAGE "TradChinese"
     !insertmacro GEODE_LANGUAGE "Korean"
+    !insertmacro GEODE_LANGUAGE "Indonesian"
 
     !insertmacro MUI_RESERVEFILE_LANGDLL
 
