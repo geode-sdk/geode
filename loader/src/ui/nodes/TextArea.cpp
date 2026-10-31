@@ -467,7 +467,7 @@ void RichTextArea::RichImpl::parseRichText() {
             }
             auto instance = TagInstance{ &*it, std::move(id), std::move(arg) };
 
-            if (instance.verifyArgs()) {
+            if (!instance.verifyArgs()) {
                 newText += c;
                 continue;
             }
