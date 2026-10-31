@@ -86,12 +86,11 @@ void askConfirmModInstalls() {
         }
     }
 
-    StringSet idsToDisable = toConfirm.toDisableModId;
     for (auto mod : toConfirm.toDisable) {
-        idsToDisable.insert(mod->getID());
+        toConfirm.toDisableModId.insert(mod->getID());
     }
 
-    if (idsToDisable.empty() && toConfirm.toEnable.empty() && toConfirm.dependencies.empty() && toConfirm.replacements.empty()) {
+    if (toConfirm.toDisableModId.empty() && toConfirm.toEnable.empty() && toConfirm.dependencies.empty() && toConfirm.replacements.empty()) {
         ModDownloadManager::get()->confirmAll();
         return;
     }
