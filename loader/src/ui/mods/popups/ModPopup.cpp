@@ -246,7 +246,7 @@ bool ModPopup::init(ModSource&& src) {
         }
     );
     idBtn->setID("mod-id-label");
-    idBtn->setScaleMultiplier(1.25f);
+    idBtn->setScaleMultiplier(1.125f);
     leftColumn->addChild(idBtn);
 
     auto statsContainer = CCNode::create();
