@@ -4,33 +4,17 @@
 #include <Geode/binding/TableView.hpp>
 #include <Geode/binding/UILayer.hpp>
 #include <Geode/mapping/CCLayer.hpp>
+#include <Geode/modify/CCMouseDispatcher.hpp>
+#include <Geode/modify/CCTouchDispatcher.hpp>
+#include <Geode/modify/EditorUI.hpp>
+#include <Geode/modify/GJBaseGameLayer.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/loader/SettingV3.hpp>
 #include <vector>
 
 using namespace geode::prelude;
 
-#include <Geode/modify/CCTouchDispatcher.hpp>
-
-struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> {
-    static void onModify(auto& self) {
-        if (!self.setHookPriority("cocos2d::CCTouchDispatcher::touches", Priority::Replace)) {
-            log::warn(
-                "Failed to set cocos2d::CCTouchDispatcher::touches hook priority, Z-order based "
-                "touch dispatcher may not work properly"
-            );
-        }
-        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("Z Order based touch dispatcher");
-    }
-
-    static bool debugLogsEnabled() {
-        static bool ret = Mod::get()->getSettingValue<bool>("enable-touch-dispatcher-debug-logs");
-        listenForSettingChanges<bool>("enable-touch-dispatcher-debug-logs", [&](bool value) {
-            ret = value;
-        });
-        return ret;
-    }
-
+namespace {
     template <class Handler>
     struct ParentPath {
         std::vector<CCNode*> path;
@@ -205,7 +189,7 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
     template <class Handler>
     std::vector<ParentPath<Handler>> getRegisteredPaths(
         CCArray* handlers, std::optional<CCNode*> filter, std::vector<ParentPath<Handler>>& invalidRoots
-    ) const {
+    ) {
         std::vector<ParentPath<Handler>> paths;
         for (auto handler : CCArrayExt<Handler*>(handlers)) {
             if (!handler) continue;
@@ -237,6 +221,18 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         }
         std::sort(paths.begin(), paths.end());
         return paths;
+    }
+}
+
+struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> {
+    static void onModify(auto& self) {
+        if (!self.setHookPriority("cocos2d::CCTouchDispatcher::touches", Priority::Replace)) {
+            log::warn(
+                "Failed to set cocos2d::CCTouchDispatcher::touches hook priority, Z-order based "
+                "touch dispatcher may not work properly"
+            );
+        }
+        GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("Z Order based touch dispatcher");
     }
 
     template <class Handler>
@@ -308,7 +304,7 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         std::vector<ParentPath<CCTargetedTouchHandler>> invalidRoots;
         Ref<CCArray> handlersCopy = m_pTargetedHandlers->shallowCopy();
 
-        auto registeredPaths = this->getRegisteredPaths<CCTargetedTouchHandler>(
+        auto registeredPaths = ::getRegisteredPaths<CCTargetedTouchHandler>(
             m_pTargetedHandlers, filter, invalidRoots
         );
 
@@ -326,13 +322,10 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
 
     void handleStandardHandlers(CCSet* touches, CCEvent* event, unsigned int index) {
         std::vector<ParentPath<CCStandardTouchHandler>> invalidRoots;
-        Ref<CCArray> handlersCopy = m_pStandardHandlers->shallowCopy();
 
-        auto registeredPaths = this->getRegisteredPaths<CCStandardTouchHandler>(
+        auto registeredPaths = ::getRegisteredPaths<CCStandardTouchHandler>(
             m_pStandardHandlers, std::nullopt, invalidRoots
         );
-
-        if (index == CCTOUCHBEGAN) logInvalidRoots(invalidRoots);
 
         for (auto& path : registeredPaths) {
             auto delegate = path.handler->getDelegate();
@@ -423,17 +416,79 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         CCTouch* touch, CCEvent* event, unsigned int index, CCNode* filter
     ) {
         std::vector<ParentPath<CCTargetedTouchHandler>> invalidRoots;
-        auto registeredPaths = this->getRegisteredPaths<CCTargetedTouchHandler>(
+        auto registeredPaths = ::getRegisteredPaths<CCTargetedTouchHandler>(
             m_pTargetedHandlers, filter, invalidRoots
         );
-
-        if (index == CCTOUCHBEGAN) logInvalidRoots(invalidRoots);
 
         return this->handleSingleTargetedHandlers(nullptr, touch, event, index, registeredPaths);
     }
 };
 
-#include <Geode/modify/GJBaseGameLayer.hpp>
+struct ZOrderMouseDispatcher : Modify<ZOrderMouseDispatcher, CCMouseDispatcher> {
+    void handleRightClick(float x, float y, unsigned int index) {
+        std::vector<ParentPath<CCMouseHandler>> invalidRoots;
+
+        auto registeredPaths = ::getRegisteredPaths<CCMouseHandler>(
+            m_pMouseHandlers, std::nullopt, invalidRoots
+        );
+
+        for (auto& path : registeredPaths) {
+            auto delegate = path.handler->getDelegate();
+
+            if (path.hasInvalidRoot) continue;
+
+            bool claimed = false;
+            if (index == CCTOUCHBEGAN) {
+                claimed = delegate->rightClick(x, y);
+            }
+            if (claimed) {
+                break;
+            }
+        }
+    }
+
+    $override
+    bool dispatchRightClick(float x, float y) {
+        m_bLocked = true;
+
+        this->handleRightClick(x, y, CCTOUCHBEGAN);
+
+        //
+        // Optimization. To prevent a [handlers copy] which is expensive
+        // the add/removes/quit is done after the iterations
+        //
+        m_bLocked = false;
+        if (m_bToRemove) {
+            m_bToRemove = false;
+            for (unsigned int i = 0; i < m_pHandlersToRemove->num; ++i) {
+                for (auto handler : CCArrayExt<CCMouseHandler*>(m_pMouseHandlers)) {
+                    if (handler->getDelegate() == m_pHandlersToRemove->arr[i]) {
+                        m_pMouseHandlers->removeObject(handler);
+                        break;
+                    }
+                }
+            }
+            m_pHandlersToRemove->num = 0;
+        }
+
+        if (m_bToAdd) {
+            m_bToAdd = false;
+            for (unsigned int i = 0; i < m_pHandlersToAdd->num; ++i) {
+                for (auto handler : CCArrayExt<CCMouseHandler*>(m_pMouseHandlers)) {
+                    if (handler->getDelegate() == m_pHandlersToAdd->arr[i]) {
+                        if (!m_pMouseHandlers->containsObject(handler)) {
+                            m_pMouseHandlers->addObject(handler);
+                        }
+                        break;
+                    }
+                }
+            }
+            m_pHandlersToAdd->num = 0;
+        }
+
+        return true;
+    }
+};
 
 struct ZOrderUILayerHelper : Modify<ZOrderUILayerHelper, GJBaseGameLayer> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Z Order based touch dispatcher");
@@ -448,8 +503,6 @@ struct ZOrderUILayerHelper : Modify<ZOrderUILayerHelper, GJBaseGameLayer> {
         return true;
     }
 };
-
-#include <Geode/modify/EditorUI.hpp>
 
 struct ZOrderEditorUIHelper : Modify<ZOrderEditorUIHelper, EditorUI> {
     GEODE_FORWARD_COMPAT_DISABLE_HOOKS("Z Order based touch dispatcher");
