@@ -10,8 +10,8 @@ class NumberInputPopup::Impl final {
 public:
     Callback m_callback = nullptr;
 
-    std::string offsetPageStr(std::string_view current, int64_t by, size_t max) {
-        auto currentRes = numFromString<size_t>(current);
+    std::string offsetPageStr(std::string_view current, int64_t by, int64_t max) {
+        auto currentRes = numFromString<int64_t>(current);
         if (currentRes.isErr()) return "1";
 
         auto cur = std::move(currentRes).unwrap();
@@ -35,7 +35,7 @@ bool NumberInputPopup::init(int64_t current, int64_t min, int64_t max, std::stri
 
     auto maxWidth = m_mainLayer->getScaledContentWidth() - 12.5f;
 
-    m_title->setLimitLabelWidth(maxWidth - 50.f, .7f);
+    m_title->setLimitLabelWidth(maxWidth - 65.f, .7f);
 
     auto container = CCNode::create();
     container->setID("input-container");
@@ -89,16 +89,16 @@ bool NumberInputPopup::init(int64_t current, int64_t min, int64_t max, std::stri
 
     auto submit = Button::createWithNode(
         ButtonSprite::create(btnText.c_str(), "goldFont.fnt", btnBg.c_str(), .8f),
-        [this, input, max](auto) {
-            auto res = numFromString<size_t>(input->getString());
+        [this, input, max, min](auto) {
+            auto res = numFromString<int64_t>(input->getString());
             if (res.isErr()) {
                 Notification::create("Invalid number", NotificationIcon::Error)->show();
                 return;
             }
 
-            size_t num = std::move(res).unwrap();
+            int64_t num = std::move(res).unwrap();
             if (num > max) num = max;
-            if (num <= 0) num = 1;
+            if (num <= min) num = min;
 
             m_impl->m_callback ? m_impl->m_callback(this, num) : this->onClose(nullptr);
         }
