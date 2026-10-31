@@ -484,6 +484,15 @@ void RichTextArea::RichImpl::parseRichText() {
             replString += instance.replacementStrPrefix();
             i += tag.length() + 1;
             stack.push_front(std::move(instance));
+        } else if (c == '\n') {
+            if (!stack.empty()) {
+                auto current = stack.at(0);
+                addReplacementStr();
+                newText += c;
+                replString += current.replacementStrPrefix();
+            } else {
+                newText += c;
+            }
         } else {
             if (!stack.empty()) {
                 replString += c;
