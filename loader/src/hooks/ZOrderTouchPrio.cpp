@@ -235,6 +235,14 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
         GEODE_FORWARD_COMPAT_DISABLE_HOOKS_INNER("Z Order based touch dispatcher");
     }
 
+    static bool debugLogsEnabled() {
+        static bool ret = Mod::get()->getSettingValue<bool>("enable-touch-dispatcher-debug-logs");
+        listenForSettingChanges<bool>("enable-touch-dispatcher-debug-logs", [&](bool value) {
+            ret = value;
+        });
+        return ret;
+    }
+
     template <class Handler>
     bool handleSingleTargetedHandlers(
         CCSet* touches, CCTouch* touch, CCEvent* event, unsigned int index,
