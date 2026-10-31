@@ -23,11 +23,14 @@ void askConfirmModInstalls() {
     // Collect all things we need to ask confirmation for
     for (auto const& download : ModDownloadManager::get()->getDownloads()) {
         auto status = download.getStatus();
+
         if (auto conf = std::get_if<DownloadStatusConfirm>(&status)) {
             if (auto dep = download.getDependencyFor()) {
                 toConfirm.dependencies.insert(download.getID());
 
-                if (!toConfirm.modsToInstall.contains(dep.value().first)) toConfirm.modsToInstall.insert(dep.value().first);
+                if (!toConfirm.modsToInstall.contains(dep.value().first)) {
+                    toConfirm.modsToInstall.insert(dep.value().first);
+                }
             }
             else {
                 toConfirm.modCount += 1;
@@ -44,12 +47,14 @@ void askConfirmModInstalls() {
                     if (inc.getMod() && inc.getVersion().compare(conf->version.metadata.getVersion()) && inc.getMod()->isOrWillBeEnabled()) {
                         toConfirm.toDisable.insert(inc.getMod());
                     }
+
                     for (auto const& download : ModDownloadManager::get()->getDownloads()) {
                         if (download.isDone() && inc.getID() == download.getID() && inc.getVersion().compare(conf->version.metadata.getVersion())) {
                             toConfirm.toDisableModId.insert(inc.getID());
                         }
                     }
                 }
+
                 // If some installed mods are incompatible with this one, disable them
                 for (auto mod : Loader::get()->getAllMods()) {
                     for (auto const& inc : mod->getMetadata().getIncompatibilities()) {
@@ -58,6 +63,7 @@ void askConfirmModInstalls() {
                         }
                     }
                 }
+
                 // If some newly downloaded mods are incompatible with this one, disable them
                 for (auto const& download : ModDownloadManager::get()->getDownloads()) {
                     auto status = download.getStatus();
@@ -159,9 +165,11 @@ void askConfirmModInstalls() {
                 for (auto mod : toConfirm.toDisable) {
                     (void)mod->disable();
                 }
+
                 for (auto const& modId : toConfirm.toDisableModId) {
-                    Mod::get()->setSavedValue("should-load-" + modId, false);
+                    Mod::get()->setSavedValue(fmt::format("should-load-{}", modId), false);
                 }
+
                 for (auto mod : toConfirm.toEnable) {
                     (void)mod->enable();
                 }

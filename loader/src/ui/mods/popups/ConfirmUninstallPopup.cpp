@@ -46,14 +46,14 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
             if (res) {
                 createQuickPopup(
                     "Mod Uninstalled",
-                    fmt::format("{:.400} has been uninstalled!", m_mod->getName()),
+                    fmt::format("{} has been uninstalled!", m_mod->getName()),
                     "OK", nullptr, nullptr
                 );
             }
             else {
                 createQuickPopup(
                     "Error Uninstalling",
-                    fmt::format("Error uninstalling {:.400}: {}", m_mod->getName(), res.unwrapErr()),
+                    fmt::format("Error uninstalling {}: {}", m_mod->getName(), res.unwrapErr()),
                     "OK", nullptr, nullptr
                 );
             }
