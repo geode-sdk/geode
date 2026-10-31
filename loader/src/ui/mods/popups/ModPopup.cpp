@@ -17,6 +17,7 @@
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/web.hpp>
 #include <optional>
+#include <ranges>
 
 class FetchTextArea : public CCNode {
 public:
@@ -645,6 +646,17 @@ bool ModPopup::init(ModSource&& src) {
         externalLinkBtn->setVisible(false);
     }
 
+    // Dependencies
+    if (this->hasDependenciesOrDependants() && !isGeode) {
+        auto dependenciesSpr = CCSprite::createWithSpriteFrameName("dependency-icon.png"_spr);
+        dependenciesSpr->setScale(.45f);
+        dependenciesSpr->setOpacity(127);
+
+        auto dependenciesBtn = CCMenuItemSpriteExtra::create(dependenciesSpr, this, menu_selector(ModPopup::onDependencies));
+        dependenciesBtn->setID("dependencies-button");
+        m_buttonMenu->addChildAtPosition(dependenciesBtn, Anchor::TopRight, ccp(-32, -16));
+    }
+
     tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
     m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
 
@@ -1220,6 +1232,40 @@ void ModPopup::onModtober25Info(CCObject*) {
     )->show();
 }
 
+void ModPopup::onDependencies(CCObject*) {
+    auto dependencies = m_source.getMetadata().getDependencies();
+    auto required = dependencies | std::views::filter([](auto dep) {
+        return dep.isRequired() && dep.getID() != "geode.loader";
+    });
+    auto optional = dependencies | std::views::filter([](auto dep) {
+        return !dep.isRequired() && dep.getID() != "geode.loader";
+    });
+
+    std::string str;
+    if (!std::ranges::empty(required)) {
+        str += "<co>Required</c> dependencies:\n\n";
+        for (const auto& dep : required) {
+            str += fmt::format("<mod:{}>\n\n", dep.getID());
+        }
+    }
+    if (!std::ranges::empty(optional)) {
+        str += "<cg>Recommended</c> dependencies:\n\n";
+        for (const auto& dep : optional) {
+            str += fmt::format("<mod:{}>\n\n", dep.getID());
+        }
+    }
+
+    auto mod = m_source.asMod();
+    if (mod && mod->getEnabledDependants().size() > 0) {
+        str += "Some mods have <co>this mod</c> marked as a <cy>dependency</c>:\n\n";
+        for (const auto dependant : mod->getEnabledDependants()) {
+            str += fmt::format("<mod:{}>\n\n", dependant->getID());
+        }
+    }
+
+    MDPopup::create("Dependencies", str, "OK")->show();
+}
+
 ModPopup* ModPopup::create(ModSource&& src) {
     auto ret = new ModPopup();
     if (ret->init(std::move(src))) {
@@ -1244,4 +1290,13 @@ bool ModPopup::availableForInstall() const {
             Loader::get()->isModVersionSupported(version.getGeodeVersion());
     }
     return false;
+}
+
+bool ModPopup::hasDependenciesOrDependants() const {
+    auto dependencies = m_source.getMetadata().getDependencies();
+    if (auto mod = m_source.asMod()) {
+        return dependencies.size() > 1 || mod->getEnabledDependants().size() > 0;
+    } else {
+        return dependencies.size() > 0;
+    }
 }

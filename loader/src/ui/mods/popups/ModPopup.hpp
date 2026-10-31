@@ -74,9 +74,10 @@ protected:
     void onSupport(CCObject*);
     void onModtober24Info(CCObject*);
     void onModtober25Info(CCObject*);
+    void onDependencies(CCObject*);
 
     bool availableForInstall() const;
-
+    bool hasDependenciesOrDependants() const;
 public:
     void loadTab(Tab tab);
     static ModPopup* create(ModSource&& src);
