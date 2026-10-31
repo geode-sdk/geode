@@ -19,15 +19,16 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
 
     auto deleteDataLabel = Label::create("Delete the Mod's save data", "bigFont.fnt");
     deleteDataLabel->setScale(.35f);
-    m_buttonMenu->addChildAtPosition(deleteDataLabel, Anchor::Center, {-70.f, -15.f}, {.0f, .5f});
+    m_mainLayer->addChildAtPosition(deleteDataLabel, Anchor::Center, {-70.f, -15.f}, {.0f, .5f});
 
     if (mod->isInternal()) {
         deleteDataLabel->setText("Delete ALL mods and their save data");
         deleteDataLabel->setScale(0.275f);
     }
 
-    m_deleteDataToggle = CCMenuItemToggler::createWithStandardSprites(this, nullptr, .6f);
-    m_buttonMenu->addChildAtPosition(m_deleteDataToggle, Anchor::Center, {-88.f, -15.f});
+    m_deleteDataToggle = Toggler::createWithStandardSprites(nullptr);
+    m_deleteDataToggle->setScale(.6f);
+    m_mainLayer->addChildAtPosition(m_deleteDataToggle, Anchor::Center, {-88.f, -15.f});
 
     auto cancelBtn = Button::createWithNode(
         ButtonSprite::create("Cancel", "goldFont.fnt", "GJ_button_01.png", .8f), [this](auto) {
