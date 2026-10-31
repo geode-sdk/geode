@@ -5,6 +5,8 @@
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
 #include <vector>
 
+#include <vector>
+
 NS_CC_BEGIN
 
 class CC_DLL CCKeyboardActionManager : public CCObject

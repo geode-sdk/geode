@@ -14,14 +14,6 @@ static std::vector<Mod*> getModsSorted() {
         return a->getName() > b->getName();
     });
 
-    // Move Custom Keybinds to be first because it'll have all the vanilla
-    // keybinds :-)
-    auto cb = std::ranges::find_if(mods, [](Mod* mod) {
-        return mod->getID() == "geode.custom-keybinds";
-    });
-    if (cb != mods.end()) {
-        std::ranges::rotate(mods, cb);
-    }
     return mods;
 }
 
@@ -31,7 +23,7 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
 
     m_tab = tab.value_or(POPUP_TAB);
 
-    this->setTitle("Keybinds");
+    this->setTitle("Mod Keybinds");
     m_searchInput->setPlaceholder("Search keybinds...");
     for (auto mod : getModsSorted()) {
         bool addedSubtitle = false;

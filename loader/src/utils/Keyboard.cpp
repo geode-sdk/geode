@@ -1,7 +1,12 @@
-#include <Geode/loader/Mod.hpp>
-#include <Geode/utils/StringMap.hpp>
-#include <Geode/ui/Label.hpp>
+#include "Geode/utils/Keyboard.hpp"
+
+#include "Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h"
 #include "KeyboardImpl.hpp"
+
+#include <Geode/loader/Mod.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/utils/StringMap.hpp>
+#include <optional>
 
 using namespace geode::prelude;
 
@@ -291,6 +296,23 @@ Result<Keybind> Keybind::fromString(std::string_view str) {
     return Ok(Keybind(it->second, mods));
 }
 
+Keybind Keybind::fromVanillaChord(int chord) {
+    enumKeyCodes key = static_cast<enumKeyCodes>(chord & 0xffff);
+    KeyboardModifier mods = KeyboardModifier::None;
+
+    if (chord & 0x10000) {
+        mods |= KeyboardModifier::Control;
+    }
+    if (chord & 0x20000) {
+        mods |= KeyboardModifier::Alt;
+    }
+    if (chord & 0x40000) {
+        mods |= KeyboardModifier::Shift;
+    }
+
+    return Keybind(key, mods);
+}
+
 std::string Keybind::toString() const {
     StringBuffer<> buf;
     if ((modifiers & KeyboardModifier::Control) && key != KEY_LeftControl && key != KEY_RightControl) {
@@ -330,6 +352,35 @@ std::string Keybind::toString() const {
     }
     buf.append(keyStr ? keyStr : "Unknown");
     return buf.str();
+}
+
+std::optional<int> Keybind::toVanillaChord() const {
+    if (key == KEY_None) {
+        return std::nullopt;
+    }
+    if (modifiers & KeyboardModifier::Super) {
+        return std::nullopt;
+    }
+
+    int chord = key & 0xffff;
+
+    // No modifiers for controller
+    if ((key >= CONTROLLER_A && key <= CONTROLLER2_RTHUMBSTICK_RIGHT) ||
+        (key >= CONTROLLER_L3 && key <= CONTROLLER2_R3)) {
+        return chord;
+    }
+
+    if (modifiers & KeyboardModifier::Control) {
+        chord |= 0x10000;
+    }
+    if (modifiers & KeyboardModifier::Alt) {
+        chord |= 0x20000;
+    }
+    if (modifiers & KeyboardModifier::Shift) {
+        chord |= 0x40000;
+    }
+
+    return chord;
 }
 
 cocos2d::CCNode* Keybind::createNode() const {

@@ -1,6 +1,7 @@
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/ProgressBar.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/binding/GameToolbox.hpp>
 
 using namespace geode::prelude;
 
