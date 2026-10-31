@@ -12,7 +12,7 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
 
     this->setTitle(fmt::format("Uninstall {}", mod->getName()));
 
-    auto text = Label::create(fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()), "chatFont.fnt");
+    auto text = Label::createRich(fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()), "chatFont.fnt");
     text->setMaxWidth(m_size.width - 35.f);
     text->setAlignment(Label::Alignment::Center);
     m_mainLayer->addChildAtPosition(text, Anchor::Center, {.0f, 20.f});
@@ -29,10 +29,13 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
     m_deleteDataToggle = CCMenuItemToggler::createWithStandardSprites(this, nullptr, .6f);
     m_buttonMenu->addChildAtPosition(m_deleteDataToggle, Anchor::Center, {-88.f, -15.f});
 
-    auto cancelSpr = ButtonSprite::create("Cancel", "goldFont.fnt", "GJ_button_01.png", .8f);
-    cancelSpr->setScale(.85f);
-    auto cancelBtn =
-        CCMenuItemSpriteExtra::create(cancelSpr, this, menu_selector(ConfirmUninstallPopup::onClose));
+    auto cancelBtn = Button::createWithNode(
+        ButtonSprite::create("Cancel", "goldFont.fnt", "GJ_button_01.png", .8f), [this](auto) {
+            this->onClose(nullptr);
+        }
+    );
+    cancelBtn->setScale(.85f);
+    cancelBtn->setScaleMultiplier(1.125f);
     m_buttonMenu->addChildAtPosition(cancelBtn, Anchor::Bottom, {-52.f, 28.f});
 
     auto uninstallBtn = Button::createWithNode(
@@ -60,7 +63,8 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
             this->onClose(nullptr);
         }
     );
-    uninstallBtn->setScale(.8f);
+    uninstallBtn->setScale(.85f);
+    uninstallBtn->setScaleMultiplier(1.125f);
     m_buttonMenu->addChildAtPosition(uninstallBtn, Anchor::Bottom, {42.f, 28.f});
 
     return true;
