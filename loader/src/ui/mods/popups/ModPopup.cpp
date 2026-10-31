@@ -418,7 +418,7 @@ bool ModPopup::init(ModSource&& src) {
     auto installContainer = this->createContainer({leftColumn->getContentWidth(), 25});
     m_installBG = installContainer->getChildByType<NineSlice>(0);
 
-    m_installMenu = CCMenu::create();
+    m_installMenu = CCNode::create();
     m_installMenu->ignoreAnchorPointForPosition(false);
     m_installMenu->setContentSize(installContainer->getContentSize() - CCSize{10.f, 10.f});
     m_installMenu->setAnchorPoint({.5f, .5f});
@@ -444,21 +444,22 @@ bool ModPopup::init(ModSource&& src) {
         GeodeButtonSprite::Enable,
         m_forceDisableTheme
     );
-    enableModOffSpr->setScale(.5f);
     auto enableModOnSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
         "Disable",
         GeodeButtonSprite::Delete,
         m_forceDisableTheme
     );
-    enableModOnSpr->setScale(.5f);
 
-    m_enableBtn = CCMenuItemToggler::create(
+    m_enableBtn = Toggler::create(
         enableModOffSpr, enableModOnSpr,
-        this, menu_selector(ModPopup::onEnable)
+        [this](auto, bool toggled) {
+            m_enableBtn->setToggled(!toggled);
+            m_source.requestEnable();
+        }
     );
-    m_enableBtn->m_notClickable = true;
     m_enableBtn->setID("enable-button");
+    m_enableBtn->setScale(.5f);
     m_installMenu->addChild(m_enableBtn);
 
     auto reenableModOffSpr = createGeodeButton(
@@ -467,20 +468,20 @@ bool ModPopup::init(ModSource&& src) {
         GeodeButtonSprite::Default,
         m_forceDisableTheme
     );
-    reenableModOffSpr->setScale(.5f);
     auto reenableModOnSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("reset.png"_spr),
         "Re-Disable",
         GeodeButtonSprite::Default
     );
-    reenableModOnSpr->setScale(.5f);
 
-    m_reenableBtn = CCMenuItemToggler::create(
+    m_reenableBtn = Toggler::create(
         reenableModOffSpr, reenableModOnSpr,
-        this, menu_selector(ModPopup::onEnable)
+        [this](auto, auto) {
+            m_source.requestEnable();
+        }
     );
-    m_reenableBtn->m_notClickable = true;
     m_reenableBtn->setID("reenable-button");
+    m_reenableBtn->setScale(.5f);
     m_installMenu->addChild(m_reenableBtn);
 
     m_unavailableBtn = Button::createWithNode(
@@ -662,7 +663,7 @@ bool ModPopup::init(ModSource&& src) {
         }
     );
 
-    auto tabsMenu = CCMenu::create();
+    auto tabsMenu = CCNode::create();
     tabsMenu->ignoreAnchorPointForPosition(false);
     tabsMenu->setScale(.65f);
     tabsMenu->setContentWidth(m_rightColumn->getContentWidth() / tabsMenu->getScale());
@@ -917,14 +918,14 @@ void ModPopup::updateState() {
 
     m_cancelBtn->setVisible(false);
 
-    m_enableBtn->toggle(asMod && asMod->isOrWillBeEnabled());
+    m_enableBtn->setToggled(asMod && asMod->isOrWillBeEnabled());
     m_enableBtn->setVisible(
         asMod && 
         asMod->getRequestedAction() == ModRequestedAction::None &&
         !asMod->targetsOutdatedVersion()
     );
 
-    m_reenableBtn->toggle(m_enableBtn->isToggled());
+    m_reenableBtn->setToggled(m_enableBtn->isToggled());
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
     m_updateBtn->setVisible(
@@ -943,18 +944,6 @@ void ModPopup::updateState() {
         m_installStatusLabel->setText("");
         m_installStatusLabel->setVisible(false);
     }
-
-    if (m_enableBtn->isVisible() && m_updateBtn->isVisible() && m_uninstallBtn->isVisible()) {
-        static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage())->setString("");
-        static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage())->setString("");
-        static_cast<IconButtonSprite*>(m_uninstallBtn->getDisplayNode())->setString("");
-    }
-    else {
-        static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage())->setString("Disable");
-        static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage())->setString("Enable");
-        static_cast<IconButtonSprite*>(m_uninstallBtn->getDisplayNode())->setString("Uninstall");
-    }
-    m_enableBtn->updateSprite();
 
     if (asMod && asMod->isInternal()) {
         m_enableBtn->setVisible(false);
@@ -1191,7 +1180,7 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             tag.has_value()
         ) {
             auto year = tag->name.substr(tag->name.size() - 2);
-            auto menu = CCMenu::create();
+            auto menu = CCNode::create();
             menu->setID("modtober-banner");
             menu->ignoreAnchorPointForPosition(false);
             menu->setContentSize({m_rightColumn->getContentWidth(), 25});
@@ -1318,10 +1307,6 @@ void ModPopup::loadTab(Tab tab) {
         m_rightColumn->addChildAtPosition(m_currentTabPage, Anchor::Bottom, {0.f, modtoberBannerHeight}, {.5f, .0f});
         m_tabs.at(tab).second = m_currentTabPage;
     }
-}
-
-void ModPopup::onEnable(CCObject*) {
-    m_source.requestEnable();
 }
 
 void ModPopup::onInstall() {

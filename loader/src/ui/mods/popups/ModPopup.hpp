@@ -4,6 +4,7 @@
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Button.hpp>
+#include <Geode/ui/Toggler.hpp>
 #include <Geode/ui/Label.hpp>
 #include "../sources/ModSource.hpp"
 #include "../GeodeStyle.hpp"
@@ -24,9 +25,9 @@ protected:
     ModSource m_source;
     CCNode* m_stats;
     CCNode* m_tags;
-    CCMenu* m_installMenu;
-    CCMenuItemToggler* m_enableBtn;
-    CCMenuItemToggler* m_reenableBtn;
+    CCNode* m_installMenu;
+    Toggler* m_enableBtn;
+    Toggler* m_reenableBtn;
     Button* m_uninstallBtn;
     Button* m_installBtn;
     Button* m_unavailableBtn;
@@ -75,7 +76,6 @@ protected:
     void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
     void onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result);
 
-    void onEnable(CCObject*);
     void onInstall();
 
     bool availableForInstall() const;
