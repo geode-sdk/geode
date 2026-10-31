@@ -14,10 +14,6 @@ asp::fs::Path dirs::getGeodeSaveDir() {
     return dirs::getSaveDir() / "geode";
 }
 
-asp::fs::Path dirs::getGeodeResourcesDir() {
-    return dirs::getGeodeDir() / "resources";
-}
-
 asp::fs::Path dirs::getGeodeLogDir() {
     return dirs::getGeodeDir() / "logs";
 }
@@ -48,6 +44,14 @@ asp::fs::Path dirs::getCrashlogsDir() {
 
 asp::fs::Path dirs::getModPersistentDir() {
     return dirs::getSaveDir() / "geode-persistent";
+}
+
+asp::fs::Path dirs::getModRuntimeDir() {
+    return getGeodeInternalDir() / "unzipped";
+}
+
+asp::fs::Path dirs::getGeodeResourcesDir() {
+    return getGeodeInternalDir() / "resources";
 }
 
 // asp::fs::Path dirs::getModBinariesDir() {
