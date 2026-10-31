@@ -184,7 +184,7 @@ bool ModPopup::init(ModSource&& src) {
         }
     );
     devBtn->setID("mod-developer-label");
-    devBtn->setScaleMultiplier(1.125f);
+    devBtn->setScaleMultiplier(1.05f);
     m_titleContainer->addChildAtPosition(devBtn, Anchor::BottomLeft, {devAndTitlePos + (devBtn->getScaledContentWidth() / 2.f), m_titleContainer->getContentHeight() * .25f});
 
     // Suggestions
@@ -246,7 +246,7 @@ bool ModPopup::init(ModSource&& src) {
         }
     );
     idBtn->setID("mod-id-label");
-    idBtn->setScaleMultiplier(1.125f);
+    idBtn->setScaleMultiplier(1.075f);
     leftColumn->addChild(idBtn);
 
     auto statsContainer = CCNode::create();
@@ -261,8 +261,8 @@ bool ModPopup::init(ModSource&& src) {
     statsContainer->addChildAtPosition(statsBG, Anchor::Center);
 
     m_stats = CCNode::create();
-    m_stats->setContentSize(statsContainer->getContentSize() - CCSize{10.f, 10.f});
     m_stats->setID("mod-stats-container");
+    m_stats->setContentSize(statsContainer->getContentSize() - CCSize{10.f, 10.f});
 
     struct ModStatsLabel {
         std::optional<std::string> sprite;
@@ -483,19 +483,17 @@ bool ModPopup::init(ModSource&& src) {
     m_reenableBtn->setID("reenable-button");
     m_installMenu->addChild(m_reenableBtn);
 
-    auto unavailableSpr = createGeodeButton(
-        CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
-        "Unavailable",
-        GeodeButtonSprite::Gray,
-        m_forceDisableTheme
-    );
-    unavailableSpr->setColor({155, 155, 155});
-
     m_unavailableBtn = Button::createWithNode(
-        unavailableSpr
+        createGeodeButton(
+            CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
+            "Unavailable",
+            GeodeButtonSprite::Gray,
+            m_forceDisableTheme
+        )
     );
     m_unavailableBtn->setID("unavailable-button");
     m_unavailableBtn->setScale(.5f);
+    m_unavailableBtn->setColor({155, 155, 155});
     m_unavailableBtn->setEnabled(false);
     m_installMenu->addChild(m_unavailableBtn);
 
@@ -611,13 +609,6 @@ bool ModPopup::init(ModSource&& src) {
     };
 
     for (auto& btn : linkButtons) {
-        auto spr = CCSprite::createWithSpriteFrameName(btn.sprite.c_str());
-
-        if (!btn.url.has_value()) {
-            spr->setColor({155, 155, 155});
-            spr->setOpacity(155);
-        }
-
         Button::ButtonCallback handler = btn.url.has_value() ?
             (btn.callback ? std::move(btn.callback) :
                             [url = *btn.url](auto) {
@@ -625,9 +616,14 @@ bool ModPopup::init(ModSource&& src) {
                             }) :
             nullptr;
 
-        auto button = Button::createWithNode(spr, std::move(handler));
+        auto button = Button::createWithSpriteFrameName(btn.sprite, std::move(handler));
         button->setScale(.75f);
         button->setEnabled(btn.url.has_value());
+
+        if (!btn.url.has_value()) {
+            button->setColor({155, 155, 155});
+            button->setOpacity(155);
+        }
 
         if (btn.url.has_value()) {
             button->setUserObject("url", CCString::create(*btn.url));
@@ -712,20 +708,18 @@ bool ModPopup::init(ModSource&& src) {
 
     // placeholder external link until versions tab is implemented
     auto modUrl = fmt::format("https://geode-sdk.org/mods/{}", m_source.getID());
-    auto externalLinkSpr = CCSprite::createWithSpriteFrameName("external-link.png"_spr);
 
-    externalLinkSpr->setScale(0.35f);
-    externalLinkSpr->setOpacity(127);
-
-    auto externalLinkBtn = Button::createWithNode(
-        externalLinkSpr,
+    auto externalLinkBtn = Button::createWithSpriteFrameName(
+        "external-link.png"_spr,
         [modUrl](auto) {
             web::openLinkInBrowser(modUrl);
         }
     );
     externalLinkBtn->setID("mod-online-page-button");
+    externalLinkBtn->setOpacity(127);
+    externalLinkBtn->setScale(0.35f);
     externalLinkBtn->setUserObject("url", CCString::create(modUrl));
-    m_buttonMenu->addChildAtPosition(externalLinkBtn, Anchor::TopRight, {-14.f, -16.f});
+    m_mainLayer->addChildAtPosition(externalLinkBtn, Anchor::TopRight, {-14.f, -16.f});
 
     if (isGeode) {
         externalLinkBtn->setVisible(false);
@@ -745,18 +739,16 @@ bool ModPopup::init(ModSource&& src) {
     m_settingsBG->setOpacity(75);
     m_settingsBG->setScaleMultiplier(.3f);
     m_settingsBG->setContentSize({35.f, 30.f});
-    m_buttonMenu->addChildAtPosition(m_settingsBG, Anchor::BottomLeft, {28., 25.f});
-
-    auto settingsSpr=createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("settings.png"_spr),
-        1.f,
-        CircleBaseSize::Medium,
-        false,
-        m_forceDisableTheme
-    );
+    m_mainLayer->addChildAtPosition(m_settingsBG, Anchor::BottomLeft, {28., 25.f});
 
     auto settingsBtn = Button::createWithNode(
-        settingsSpr,
+        createGeodeCircleButton(
+            CCSprite::createWithSpriteFrameName("settings.png"_spr),
+            1.f,
+            CircleBaseSize::Medium,
+            false,
+            m_forceDisableTheme
+        ),
         [this](auto) {
             if (auto mod = m_source.asMod()) {
                 ModSettingsPopup::create(mod)->show();
@@ -765,14 +757,11 @@ bool ModPopup::init(ModSource&& src) {
     );
     settingsBtn->setID("settings-button");
     settingsBtn->setScale(.6f);
-    m_buttonMenu->addChildAtPosition(settingsBtn, Anchor::BottomLeft, {28.f, 25.f});
+    m_mainLayer->addChildAtPosition(settingsBtn, Anchor::BottomLeft, {28.f, 25.f});
 
     if (!m_source.asMod() || !m_source.asMod()->hasSettings()) {
-        settingsSpr->setOpacity(90);
-        static_cast<CCSprite*>(settingsSpr->getTopNode())->setOpacity(90);
-
-        settingsSpr->setColor(ccGRAY);
-        static_cast<CCSprite*>(settingsSpr->getTopNode())->setColor(ccGRAY);
+        settingsBtn->setOpacity(90);
+        settingsBtn->setColor(ccGRAY);
 
         settingsBtn->setEnabled(false);
     }
