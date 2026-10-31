@@ -7,4 +7,3 @@ public:
     static void startConfirming();
 };
 void askConfirmModInstalls();
-
