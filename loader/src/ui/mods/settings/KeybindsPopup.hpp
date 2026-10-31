@@ -4,11 +4,11 @@
 
 using namespace geode::prelude;
 
-enum class KeybindsPopupTab {
+enum class KeybindsPopupTab : int8_t {
     All = -1,
-    Universal = static_cast<int>(KeybindCategory::Universal),
-    Gameplay = static_cast<int>(KeybindCategory::Gameplay),
-    Editor = static_cast<int>(KeybindCategory::Editor),
+    Universal = static_cast<int8_t>(KeybindCategory::Universal),
+    Gameplay = static_cast<int8_t>(KeybindCategory::Gameplay),
+    Editor = static_cast<int8_t>(KeybindCategory::Editor),
 };
 
 class KeybindsPopup : public BaseSettingsPopup {
