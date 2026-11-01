@@ -396,11 +396,11 @@ public:
 
     void addRichTag(
         std::string id,
-        bool requireArgs,
         ValidateArgs validate,
         CreateCallback,
         CharIterator iterator,
-        bool updateText
+        bool updateText,
+        bool requireArgs
     );
     void updateRichText();
 
@@ -585,11 +585,11 @@ Label* RichTextArea::RichImpl::getErrorText() {
 
 void RichTextArea::RichImpl::addRichTag(
     std::string id,
-    bool requireArgs,
     ValidateArgs validate,
     CreateCallback create,
     CharIterator iterator,
-    bool updateText
+    bool updateText,
+    bool requireArgs
 ) {
     m_tags.emplace_back(
         std::move(id),
@@ -660,7 +660,6 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     // !!!
     this->addRichTag(
         "font",
-        true,
         [](std::string const& arg) {
             auto font = BitmapFont::load(std::string(arg).c_str());
             return font != nullptr;
@@ -670,12 +669,11 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
             label->setColor(to3B(m_impl->m_color));
             label->setOpacity(m_impl->m_color.a);
             return label;
-        }, false
+        }, false, true
     );
 
     this->addRichTag(
         "link",
-        true,
         [](std::string const& arg) {
             if (arg.contains("#:")) {
                 return false;
@@ -690,43 +688,67 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
             link->setColor({ 150, 255, 255 });
             link->setOpacity(m_impl->m_color.a);
             return link;
-        }, false
+        }, false, true
     );
 
     m_richImpl->updateRichText();
     return true;
 }
 
-void RichTextArea::addRichTag(std::string id, CreateCallback create, bool updateText) {
-    addRichTag(std::move(id), false, std::move(create), updateText);
+void RichTextArea::addRichTag(std::string id, CreateCallback create, bool updateText, bool requireArgs) {
+    m_richImpl->addRichTag(
+        std::move(id),
+        [](auto) { return true; },
+        std::move(create),
+        nullptr,
+        updateText,
+        requireArgs
+    );
 }
 
-void RichTextArea::addRichTag(std::string id, bool requireArgs, CreateCallback create, bool updateText) {
-    m_richImpl->addRichTag(std::move(id), false, [](auto) { return true; }, std::move(create), nullptr, updateText);
+void RichTextArea::addRichTag(
+    std::string id,
+    ValidateArgs validate,
+    CreateCallback create,
+    bool updateText,
+    bool requireArgs
+) {
+    m_richImpl->addRichTag(
+        std::move(id),
+        std::move(validate),
+        std::move(create),
+        nullptr,
+        updateText,
+        requireArgs
+    );
 }
 
-void RichTextArea::addRichTag(std::string id, ValidateArgs validate, CreateCallback create, bool updateText) {
-    addRichTag(std::move(id), false, std::move(validate), std::move(create), updateText);
+void RichTextArea::addRichTag(std::string id, CharIterator iterator, bool updateText, bool requireArgs) {
+    m_richImpl->addRichTag(
+        std::move(id),
+        [](auto) { return true; },
+        nullptr,
+        std::move(iterator),
+        updateText,
+        requireArgs
+    );
 }
 
-void RichTextArea::addRichTag(std::string id, bool requireArgs, ValidateArgs validate, CreateCallback create, bool updateText) {
-    m_richImpl->addRichTag(std::move(id), requireArgs, std::move(validate), std::move(create), nullptr, updateText);
-}
-
-void RichTextArea::addRichTag(std::string id, CharIterator iterator, bool updateText) {
-    addRichTag(std::move(id), false, std::move(iterator), updateText);
-}
-
-void RichTextArea::addRichTag(std::string id, bool requireArgs, CharIterator iterator, bool updateText) {
-    m_richImpl->addRichTag(std::move(id), requireArgs, [](auto) { return true; }, nullptr, std::move(iterator), updateText);
-}
-
-void RichTextArea::addRichTag(std::string id, ValidateArgs validate, CharIterator iterator, bool updateText) {
-    addRichTag(std::move(id), false, std::move(validate), std::move(iterator), updateText);
-}
-
-void RichTextArea::addRichTag(std::string id, bool requireArgs, ValidateArgs validate, CharIterator iterator, bool updateText) {
-    m_richImpl->addRichTag(std::move(id), requireArgs, std::move(validate), nullptr, std::move(iterator), updateText);
+void RichTextArea::addRichTag(
+    std::string id,
+    ValidateArgs validate,
+    CharIterator iterator,
+    bool updateText,
+    bool requireArgs
+) {
+    m_richImpl->addRichTag(
+        std::move(id),
+        std::move(validate),
+        nullptr,
+        std::move(iterator),
+        updateText,
+        requireArgs
+    );
 }
 
 std::string RichTextArea::getText() const {
