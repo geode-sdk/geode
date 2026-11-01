@@ -8,7 +8,6 @@
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/NineSlice.hpp>
-#include <Geode/ui/Style.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/cocos.hpp>
 

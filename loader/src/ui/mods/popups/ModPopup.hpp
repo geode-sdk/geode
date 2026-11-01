@@ -11,7 +11,7 @@
 
 using namespace geode::prelude;
 
-class ModPopup : public GeodePopup {
+class ModPopup : public geode::GeodePopup {
 public:
     enum class Tab {
         Details,

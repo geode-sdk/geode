@@ -2,9 +2,14 @@
 
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/ui/Label.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Popup.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/Style.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <server/Server.hpp>
@@ -15,6 +20,7 @@ std::pair<cocos2d::ccColor3B, cocos2d::ccColor3B> geodeTagColors(server::ServerT
 ButtonSprite* createTagLabel(
     ZStringView text, std::pair<cocos2d::ccColor3B, cocos2d::ccColor3B> const& color
 );
+
 IconButtonSprite* createTagLabelWithIcon(
     cocos2d::CCNode* icon, ZStringView text,
     std::pair<cocos2d::ccColor3B, cocos2d::ccColor3B> const& color

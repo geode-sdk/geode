@@ -9,7 +9,7 @@
 
 using namespace geode::prelude;
 
-class FiltersPopup : public GeodePopup {
+class FiltersPopup : public geode::GeodePopup {
 protected:
     ModListSource* m_source;
     CCMenu* m_tagsMenu;

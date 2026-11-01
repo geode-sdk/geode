@@ -6,7 +6,7 @@
 
 using namespace geode::prelude;
 
-class ModtoberPopup : public GeodePopup {
+class ModtoberPopup : public geode::GeodePopup {
 protected:
     bool init() override;
 

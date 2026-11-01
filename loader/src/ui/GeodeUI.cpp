@@ -187,6 +187,7 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
+
 std::optional<arc::TaskHandle<bool>> geode::openInfoPopup(std::string modID) {
     if (auto mod = Loader::get()->getInstalledMod(modID)) {
         openInfoPopup(mod);

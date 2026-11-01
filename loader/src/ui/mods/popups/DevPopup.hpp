@@ -4,7 +4,7 @@
 #include "../sources/ModSource.hpp"
 #include <server/Server.hpp>
 
-class DevListPopup : public GeodePopup {
+class DevListPopup : public geode::GeodePopup {
 protected:
     ModSource m_source;
 public:

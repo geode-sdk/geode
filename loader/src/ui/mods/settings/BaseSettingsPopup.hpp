@@ -8,7 +8,7 @@
 
 using namespace geode::prelude;
 
-class BaseSettingsPopup : public GeodePopup {
+class BaseSettingsPopup : public geode::GeodePopup {
 protected:
     ScrollLayer* m_list;
     std::vector<Ref<SettingNode>> m_settings;

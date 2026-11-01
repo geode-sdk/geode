@@ -7,7 +7,7 @@
 
 using namespace geode::prelude;
 
-class SortPopup : public GeodePopup {
+class SortPopup : public geode::GeodePopup {
 protected:
     ModListSource* m_source;
     std::vector<CCMenuItemToggler*> m_options;
