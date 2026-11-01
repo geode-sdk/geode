@@ -15,6 +15,18 @@ $on_mod(Loaded) {
     // else it just closes the whole game
 
 #if defined(GEODE_IS_WINDOWS)
+    #if GEODE_COMP_GD_VERSION >= 22090
+    auto addr = reinterpret_cast<uintptr_t>(
+        GetProcAddress(
+            GetModuleHandle("libcocos2d.dll"), "?compileShader@CCGLProgram@cocos2d@@AEAA_NPEAIIPEBD@Z"
+        )
+    ) + 0xd1;
+
+    (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
+        0x31, 0xc0, // xor eax, eax
+        0x90, 0x90, 0x90, 0x90 // nop out remaining bytes of 6-byte call [abort]
+    });
+    #else
     auto addr = reinterpret_cast<uintptr_t>(
         GetProcAddress(
             GetModuleHandle("libcocos2d.dll"), "?compileShader@CCGLProgram@cocos2d@@AEAA_NPEAIIPEBD@Z"
@@ -25,6 +37,7 @@ $on_mod(Loaded) {
         0x31, 0xc0, // xor eax, eax
         0xeb, 0x07 // jmp +7 (to a nearby ret)
     });
+    #endif
 #elif defined(GEODE_IS_ANDROID64)
     auto addr = reinterpret_cast<uintptr_t>(
         dlsym(RTLD_DEFAULT, "_ZN7cocos2d11CCGLProgram13compileShaderEPjjPKc")
