@@ -161,7 +161,8 @@ namespace geode {
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          * @param requireArgs Whether to require arguments for this tag
          */
-        void addRichTag(std::string id,
+        void addRichTag(
+            std::string id,
             ValidateArgs validate,
             CharIterator iterator,
             bool updateText = true,
