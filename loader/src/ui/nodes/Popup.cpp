@@ -86,13 +86,15 @@ void Popup::onClose(CCObject*) {
 
 void Popup::setTitle(std::string title, ZStringView font, float scale, float offset) {
     if (!m_title) {
-        m_title = Label::create("", font);
+        m_title = Label::create(std::move(title), font);
         m_title->setID("title-label");
         m_title->setZOrder(2);
-        m_mainLayer->addChildAtPosition(m_title, Anchor::Top, {0, -offset});
+        m_mainLayer->addChildAtPosition(m_title, Anchor::Top, {.0f, -offset});
+    } else {
+        m_title->setText(std::move(title));
+        m_title->setFont(font);
     }
 
-    m_title->setText(std::move(title));
     m_title->setLimitLabelWidth(m_size.width - 20.f, scale, .1f);
 }
 
