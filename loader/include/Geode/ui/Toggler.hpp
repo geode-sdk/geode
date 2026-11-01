@@ -114,6 +114,7 @@ namespace geode {
         /// @param offFrameName Frame to display when off.
         /// @param onFrameName Frame to display when on.
         /// @param scale Sprite scale.
+        /// @param toggleCallback Callback invoked when the toggle changes.
         static Toggler* createWithSpriteFrameNames(
             geode::ZStringView offFrameName,
             geode::ZStringView onFrameName,
