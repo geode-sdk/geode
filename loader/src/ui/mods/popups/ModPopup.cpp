@@ -13,6 +13,7 @@
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/Notification.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
