@@ -51,7 +51,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     }
 
     m_list = ScrollLayer::create(size);
-    this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
+    this->addChildAtPosition(m_list, Anchor::Bottom, {-m_list->getScaledContentWidth() / 2.f, 0.f});
 
     m_topContainer = CCNode::create();
     m_topContainer->setID("top-container");
@@ -78,7 +78,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_updateAllBG = CCLayerGradient::create(
             "mod-list-updates-available-bg"_cc4b,
             "mod-list-updates-available-bg-2"_cc4b,
-            ccp(1, -.5f)
+            {1.f, -.5f}
         );
         m_updateAllBG->setID("update-all-bg");
         m_updateAllBG->setContentSize(m_updateAllContainer->getContentSize());
@@ -90,47 +90,61 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         );
         m_updateAllBG->addChildAtPosition(
             CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1),
-            Anchor::BottomLeft, ccp(0, -1)
+            Anchor::BottomLeft, {.0f, -1.f}
         );
 
         m_updateAllContainer->addChildAtPosition(m_updateAllBG, Anchor::Center);
 
-        // TODO: 2.209
-        m_updateCountLabel = TextArea::create("", "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false, 0);
+        m_updateCountLabel = Label::create("", "bigFont.fnt");
         m_updateCountLabel->setID("update-count-label");
-        m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
+        m_updateCountLabel->setScale(.35f);
+        m_updateCountLabel->setBreakWords(true);
+        m_updateCountLabel->setMaxWidth(((size.width / 2.f) - 30.f) / m_updateCountLabel->getScale());
+        m_updateCountLabel->setAnchorPoint({.0f, .5f});
+        m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, {10.f, .0f}, {});
 
-        m_updateAllMenu = CCMenu::create();
+        m_updateAllMenu = CCNode::create();
         m_updateAllMenu->setID("update-all-menu");
-        m_updateAllMenu->setContentSize({size.width / 2, 20});
+        m_updateAllMenu->setContentSize({size.width / 2.f, 20.f});
         m_updateAllMenu->setAnchorPoint({ 1, .5f });
 
-        m_showUpdatesSpr = createGeodeButton(
+        auto showUpdatesSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
             "Show Updates", GeodeButtonSprite::Install
         );
-        m_hideUpdatesSpr = createGeodeButton(
+        auto hideUpdatesSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
             "Hide Updates", GeodeButtonSprite::Default
         );
-        m_toggleUpdatesOnlyBtn = CCMenuItemToggler::create(
-            m_showUpdatesSpr, m_hideUpdatesSpr, this, menu_selector(ModList::onToggleUpdates)
-        );
+        m_toggleUpdatesOnlyBtn = Toggler::create(showUpdatesSpr, hideUpdatesSpr, [this](auto, auto) {
+            if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
+                auto mut = src->getQueryMut();
+                mut->type = mut->type == InstalledModListType::OnlyUpdates ?
+                    InstalledModListType::All :
+                    InstalledModListType::OnlyUpdates;
+                if (mut->type == InstalledModListType::OnlyUpdates && m_hasDeprecations) {
+                    Notification::create(
+                        "Click the (!) button to see\nalternatives for each mod.",
+                        NotificationIcon::Warning,
+                        NOTIFICATION_DEFAULT_TIME * 1.5f
+                    )->show();
+                }
+            }
+        });
         m_toggleUpdatesOnlyBtn->setID("toggle-updates-only-button");
-        m_toggleUpdatesOnlyBtn->m_notClickable = true;
         m_updateAllMenu->addChild(m_toggleUpdatesOnlyBtn);
 
-        m_updateAllSpr = createGeodeButton(
+        auto updateAllSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("update.png"_spr),
             "Update All", GeodeButtonSprite::Install
         );
-        m_updateAllBtn = CCMenuItemSpriteExtra::create(
-            m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
-        );
+        m_updateAllBtn = Button::createWithNode(updateAllSpr, [this](auto) {
+            server::ModDownloadManager::get()->startUpdateAll();
+        });
         m_updateAllBtn->setID("update-all-button");
         m_updateAllMenu->addChild(m_updateAllBtn);
 
-        m_updateAllLoadingCircle = createLoadingCircle(32);
+        m_updateAllLoadingCircle = createLoadingCircle(32.f);
         m_updateAllMenu->addChild(m_updateAllLoadingCircle);
 
         m_updateAllMenu->setLayout(
@@ -142,7 +156,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                 ->setMainAxisScaling(AxisScaling::Scale)
                 ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
-        m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, ccp(-10, 0));
+        m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, {-12.5f, 0.f});
 
         m_topContainer->addChild(m_updateAllContainer);
 
@@ -150,13 +164,13 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             m_errorsContainer = CCNode::create();
             m_errorsContainer->setID("errors-container");
             m_errorsContainer->ignoreAnchorPointForPosition(false);
-            m_errorsContainer->setContentSize({ size.width, 30 });
+            m_errorsContainer->setContentSize({ size.width, 30.f });
             m_errorsContainer->setVisible(false);
 
             auto errorsBG = CCLayerGradient::create(
                 "mod-list-errors-found"_cc4b,
                 "mod-list-errors-found-2"_cc4b,
-                ccp(1, -.5f)
+                {1.f, -.5f}
             );
             errorsBG->setID("errors-bg");
             errorsBG->setContentSize(m_errorsContainer->getContentSize());
@@ -164,15 +178,15 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
             m_errorsContainer->addChildAtPosition(errorsBG, Anchor::Center);
 
-            // TODO: 2.209 (change to Label?)
-            auto errorsLabel = TextArea::create(
-                "There were <cy>errors</c> loading some mods",
-                "bigFont.fnt", .35f, size.width / 2 - 30, ccp(0, 1), 12.f, false, 0
-            );
+            auto errorsLabel = Label::createRich("There were <cy>errors</c> loading some mods", "bigFont.fnt");
             errorsLabel->setID("errors-label");
-            m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, ccp(10, 0), ccp(0, 0));
+            errorsLabel->setScale(.35f);
+            errorsLabel->setBreakWords(true);
+            errorsLabel->setMaxWidth(((size.width / 2.f) - 30.f) / errorsLabel->getScale());
+            errorsLabel->setAnchorPoint({.0f, .5f});
+            m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, {10.f, .0f}, {});
 
-            auto errorsMenu = CCMenu::create();
+            auto errorsMenu = CCNode::create();
             errorsMenu->setID("errors-menu");
             errorsMenu->setContentSize({size.width / 2, 20});
             errorsMenu->setAnchorPoint({ 1, .5f });
@@ -185,11 +199,22 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                 CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
                 "Hide Errors Only", GeodeButtonSprite::Default
             );
-            m_toggleErrorsOnlyBtn = CCMenuItemToggler::create(
-                showErrorsSpr, hideErrorsSpr, this, menu_selector(ModList::onToggleErrors)
-            );
+            m_toggleErrorsOnlyBtn = Toggler::create(showErrorsSpr, hideErrorsSpr, [this](auto, auto) {
+                if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
+                    auto mut = src->getQueryMut();
+                    mut->type = mut->type == InstalledModListType::OnlyErrors ?
+                        InstalledModListType::All :
+                        InstalledModListType::OnlyErrors;
+                    if (mut->type == InstalledModListType::OnlyErrors) {
+                        Notification::create(
+                            "Click the (!) button to see\nthe errors for each mod.",
+                            NotificationIcon::Info,
+                            NOTIFICATION_DEFAULT_TIME * 1.5f
+                        )->show();
+                    }
+                }
+            });
             m_toggleErrorsOnlyBtn->setID("toggle-errors-only-button");
-            m_toggleErrorsOnlyBtn->m_notClickable = true;
             errorsMenu->addChild(m_toggleErrorsOnlyBtn);
 
             errorsMenu->setLayout(
@@ -201,7 +226,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
                     ->setMainAxisScaling(AxisScaling::Scale)
                     ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
             );
-            m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, ccp(-10, 0));
+            m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, {-10.f, 0.f});
 
             m_topContainer->addChild(m_errorsContainer);
         }
@@ -243,33 +268,31 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         this->stopActionByTag(123123);
         this->runAction(seq);
     });
-    m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, ccp(7.5f, 0));
+    m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, {7.5f, 0.f});
 
-    auto searchFiltersMenu = CCMenu::create();
+    auto searchFiltersMenu = CCNode::create();
     searchFiltersMenu->setID("search-filters-menu");
     searchFiltersMenu->setContentSize({size.width - m_searchInput->getScaledContentWidth() - 5, 30});
     searchFiltersMenu->setAnchorPoint({ 1, .5f });
     searchFiltersMenu->setScale(.75f);
-    // Set higher prio to not let list items override touch
-    searchFiltersMenu->setTouchPriority(-150);
 
-    auto sortSpr = GeodeSquareSprite::createWithSpriteFrameName("GJ_sortIcon_001.png");
-    auto sortBtn = CCMenuItemSpriteExtra::create(
-        sortSpr, this, menu_selector(ModList::onSort)
+    auto sortBtn = Button::createWithNode(
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_sortIcon_001.png"), [this](auto) {
+            SortPopup::create(m_source)->show();
+        }
     );
     sortBtn->setID("sort-button");
     if (m_source->getSortingOptions().empty()) {
         sortBtn->setEnabled(false);
-        sortSpr->setColor(ccGRAY);
-        sortSpr->setOpacity(105);
-        sortSpr->getTopSprite()->setColor(ccGRAY);
-        sortSpr->getTopSprite()->setOpacity(105);
+        sortBtn->setColor(ccGRAY);
+        sortBtn->setOpacity(105);
     }
     searchFiltersMenu->addChild(sortBtn);
 
-    m_filtersBtn = CCMenuItemSpriteExtra::create(
-        GeodeSquareSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
-        this, menu_selector(ModList::onFilters)
+    m_filtersBtn = Button::createWithNode(
+        GeodeSquareSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"), [this](auto) {
+            FiltersPopup::create(m_source)->show();
+        }
     );
 
     auto serverSource = typeinfo_cast<ServerModListSource*>(m_source);
@@ -279,14 +302,16 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_filtersBtn->setID("filters-button");
         searchFiltersMenu->addChild(m_filtersBtn);
 
-        m_clearFiltersBtn = CCMenuItemSpriteExtra::create(
-            GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
-            this, menu_selector(ModList::onClearFilters)
+        m_clearFiltersBtn = Button::createWithNode(
+            GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"), [this](auto) {
+                m_searchInput->setString("", false);
+                m_source->reset();
+            }
         );
         m_clearFiltersBtn->setID("clear-filters-button");
         searchFiltersMenu->addChild(m_clearFiltersBtn);
     } else {
-        auto menu = CCMenu::create();
+        auto menu = CCNode::create();
         menu->setID("modtober-banner");
         menu->ignoreAnchorPointForPosition(false);
         menu->setContentSize({ size.width, 30 });
@@ -297,14 +322,14 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
         auto label = Label::create("Modtober 2025 is Here!", "bigFont.fnt");
         label->setScale(.5f);
-        menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
+        menu->addChildAtPosition(label, Anchor::Left, {10.f, .0f}, {.0f, .5f});
 
-        auto aboutSpr = createGeodeButton("About");
-        aboutSpr->setScale(.5f);
-        auto aboutBtn = CCMenuItemSpriteExtra::create(
-            aboutSpr, this, menu_selector(ModList::onModtoberInfo)
-        );
-        menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-35, 0));
+        auto aboutBtn = Button::createWithNode(createGeodeButton("About"), [this](auto) {
+            ModtoberPopup::create()->show();
+        });
+        aboutBtn->setID("about-button");
+        aboutBtn->setScale(.5f);
+        menu->addChildAtPosition(aboutBtn, Anchor::Right, {-35.f, 0.f});
 
         m_topContainer->addChild(menu);
     }
@@ -315,7 +340,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setMainAxisScaling(AxisScaling::Scale)
             ->setGap(5.f)
     );
-    m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, ccp(-10, 0));
+    m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, {-10.f, 0.f});
 
     m_topContainer->addChild(m_searchMenu);
 
@@ -330,14 +355,16 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
     // Paging
 
-    auto pageLeftMenu = CCMenu::create();
+    auto pageLeftMenu = CCNode::create();
     pageLeftMenu->setID("page-left-menu");
     pageLeftMenu->setContentWidth(30.f);
     pageLeftMenu->setAnchorPoint({ 1.f, .5f });
 
-    m_pagePrevBtn = CCMenuItemSpriteExtra::create(
-        CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png"),
-        this, menu_selector(ModList::onPage)
+    m_pagePrevBtn = Button::createWithSpriteFrameName(
+        "GJ_arrow_02_001.png",
+        [this](auto) {
+            this->onPage(-1);
+        }
     );
     m_pagePrevBtn->setID("page-previous-button");
     m_pagePrevBtn->setTag(-1);
@@ -348,32 +375,32 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setMainAxisAlignment(MainAxisAlignment::End)
             ->setMainAxisDirection(AxisDirection::RightToLeft)
     );
-    this->addChildAtPosition(pageLeftMenu, Anchor::Left, ccp(-20, 0));
+    this->addChildAtPosition(pageLeftMenu, Anchor::Left, {-20.f, 0.f});
 
-    auto pageRightMenu = CCMenu::create();
+    auto pageRightMenu = CCNode::create();
     pageRightMenu->setID("page-right-menu");
     pageRightMenu->setContentWidth(30.f);
     pageRightMenu->setAnchorPoint({ 0.f, .5f });
 
-    auto pageNextSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
-    pageNextSpr->setFlipX(true);
-    m_pageNextBtn = CCMenuItemSpriteExtra::create(
-        pageNextSpr,
-        this, menu_selector(ModList::onPage)
+    m_pageNextBtn = Button::createWithSpriteFrameName(
+        "GJ_arrow_02_001.png",
+        [this](auto) {
+            this->onPage(1);
+        }
     );
     m_pageNextBtn->setID("page-next-button");
-    m_pageNextBtn->setTag(1);
+    static_cast<CCSprite*>(m_pageNextBtn->getDisplayNode())->setFlipX(true);
     pageRightMenu->addChild(m_pageNextBtn);
 
     pageRightMenu->setLayout(
         SimpleRowLayout::create()
         ->setMainAxisAlignment(MainAxisAlignment::Start)
     );
-    this->addChildAtPosition(pageRightMenu, Anchor::Right, ccp(20, 0));
+    this->addChildAtPosition(pageRightMenu, Anchor::Right, {20.f, 0.f});
 
     // Status
 
-    m_statusContainer = CCMenu::create();
+    m_statusContainer = CCNode::create();
     m_statusContainer->setID("status-container");
     m_statusContainer->setScale(.5f);
     m_statusContainer->setContentHeight(size.height / m_statusContainer->getScale());
@@ -385,9 +412,12 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_statusTitle->setAlignment(Label::Alignment::Center);
     m_statusContainer->addChild(m_statusTitle);
 
-    m_statusDetailsBtn = CCMenuItemSpriteExtra::create(
+    m_statusDetailsBtn = Button::createWithNode(
         ButtonSprite::create("Details", "bigFont.fnt", "GJ_button_05.png", .75f),
-        this, menu_selector(ModList::onShowStatusDetails)
+        [this](auto) {
+            m_statusDetails->setVisible(!m_statusDetails->isVisible());
+            m_statusContainer->updateLayout();
+        }
     );
     m_statusDetailsBtn->setID("status-details-button");
     m_statusContainer->addChild(m_statusDetailsBtn);
@@ -466,72 +496,78 @@ void ModList::setIsExiting(bool exiting) {
     m_exiting = true;
 }
 
-void ModList::onPage(CCObject* sender) {
+void ModList::onPage(int8_t direction) {
     // If no page count has been loaded yet, we can't do anything
     if (!m_source->getPageCount()) return;
     auto pageCount = m_source->getPageCount().value();
 
     // Make sure you can't go beyond the limits
-    if (sender->getTag() < 0 && m_page >= -sender->getTag()) {
-        m_page += sender->getTag();
+    if (direction < 0 && m_page >= -direction) {
+        m_page += direction;
     }
     // Ig this can technically overflow, but why would there be over 4 billion pages
     // (and why would someone manually scroll that far)
-    else if (sender->getTag() > 0 && m_page + sender->getTag() < m_source->getPageCount()) {
-        m_page += sender->getTag();
+    else if (direction > 0 && m_page + direction < m_source->getPageCount()) {
+        m_page += direction;
     }
 
     // Load new page
     this->gotoPage(m_page);
 }
 
-void ModList::onShowStatusDetails(CCObject*) {
-    m_statusDetails->setVisible(!m_statusDetails->isVisible());
-    m_statusContainer->updateLayout();
-}
-
 void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
     if (check.modsWithUpdates.empty() && check.modsWithDeprecations.empty()) return;
 
+    std::string updateCountText;
+    std::string showUpdatesText;
+    std::string hideUpdatesText;
+
     // Not sure if updates really should take precedence over deprecations
-    if (check.modsWithUpdates.size()) {
+    if (!check.modsWithUpdates.empty()) {
         if (check.modsWithUpdates.size() == 1) {
-            m_updateCountLabel->setString("There is an update available!");
-            m_updateAllSpr->setString("");
-            m_showUpdatesSpr->setString("Show Update");
-            m_hideUpdatesSpr->setString("Hide Update");
+            updateCountText = "There is an update available!";
+            showUpdatesText = "Show Update";
+            hideUpdatesText = "Hide Update";
         }
         else {
-            m_updateCountLabel->setString(fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size()));
-            m_updateAllSpr->setString("Update All");
-            m_showUpdatesSpr->setString("Show Updates");
-            m_hideUpdatesSpr->setString("Hide Updates");
+            updateCountText = fmt::format("There are <cg>{}</c> updates available!", check.modsWithUpdates.size());
+            showUpdatesText = "Show Updates";
+            hideUpdatesText = "Hide Updates";
         }
     }
-    else if (check.modsWithDeprecations.size()) {
-        m_updateCountLabel->setString("Some of your mods have been deprecated!");
-        m_updateAllSpr->setString("");
-        m_showUpdatesSpr->setString("Show");
-        m_hideUpdatesSpr->setString("Hide");
+    else if (!check.modsWithDeprecations.empty()) {
+        updateCountText = "Some of your mods have been deprecated!";
+        showUpdatesText = "Show";
+        hideUpdatesText = "Hide";
     }
+
+    m_updateCountLabel->setText(std::move(updateCountText));
+
+    auto updateAllSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("update.png"_spr), "Update All", GeodeButtonSprite::Install
+    );
+
+    auto showUpdatesSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+        showUpdatesText,
+        GeodeButtonSprite::Install
+    );
+    auto hideUpdatesSpr = createGeodeButton(
+        CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
+        hideUpdatesText,
+        GeodeButtonSprite::Default
+    );
+
+    m_toggleUpdatesOnlyBtn->setOffNode(showUpdatesSpr);
+    m_toggleUpdatesOnlyBtn->setOnNode(hideUpdatesSpr);
 
     m_hasDeprecations = check.modsWithDeprecations.size() > 0;
 
-    // Fix "Show Update" / "Show" button positioning
-    auto btnSize = m_showUpdatesSpr->getScaledContentSize();
-    m_toggleUpdatesOnlyBtn->setContentSize(btnSize);
-    m_toggleUpdatesOnlyBtn->m_onButton->setContentSize(btnSize);
-    m_toggleUpdatesOnlyBtn->m_offButton->setContentSize(btnSize);
-    m_toggleUpdatesOnlyBtn->m_onButton->setPosition(btnSize * 0.5f);
-    m_toggleUpdatesOnlyBtn->m_offButton->setPosition(btnSize * 0.5f);
-    m_showUpdatesSpr->setPosition(btnSize * 0.5f);
-    m_hideUpdatesSpr->setPosition(btnSize * 0.5f);
-
     // Recreate the menu with the updated label
     m_updateAllMenu->removeChild(m_updateAllBtn, true);
-    m_updateAllBtn = CCMenuItemSpriteExtra::create(
-        m_updateAllSpr, this, menu_selector(ModList::onUpdateAll)
-    );
+    m_updateAllBtn = Button::createWithNode(updateAllSpr, [this](auto) {
+        server::ModDownloadManager::get()->startUpdateAll();
+    });
     m_updateAllBtn->setID("update-all-button");
     m_updateAllMenu->addChild(m_updateAllBtn);
 
@@ -581,7 +617,7 @@ void ModList::updateTopContainer() {
     if (m_updateAllContainer) {
         auto shouldShowLoading = server::ModDownloadManager::get()->hasActiveDownloads();
         m_updateAllBtn->setEnabled(!shouldShowLoading);
-        static_cast<IconButtonSprite*>(m_updateAllBtn->getNormalImage())->setOpacity(shouldShowLoading ? 90 : 255);
+        m_updateAllBtn->setOpacity(shouldShowLoading ? 90 : 255);
         m_updateAllLoadingCircle->setVisible(shouldShowLoading);
         m_updateAllMenu->updateLayout();
     }
@@ -656,10 +692,10 @@ void ModList::updateState() {
     // the updates available / errors banners
     if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
         if (m_toggleUpdatesOnlyBtn) {
-            m_toggleUpdatesOnlyBtn->toggle(src->getQuery().type == InstalledModListType::OnlyUpdates);
+            m_toggleUpdatesOnlyBtn->setToggled(src->getQuery().type == InstalledModListType::OnlyUpdates);
         }
         if (m_toggleErrorsOnlyBtn) {
-            m_toggleErrorsOnlyBtn->toggle(src->getQuery().type == InstalledModListType::OnlyErrors);
+            m_toggleErrorsOnlyBtn->setToggled(src->getQuery().type == InstalledModListType::OnlyErrors);
         }
     }
 
@@ -674,15 +710,12 @@ void ModList::updateState() {
     auto serverSource = typeinfo_cast<ServerModListSource*>(m_source);
 
     if (!serverSource || serverSource->getType() != ServerModListType::Modtober) {
-        auto filterSpr = static_cast<GeodeSquareSprite*>(m_filtersBtn->getNormalImage());
+        auto filterSpr = static_cast<GeodeSquareSprite*>(m_filtersBtn->getDisplayNode());
         filterSpr->setState(!isDefaultQuery);
 
-        auto clearSpr = static_cast<GeodeSquareSprite*>(m_clearFiltersBtn->getNormalImage());
         m_clearFiltersBtn->setEnabled(!isDefaultQuery);
-        clearSpr->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
-        clearSpr->setOpacity(isDefaultQuery ? 90 : 255);
-        clearSpr->getTopSprite()->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
-        clearSpr->getTopSprite()->setOpacity(isDefaultQuery ? 90 : 255);
+        m_clearFiltersBtn->setColor(isDefaultQuery ? ccGRAY : ccWHITE);
+        m_clearFiltersBtn->setOpacity(isDefaultQuery ? 90 : 255);
     }
 
     // Post the update page number event
@@ -731,13 +764,13 @@ void ModList::gotoPage(size_t page, bool update) {
     this->updateState();
 }
 
-void ModList::showStatus(ModListStatus status, ZStringView message, std::optional<std::string> details) {
+void ModList::showStatus(ModListStatus status, std::string message, std::optional<std::string> details) {
     // Clear list contents
     m_list->m_contentLayer->removeAllChildren();
 
     // Update status
     bool hasDetails = details.has_value();
-    m_statusTitle->setText(message);
+    m_statusTitle->setText(std::move(message));
     m_statusDetails->setText(std::move(details).value_or(""));
 
     // Update status visibility
@@ -750,45 +783,6 @@ void ModList::showStatus(ModListStatus status, ZStringView message, std::optiona
 
     // Update layout to automatically rearrange everything neatly in the status
     m_statusContainer->updateLayout();
-}
-
-void ModList::onFilters(CCObject*) {
-    FiltersPopup::create(m_source)->show();
-}
-void ModList::onSort(CCObject*) {
-    SortPopup::create(m_source)->show();
-}
-void ModList::onClearFilters(CCObject*) {
-    m_searchInput->setString("", false);
-    m_source->reset();
-}
-void ModList::onToggleUpdates(CCObject*) {
-    if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
-        auto mut = src->getQueryMut();
-        mut->type = mut->type == InstalledModListType::OnlyUpdates ?
-            InstalledModListType::All :
-            InstalledModListType::OnlyUpdates;
-        if(mut->type == InstalledModListType::OnlyUpdates && m_hasDeprecations) {
-            Notification::create("Click the (!) button to see\nalternatives for each mod.", nullptr, NOTIFICATION_DEFAULT_TIME * 3)->show();
-        }
-    }
-}
-void ModList::onToggleErrors(CCObject*) {
-    if (auto src = typeinfo_cast<InstalledModListSource*>(m_source)) {
-        auto mut = src->getQueryMut();
-        mut->type = mut->type == InstalledModListType::OnlyErrors ?
-            InstalledModListType::All :
-            InstalledModListType::OnlyErrors;
-        if(mut->type == InstalledModListType::OnlyErrors) {
-            Notification::create("Click the (!) button to see\nthe errors for each mod.", nullptr, NOTIFICATION_DEFAULT_TIME * 3)->show();
-        }
-    }
-}
-void ModList::onUpdateAll(CCObject*) {
-    server::ModDownloadManager::get()->startUpdateAll();
-}
-void ModList::onModtoberInfo(CCObject*) {
-    ModtoberPopup::create()->show();
 }
 
 size_t ModList::getPage() const {
@@ -804,4 +798,3 @@ ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingD
     delete ret;
     return nullptr;
 }
-

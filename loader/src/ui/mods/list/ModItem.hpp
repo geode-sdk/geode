@@ -3,18 +3,16 @@
 #include <Geode/ui/General.hpp>
 #include <server/Server.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/Slider.hpp>
-#include <Geode/binding/CCMenuItemToggler.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/ProgressBar.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/Button.hpp>
+#include <Geode/ui/Toggler.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <server/DownloadManager.hpp>
 #include "../sources/ModSource.hpp"
 #include "../UpdateModListState.hpp"
 #include "ModListItem.hpp"
-
-using namespace geode::prelude;
 
 // i made it this way just in case someone wanted to add to the enum in the future
 // mat is allowed to judge
@@ -52,34 +50,34 @@ struct matjson::Serialize<ModListDisplay> {
 class ModItem : public ModListItem {
 protected:
     ModSource m_source;
-    CCNode* m_logo;
-    CCNode* m_infoContainer;
-    CCNode* m_titleContainer;
-    Ref<Label> m_titleLabel;
-    Label* m_versionLabel;
-    CCNode* m_developers;
-    CCNode* m_recommendedBy;
-    NineSlice* m_description;
-    Label* m_developerLabel;
-    ButtonSprite* m_restartRequiredLabel;
-    ButtonSprite* m_outdatedLabel;
-    ButtonSprite* m_deprecatedLabel;
-    CCNode* m_modLabelsContainer;
-    CCNode* m_downloadWaiting;
-    CCNode* m_downloadBarContainer;
-    Slider* m_downloadBar;
-    CCMenuItemToggler* m_enableToggle = nullptr;
-    CCMenuItemToggler* m_pinToggle = nullptr;
-    CCMenuItemSpriteExtra* m_updateBtn = nullptr;
+    CCNode* m_logo = nullptr;
+    CCNode* m_infoContainer = nullptr;
+    CCNode* m_titleContainer = nullptr;
+    Ref<Label> m_titleLabel = nullptr;
+    Label* m_versionLabel = nullptr;
+    CCNode* m_developers = nullptr;
+    CCNode* m_recommendedBy = nullptr;
+    NineSlice* m_description = nullptr;
+    Button* m_developersBtn = nullptr;
+    ButtonSprite* m_restartRequiredLabel = nullptr;
+    ButtonSprite* m_outdatedLabel = nullptr;
+    ButtonSprite* m_deprecatedLabel = nullptr;
+    CCNode* m_modLabelsContainer = nullptr;
+    CCNode* m_downloadWaiting = nullptr;
+    CCNode* m_downloadBarContainer = nullptr;
+    ProgressBar* m_downloadBar = nullptr;
+    Toggler* m_enableToggle = nullptr;
+    Toggler* m_pinToggle = nullptr;
+    Button* m_updateBtn = nullptr;
     ListenerHandle m_updateStateHandle;
     async::TaskHolder<server::ServerResult<server::ServerModUpdateOneCheck>> m_checkUpdateListener;
     ListenerHandle m_downloadHandle;
     server::ServerModUpdateOneCheck m_availableUpdate;
     ListenerHandle m_settingNodeHandle;
     Ref<CCNode> m_badgeContainer = nullptr;
-    Ref<CCNode> m_downloadCountContainer;
-    Ref<CCNode> m_updatedAtContainer;
-    Label* m_versionDownloadSeparator;
+    Ref<CCNode> m_downloadCountContainer = nullptr;
+    Ref<CCNode> m_updatedAtContainer = nullptr;
+    Label* m_versionDownloadSeparator = nullptr;
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable

@@ -2,11 +2,12 @@
 
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/Button.hpp>
+#include <Geode/ui/Toggler.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
+#include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
-#include <Geode/binding/TextArea.hpp>
 #include "ModListItem.hpp"
 #include "../sources/ModListSource.hpp"
 #include <server/DownloadManager.hpp>
@@ -25,35 +26,32 @@ struct InstalledModsUpdateCheck final {
 
 class ModList : public CCNode {
 protected:
-    ModListSource* m_source;
+    ModListSource* m_source = nullptr;
     size_t m_page = 0;
-    ScrollLayer* m_list;
-    CCMenu* m_statusContainer;
-    Label* m_statusTitle;
-    SimpleTextArea* m_statusDetails;
-    CCMenuItemSpriteExtra* m_statusDetailsBtn;
-    CCNode* m_statusLoadingCircle;
+    ScrollLayer* m_list = nullptr;
+    CCNode* m_statusContainer = nullptr;
+    Label* m_statusTitle = nullptr;
+    SimpleTextArea* m_statusDetails = nullptr;
+    Button* m_statusDetailsBtn = nullptr;
+    CCNode* m_statusLoadingCircle = nullptr;
     ListenerHandle m_pageLoadHandle;
     async::TaskHolder<Result<ModListSource::ProvidedMods, ModListSource::LoadPageError>> m_listener;
-    CCMenuItemSpriteExtra* m_pagePrevBtn;
-    CCMenuItemSpriteExtra* m_pageNextBtn;
-    CCNode* m_topContainer;
-    CCNode* m_searchMenu;
+    Button* m_pagePrevBtn = nullptr;
+    Button* m_pageNextBtn = nullptr;
+    CCNode* m_topContainer = nullptr;
+    CCNode* m_searchMenu = nullptr;
     CCNode* m_updateAllContainer = nullptr;
     CCLayerGradient* m_updateAllBG = nullptr;
-    CCMenu* m_updateAllMenu = nullptr;
-    Ref<IconButtonSprite> m_updateAllSpr = nullptr;
-    CCMenuItemSpriteExtra* m_updateAllBtn = nullptr;
+    CCNode* m_updateAllMenu = nullptr;
+    Button* m_updateAllBtn = nullptr;
     CCNode* m_updateAllLoadingCircle = nullptr;
-    IconButtonSprite* m_showUpdatesSpr = nullptr;
-    IconButtonSprite* m_hideUpdatesSpr = nullptr;
-    CCMenuItemToggler* m_toggleUpdatesOnlyBtn = nullptr;
+    Toggler* m_toggleUpdatesOnlyBtn = nullptr;
     CCNode* m_errorsContainer = nullptr;
-    CCMenuItemToggler* m_toggleErrorsOnlyBtn = nullptr;
-    TextArea* m_updateCountLabel = nullptr;
-    TextInput* m_searchInput;
-    CCMenuItemSpriteExtra* m_filtersBtn;
-    CCMenuItemSpriteExtra* m_clearFiltersBtn;
+    Toggler* m_toggleErrorsOnlyBtn = nullptr;
+    Label* m_updateCountLabel = nullptr;
+    TextInput* m_searchInput = nullptr;
+    Button* m_filtersBtn = nullptr;
+    Button* m_clearFiltersBtn = nullptr;
     ListenerHandle m_invalidateCacheHandle;
     ListenerHandle m_checkUpdatesHandle;
     ListenerHandle m_downloadHandle;
@@ -70,15 +68,7 @@ protected:
     void onInvalidateCache(ModListSource* source);
 
     void onPromise(ModListSource::PageLoadResult event);
-    void onPage(CCObject*);
-    void onShowStatusDetails(CCObject*);
-    void onFilters(CCObject*);
-    void onSort(CCObject*);
-    void onClearFilters(CCObject*);
-    void onToggleUpdates(CCObject*);
-    void onToggleErrors(CCObject*);
-    void onUpdateAll(CCObject*);
-    void onModtoberInfo(CCObject*);
+    void onPage(int8_t direction);
 
 public:
     static ModList* create(ModListSource* src, CCSize const& size, bool searchingDev = false);
@@ -87,7 +77,7 @@ public:
 
     void reloadPage();
     void gotoPage(size_t page, bool update = false);
-    void showStatus(ModListStatus status, ZStringView message, std::optional<std::string> details = std::nullopt);
+    void showStatus(ModListStatus status, std::string message, std::optional<std::string> details = std::nullopt);
 
     void updateState();
     void updateDisplay(ModListDisplay display);
