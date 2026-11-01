@@ -194,7 +194,7 @@ ListBorders* geode::createGeodeListBorders(CCSize const& size, bool forceDisable
         ret->setContentSize(size);
     }
     else {
-        ret->setContentSize(size + ccp(5, 5));
+        ret->setContentSize(size + CCSize{5.f, 5.f});
     }
     return ret;
 }
@@ -423,8 +423,8 @@ GeodeTabSprite::~GeodeTabSprite() {};
 bool GeodeTabSprite::init(ZStringView iconFrame, std::string text, float width, bool altColor) {
     if (!CCNode::init()) return false;
 
-    CCSize const itemSize{width, 35};
-    CCSize const iconSize{18, 18};
+    CCSize const itemSize{width, 35.f};
+    CCSize const iconSize{18.f, 18.f};
 
     this->setContentSize(itemSize);
     this->setAnchorPoint({.5f, .5f});
@@ -447,7 +447,7 @@ bool GeodeTabSprite::init(ZStringView iconFrame, std::string text, float width, 
 
     m_impl->m_icon = CCSprite::createWithSpriteFrameName(iconFrame.c_str());
     limitNodeSize(m_impl->m_icon, iconSize, 3.f, .1f);
-    this->addChildAtPosition(m_impl->m_icon, Anchor::Left, ccp(16, 0), false);
+    this->addChildAtPosition(m_impl->m_icon, Anchor::Left, {16.f, .0f}, false);
 
     m_impl->m_label = Label::create(std::move(text), "bigFont.fnt");
     m_impl->m_label->setLimitLabelWidth(
@@ -455,7 +455,7 @@ bool GeodeTabSprite::init(ZStringView iconFrame, std::string text, float width, 
     );
     m_impl->m_label->setAnchorPoint({.5f, .5f});
     this->addChildAtPosition(
-        m_impl->m_label, Anchor::Left, ccp((itemSize.width - iconSize.width) / 2 + iconSize.width, 0), false
+        m_impl->m_label, Anchor::Left, {((itemSize.width - iconSize.width) / 2.f + iconSize.width), .0f}, false
     );
 
     return true;
