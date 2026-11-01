@@ -1,5 +1,7 @@
 #include <Geode/ui/Toggler.hpp>
 
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
+
 using namespace geode::prelude;
 
 class Toggler::Impl final {
