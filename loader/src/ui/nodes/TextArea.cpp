@@ -369,7 +369,7 @@ public:
     std::vector<RichTag> m_tags;
     EmojiRegistry m_emojiRegistry;
     std::string m_rawText;
-    std::deque<std::u32string> m_tagIRs;
+    std::deque<std::u32string> m_replacements;
 
     struct TagInstance {
         RichTag* tag;
@@ -518,8 +518,8 @@ void RichTextArea::RichImpl::parseRichText() {
 }
 
 void RichTextArea::RichImpl::registerTag(std::string const& ir) {
-    m_tagIRs.emplace_back(std::u32string(ir.begin(), ir.end()));
-    m_emojiRegistry.insert(m_tagIRs.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
+    m_replacements.emplace_back(std::u32string(ir.begin(), ir.end()));
+    m_emojiRegistry.insert(m_replacements.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
         auto str8 = string::utf32ToUtf8(str32);
         if (str8.isErr()) {
             log::error("Could not parse UTF-32: {}", str8.unwrapErr());
