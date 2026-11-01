@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define __CCACCELEROMETER_DELEGATE_H__
 
 #include "CCCommon.h"
+#include "../../DefaultInclude.hpp"
 
 NS_CC_BEGIN
 /**

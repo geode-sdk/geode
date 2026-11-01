@@ -741,13 +741,18 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
     }
 
     static void attemptHookRawInput() {
-        g_rawInputHWND = FindWindowW(L"GD_RawInput", nullptr);
-        if (!g_rawInputHWND) {
+        auto newHWND = FindWindowW(L"GD_RawInput", nullptr);
+        if (!newHWND) {
             // in case it takes more than 1 frame, try getting the window again next frame
             queueInMainThread([]{ attemptHookRawInput(); });
             return;
         }
 
+        if (g_rawInputHWND == newHWND) {
+            return;
+        }
+
+        g_rawInputHWND = newHWND;
         g_originalRawInputProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
             g_rawInputHWND, GWLP_WNDPROC,
             reinterpret_cast<LONG_PTR>(GeodeRawInputWndProc)

@@ -1,4 +1,8 @@
 #include <Geode/cocos/CCDirector.h>
+#include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/cocos/keypad_dispatcher/CCKeypadDispatcher.h>
+#include <Geode/cocos/robtop/mouse_dispatcher/CCMouseDispatcher.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/utils/AndroidEvent.hpp>
 #include <Geode/utils/Keyboard.hpp>
 #include <Geode/Prelude.hpp>
