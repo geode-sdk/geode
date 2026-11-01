@@ -538,19 +538,20 @@ void RichTextArea::RichImpl::registerTag(std::string const& ir) {
         // Split text and id
         auto split = string::split(inter, "|");
 
-        std::string idStr;
+        std::string id;
         std::string arg;
+
         if (string::contains(split[0], "-")) {
             auto k = string::split(split[0], "-");
-            idStr = k[0];
+            id = k[0];
             arg = k[1];
         } else {
-            idStr = split[0];
+            id = split[0];
         }
 
-        auto tag = std::ranges::find(m_tags, idStr, &RichTag::id);
+        auto tag = std::ranges::find(m_tags, id, &RichTag::id);
         if (tag == m_tags.end()) {
-            log::error("Could not find tag '{}'", idStr);
+            log::error("Could not find tag '{}'", id);
             log::info("THIS SHOULD BE UNREACHABLE. REPORT THIS BUG TO THE GEODE DEVELOPERS");
             return this->getErrorText();
         }
