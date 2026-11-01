@@ -1,8 +1,13 @@
 #include <Geode/ui/NumberInputPopup.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
+#include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/Button.hpp>
 #include <Geode/ui/TextInput.hpp>
+#include <Geode/ui/Notification.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/general.hpp>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 
