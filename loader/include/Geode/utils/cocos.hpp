@@ -1139,8 +1139,14 @@ namespace geode::cocos {
 
     public:
         using value_type = T*;
+        using reference = T*&;
+        using const_reference = T* const&;
         using iterator = T**;
-        using const_iterator = const T**;
+        using const_iterator = T* const*;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+        using size_type = std::size_t;
+        using difference_type = std::ptrdiff_t;
 
         CCArrayExt() : m_arr(cocos2d::CCArray::create()) {}
 
@@ -1159,35 +1165,62 @@ namespace geode::cocos {
             a.m_arr = nullptr;
         }
 
+        CCArrayExt& operator=(CCArrayExt const& rhs) {
+            m_arr = rhs.m_arr;
+            return *this;
+        }
+
+        CCArrayExt& operator=(CCArrayExt&& rhs) noexcept {
+            m_arr = rhs.m_arr;
+            rhs.m_arr = nullptr;
+            return *this;
+        }
+
         ~CCArrayExt() {}
 
-        T** begin() const {
+        iterator begin() const {
             if (!m_arr) {
                 return nullptr;
             }
             return reinterpret_cast<T**>(m_arr->data->arr);
         }
 
-        T** end() const {
+        iterator end() const {
             if (!m_arr) {
                 return nullptr;
             }
             return reinterpret_cast<T**>(m_arr->data->arr) + m_arr->count();
         }
 
-        auto rbegin() const {
+        const_iterator cbegin() const {
+            return this->begin();
+        }
+
+        const_iterator cend() const {
+            return this->end();
+        }
+
+        reverse_iterator rbegin() const {
             return std::reverse_iterator(this->end());
         }
 
-        auto rend() const {
+        reverse_iterator rend() const {
             return std::reverse_iterator(this->begin());
         }
 
-        size_t size() const {
-            return m_arr ? m_arr->count() : 0;
+        const_reverse_iterator crbegin() const {
+            return this->rbegin();
         }
 
-        T* operator[](size_t index) {
+        const_reverse_iterator crend() const {
+            return this->rend();
+        }
+
+        size_type size() const {
+            return m_arr ? static_cast<size_type>(m_arr->count()) : 0;
+        }
+
+        value_type operator[](size_t index) {
             return static_cast<T*>(m_arr->objectAtIndex(index));
         }
 
@@ -1195,10 +1228,47 @@ namespace geode::cocos {
             m_arr->addObject(item);
         }
 
-        T* pop_back() {
+        value_type pop_back() {
             T* ret = static_cast<T*>(m_arr->lastObject());
             m_arr->removeLastObject();
             return ret;
+        }
+
+        iterator erase(const_iterator pos) {
+            const auto index = pos - this->cbegin();
+            m_arr->removeObjectAtIndex(static_cast<unsigned int>(index));
+            return this->begin() + index;
+        }
+
+        iterator erase(const_iterator first, const_iterator last) {
+            const auto index = first - this->cbegin();
+            const auto count = last - first;
+            std::rotate(this->begin() + index, this->begin() + index + count, this->end());
+            for (difference_type i = 0; i < count; ++i) {
+                m_arr->removeLastObject();
+            }
+            return this->begin() + index;
+        }
+
+        void clear() {
+            m_arr->removeAllObjects();
+        }
+
+        iterator insert(const_iterator pos, value_type value) {
+            const auto index = pos - this->cbegin();
+            m_arr->insertObject(value, static_cast<unsigned int>(index));
+            return this->begin() + index;
+        }
+
+        template <std::input_iterator InputIt>
+        iterator insert(const_iterator pos, InputIt first, InputIt last) {
+            const auto index = pos - this->cbegin();
+            const auto oldSize = this->size();
+            for (; first != last; ++first) {
+                m_arr->addObject(*first);
+            }
+            std::rotate(this->begin() + index, this->begin() + oldSize, this->end());
+            return this->begin() + index;
         }
 
         cocos2d::CCArray* inner() {
@@ -1219,12 +1289,20 @@ namespace geode::cocos {
             return this->size() == 0;
         }
 
-        T* front() const {
+        value_type front() const {
             return static_cast<T*>(m_arr->firstObject());
         }
 
-        T* back() const {
+        value_type back() const {
             return static_cast<T*>(m_arr->lastObject());
+        }
+
+        void swap(CCArrayExt& rhs) noexcept {
+            std::swap(this->m_arr, rhs.m_arr);
+        }
+
+        friend void swap(CCArrayExt& lhs, CCArrayExt& rhs) noexcept {
+            lhs.swap(rhs);
         }
     };
 
