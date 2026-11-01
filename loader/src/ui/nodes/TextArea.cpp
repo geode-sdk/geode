@@ -558,20 +558,21 @@ void RichTextArea::RichImpl::registerTag(std::string const& ir) {
 
         if (tag->create) {
             return tag->create(std::move(split[1]), std::move(arg));
-        } else {
+        } else if (tag->iterator) {
             // geode::Label doesn't have an easy method to add per-character
             // effects (ty quads) so we have to resort to this
             auto ret = CCLabelBMFont::create(split[1].c_str(), m_font.c_str());
             ret->setColor(to3B(m_color));
             ret->setOpacity(m_color.a);
 
-            if (tag->iterator) {
-                for (auto& c : CCArrayExt(ret->getChildren())) {
-                    tag->iterator(static_cast<CCFontSprite*>(c), arg);
-                }
+            auto children = ret->getChildren();
+            for (int i = 0; i < children->count(); i++) {
+                auto child = static_cast<CCFontSprite*>(children->objectAtIndex(i));
+                tag->iterator(child, arg, i);
             }
-
             return ret;
+        } else {
+            return this->getErrorText();
         }
     });
 }
@@ -650,7 +651,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     // Default tags
     this->addRichTag(
         "flip",
-        [](CCFontSprite* spr, auto) {
+        [](CCFontSprite* spr, auto, auto) {
             spr->setFlipY(true);
         },
         false
