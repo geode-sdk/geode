@@ -6,6 +6,7 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/ui/ProgressBar.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
@@ -50,7 +51,7 @@ protected:
     NineSlice* m_statusBG;
     Label* m_status;
     Label* m_statusPercentage;
-    Slider* m_progressBar;
+    ProgressBar* m_progressBar;
     CCNode* m_loadingCircle;
     CCNode* m_btnMenu;
     Button* m_viewBtn;

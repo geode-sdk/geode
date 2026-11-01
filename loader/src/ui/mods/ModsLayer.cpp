@@ -138,17 +138,16 @@ bool ModsStatusNode::init() {
     m_loadingCircle = createLoadingCircle(32);
     m_statusBG->addChildAtPosition(m_loadingCircle, Anchor::Left, {25.f, .0f});
 
-    m_progressBar = Slider::create(nullptr, nullptr);
+    m_progressBar = ProgressBar::create(ProgressBar::Style::Slider);
     m_progressBar->setID("progress-bar");
-    m_progressBar->m_touchLogic->m_thumb->setVisible(false);
     m_progressBar->setScale(2.f);
-    m_progressBar->setAnchorPoint({ 0, 0 }),
     m_statusBG->addChildAtPosition(m_progressBar, Anchor::Center);
 
     this->addChildAtPosition(m_statusBG, Anchor::Bottom);
 
     m_btnMenu = CCNode::create();
     m_btnMenu->setID("button-menu");
+    m_btnMenu->setAnchorPoint({ .5f, .5f });
     m_btnMenu->setContentWidth(m_obContentSize.width);
     m_btnMenu->setContentHeight(25.f);
     auto restartSpr = createGeodeButton("Restart Now");
@@ -371,7 +370,7 @@ void ModsStatusNode::updateState() {
             m_cancelBtn->setVisible(true);
 
             m_progressBar->setVisible(true);
-            m_progressBar->setValue(percentage / 100.f);
+            m_progressBar->updateProgress(percentage);
         } break;
     }
 
@@ -672,8 +671,8 @@ bool ModsLayer::init() {
 
     auto listDisplayMenu = CCNode::create();
     listDisplayMenu->setID("list-actions-menu");
-    listDisplayMenu->setContentSize({30, 100});
-    listDisplayMenu->setAnchorPoint({ 1, 0 });
+    listDisplayMenu->setContentSize({30.f, 100.f});
+    listDisplayMenu->setAnchorPoint({ 1.f, 0.f });
     listDisplayMenu->setScale(.65f);
 
     auto smallSizeBtn = Button::createWithNode(
