@@ -1,4 +1,4 @@
-!insertmacro LANGFILE_EXT English
+!insertmacro LANGFILE_EXT Hungarian
 
 !pragma warning disable 6030 ; overwriting default MUI strings on purpose
 ; to translate these strings:
