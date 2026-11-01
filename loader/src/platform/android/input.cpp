@@ -1,3 +1,8 @@
+#include <Geode/cocos/CCDirector.h>
+#include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/cocos/keypad_dispatcher/CCKeypadDispatcher.h>
+#include <Geode/cocos/robtop/mouse_dispatcher/CCMouseDispatcher.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/utils/AndroidEvent.hpp>
 #include <Geode/utils/Keyboard.hpp>
 #include <Geode/Prelude.hpp>
@@ -525,7 +530,8 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inputDeviceRemov
     geode::AndroidInputDeviceEvent().send(deviceId, geode::AndroidInputDeviceStatus::Removed);
 }
 
-// TODO in v6: this appears to no longer be necessary, potentially remove?
+/*
+// no longer necessary in 2.209
 extern "C"
 JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_resizeSurface(
     JNIEnv* env, jobject, jint width, jint height
@@ -538,3 +544,4 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_resizeSurface(
     cocos2d::CCDirector::sharedDirector()->setViewport();
     cocos2d::CCDirector::sharedDirector()->setProjection(cocos2d::kCCDirectorProjection2D);
 }
+*/

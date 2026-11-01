@@ -3,6 +3,9 @@
 
 #include "../../cocoa/CCObject.h"
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h>
+#include <vector>
+
+#include <vector>
 
 NS_CC_BEGIN
 

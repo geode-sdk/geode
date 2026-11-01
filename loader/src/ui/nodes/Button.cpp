@@ -1,9 +1,23 @@
+#include <Geode/cocos/cocoa/CCGeometry.h>
+#include <Geode/cocos/robtop/touch_dispatcher/CCTouchClipper.h>
+#include <Geode/cocos/support/CCPointExtension.h>
+#include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <unordered_set>
 
 using namespace geode::prelude;
+
+static bool isInsideClippers(CCNode* node, CCPoint worldPoint) {
+    if (auto clipper = node->getParentByType<CCTouchClipper*>()) {
+        if (!clipper->touchInsideClip(worldPoint)) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 class Button::Impl final {
 public:
@@ -14,6 +28,10 @@ public:
     bool m_enabled = true;
     bool m_selected = false;
     bool m_defaultsSet = false;
+    bool m_swallow = true;
+    float m_dragCancelDistance = 0.f;
+    CCPoint m_touchStart;
+    bool m_dragTouchCancelled = false;
 
     int m_touchPriority = cocos2d::kCCMenuHandlerPriority;
 
@@ -387,16 +405,35 @@ bool Button::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 
     if (SharedButtonHandler::containsTouch(this, touch)) {
         SharedButtonHandler::get()->setActiveButton(this);
+
+        m_impl->m_touchStart = touch->getLocation();
+        m_impl->m_dragTouchCancelled = false;
+
         return true;
     }
     return false;
 }
 
 void Button::ccTouchMoved(CCTouch* touch, CCEvent* event) {
+    if (m_impl->m_dragTouchCancelled) {
+        return;
+    }
+
+    if (m_impl->m_dragCancelDistance > 0 &&
+        ccpDistance(touch->getLocation(), m_impl->m_touchStart) > m_impl->m_dragCancelDistance) {
+        m_impl->m_dragTouchCancelled = true;
+        SharedButtonHandler::get()->passCancelledToButtons();
+        return;
+    }
+
     SharedButtonHandler::get()->passMoveToButtons(this, touch);
 }
 
 void Button::ccTouchEnded(CCTouch* touch, CCEvent* event) {
+    if (m_impl->m_dragTouchCancelled) {
+        return;
+    }
+
     SharedButtonHandler::get()->passActivateToButtons();
 }
 
@@ -421,7 +458,7 @@ float Button::getTouchMultiplier() {
 }
 
 void Button::registerWithTouchDispatcher() {
-    CCTouchDispatcher::get()->addTargetedDelegate(this, m_impl->m_touchPriority, true);
+    CCTouchDispatcher::get()->addTargetedDelegate(this, m_impl->m_touchPriority, m_impl->m_swallow);
 }
 
 void Button::setActivateCallback(ButtonCallback callback) {
@@ -434,6 +471,25 @@ void Button::setSelectCallback(ButtonCallback callback) {
 
 void Button::setUnselectCallback(ButtonCallback callback) {
     m_impl->m_unselectCallback = std::move(callback);
+}
+
+void Button::setSwallowTouches(bool swallow) {
+    m_impl->m_swallow = swallow;
+    if (auto handler = CCTouchDispatcher::get()->findHandler(this)) {
+        static_cast<CCTargetedTouchHandler*>(handler)->setSwallowsTouches(swallow);
+    }
+}
+
+bool Button::isSwallowingTouches() {
+    return m_impl->m_swallow;
+}
+
+void Button::setDragCancelDistance(float distance) {
+    m_impl->m_dragCancelDistance = distance;
+}
+
+float Button::getDragCancelDistance() {
+    return m_impl->m_dragCancelDistance;
 }
 
 class SharedButtonHandler::Impl final {
@@ -526,7 +582,11 @@ bool SharedButtonHandler::containsTouch(Button* button, CCTouch* touch) {
 
     auto rect = cocos2d::CCRect{-dx, -dy, scaledWidth, scaledHeight};
 
-    return rect.containsPoint(local);
+    if (!rect.containsPoint(local)) {
+        return false;
+    }
+
+    return isInsideClippers(button, touch->getLocation());
 }
 
 void SharedButtonHandler::setActiveButton(Button* button) {
