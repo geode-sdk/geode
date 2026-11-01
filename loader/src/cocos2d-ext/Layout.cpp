@@ -46,6 +46,12 @@ bool CCNode::hasAncestor(CCNode* ancestor) {
     return false;
 }
 
+void CCNode::addChildren(std::span<cocos2d::CCNode* const> children) {
+    for (auto& child : children) {
+        addChild(child);
+    }
+}
+
 // these use setContentSize and getContentSize because they're virtuals and
 // some node may override those for wacky behaviour
 

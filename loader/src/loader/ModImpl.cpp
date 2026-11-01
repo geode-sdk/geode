@@ -472,13 +472,13 @@ Result<> Mod::Impl::uninstall(bool deleteSaveData) {
     // Make loader forget the mod should be disabled
     Mod::get()->getSaveContainer().erase("should-load-" + m_metadata.getID());
 
-    if (auto e = asp::fs::remove(m_metadata.getPath())) {
-        return Err("Unable to delete mod's .geode file: {}", e.unwrapErr());
+    if (auto e = asp::fs::remove(m_metadata.getPath()).err()) {
+        return Err("Unable to delete mod's .geode file: {}", *e);
     }
 
     if (deleteSaveData) {
-        if (auto e = asp::fs::removeDirAll(this->getSaveDir())) {
-            return Err("Unable to delete mod's save directory: {}", e.unwrapErr());
+        if (auto e = asp::fs::removeDirAll(this->getSaveDir(), false).err()) {
+            return Err("Unable to delete mod's save directory: {}", *e);
         }
     }
 

@@ -1,6 +1,12 @@
+#include "Geode/utils/Keyboard.hpp"
+
+#include "Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDelegate.h"
+#include "KeyboardImpl.hpp"
+
 #include <Geode/loader/Mod.hpp>
-#include <Geode/utils/StringMap.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/utils/StringMap.hpp>
+#include <optional>
 
 using namespace geode::prelude;
 
@@ -151,6 +157,8 @@ StringMap<enumKeyCodes> keyNameToCode = {
     { "OEM6", KEY_OEM6 },
     { "OEM7", KEY_OEM7 },
     { "OEM8", KEY_OEM8 },
+    { "ABNT1", KEY_ABNT1 },
+    { "ABNT2", KEY_ABNT2 },
     { "OEM102", KEY_OEM102 },
     { "Process", KEY_Process },
     { "Packet", KEY_Packet },
@@ -218,7 +226,8 @@ StringMap<enumKeyCodes> keyNameToCode = {
     { ";", KEY_Semicolon },
     { "'", KEY_Apostrophe },
     { "/", KEY_Slash },
-    { "=", KEY_NumEnter },
+    { "NumEqual", KEY_Equal },
+    { "NumEnter", KEY_NumEnter },
     { "INTL-1", KEY_World1 },
     { "INTL-2", KEY_World2 },
     { "Mouse 4", MOUSE_4 },
@@ -287,6 +296,23 @@ Result<Keybind> Keybind::fromString(std::string_view str) {
     return Ok(Keybind(it->second, mods));
 }
 
+Keybind Keybind::fromVanillaChord(int chord) {
+    enumKeyCodes key = static_cast<enumKeyCodes>(chord & 0xffff);
+    KeyboardModifier mods = KeyboardModifier::None;
+
+    if (chord & 0x10000) {
+        mods |= KeyboardModifier::Control;
+    }
+    if (chord & 0x20000) {
+        mods |= KeyboardModifier::Alt;
+    }
+    if (chord & 0x40000) {
+        mods |= KeyboardModifier::Shift;
+    }
+
+    return Keybind(key, mods);
+}
+
 std::string Keybind::toString() const {
     StringBuffer<> buf;
     if ((modifiers & KeyboardModifier::Control) && key != KEY_LeftControl && key != KEY_RightControl) {
@@ -326,6 +352,35 @@ std::string Keybind::toString() const {
     }
     buf.append(keyStr ? keyStr : "Unknown");
     return buf.str();
+}
+
+std::optional<int> Keybind::toVanillaChord() const {
+    if (key == KEY_None) {
+        return std::nullopt;
+    }
+    if (modifiers & KeyboardModifier::Super) {
+        return std::nullopt;
+    }
+
+    int chord = key & 0xffff;
+
+    // No modifiers for controller
+    if ((key >= CONTROLLER_A && key <= CONTROLLER2_RTHUMBSTICK_RIGHT) ||
+        (key >= CONTROLLER_L3 && key <= CONTROLLER2_R3)) {
+        return chord;
+    }
+
+    if (modifiers & KeyboardModifier::Control) {
+        chord |= 0x10000;
+    }
+    if (modifiers & KeyboardModifier::Alt) {
+        chord |= 0x20000;
+    }
+    if (modifiers & KeyboardModifier::Shift) {
+        chord |= 0x40000;
+    }
+
+    return chord;
 }
 
 cocos2d::CCNode* Keybind::createNode() const {
@@ -426,12 +481,36 @@ cocos2d::CCNode* Keybind::createNode() const {
     return spr;
 }
 
+// GD didn't support these until 2.209, and Geode provided them
+enumKeyCodes geode::migrateOldKeyCode(int code) {
+    switch (code) {
+        case 0x1000: return KEY_GraveAccent;
+        case 0x1001: return KEY_OEMEqual;
+        case 0x1002: return KEY_LeftBracket;
+        case 0x1003: return KEY_RightBracket;
+        case 0x1004: return KEY_Backslash;
+        case 0x1005: return KEY_Semicolon;
+        case 0x1006: return KEY_Apostrophe;
+        case 0x1007: return KEY_Slash;
+        case 0x100A: return KEY_World1;
+        // KEY_OEMPlus used to be 0xB8, which was only used for the plus key on
+        // android and numpad plus on mac/ios
+        case 0xB8:
+        #ifdef GEODE_IS_ANDROID
+            return KEY_OEMPlus;
+        #else
+            return KEY_Add;
+        #endif
+        default: return static_cast<enumKeyCodes>(code);
+    }
+}
+
 Result<Keybind> matjson::Serialize<geode::Keybind>::fromJson(matjson::Value const& json) {
     if (!json.isObject()) {
         return Err("Expected object for Keybind");
     }
     return Ok(Keybind(
-        static_cast<enumKeyCodes>(json["key"].asInt().unwrapOr(0)),
+        migrateOldKeyCode(json["key"].asInt().unwrapOr(0)),
         static_cast<KeyboardModifier>(json["modifiers"].asInt().unwrapOr(0))
     ));
 }

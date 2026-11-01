@@ -119,7 +119,7 @@ static enumKeyCodes keyToKeyCode(int code) {
         case UIKeyboardHIDUsageKeyboardSemicolon: return enumKeyCodes::KEY_Semicolon;
         case UIKeyboardHIDUsageKeyboardQuote: return enumKeyCodes::KEY_Apostrophe;
         case UIKeyboardHIDUsageKeyboardSlash: return enumKeyCodes::KEY_Slash;
-        case UIKeyboardHIDUsageKeyboardEqualSign: return enumKeyCodes::KEY_Equal;
+        case UIKeyboardHIDUsageKeyboardEqualSign: return enumKeyCodes::KEY_OEMEqual;
         case UIKeyboardHIDUsageKeyboardOpenBracket: return enumKeyCodes::KEY_LeftBracket;
         case UIKeyboardHIDUsageKeyboardBackslash: return enumKeyCodes::KEY_Backslash;
         case UIKeyboardHIDUsageKeyboardCloseBracket: return enumKeyCodes::KEY_RightBracket;
@@ -144,7 +144,7 @@ static enumKeyCodes keyToKeyCode(int code) {
         case UIKeyboardHIDUsageKeypadHyphen: return enumKeyCodes::KEY_Subtract;
         case UIKeyboardHIDUsageKeypadPlus: return enumKeyCodes::KEY_Add;
         case UIKeyboardHIDUsageKeypadEnter: return enumKeyCodes::KEY_NumEnter;
-        case UIKeyboardHIDUsageKeypadEqualSign: return enumKeyCodes::KEY_OEMEqual;
+        case UIKeyboardHIDUsageKeypadEqualSign: return enumKeyCodes::KEY_Equal;
 
         default: return enumKeyCodes::KEY_Unknown;
     }

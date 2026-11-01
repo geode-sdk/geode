@@ -1,6 +1,7 @@
 #include <Geode/loader/Event.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <mutex>
+#include <vector>
 
 using namespace geode::prelude;
 using namespace geode::comm;

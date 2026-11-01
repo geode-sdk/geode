@@ -80,6 +80,9 @@ std::vector<std::pair<size_t, std::string>> ServerModListSource::getSortingOptio
         { static_cast<size_t>(server::ModsSort::Downloads), "Most Downloads" },
         { static_cast<size_t>(server::ModsSort::RecentlyPublished), "Recently Published" },
         { static_cast<size_t>(server::ModsSort::RecentlyUpdated), "Recently Updated" },
+        { static_cast<size_t>(server::ModsSort::Oldest), "Oldest" },
+        { static_cast<size_t>(server::ModsSort::Name), "A-Z" },
+        { static_cast<size_t>(server::ModsSort::NameReverse), "Z-A" },
     };
 }
 size_t ServerModListSource::getSort() const {

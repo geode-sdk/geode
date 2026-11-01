@@ -195,6 +195,7 @@ set(GEODE_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(cmake/Platform.cmake)
 include(cmake/GeodeFile.cmake)
+include(cmake/AIAgentDetection.cmake)
 
 # there is now a script that runs over these lines to determine the gd version
 # so please update them when you set the game version
@@ -259,16 +260,16 @@ endif()
 
 set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result@1.5.0")
-CPMAddPackage("gh:geode-sdk/json@3.3.1")
+CPMAddPackage("gh:geode-sdk/json@4.0.1")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
 CPMAddPackage("gh:fmtlib/fmt#12.2.0")
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
-	set(GEODE_ARC_VERSION "@1.6.3" CACHE STRING "")
+	set(GEODE_ARC_VERSION "@1.6.4" CACHE STRING "")
 endif()
 if (NOT DEFINED GEODE_ASP_VERSION)
-	set(GEODE_ASP_VERSION "@1.5.1" CACHE STRING "")
+	set(GEODE_ASP_VERSION "@1.5.3" CACHE STRING "")
 endif()
 
 CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")
@@ -337,7 +338,9 @@ if (SUPPORTS_W_NO_EVERYTHING)
 	endif()
 endif()
 
-target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
+if (NOT GEODE_NO_ENTRY)
+	target_sources(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp)
+endif()
 
 add_subdirectory(${GEODE_BINDINGS_REPO_PATH} ${CMAKE_BINARY_DIR}/bindings)
 

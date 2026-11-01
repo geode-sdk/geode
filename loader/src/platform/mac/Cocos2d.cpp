@@ -1,5 +1,6 @@
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/cocos/platform/CCFileUtils.h>
 
 using namespace cocos2d;
 
