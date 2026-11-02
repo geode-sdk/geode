@@ -176,7 +176,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
     m_impl->m_rInput = TextInput::create(50.f, "R");
     m_impl->m_rInput->setScale(.7f);
-    m_impl->m_rInput->setDelegate(this, TAG_R_INPUT);
+    // m_impl->m_rInput->setDelegate(this, TAG_R_INPUT);
     m_impl->m_rInput->setID("r-input");
     rColumn->addChild(m_impl->m_rInput);
 
@@ -205,7 +205,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
     m_impl->m_gInput = TextInput::create(50.f, "G");
     m_impl->m_gInput->setScale(.7f);
-    m_impl->m_gInput->setDelegate(this, TAG_G_INPUT);
+    // m_impl->m_gInput->setDelegate(this, TAG_G_INPUT);
     m_impl->m_gInput->setID("g-input");
     gColumn->addChild(m_impl->m_gInput);
 
@@ -234,7 +234,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
     m_impl->m_bInput = TextInput::create(50.f, "B");
     m_impl->m_bInput->setScale(.7f);
-    m_impl->m_bInput->setDelegate(this, TAG_B_INPUT);
+    // m_impl->m_bInput->setDelegate(this, TAG_B_INPUT);
     m_impl->m_bInput->setID("b-input");
     bColumn->addChild(m_impl->m_bInput);
 
@@ -263,7 +263,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
     m_impl->m_hexInput = TextInput::create(165.f, "Hex");
     m_impl->m_hexInput->setScale(.7f);
-    m_impl->m_hexInput->setDelegate(this, TAG_HEX_INPUT);
+    // m_impl->m_hexInput->setDelegate(this, TAG_HEX_INPUT);
     m_impl->m_hexInput->setID("hex-input");
     hexColumn->addChild(m_impl->m_hexInput);
 
@@ -317,7 +317,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
         m_impl->m_opacityInput = TextInput::create(60.f, "Opacity");
         m_impl->m_opacityInput->setScale(.7f);
-        m_impl->m_opacityInput->setDelegate(this, TAG_OPACITY_INPUT);
+        // m_impl->m_opacityInput->setDelegate(this, TAG_OPACITY_INPUT);
         m_impl->m_opacityInput->setID("opacity-input");
         opacitySection->addChild(m_impl->m_opacityInput);
 
@@ -346,12 +346,12 @@ void ColorPickPopup::updateState(CCNode* except) {
             inp->setString(value, false);              \
         }
 
-    IF_NOT_EXCEPT(m_impl->m_rInput, numToString<int>(m_impl->m_color.r));
-    IF_NOT_EXCEPT(m_impl->m_gInput, numToString<int>(m_impl->m_color.g));
-    IF_NOT_EXCEPT(m_impl->m_bInput, numToString<int>(m_impl->m_color.b));
-    IF_NOT_EXCEPT(m_impl->m_hexInput, cc3bToHexString(to3B(m_impl->m_color)));
+    // IF_NOT_EXCEPT(m_impl->m_rInput, numToString<int>(m_impl->m_color.r));
+    // IF_NOT_EXCEPT(m_impl->m_gInput, numToString<int>(m_impl->m_color.g));
+    // IF_NOT_EXCEPT(m_impl->m_bInput, numToString<int>(m_impl->m_color.b));
+    // IF_NOT_EXCEPT(m_impl->m_hexInput, cc3bToHexString(to3B(m_impl->m_color)));
     if (m_impl->m_opacityInput) {
-        IF_NOT_EXCEPT(m_impl->m_opacityInput, numToString(m_impl->m_color.a / 255.f, 2));
+        // IF_NOT_EXCEPT(m_impl->m_opacityInput, numToString(m_impl->m_color.a / 255.f, 2));
     }
     if (m_impl->m_opacitySlider) {
         m_impl->m_opacitySlider->setValue(m_impl->m_color.a / 255.f);

@@ -159,8 +159,8 @@ protected:
         if (!setting->isInputEnabled()) {
             m_input->getBGSprite()->setVisible(false);
             m_input->setEnabled(false);
-            m_input->getInputNode()->m_textLabel->setOpacity(255);
-            m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
+            // m_input->getInputNode()->m_textLabel->setOpacity(255);
+            // m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
         }
         this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Center);
 
@@ -216,7 +216,7 @@ protected:
             m_input->setEnabled(enable);
         }
 
-        if (invoker != m_input && (invoker != nullptr || !m_input->getInputNode()->m_selected)) {
+        if (invoker != m_input && (invoker != nullptr /* || !m_input->getInputNode()->m_selected */)) {
             // round to 5 decimal places to avoid floating point errors
             m_input->setString(numToString(round(this->getValue() * 100000.0) / 100000.0));
         }

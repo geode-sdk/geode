@@ -53,7 +53,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     searchContainer->setContentSize({ m_listSize.width, 30 });
 
     m_searchInput = TextInput::create((m_listSize.width - 15) / .7f - 40, "Search settings...");
-    m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setAlignment(Label::Alignment::Left);
     m_searchInput->setScale(.7f);
     m_searchInput->setCallback([this](auto const&) {
         this->updateState();
