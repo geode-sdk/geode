@@ -13,7 +13,7 @@ using namespace geode::prelude;
 
 class NumberInputPopup::Impl final {
 public:
-    Callback m_callback = nullptr;
+    SubmitCallback m_callback = nullptr;
 
     TextInput* m_input = nullptr;
 
@@ -24,7 +24,7 @@ public:
 
     size_t m_precision = 0;
 
-    std::string offsetNumStr(std::string_view current, double step) {
+    std::string stepNumStr(std::string_view current, double step) {
         auto currentRes = numFromString<double>(current);
         if (currentRes.isErr()) return std::string{current};
 
@@ -74,7 +74,7 @@ bool NumberInputPopup::init(double current, double min, double max, std::string 
     auto prev = Button::createWithSpriteFrameName(
         "edit_leftBtn_001.png",
         [this](auto) {
-            m_impl->m_input->setString(m_impl->offsetNumStr(this->getValueString(), -m_impl->m_step));
+            m_impl->m_input->setString(m_impl->stepNumStr(this->getValueString(), -m_impl->m_step));
         }
     );
     prev->setID("decrement-button");
@@ -83,7 +83,7 @@ bool NumberInputPopup::init(double current, double min, double max, std::string 
     auto next = Button::createWithSpriteFrameName(
         "edit_rightBtn_001.png",
         [this](auto) {
-            m_impl->m_input->setString(m_impl->offsetNumStr(this->getValueString(), m_impl->m_step));
+            m_impl->m_input->setString(m_impl->stepNumStr(this->getValueString(), m_impl->m_step));
         }
     );
     next->setID("increment-button");
@@ -126,7 +126,7 @@ bool NumberInputPopup::init(double current, double min, double max, std::string 
     return true;
 }
 
-void NumberInputPopup::setCallback(Callback cb) {
+void NumberInputPopup::setSubmitCallback(SubmitCallback cb) {
     m_impl->m_callback = std::move(cb);
 }
 
@@ -144,7 +144,7 @@ void NumberInputPopup::setPrecision(size_t precision) {
     m_impl->m_input->setString(numToString(this->getValue(), precision));
 }
 
-void NumberInputPopup::resetCallback() {
+void NumberInputPopup::resetSubmitCallback() {
     m_impl->m_callback = nullptr;
 }
 

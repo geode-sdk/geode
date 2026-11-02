@@ -17,7 +17,7 @@ namespace geode {
         bool init(double current, double min, double max, std::string title, ZStringView btnText, ZStringView btnBg, ZStringView bg, CircleBaseColor closeBtnColor, float inputWidth);
 
     public:
-        using Callback = Function<void(NumberInputPopup*, double)>;
+        using SubmitCallback = Function<void(NumberInputPopup*, double)>;
 
         /// Create a generic number input popup
         /// @param current Default number to appear first on the input
@@ -41,7 +41,7 @@ namespace geode {
         /// Set the callback that fires when the user submits a number
         /// @param cb The lambda which will take a `NumberInputPopup*` param
         /// @warning Upon setting a callback, you must handle closing the popup yourself
-        void setCallback(Callback cb);
+        void setSubmitCallback(SubmitCallback cb);
 
         /// Set the value of the number input
         /// @param value The new value to set
@@ -57,7 +57,7 @@ namespace geode {
         void setPrecision(size_t precision);
 
         /// Reset the callback that would've fired when the user submit a number
-        void resetCallback();
+        void resetSubmitCallback();
 
         double getValue() const;
         double getMin() const noexcept;
