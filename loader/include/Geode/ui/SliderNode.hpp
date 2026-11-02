@@ -18,7 +18,7 @@ namespace geode {
             Release
         };
 
-        class SliderEvent : public geode::GlobalEvent<SliderEvent, bool(SliderNode*, SlideType), bool(float value), SliderNode*, SlideType> {
+        class SliderEvent : public geode::GlobalEvent<SliderEvent, bool(SliderNode*, SlideType, float value), bool(float value), SliderNode*, SlideType> {
             using GlobalEvent::GlobalEvent;
         };
 
