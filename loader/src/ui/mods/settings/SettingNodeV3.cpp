@@ -235,6 +235,7 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
         // This triggers popup state to update due to SettingNodeValueChangeEventV3 being posted
         this->markChanged(sender);
     });
+    m_collapseToggle->setID("collapse-toggler");
     m_collapseToggle->setScale(.2f);
     this->getButtonMenu()->setContentWidth(20.f);
     this->getButtonMenu()->addChildAtPosition(m_collapseToggle, Anchor::Center);
@@ -301,8 +302,8 @@ bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width
     this->getNameLabel()->setVisible(false);
     this->getDescriptionButton()->setVisible(false);
 
-    auto label =
-        BoxedLabel::create(setting->getDescription().value_or(""), "chatFont.fnt", width - 25);
+    auto label = BoxedLabel::create(setting->getDescription().value_or(""), "chatFont.fnt", width - 25);
+    label->setID("info-setting-label");
     label->lockBGWidth(true);
     label->setTextScale(.65f);
     label->setBGOpacity(100);
@@ -487,6 +488,7 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
     if (!SettingValueNodeV3::init(setting, width)) return false;
 
     m_input = TextInput::create(setting->getEnumOptions() ? width / 2.f - 50.f : width / 2.f, "Text");
+    m_input->setID("string-setting-input");
     m_input->setCallback([this](auto const& str) {
         this->setValue(str, m_input);
     });

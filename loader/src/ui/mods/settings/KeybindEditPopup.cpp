@@ -33,6 +33,7 @@ bool KeybindEditPopup::init(
     m_currentKeybind = std::move(keybind);
 
     auto bottomMenu = CCNode::create();
+    bottomMenu->setID("bottom-menu");
     bottomMenu->setAnchorPoint({.5f, .5f});
     bottomMenu->setContentWidth(220.f);
 
@@ -96,6 +97,7 @@ void KeybindEditPopup::updateLabel() {
         }
         if (*m_originalKeybind != m_currentKeybind) {
             m_originalKeybindContainer = CCNode::create();
+            m_originalKeybindContainer->setID("original-keybind-container");
             m_originalKeybindContainer->setScale(.4f);
             m_originalKeybindContainer->setContentWidth(200);
             m_originalKeybindContainer->setAnchorPoint({.5f, .5f});
@@ -129,7 +131,7 @@ void KeybindEditPopup::updateLabel() {
         m_keybindNode = m_currentKeybind.createNode();
         // It just looks better if controller binds are scale 1
         if (!typeinfo_cast<CCSprite*>(m_keybindNode)) {
-            limitNodeWidth(m_keybindNode, m_mainLayer->getContentWidth() - 10, .75f, .1f);
+            limitNodeWidth(m_keybindNode, m_mainLayer->getContentWidth() - 10.f, .75f, .1f);
         }
     }
     float keybindOffset = m_originalKeybindContainer ? 10 : 0;
@@ -208,6 +210,7 @@ bool KeybindListPopup::init(
     m_mainLayer->addChildAtPosition(background, Anchor::Center, {-5.f, 5.f});
 
     m_scrollLayer = ScrollLayer::create({ 190.f, 150.f });
+    m_scrollLayer->setID("keybind-list");
     m_scrollLayer->ignoreAnchorPointForPosition(false);
     m_scrollLayer->m_contentLayer->setLayout(ColumnLayout::create()->setAxisReverse(true)->setAxisAlignment(AxisAlignment::End)->setAutoGrowAxis(0));
     m_mainLayer->addChildAtPosition(m_scrollLayer, Anchor::Center, {-5.f, 5.f});
@@ -217,6 +220,8 @@ bool KeybindListPopup::init(
     m_mainLayer->addChildAtPosition(createGeodeListBorders({ 190.f, 150.f }), Anchor::Center, {-5.f, 5.f});
 
     auto bottomMenu = CCNode::create();
+    bottomMenu->setID("bottom-menu");
+    bottomMenu->setAnchorPoint({.5f, .5f});
     bottomMenu->setContentWidth(220.f);
 
     auto addButton = Button::createWithNode(
