@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/loader/Event.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/ui/Button.hpp>
