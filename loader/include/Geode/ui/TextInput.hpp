@@ -145,6 +145,10 @@ namespace geode {
         void setPasswordMode(bool enable);
         bool isPasswordMode() const;
 
+        /// Enable/disable numeric mode (makes mobile keyboard only show numeric characters, does not affect input validation)
+        void setNumericMode(bool enable);
+        bool isNumeric() const;
+
         /// Enable/disable multiline mode
         void setMultiline(bool multiline);
         bool isMultiline() const;

@@ -2,6 +2,8 @@
 #include <Geode/cocos/misc_nodes/CCClippingNode.h>
 #include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/robtop/mouse_dispatcher/CCMouseDispatcher.h>
+#include <Geode/binding/PlatformToolbox.hpp>
+#include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/modify/CCTextInputNode.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/ui/Label.hpp>
@@ -81,11 +83,11 @@ struct TextInput::Impl {
     Label::Alignment m_alignment = Label::Alignment::Center;
     bool m_multiline = false;
     bool m_password = false;
+    bool m_numeric = false;
     bool m_hasFocus = false;
     bool m_isDragging = false;
     bool m_enabled = true;
     bool m_wrap = true;
-    OverflowMode m_overflow = OverflowMode::Scale;
 
     size_t m_maxLength = std::numeric_limits<size_t>::max();
 
@@ -120,6 +122,8 @@ struct TextInput::Impl {
     ListenerHandle m_textChangedListener;
     ListenerHandle m_focusedListener;
     ListenerHandle m_unfocusedListener;
+
+    OverflowMode m_overflow = OverflowMode::Scale;
 
     enum class ClickMode : uint8_t {
         None,
@@ -757,6 +761,26 @@ struct TextInput::Impl {
         this->updateSelectionHighlight();
     }
 
+    struct KeyMods {
+        bool word = false;
+        bool line = false;
+    };
+
+    static KeyMods getCurrentMods() {
+        auto kd = CCKeyboardDispatcher::get();
+#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
+        return {
+            .word = kd->getAltKeyPressed(),
+            .line = kd->getCommandKeyPressed(),
+        };
+#else
+        return {
+            .word = kd->getControlKeyPressed(),
+            .line = false,
+        };
+#endif
+    }
+
     void setupKeyboardListener() {
         m_keyListener = KeyboardInputEvent().listen([this](KeyboardInputData& data) {
             if (!m_hasFocus) return ListenerResult::Propagate;
@@ -841,12 +865,8 @@ struct TextInput::Impl {
         this->resetCaretBlink();
 
         auto kd = CCKeyboardDispatcher::get();
-#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
-        bool ctrl = kd->getCommandKeyPressed();
-#else
-        bool ctrl = kd->getControlKeyPressed();
-#endif
         bool shift = kd->getShiftKeyPressed();
+        auto mods = this->getCurrentMods();
 
         switch (key) {
             case KEY_Left: {
@@ -855,9 +875,13 @@ struct TextInput::Impl {
                     this->clearSelection();
                 } else {
                     if (shift && m_selectionStart < 0) m_selectionStart = m_cursorPos;
-                    m_cursorPos = ctrl
-                        ? this->findPrevWordStop(m_cursorPos)
-                        : this->snapToPrevStop(m_cursorPos);
+                    if (mods.line) {
+                        m_cursorPos = m_multiline ? this->lineStartFor(m_cursorPos) : 0;
+                    } else if (mods.word) {
+                        m_cursorPos = this->findPrevWordStop(m_cursorPos);
+                    } else {
+                        m_cursorPos = this->snapToPrevStop(m_cursorPos);
+                    }
                 }
                 m_goalX = -1.f;
                 this->updateCaretPosition();
@@ -870,9 +894,13 @@ struct TextInput::Impl {
                     this->clearSelection();
                 } else {
                     if (shift && m_selectionStart < 0) m_selectionStart = m_cursorPos;
-                    m_cursorPos = ctrl
-                        ? this->findNextWordStop(m_cursorPos)
-                        : this->snapToNextStop(m_cursorPos);
+                    if (mods.line) {
+                        m_cursorPos = m_multiline ? this->lineEndFor(m_cursorPos) : m_text.size();
+                    } else if (mods.word) {
+                        m_cursorPos = this->findNextWordStop(m_cursorPos);
+                    } else {
+                        m_cursorPos = this->snapToNextStop(m_cursorPos);
+                    }
                 }
                 m_goalX = -1.f;
                 this->updateCaretPosition();
@@ -978,6 +1006,16 @@ TextInput* TextInput::createMultiline(CCSize const& size, std::string placeholde
 bool TextInput::attachWithIME() {
     if (!m_impl->m_enabled) return false;
     if (m_impl->m_hasFocus) return true;
+
+#ifdef GEODE_IS_MOBILE
+    int flags = 0;
+    if (m_impl->m_multiline) flags |= 1;
+    if (m_impl->m_password) flags |= 2;
+    if (m_impl->m_numeric) flags |= 4;
+
+    PlatformToolbox::setKeyboardInputFlags(flags);
+#endif
+
     return CCIMEDelegate::attachWithIME();
 }
 
@@ -1023,6 +1061,14 @@ void TextInput::setPasswordMode(bool enable) {
 
 bool TextInput::isPasswordMode() const {
     return m_impl->m_password;
+}
+
+void TextInput::setNumericMode(bool enable) {
+    m_impl->m_numeric = enable;
+}
+
+bool TextInput::isNumeric() const {
+    return m_impl->m_numeric;
 }
 
 void TextInput::setMultiline(bool multiline) {
@@ -1193,16 +1239,17 @@ void TextInput::deleteBackward() {
 
     if (m_impl->m_cursorPos <= 0) return;
 
-    auto kd = CCKeyboardDispatcher::get();
-#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
-    bool ctrl = kd->getCommandKeyPressed();
-#else
-    bool ctrl = kd->getControlKeyPressed();
-#endif
+    auto mods = Impl::getCurrentMods();
 
-    int newPos = ctrl
-        ? m_impl->findPrevWordStop(m_impl->m_cursorPos)
-        : m_impl->snapToPrevStop(m_impl->m_cursorPos);
+    int newPos;
+    if (mods.line) {
+        newPos = m_impl->lineStartFor(m_impl->m_cursorPos);
+    } else if (mods.word) {
+        newPos = m_impl->findPrevWordStop(m_impl->m_cursorPos);
+    } else {
+        newPos = m_impl->snapToPrevStop(m_impl->m_cursorPos);
+    }
+
     if (newPos >= m_impl->m_cursorPos) return;
 
     m_impl->m_textU32.erase(newPos, m_impl->m_cursorPos - newPos);
@@ -1220,16 +1267,17 @@ void TextInput::deleteForward() {
 
     if (m_impl->m_cursorPos >= m_impl->m_textU32.size()) return;
 
-    auto kd = CCKeyboardDispatcher::get();
-#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
-    bool ctrl = kd->getCommandKeyPressed();
-#else
-    bool ctrl = kd->getControlKeyPressed();
-#endif
+    auto mods = Impl::getCurrentMods();
 
-    int newPos = ctrl
-        ? m_impl->findNextWordStop(m_impl->m_cursorPos)
-        : m_impl->snapToNextStop(m_impl->m_cursorPos);
+    int newPos;
+    if (mods.line) {
+        newPos = m_impl->lineEndFor(m_impl->m_cursorPos);
+    } else if (mods.word) {
+        newPos = m_impl->findNextWordStop(m_impl->m_cursorPos);
+    } else {
+        newPos = m_impl->snapToNextStop(m_impl->m_cursorPos);
+    }
+
     if (newPos <= m_impl->m_cursorPos) return;
 
     m_impl->m_textU32.erase(m_impl->m_cursorPos, newPos - m_impl->m_cursorPos);
