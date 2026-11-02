@@ -265,12 +265,9 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
         m_applyBtn->setEnabled(false);
     }
 
-    auto clearSpr = static_cast<GeodeSquareSprite*>(m_searchClearBtn->getDisplayNode());
     m_searchClearBtn->setEnabled(hasSearch);
-    clearSpr->setColor(hasSearch ? ccWHITE : ccGRAY);
-    clearSpr->setOpacity(hasSearch ? 255 : 90);
-    clearSpr->getTopSprite()->setColor(hasSearch ? ccWHITE : ccGRAY);
-    clearSpr->getTopSprite()->setOpacity(hasSearch ? 255 : 90);
+    m_searchClearBtn->setColor(hasSearch ? ccWHITE : ccGRAY);
+    m_searchClearBtn->setOpacity(hasSearch ? 255 : 90);
 }
 
 bool BaseSettingsPopup::hasUncommitted() const {

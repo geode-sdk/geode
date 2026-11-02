@@ -45,11 +45,11 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
 
     struct TabInfo {
         KeybindsPopupTab id;
-        std::string sprName;
-        std::string label;
+        const char* sprName;
+        const char* label;
     };
 
-    auto tabs = std::array{
+    static constexpr auto tabs = std::array{
         TabInfo{
             KeybindsPopupTab::All,
             "keybinds.png"_spr,
@@ -73,7 +73,7 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
     };
 
     for (auto& tab : tabs) {
-        auto tabSpr = GeodeTabSprite::create(tab.sprName.c_str(), tab.label.c_str(), 120.f);
+        auto tabSpr = GeodeTabSprite::create(tab.sprName, tab.label, 120.f);
         tabSpr->select(tab.id == m_tab);
 
         auto tabBtn = Button::createWithNode(tabSpr, [this, id = tab.id](auto) {
