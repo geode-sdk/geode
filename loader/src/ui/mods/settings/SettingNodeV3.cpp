@@ -40,7 +40,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
 
     m_impl->nameMenu = CCNode::create();
     m_impl->nameMenu->setID("name-menu");
-    m_impl->nameMenu->setContentWidth(width / 2.f + 12.5f);
+    m_impl->nameMenu->setContentWidth(width / 2.f + 8.75f);
 
     m_impl->nameLabel = Label::create(setting ? setting->getDisplayName() : "", "bigFont.fnt");
     m_impl->nameLabel->setID("setting-name-label");
@@ -486,7 +486,7 @@ BoolSettingNodeV3* BoolSettingNodeV3::create(std::shared_ptr<BoolSettingV3> sett
 bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float width) {
     if (!SettingValueNodeV3::init(setting, width)) return false;
 
-    m_input = TextInput::create(setting->getEnumOptions() ? width / 2 - 50 : width / 2, "Text");
+    m_input = TextInput::create(setting->getEnumOptions() ? width / 2.f - 50.f : width / 2.f, "Text");
     m_input->setCallback([this](auto const& str) {
         this->setValue(str, m_input);
     });
@@ -504,26 +504,25 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
         m_input->getInputNode()->m_textLabel->setOpacity(255);
         m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
 
-        m_arrowLeftSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-        m_arrowLeftSpr->setFlipX(true);
-        auto arrowLeftBtn = Button::createWithNode(
-            m_arrowLeftSpr,
+        m_arrowLeftBtn = Button::createWithSpriteFrameName(
+            "navArrowBtn_001.png",
             [this](Button* sender) {
                 this->onArrow(sender, -1);
             }
         );
-        arrowLeftBtn->setScale(.4f);
-        this->getButtonMenu()->addChildAtPosition(arrowLeftBtn, Anchor::Left, {5.f, .0f});
+        m_arrowLeftBtn->setScale(.4f);
+        static_cast<CCSprite*>(m_arrowLeftBtn->getDisplayNode())->setFlipX(true);
+        this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, {5.f, .0f});
 
-        m_arrowRightSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-        auto arrowRightBtn = Button::createWithNode(
-            m_arrowRightSpr,
+        m_arrowRightBtn = Button::createWithSpriteFrameName(
+            "navArrowBtn_001.png",
             [this](Button* sender) {
                 this->onArrow(sender, 1);
             }
         );
-        arrowRightBtn->setScale(.4f);
-        this->getButtonMenu()->addChildAtPosition(arrowRightBtn, Anchor::Right, {-5.f, .0f});
+        m_arrowRightBtn->setScale(.4f);
+        this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, {-5.f, .0f});
+        this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, {-5.f, .0f});
     }
 
     this->updateState(nullptr);
@@ -543,10 +542,10 @@ void StringSettingNodeV3::updateState(CCNode* invoker) {
         m_input->setEnabled(enable);
     }
     else {
-        m_arrowRightSpr->setOpacity(enable ? 255 : 155);
-        m_arrowRightSpr->setColor(enable ? ccWHITE : ccGRAY);
-        m_arrowLeftSpr->setOpacity(enable ? 255 : 155);
-        m_arrowLeftSpr->setColor(enable ? ccWHITE : ccGRAY);
+        m_arrowRightBtn->setOpacity(enable ? 255 : 155);
+        m_arrowRightBtn->setColor(enable ? ccWHITE : ccGRAY);
+        m_arrowLeftBtn->setOpacity(enable ? 255 : 155);
+        m_arrowLeftBtn->setColor(enable ? ccWHITE : ccGRAY);
     }
 }
 
@@ -581,19 +580,18 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
     labelBG->setScale(.25f);
     labelBG->setColor({ 0, 0, 0 });
     labelBG->setOpacity(90);
-    labelBG->setContentSize({ 420, 80 });
+    labelBG->setContentSize({ 420.f, 80.f });
     this->getButtonMenu()->addChildAtPosition(labelBG, Anchor::Center, {-10.f, .0f});
 
     m_fileIcon = CCSprite::create();
     this->getButtonMenu()->addChildAtPosition(m_fileIcon, Anchor::Left, {5.f, .0f});
 
     m_nameLabel = Label::create("", "bigFont.fnt");
-    m_nameLabel->setLimitLabelWidth(75, .35f, .1f);
+    m_nameLabel->setLimitLabelWidth(75.f, .35f, .1f);
     this->getButtonMenu()->addChildAtPosition(m_nameLabel, Anchor::Left, {13.f, .0f}, {.0f, .5f});
 
-    m_selectBtnSpr = CCSprite::createWithSpriteFrameName("GJ_plus2Btn_001.png");
-    m_selectBtn = Button::createWithNode(
-        m_selectBtnSpr,
+    m_selectBtn = Button::createWithSpriteFrameName(
+        "GJ_plus2Btn_001.png",
         [this](auto) {
             this->onPickFile(nullptr);
         }
@@ -642,8 +640,8 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     }
 
     auto enable = this->getSetting()->shouldEnable();
-    m_selectBtnSpr->setOpacity(enable ? 255 : 155);
-    m_selectBtnSpr->setColor(enable ? ccWHITE : ccGRAY);
+    m_selectBtn->setOpacity(enable ? 255 : 155);
+    m_selectBtn->setColor(enable ? ccWHITE : ccGRAY);
     m_selectBtn->setEnabled(enable);
 }
 
@@ -690,10 +688,10 @@ FileSettingNodeV3* FileSettingNodeV3::create(std::shared_ptr<FileSettingV3> sett
 bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float width) {
     if (!SettingValueNodeV3::init(setting, width)) return false;
 
-    m_colorSprite = ColorChannelSprite::create();
+    auto colorSprite = ColorChannelSprite::create();
 
     m_colorBtn = Button::createWithNode(
-        m_colorSprite,
+        colorSprite,
         [this](auto) {
             this->onSelectColor(nullptr);
         }
@@ -708,10 +706,10 @@ bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float
 
 void Color3BSettingNodeV3::updateState(CCNode* invoker) {
     SettingValueNodeV3::updateState(invoker);
-    m_colorSprite->setColor(this->getValue());
+    m_colorBtn->setColor(this->getValue());
 
     auto enable = this->getSetting()->shouldEnable();
-    m_colorSprite->setOpacity(enable ? 255 : 155);
+    m_colorBtn->setOpacity(enable ? 255 : 155);
     m_colorBtn->setEnabled(enable);
 }
 
@@ -735,11 +733,11 @@ Color3BSettingNodeV3* Color3BSettingNodeV3::create(std::shared_ptr<Color3BSettin
 bool Color4BSettingNodeV3::init(std::shared_ptr<Color4BSettingV3> setting, float width) {
     if (!SettingValueNodeV3::init(setting, width)) return false;
 
-    m_colorSprite = ColorChannelSprite::create();
-    m_colorSprite->setScale(.65f);
+    auto colorSprite = ColorChannelSprite::create();
+    colorSprite->setScale(.65f);
 
     m_colorBtn = Button::createWithNode(
-        m_colorSprite,
+        colorSprite,
         [this](auto) {
             this->onSelectColor(nullptr);
         }
@@ -753,11 +751,10 @@ bool Color4BSettingNodeV3::init(std::shared_ptr<Color4BSettingV3> setting, float
 
 void Color4BSettingNodeV3::updateState(CCNode* invoker) {
     SettingValueNodeV3::updateState(invoker);
-    m_colorSprite->setColor(to3B(this->getValue()));
-    m_colorSprite->updateOpacity(this->getValue().a / 255.f);
+    m_colorBtn->setColor(to3B(this->getValue()));
 
     auto enable = this->getSetting()->shouldEnable();
-    m_colorSprite->setOpacity(enable ? 255 : 155);
+    m_colorBtn->setOpacity(enable ? 255 : 155);
     m_colorBtn->setEnabled(enable);
 }
 

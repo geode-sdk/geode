@@ -41,7 +41,7 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
     }
 
     m_tabsMenu = CCNode::create();
-    m_tabsMenu->ignoreAnchorPointForPosition(false);
+    m_tabsMenu->setAnchorPoint({.5f, .5f});
     m_tabsMenu->setContentWidth(m_listSize.width);
 
     for (auto tab : {
