@@ -25,7 +25,7 @@ public:
     float minHeight = 0.f;
     float maxHeight = std::numeric_limits<float>::max();
 
-    Padding padding = {4.f, 0.f, 4.f, 4.f};
+    Padding padding = {4.f, 4.f, 4.f, 4.f};
     float gap = 5.f;
     CrossAxisAlignment lineAlignment = CrossAxisAlignment::Center;
 };
@@ -408,6 +408,11 @@ void ButtonBackgroundSprite::updateElements() {
             ->setAutoScale(true);
         m_impl->bg->setContentSize(size);
         m_impl->bg->updateLayout();
+    }
+
+    // so the label is centered like in robs buttonsprite
+    if (m_impl->label) {
+        m_impl->label->setPositionY(m_impl->label->getPositionY() - 4.0f * m_impl->label->getScale());
     }
     
     setContentSize(size);

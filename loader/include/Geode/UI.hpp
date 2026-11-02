@@ -6,6 +6,7 @@
 #include "ui/BoxedLabel.hpp"
 #include "ui/BreakLine.hpp"
 #include "ui/Button.hpp"
+#include "ui/ButtonBackgroundSprite.hpp"
 #include "ui/ColorPickPopup.hpp"
 #include "ui/EnterLayerEvent.hpp"
 #include "ui/General.hpp"
