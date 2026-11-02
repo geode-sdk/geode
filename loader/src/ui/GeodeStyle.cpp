@@ -153,6 +153,7 @@ ButtonSprite* createTagLabel(ZStringView text, std::pair<ccColor3B, ccColor3B> c
     auto label = ButtonSprite::create(text.c_str(), "bigFont.fnt", "white-square.png"_spr, .8f);
     label->m_label->setColor(color.first);
     label->m_BGSprite->setColor(color.second);
+    label->setCascadeOpacityEnabled(true);
     return label;
 }
 
@@ -162,6 +163,7 @@ IconButtonSprite* createTagLabelWithIcon(
     auto label = IconButtonSprite::create("white-square.png"_spr, icon, text.c_str(), "bigFont.fnt");
     label->getLabel()->setColor(color.first);
     label->getBg()->setColor(color.second);
+    label->setCascadeOpacityEnabled(true);
     return label;
 }
 
@@ -252,17 +254,19 @@ GeodeSquareSprite::GeodeSquareSprite() : m_impl(std::make_unique<Impl>()) {};
 GeodeSquareSprite::~GeodeSquareSprite() {};
 
 bool GeodeSquareSprite::init(CCSprite* top, bool* state, bool forceDisableTheme) {
-    if (!CCSprite::initWithFile(
-            isGeodeTheme(forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png"
-        ))
+    if (!CCSprite::initWithFile(isGeodeTheme(forceDisableTheme) ? "GE_button_05.png"_spr : "GJ_button_01.png")) {
         if (!CCSprite::initWithFile("GJ_button_01.png")) return false;
+    }
+
+    this->setCascadeColorEnabled(true);
+    this->setCascadeOpacityEnabled(true);
+
+    limitNodeSize(top, m_obContentSize * .65f, 2.f, .1f);
+    this->addChildAtPosition(top, Anchor::Center);
 
     m_impl->m_stateSrc = state;
     m_impl->m_topSprite = top;
     m_impl->m_forceDisableTheme = forceDisableTheme;
-
-    limitNodeSize(top, m_obContentSize * .65f, 2.f, .1f);
-    this->addChildAtPosition(top, Anchor::Center);
 
     // Only schedule update if there is a need to do so
     if (state != nullptr) {
@@ -356,12 +360,15 @@ ZStringView geode::getGeodeButtonSpriteName(GeodeButtonSprite spr, bool forceDis
 IconButtonSprite* geode::createGeodeButton(
     CCNode* icon, ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme
 ) {
-    return IconButtonSprite::create(
+    auto ret = IconButtonSprite::create(
         getGeodeButtonSpriteName(bg, forceDisableTheme).c_str(),
         icon,
         text.c_str(),
         gold ? "goldFont.fnt" : "bigFont.fnt"
     );
+    ret->setCascadeOpacityEnabled(true);
+
+    return ret;
 }
 
 IconButtonSprite* geode::createGeodeButton(
@@ -373,7 +380,7 @@ IconButtonSprite* geode::createGeodeButton(
 ButtonSprite* geode::createGeodeButton(
     ZStringView text, int width, bool gold, bool absolute, GeodeButtonSprite bg, bool forceDisableTheme
 ) {
-    return ButtonSprite::create(
+    auto ret = ButtonSprite::create(
         text.c_str(),
         width,
         absolute,
@@ -382,17 +389,23 @@ ButtonSprite* geode::createGeodeButton(
         0.0f,
         .8f
     );
+    ret->setCascadeOpacityEnabled(true);
+
+    return ret;
 }
 
 ButtonSprite* geode::createGeodeButton(
     ZStringView text, bool gold, GeodeButtonSprite bg, bool forceDisableTheme
 ) {
-    return ButtonSprite::create(
+    auto ret = ButtonSprite::create(
         text.c_str(),
         gold ? "goldFont.fnt" : "bigFont.fnt",
         getGeodeButtonSpriteName(bg, forceDisableTheme).c_str(),
         .8f
     );
+    ret->setCascadeOpacityEnabled(true);
+
+    return ret;
 }
 
 CircleButtonSprite* geode::createGeodeCircleButton(
@@ -406,6 +419,8 @@ CircleButtonSprite* geode::createGeodeCircleButton(
         size
     );
     ret->setTopRelativeScale(scale);
+    ret->setCascadeOpacityEnabled(true);
+
     return ret;
 }
 
@@ -421,13 +436,15 @@ GeodeTabSprite::GeodeTabSprite() : m_impl(std::make_unique<Impl>()) {};
 GeodeTabSprite::~GeodeTabSprite() {};
 
 bool GeodeTabSprite::init(ZStringView iconFrame, std::string text, float width, bool altColor) {
-    if (!CCNode::init()) return false;
+    if (!CCNodeRGBA::init()) return false;
 
     CCSize const itemSize{width, 35.f};
     CCSize const iconSize{18.f, 18.f};
 
     this->setContentSize(itemSize);
     this->setAnchorPoint({.5f, .5f});
+    this->setCascadeColorEnabled(true);
+    this->setCascadeOpacityEnabled(true);
 
     m_impl->m_deselectedBG = NineSlice::createWithSpriteFrameName("tab-bg.png"_spr);
     m_impl->m_deselectedBG->setScale(.8f);

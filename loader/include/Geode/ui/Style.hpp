@@ -66,7 +66,7 @@ namespace geode {
 
     GEODE_DLL ListBorders* createGeodeListBorders(cocos2d::CCSize const& size, bool forceDisableTheme = false);
 
-    class GEODE_DLL GeodeTabSprite final : public cocos2d::CCNode {
+    class GEODE_DLL GeodeTabSprite final : public cocos2d::CCNodeRGBA {
         class Impl;
         std::unique_ptr<Impl> m_impl;
 
