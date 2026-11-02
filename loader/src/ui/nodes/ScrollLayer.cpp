@@ -4,6 +4,8 @@
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/ui/NineSlice.hpp>
+#include <Geode/cocos/misc_nodes/CCClippingNode.h>
 #include <algorithm>
 
 using namespace geode::prelude;
