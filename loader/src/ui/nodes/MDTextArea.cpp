@@ -24,6 +24,7 @@
 #include <server/Server.hpp>
 #include <regex>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
+#include <Geode/cocos/misc_nodes/CCClippingNode.h>
 
 using namespace geode::prelude;
 
