@@ -340,8 +340,8 @@ protected:
 
     bool init(std::shared_ptr<KeybindSettingV3> setting, float width);
     void updateState(CCNode* invoker) override;
-    void onExtra(CCObject*);
-    void onKeybind(int index = 0);
+    void onExtra();
+    void onKeybind(int index = -1);
     void onCommit() override;
     bool hasUncommittedChanges() const override;
     bool hasNonDefaultValue() const override;

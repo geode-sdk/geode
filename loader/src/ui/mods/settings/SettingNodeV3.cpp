@@ -808,14 +808,13 @@ bool KeybindSettingNodeV3::init(std::shared_ptr<KeybindSettingV3> setting, float
                 catSpr = "GJ_sMagicIcon_001.png";
             } break;
         }
-        auto categoryLabel = createTagLabelWithIcon(
+        auto categoryIcon = createTagLabelWithIcon(
             CCSprite::createWithSpriteFrameName(catSpr), "",
             std::make_pair(ccWHITE, "keybinds-list-category-label"_cc3b)
         );
-        categoryLabel->setLayoutOptions(
-            AxisLayoutOptions::create()->setScaleLimits(.1f, .35f)
-        );
-        this->getNameMenu()->addChild(categoryLabel);
+        categoryIcon->setID("category-icon");
+        categoryIcon->setScale(.375f);
+        this->getNameMenu()->addChild(categoryIcon);
     }
 
     this->updateState(nullptr);
@@ -864,7 +863,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
         auto moreButton = Button::createWithNode(
             createGeodeButton("...", true),
             [this](auto) {
-                this->onExtra(nullptr);
+                this->onExtra();
             }
         );
         moreButton->setScale(.6f);
@@ -874,7 +873,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
     }
 }
 
-void KeybindSettingNodeV3::onExtra(CCObject* sender) {
+void KeybindSettingNodeV3::onExtra() {
     KeybindListPopup::create(
         getSetting(),
         m_currentValue,

@@ -24,13 +24,14 @@ bool KeybindEditPopup::init(
     if (auto mod = setting->getMod()) {
         auto fromModLabel = Label::create(mod->getName(), "bigFont.fnt");
         fromModLabel->setScale(.4f);
-        fromModLabel->setColor(ccc3(55, 155, 255));
-        m_mainLayer->addChildAtPosition(fromModLabel, Anchor::Top, ccp(0, -40));
+        fromModLabel->setColor({55, 155, 255});
+        m_mainLayer->addChildAtPosition(fromModLabel, Anchor::Top, {.0f, -40.f});
     }
 
     m_setting = std::move(setting);
     m_callback = std::move(callback);
     m_currentKeybind = std::move(keybind);
+
     auto bottomMenu = CCNode::create();
     bottomMenu->setAnchorPoint({.5f, .5f});
     bottomMenu->setContentWidth(220.f);
@@ -66,7 +67,7 @@ bool KeybindEditPopup::init(
     }
 
     bottomMenu->setLayout(RowLayout::create()->setGap(10.f));
-    m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, ccp(0, 25));
+    m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, {.0f, 25.f});
 
     this->addEventListener(KeyboardInputEvent(), [this](KeyboardInputData& data) {
         if (data.action == KeyboardInputData::Action::Press) {
@@ -100,18 +101,18 @@ void KeybindEditPopup::updateLabel() {
             m_originalKeybindContainer->setAnchorPoint({.5f, .5f});
 
             auto originalKeybindInfoStart = Label::create("(Previous: ", "bigFont.fnt");
-            originalKeybindInfoStart->setColor(ccc3(55, 255, 55));
+            originalKeybindInfoStart->setColor({55, 255, 55});
             m_originalKeybindContainer->addChild(originalKeybindInfoStart);
 
             auto originalKeybind = m_originalKeybind->createNode();
             m_originalKeybindContainer->addChild(originalKeybind);
 
             auto originalKeybindInfoEnd = Label::create(")", "bigFont.fnt");
-            originalKeybindInfoEnd->setColor(ccc3(55, 255, 55));
+            originalKeybindInfoEnd->setColor({55, 255, 55});
             m_originalKeybindContainer->addChild(originalKeybindInfoEnd);
 
             m_originalKeybindContainer->setLayout(SimpleRowLayout::create());
-            m_mainLayer->addChildAtPosition(m_originalKeybindContainer, Anchor::Bottom, ccp(0, 60));
+            m_mainLayer->addChildAtPosition(m_originalKeybindContainer, Anchor::Bottom, {.0f, 60.f});
         }
     }
 
@@ -132,7 +133,7 @@ void KeybindEditPopup::updateLabel() {
         }
     }
     float keybindOffset = m_originalKeybindContainer ? 10 : 0;
-    m_mainLayer->addChildAtPosition(m_keybindNode, Anchor::Center, ccp(0, keybindOffset));
+    m_mainLayer->addChildAtPosition(m_keybindNode, Anchor::Center, {.0f, keybindOffset});
 }
 
 void KeybindEditPopup::doSet() {
@@ -202,7 +203,7 @@ bool KeybindListPopup::init(
     m_currentKeybinds = std::move(keybinds);
     m_hasChanged = false;
 
-    auto background = CCLayerColor::create(ccc4(0, 0, 0, 75), 190.f, 150.f);
+    auto background = CCLayerColor::create({0, 0, 0, 75}, 190.f, 150.f);
     background->ignoreAnchorPointForPosition(false);
     m_mainLayer->addChildAtPosition(background, Anchor::Center, {-5.f, 5.f});
 
@@ -241,7 +242,7 @@ bool KeybindListPopup::init(
     bottomMenu->addChild(saveButton);
 
     bottomMenu->setLayout(RowLayout::create()->setGap(10.f));
-    m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, ccp(0, 25));
+    m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, {.0f, 25.f});
 
     this->updateKeybinds();
 
