@@ -111,6 +111,7 @@ namespace geode {
         using ValidateArgs = geode::Function<bool(std::string const&)>;
         using CreateCallback = geode::Function<cocos2d::CCNode*(std::string, std::string)>;
         using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, std::string const&, int)>;
+        using TextReplacement = geode::Function<std::string(std::string)>;
 
         static RichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.f);
         static RichTextArea* create(std::string text, std::string font, float scale, float width);
@@ -169,6 +170,16 @@ namespace geode {
             bool requireArgs = true
         );
 
+        void addRichTag(std::string id, TextReplacement replace, bool updateText = true, bool requireArgs = false);
+
+        void addRichTag(
+            std::string id,
+            ValidateArgs validate,
+            TextReplacement replace,
+            bool updateText = true,
+            bool requireArgs = false
+        );
+
         void updateRichText();
 
         std::string getText() const override;
@@ -182,6 +193,7 @@ namespace geode {
             ValidateArgs validate;
             CreateCallback create;
             CharIterator iterate;
+            TextReplacement replace;
         };
 
         // I hate pimpl with inheritance

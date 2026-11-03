@@ -404,6 +404,7 @@ public:
         ValidateArgs validate,
         CreateCallback,
         CharIterator iterator,
+        TextReplacement replace,
         bool updateText,
         bool requireArgs
     );
@@ -461,6 +462,10 @@ void RichTextArea::RichImpl::parseRichText() {
                 stack.pop_front();
                 continue;
             }
+            if (string::endsWith(tag, "/")) {
+                tag = tag.substr(0, tag.size() - 1);
+                string::trimRightIP(tag);
+            }
 
             std::string id;
             std::string arg;
@@ -494,8 +499,13 @@ void RichTextArea::RichImpl::parseRichText() {
                 addReplacement(stack.at(0));
             }
 
-            i += tag.length() + 1;
-            stack.push_front(std::move(instance));
+            if (instance.tag->replace) {
+                addReplacement(instance);
+            } else {
+                stack.push_front(std::move(instance));
+            }
+
+            i += closing - i;
         } else if (c == '\n') {
             if (!stack.empty()) {
                 addReplacement(stack.at(0));
@@ -559,6 +569,11 @@ void RichTextArea::RichImpl::registerTag(std::string const& str, TagInstance con
                 tag->iterate(child, instance.arg, i);
             }
             return ret;
+        } else if (tag->replace) {
+            auto ret = Label::create(tag->replace(instance.arg), m_font);
+            ret->setColor(to3B(m_color));
+            ret->setOpacity(m_color.a);
+            return ret;
         } else {
             return this->getErrorText();
         }
@@ -576,6 +591,7 @@ void RichTextArea::RichImpl::addRichTag(
     ValidateArgs validate,
     CreateCallback create,
     CharIterator iterator,
+    TextReplacement replace,
     bool updateText,
     bool requireArgs
 ) {
@@ -584,7 +600,8 @@ void RichTextArea::RichImpl::addRichTag(
         requireArgs,
         std::move(validate),
         std::move(create),
-        std::move(iterator)
+        std::move(iterator),
+        std::move(replace)
     );
     if (updateText) {
         m_text = m_rawText;
@@ -679,6 +696,17 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         }, false, true
     );
 
+    this->addRichTag(
+        "time",
+        [](auto) {
+            return fmt::format(
+                "{:%Y-%m-%d %H:%M:%S}",
+                geode::localtime(std::time(nullptr))
+            );
+        },
+        false
+    );
+
     m_richImpl->updateRichText();
     return true;
 }
@@ -688,6 +716,7 @@ void RichTextArea::addRichTag(std::string id, CreateCallback create, bool update
         std::move(id),
         [](auto) { return true; },
         std::move(create),
+        nullptr,
         nullptr,
         updateText,
         requireArgs
@@ -706,6 +735,7 @@ void RichTextArea::addRichTag(
         std::move(validate),
         std::move(create),
         nullptr,
+        nullptr,
         updateText,
         requireArgs
     );
@@ -717,6 +747,7 @@ void RichTextArea::addRichTag(std::string id, CharIterator iterator, bool update
         [](auto) { return true; },
         nullptr,
         std::move(iterator),
+        nullptr,
         updateText,
         requireArgs
     );
@@ -734,6 +765,37 @@ void RichTextArea::addRichTag(
         std::move(validate),
         nullptr,
         std::move(iterator),
+        nullptr,
+        updateText,
+        requireArgs
+    );
+}
+
+void RichTextArea::addRichTag(std::string id, TextReplacement replace, bool updateText, bool requireArgs) {
+    m_richImpl->addRichTag(
+        std::move(id),
+        [](auto) { return true; },
+        nullptr,
+        nullptr,
+        std::move(replace),
+        updateText,
+        requireArgs
+    );
+}
+
+void RichTextArea::addRichTag(
+    std::string id,
+    ValidateArgs validate,
+    TextReplacement replace,
+    bool updateText,
+    bool requireArgs
+) {
+    m_richImpl->addRichTag(
+        std::move(id),
+        std::move(validate),
+        nullptr,
+        nullptr,
+        std::move(replace),
         updateText,
         requireArgs
     );
