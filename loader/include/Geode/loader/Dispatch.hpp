@@ -159,7 +159,7 @@ namespace geode::geode_internal {
     >(&Class::name), eventID);
 
 #define GEODE_EVENT_EXPORT_DEFINE_MEMBER_STATIC(ret, name, params, args, eventID) \
-    GEODE_INTERNAL_LINKAGE static ret name params;                                                                             \
+    static ret name params;                                                                             \
     static inline bool GEODE_EVENT_EXPORT_UNIQUE(_geode_event_export_reg_, __COUNTER__)                 \
     = geode::geode_internal::getEventExportListener(                                                    \
         static_cast<GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__))>(&name), \
