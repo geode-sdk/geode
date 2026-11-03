@@ -688,12 +688,22 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     );
 
     this->addRichTag(
-        "time",
-        [](auto) {
-            return fmt::format(
-                "{:%Y-%m-%d %H:%M:%S}",
-                geode::localtime(std::time(nullptr))
-            );
+        "date",
+        [](std::string const& arg) {
+            auto t = utils::numFromString<time_t>(arg);
+            return t.isOk();
+        },
+        [](std::string arg) {
+            time_t timestamp;
+            if (arg.empty()) {
+                timestamp = std::time(nullptr);
+            } else {
+                // Since of the earlier validate check this should not fail
+                // Worst case scenario default to the current time
+                timestamp = utils::numFromString<time_t>(arg)
+                    .unwrapOr(std::time(nullptr));
+            }
+            return fmt::format("{:%Y-%m-%d %H:%M:%S}", geode::localtime(timestamp));
         },
         false
     );
