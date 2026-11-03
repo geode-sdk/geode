@@ -74,37 +74,11 @@ namespace geode {
      * A SimpleTextArea with rich text support
      *
      * By default this class contains the following tags by default:
-     * - flip
      * - font
      * - link
+     * - date
      *
-     * You can add a custom tag with `addRichTag`:
-     * @example ```cpp
-     * richTextArea->addRichTag(
-     *     "tagID",
-     *     [](CCFontSprite* spr, const std::string& arg) {
-     *         // This function will manually modify every character
-     *         // in the label. This class uses a combination of geode::Label and
-     *         // CCLabelBMFont under the hood to make this possible
-     *         spr->setFlipX(true);
-     *     }
-     * );
-     * ```
-     *
-     * You can also use *any* node of your liking:
-     * @example ```cpp
-     * richTextArea->addRichTag(
-     *     "tagID",
-     *     [](std::string text, std::string arg) {
-     *         // If you want to add a button for example, you can
-     *         // add one like so
-     *         auto btn = Button::createWithLabel("Button!", "bigFont.fnt", []{
-     *             log::info("My button was pressed!")
-     *         });
-     *         return btn;
-     *     }
-     * );
-     * ```
+     * You can add your own tags with `addRichTag`
      */
     class GEODE_DLL RichTextArea : public SimpleTextArea {
     public:
