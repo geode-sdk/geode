@@ -657,7 +657,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     this->addRichTag(
         "font",
         [](std::string const& arg) {
-            auto font = BitmapFont::load(std::string(arg).c_str());
+            auto font = BitmapFont::load(arg.c_str());
             return font != nullptr;
         },
         [this](std::string text, std::string arg) {
