@@ -111,22 +111,16 @@ void ScrollLayer::Impl::visit() {
 }
 
 bool ScrollLayer::Impl::scrollWheel(float y, float x) {
-    if (m_scrollWheelEnabled) {
-        if (!geode::cocos::nodeIsVisible(m_self))
-            return false;
+    if (!m_scrollWheelEnabled) return false;
 
-        if (m_scrollClipping) {
-            #ifdef GEODE_IS_DESKTOP
-            if (!pointInsideRect(geode::cocos::getMousePos()))
-                return false;
-            #endif
-        }
+    if (!geode::cocos::nodeIsVisible(m_self)) return false;
 
-        m_self->scrollLayer(y);
-        return true;
-    }
+#ifdef GEODE_IS_DESKTOP
+    if (m_scrollClipping && !pointInsideRect(cocos::getMousePos())) return false;
+#endif
 
-    return false;
+    m_self->scrollLayer(y);
+    return true;
 }
 
 void ScrollLayer::Impl::enableScrollWheel(bool enable) { m_scrollWheelEnabled = enable; }
