@@ -375,6 +375,7 @@ public:
         RichTag* tag;
         std::string id;
         std::string arg;
+        int idx;
 
         bool verifyArgs() {
             if (arg.empty() && tag->requireArgs) return false;
@@ -385,8 +386,12 @@ public:
             }
         }
 
-        inline std::string replacementStrPrefix() {
-            return fmt::format("!!![{}{}|", id, arg.empty() ? "" : "-" + arg);
+        inline std::string makeReplacement(std::string const& text = "") const {
+            return fmt::format(
+                "!!![{}{}{}]",
+                id, idx,
+                text.empty() ? "" : "|" + text
+            );
         }
     };
 
@@ -416,13 +421,13 @@ void RichTextArea::RichImpl::parseRichText() {
 
     std::string newText;
     std::deque<TagInstance> stack;
-    std::string replString;
+    std::string tagText;
 
-    auto addReplacementStr = [&](TagInstance const& instance) {
-        replString += "]";
-        newText += replString;
-        this->registerTag(replString, instance);
-        replString.clear();
+    auto addReplacement = [&](TagInstance const& instance) {
+        auto repl = instance.makeReplacement(tagText);
+        newText += repl;
+        this->registerTag(repl, instance);
+        tagText.clear();
     };
 
     for (size_t i = 0; i < m_text.size(); i++) {
@@ -451,14 +456,9 @@ void RichTextArea::RichImpl::parseRichText() {
                     continue;
                 }
 
-                addReplacementStr(*t);
+                addReplacement(*t);
                 i += tag.length() + 1;
                 stack.pop_front();
-
-                if (!stack.empty()) {
-                    auto prev = stack.at(0);
-                    replString += prev.replacementStrPrefix();
-                }
                 continue;
             }
 
@@ -481,7 +481,8 @@ void RichTextArea::RichImpl::parseRichText() {
             auto instance = TagInstance{
                 .tag = &*it,
                 .id = std::move(id),
-                .arg = std::move(arg)
+                .arg = std::move(arg),
+                .idx = static_cast<int>(i)
             };
 
             if (!instance.verifyArgs()) {
@@ -490,25 +491,21 @@ void RichTextArea::RichImpl::parseRichText() {
             }
 
             if (!stack.empty()) {
-                addReplacementStr(stack.at(0));
+                addReplacement(stack.at(0));
             }
 
-            replString += instance.replacementStrPrefix();
             i += tag.length() + 1;
             stack.push_front(std::move(instance));
         } else if (c == '\n') {
             if (!stack.empty()) {
-                auto current = stack.at(0);
-
-                addReplacementStr(current);
+                addReplacement(stack.at(0));
                 newText += c;
-                replString += current.replacementStrPrefix();
             } else {
                 newText += c;
             }
         } else {
             if (!stack.empty()) {
-                replString += c;
+                tagText += c;
             } else {
                 newText += c;
             }
@@ -516,7 +513,7 @@ void RichTextArea::RichImpl::parseRichText() {
     }
 
     if (!stack.empty()) {
-        addReplacementStr(stack.at(0));
+        addReplacement(stack.at(0));
     }
 
     m_text = newText;
