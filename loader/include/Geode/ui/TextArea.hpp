@@ -181,7 +181,7 @@ namespace geode {
             bool requireArgs;
             ValidateArgs validate;
             CreateCallback create;
-            CharIterator iterator;
+            CharIterator iterate;
         };
 
         // I hate pimpl with inheritance

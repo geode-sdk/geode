@@ -546,7 +546,7 @@ void RichTextArea::RichImpl::registerTag(std::string const& str, TagInstance con
         auto tag = instance.tag;
         if (tag->create) {
             return tag->create(std::move(text), instance.arg);
-        } else if (tag->iterator) {
+        } else if (tag->iterate) {
             // geode::Label doesn't have an easy method to add per-character
             // effects (ty quads) so we have to resort to this
             auto ret = CCLabelBMFont::create(std::move(text).c_str(), m_font.c_str());
@@ -556,7 +556,7 @@ void RichTextArea::RichImpl::registerTag(std::string const& str, TagInstance con
             auto children = ret->getChildren();
             for (int i = 0; i < children->count(); i++) {
                 auto child = static_cast<CCFontSprite*>(children->objectAtIndex(i));
-                tag->iterator(child, instance.arg, i);
+                tag->iterate(child, instance.arg, i);
             }
             return ret;
         } else {
