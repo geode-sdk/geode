@@ -458,6 +458,11 @@ void RichTextArea::RichImpl::parseRichText() {
                     continue;
                 }
 
+                if (t->tag->addText) {
+                    newText += c;
+                    continue;
+                }
+
                 replaceTag(*t);
                 i += closing - i;
                 stack.pop_front();
