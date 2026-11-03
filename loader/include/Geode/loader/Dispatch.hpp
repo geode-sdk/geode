@@ -94,6 +94,16 @@ namespace geode::geode_internal {
     }
 }
 
+// Workaround for exported member functions on Windows, note that this only supports clang and there is no MSVC equivalent
+//
+// Other platforms allow there to be an inline + non-inline member function in the class and they just pick the non-inline symbol,
+// but windows does not like this and causes a duplicate symbol error. Forcing the inline def to be internal linkage causes it to work.
+#ifdef __clang__
+# define GEODE_INTERNAL_LINKAGE __attribute__((internal_linkage))
+#else
+# define GEODE_INTERNAL_LINKAGE
+#endif
+
 /// A hacky way to turn return type & parameters of a function into a function pointer type.
 /// Unlike a simple `ret (*)(params)`, this allows specifying default arguments because it uses a function declaration
 /// The `noexcept(false)` here is to avoid the Clang warning "Empty parantheses interpreted as a function declaration"
@@ -112,7 +122,7 @@ namespace geode::geode_internal {
     }
 
 #define GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, eventID)                                \
-    inline ret (name) params {                                                                                 \
+    GEODE_INTERNAL_LINKAGE inline ret (name) params {                                                          \
         static auto storage = geode::geode_internal::callEventExportListener<ret (Class::*) params>(eventID);  \
         if (!storage) return geode::geode_internal::getValueOnFailed<ret>();                                   \
         return storage args;                                                                                   \
