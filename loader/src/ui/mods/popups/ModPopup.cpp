@@ -266,7 +266,7 @@ bool ModPopup::init(ModSource&& src) {
     m_stats->setContentSize(statsContainer->getContentSize() - CCSize{10.f, 10.f});
 
     struct ModStatsLabel {
-        std::optional<std::string> sprite;
+        std::optional<ZStringView> sprite;
         std::string label;
         std::string id;
         std::optional<std::string> value;
@@ -579,7 +579,7 @@ bool ModPopup::init(ModSource&& src) {
 
     struct ModLinkButton {
         std::string id;
-        std::string sprite;
+        ZStringView sprite;
         std::optional<std::string> url;
         Button::ButtonCallback callback = nullptr;
     };
@@ -672,8 +672,8 @@ bool ModPopup::init(ModSource&& src) {
     tabsMenu->setID("tabs-menu");
 
     struct ModTab {
-        std::string sprite;
-        std::string label;
+        ZStringView sprite;
+        ZStringView label;
         std::string id;
         Tab tab;
     };
@@ -1083,7 +1083,7 @@ void ModPopup::onLoadServerInfo(server::ServerResult<server::ServerModMetadata> 
         static std::locale commaLocale(std::locale(), new comma_numpunct());
 
         struct ModStats {
-            std::string id;
+            ZStringView id;
             std::string value;
         };
 
