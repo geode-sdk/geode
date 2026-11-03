@@ -404,7 +404,7 @@ public:
         ValidateArgs validate,
         CreateCallback,
         CharIterator iterate,
-        TextReplacement replace,
+        TextAddition addText,
         bool updateText,
         bool requireArgs
     );
@@ -499,7 +499,7 @@ void RichTextArea::RichImpl::parseRichText() {
                 addReplacement(stack.at(0));
             }
 
-            if (instance.tag->replace) {
+            if (instance.tag->addText) {
                 addReplacement(instance);
             } else {
                 stack.push_front(std::move(instance));
@@ -569,8 +569,8 @@ void RichTextArea::RichImpl::registerTag(std::string const& str, TagInstance con
                 tag->iterate(child, instance.arg, i);
             }
             return ret;
-        } else if (tag->replace) {
-            auto ret = Label::create(tag->replace(instance.arg), m_font);
+        } else if (tag->addText) {
+            auto ret = Label::create(tag->addText(instance.arg), m_font);
             ret->setColor(to3B(m_color));
             ret->setOpacity(m_color.a);
             return ret;
@@ -591,7 +591,7 @@ void RichTextArea::RichImpl::addRichTag(
     ValidateArgs validate,
     CreateCallback create,
     CharIterator iterate,
-    TextReplacement replace,
+    TextAddition addText,
     bool updateText,
     bool requireArgs
 ) {
@@ -601,7 +601,7 @@ void RichTextArea::RichImpl::addRichTag(
         std::move(validate),
         std::move(create),
         std::move(iterate),
-        std::move(replace)
+        std::move(addText)
     );
     if (updateText) {
         m_text = m_rawText;
@@ -771,13 +771,13 @@ void RichTextArea::addRichTag(
     );
 }
 
-void RichTextArea::addRichTag(std::string id, TextReplacement replace, bool updateText, bool requireArgs) {
+void RichTextArea::addRichTag(std::string id, TextAddition addText, bool updateText, bool requireArgs) {
     m_richImpl->addRichTag(
         std::move(id),
         [](auto) { return true; },
         nullptr,
         nullptr,
-        std::move(replace),
+        std::move(addText),
         updateText,
         requireArgs
     );
@@ -786,7 +786,7 @@ void RichTextArea::addRichTag(std::string id, TextReplacement replace, bool upda
 void RichTextArea::addRichTag(
     std::string id,
     ValidateArgs validate,
-    TextReplacement replace,
+    TextAddition addText,
     bool updateText,
     bool requireArgs
 ) {
@@ -795,7 +795,7 @@ void RichTextArea::addRichTag(
         std::move(validate),
         nullptr,
         nullptr,
-        std::move(replace),
+        std::move(addText),
         updateText,
         requireArgs
     );
