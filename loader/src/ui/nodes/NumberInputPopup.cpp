@@ -131,6 +131,8 @@ bool NumberInputPopup::init(double current, std::string title, ZStringView bg, s
     m_impl->m_resetBtn->setScale(.875f);
     m_mainLayer->addChildAtPosition(m_impl->m_resetBtn, Anchor::TopRight, {-20.f, -20.f});
 
+    this->setupSubmitBtn("Submit", "GJ_button_01.png");
+
     m_impl->updateInput();
 
     return true;

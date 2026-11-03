@@ -14,8 +14,6 @@ namespace geode {
         NumberInputPopup();
         ~NumberInputPopup();
 
-        
-
         bool init(double current, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max);
 
     public:
@@ -39,7 +37,7 @@ namespace geode {
         /// Set up the sprite for the submit button
         /// @param text The new text to set
         /// @param bg Name of the new base sprite to set
-        void setupSubmitBtn(ZStringView text, ZStringView bg);
+        void setupSubmitBtn(ZStringView text, ZStringView bg = "GJ_button_01.png");
 
         /// Set the callback that fires when the user submits a number
         /// @param cb The lambda which will take a `NumberInputPopup*` param
