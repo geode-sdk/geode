@@ -16,65 +16,92 @@ public:
     SubmitCallback m_callback = nullptr;
 
     TextInput* m_input = nullptr;
+    CCNode* m_inputContainer = nullptr;
+    Button* m_submitBtn = nullptr;
+    Button* m_resetBtn = nullptr;
 
-    double m_max = 1.0;
-    double m_min = .0;
+    double m_current = .0;
+    bool m_currentDirty = false;
+
+    double m_max = std::numeric_limits<double>::max();
+    double m_min = std::numeric_limits<double>::lowest();
 
     double m_step = 1.0;
 
     size_t m_precision = 0;
 
-    std::string stepNumStr(std::string_view current, double step) {
-        auto currentRes = numFromString<double>(current);
-        if (currentRes.isErr()) return std::string{current};
+    std::string stepNumStr(double step = .0) {
+        auto to = validateValue() + step;
 
-        auto cur = std::move(currentRes).unwrap();
-        auto to = cur + step;
+        to = std::clamp(to, m_min, m_max);
 
-        if (to < m_min) return numToString(m_min, m_precision);
-        if (to > m_max) return numToString(m_max, m_precision);
+        m_current = to;
+        m_currentDirty = false;
 
-        return numToString(to, m_precision);
+        return formatNum(to);
+    }
+
+    double validateValue() {
+        if (m_currentDirty) {
+            auto res = numFromString<double>(m_input->getString());
+            if (res.isErr()) return .0;
+
+            m_current = std::move(res).unwrap();
+            m_currentDirty = false;
+        }
+
+        return m_current;
+    }
+
+    void updateInput(double step = .0) {
+        m_input->setString(stepNumStr(step));
+    }
+
+    std::string formatNum(double num) {
+        return fmt::format("{:.{}f}", num, m_precision);
     }
 };
 
 NumberInputPopup::NumberInputPopup() : m_impl(std::make_unique<Impl>()) {}
 NumberInputPopup::~NumberInputPopup() {}
 
-bool NumberInputPopup::init(double current, double min, double max, std::string title, ZStringView btnText, ZStringView btnBg, ZStringView bg, CircleBaseColor closeBtnColor, float inputWidth) {
+bool NumberInputPopup::init(double current, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max) {
     if (!Popup::init({210.f, 125.f}, bg.c_str())) return false;
 
-    m_impl->m_max = max;
-    m_impl->m_min = min;
+    m_impl->m_current = current;
+
+    if (min.has_value()) m_impl->m_min = std::move(*min);
+    if (max.has_value()) m_impl->m_max = std::move(*max);
 
     this->setTitle(std::move(title));
-    this->setCloseButtonSpr(CircleButtonSprite::createWithSpriteFrameName("close.png"_spr, .875f, closeBtnColor), .825f);
+    this->setCloseBtnColor(CircleBaseColor::Green);
 
-    auto maxWidth = m_mainLayer->getScaledContentWidth() - 50.f;
+    m_title->setLimitLabelWidth(m_mainLayer->getScaledContentWidth() - 62.5f, .7f);
 
-    m_title->setLimitLabelWidth(maxWidth - 12.5f, .7f);
-
-    auto container = CCNode::create();
-    container->setID("input-container");
-    container->setAnchorPoint({.5f, .5f});
-    container->setLayout(
+    m_impl->m_inputContainer = CCNode::create();
+    m_impl->m_inputContainer->setID("input-container");
+    m_impl->m_inputContainer->setAnchorPoint({.5f, .5f});
+    m_impl->m_inputContainer->setLayout(
         RowLayout::create()
             ->setGap(5.f)
             ->setAutoScale(false)
             ->setAutoGrowAxis(.1f)
             ->setGrowCrossAxis(true)
     );
-    m_mainLayer->addChildAtPosition(container, Anchor::Center);
+    m_mainLayer->addChildAtPosition(m_impl->m_inputContainer, Anchor::Center);
 
-    m_impl->m_input = TextInput::create((inputWidth <= maxWidth) ? inputWidth : maxWidth, "Num");
+    m_impl->m_input = TextInput::create(55.f, "Num");
     m_impl->m_input->setID("page-input");
     m_impl->m_input->setCommonFilter(CommonFilter::Float);
-    m_impl->m_input->setString(numToString(current, m_impl->m_precision));
+
+    m_impl->m_input->setCallback([this](auto) {
+        m_impl->m_currentDirty = true;
+    });
 
     auto prev = Button::createWithSpriteFrameName(
         "edit_leftBtn_001.png",
         [this](auto) {
-            m_impl->m_input->setString(m_impl->stepNumStr(this->getValueString(), -m_impl->m_step));
+            m_impl->updateInput(-m_impl->m_step);
         }
     );
     prev->setID("decrement-button");
@@ -83,47 +110,44 @@ bool NumberInputPopup::init(double current, double min, double max, std::string 
     auto next = Button::createWithSpriteFrameName(
         "edit_rightBtn_001.png",
         [this](auto) {
-            m_impl->m_input->setString(m_impl->stepNumStr(this->getValueString(), m_impl->m_step));
+            m_impl->updateInput(m_impl->m_step);
         }
     );
     next->setID("increment-button");
     next->setScale(.95f);
 
-    container->addChild(prev);
-    container->addChild(m_impl->m_input);
-    container->addChild(next);
+    m_impl->m_inputContainer->addChild(prev);
+    m_impl->m_inputContainer->addChild(m_impl->m_input);
+    m_impl->m_inputContainer->addChild(next);
 
-    container->updateLayout();
+    m_impl->m_inputContainer->updateLayout();
 
-    auto reset = Button::createWithSpriteFrameName(
+    m_impl->m_resetBtn = Button::createWithSpriteFrameName(
         "GJ_resetBtn_001.png",
         [this, current](auto) {
-            m_impl->m_input->setString(numToString(current, m_impl->m_precision));
+            this->setValue(current);
         }
     );
-    reset->setScale(.875f);
-    m_mainLayer->addChildAtPosition(reset, Anchor::TopRight, {-20.f, -20.f});
+    m_impl->m_resetBtn->setScale(.875f);
+    m_mainLayer->addChildAtPosition(m_impl->m_resetBtn, Anchor::TopRight, {-20.f, -20.f});
 
-    auto submit = Button::createWithNode(
-        ButtonSprite::create(btnText.c_str(), "goldFont.fnt", btnBg.c_str(), .8f), [this](auto) {
-            auto res = numFromString<double>(std::string{this->getValueString()});
-            if (res.isErr()) {
-                Notification::create("Invalid number", NotificationIcon::Error)->show();
-                return;
-            }
+    m_impl->updateInput();
 
-            double num = std::move(res).unwrap();
-            if (num > this->getMax()) num = this->getMax();
-            if (num <= this->getMin()) num = this->getMin();
+    return true;
+}
 
+void NumberInputPopup::setupSubmitBtn(ZStringView text, ZStringView bg) {
+    if (m_impl->m_submitBtn) m_impl->m_submitBtn->removeFromParent();
+
+    m_impl->m_submitBtn = Button::createWithNode(
+        ButtonSprite::create(text.c_str(), "goldFont.fnt", bg.c_str(), .8f), [this](auto) {
+            double num = std::clamp(this->getValue(), this->getMin(), this->getMax());
             m_impl->m_callback ? m_impl->m_callback(this, num) : this->onClose(nullptr);
         }
     );
-    submit->setID("submit-button");
-    submit->setScale(.825f);
-    m_mainLayer->addChildAtPosition(submit, Anchor::Bottom, {.0f, 22.5f});
-
-    return true;
+    m_impl->m_submitBtn->setID("submit-button");
+    m_impl->m_submitBtn->setScale(.825f);
+    m_mainLayer->addChildAtPosition(m_impl->m_submitBtn, Anchor::Bottom, {.0f, 22.5f});
 }
 
 void NumberInputPopup::setSubmitCallback(SubmitCallback cb) {
@@ -131,17 +155,32 @@ void NumberInputPopup::setSubmitCallback(SubmitCallback cb) {
 }
 
 void NumberInputPopup::setValue(double value) {
-    m_impl->m_input->setString(numToString(value, m_impl->m_precision));
+    m_impl->m_current = value;
+    m_impl->m_currentDirty = false;
+
+    m_impl->updateInput();
 }
 
 void NumberInputPopup::setArrowStep(double step) {
-    if (step <= .0) step = step * -1.0;
-    m_impl->m_step = step;
+    m_impl->m_step = std::abs(step);
 }
 
 void NumberInputPopup::setPrecision(size_t precision) {
     m_impl->m_precision = precision;
-    m_impl->m_input->setString(numToString(this->getValue(), precision));
+    m_impl->updateInput();
+}
+
+void NumberInputPopup::setInputWidth(float width) {
+    m_impl->m_input->setWidth(std::clamp(width, 50.f, m_mainLayer->getScaledContentWidth() - 62.5f));
+    m_impl->m_inputContainer->updateLayout();
+}
+
+void NumberInputPopup::setCloseBtnColor(CircleBaseColor color) {
+    this->setCloseButtonSpr(CircleButtonSprite::createWithSpriteFrameName("close.png"_spr, .875f, color), .825f);
+}
+
+void NumberInputPopup::showResetButton(bool show) {
+    m_impl->m_resetBtn->setVisible(show);
 }
 
 void NumberInputPopup::resetSubmitCallback() {
@@ -149,10 +188,7 @@ void NumberInputPopup::resetSubmitCallback() {
 }
 
 double NumberInputPopup::getValue() const {
-    auto res = numFromString<double>(this->getValueString());
-    if (res.isErr()) return .0;
-
-    return std::move(res).unwrap();
+    return m_impl->validateValue();
 }
 
 double NumberInputPopup::getMin() const noexcept {
@@ -175,21 +211,13 @@ size_t NumberInputPopup::getPrecision() const noexcept {
     return m_impl->m_precision;
 }
 
-NumberInputPopup* NumberInputPopup::create(
-    double current, double min, double max,
-    std::string title, ZStringView btnText,
-    float inputWidth
-) {
-    return create(current, min, max, std::move(title), btnText, "GJ_button_01.png", "GJ_square01.png", CircleBaseColor::Green, inputWidth);
+NumberInputPopup* NumberInputPopup::create(double current, std::string title, std::optional<double> min, std::optional<double> max) {
+    return create(current, std::move(title), "GJ_square02.png", std::move(min), std::move(max));
 }
 
-NumberInputPopup* NumberInputPopup::create(
-    double current, double min, double max,
-    std::string title, ZStringView btnText, ZStringView btnBg,
-    ZStringView bg, CircleBaseColor closeBtnColor, float inputWidth
-) {
+NumberInputPopup* NumberInputPopup::create(double current, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max) {
     auto ret = new NumberInputPopup();
-    if (ret->init(current, min, max, std::move(title), btnText, btnBg, bg, closeBtnColor, inputWidth)) {
+    if (ret->init(current, std::move(title), bg, std::move(min), std::move(max))) {
         ret->autorelease();
         return ret;
     }
