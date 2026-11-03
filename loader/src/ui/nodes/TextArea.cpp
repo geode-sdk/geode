@@ -655,15 +655,6 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
     // Default tags
     this->addRichTag(
-        "flip",
-        [](CCFontSprite* spr, auto, auto) {
-            spr->setFlipY(true);
-        },
-        false
-    );
-
-    // !!!
-    this->addRichTag(
         "font",
         [](std::string const& arg) {
             auto font = BitmapFont::load(std::string(arg).c_str());
