@@ -73,7 +73,7 @@ namespace geode {
     /**
      * A SimpleTextArea with rich text support
      *
-     * By default this class contains the following tags by default:
+     * This class contains the following tags by default:
      * - font
      * - link
      * - date
