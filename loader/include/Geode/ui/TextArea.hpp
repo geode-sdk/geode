@@ -170,12 +170,29 @@ namespace geode {
             bool requireArgs = true
         );
 
+        /**
+         * Add a custom rich text tag
+         *
+         * @param id The ID of the tag
+         * @param addText Function to add text to the label
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         * @param requireArgs Whether to require arguments for this tag
+         */
         void addRichTag(std::string id, TextAddition addText, bool updateText = true, bool requireArgs = false);
 
+        /**
+         * Add a custom rich text tag
+         *
+         * @param id The ID of the tag
+         * @param validateArgs Function to validate the arguments given to this tag
+         * @param addText Function to add text to the label
+         * @param updateText Whether to update the rich text (you can call `updateRichText` later)
+         * @param requireArgs Whether to require arguments for this tag
+         */
         void addRichTag(
             std::string id,
             ValidateArgs validate,
-            TextAddition replace,
+            TextAddition addText,
             bool updateText = true,
             bool requireArgs = false
         );
