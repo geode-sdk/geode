@@ -147,25 +147,25 @@ namespace geode {
          * Add a custom rich text tag
          *
          * @param id The ID of the tag
-         * @param iterator Function to apply effects to each character in the tag
+         * @param iterate Function to apply effects to each character in the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          * @param requireArgs Whether to require arguments for this tag
          */
-        void addRichTag(std::string id, CharIterator iterator, bool updateText = true, bool requireArgs = false);
+        void addRichTag(std::string id, CharIterator iterate, bool updateText = true, bool requireArgs = false);
 
         /**
          * Add a custom rich text tag
          *
          * @param id The ID of the tag
          * @param validateArgs Function to validate the arguments given to this tag
-         * @param iterator Function to apply effects to each character in the tag
+         * @param iterate Function to apply effects to each character in the tag
          * @param updateText Whether to update the rich text (you can call `updateRichText` later)
          * @param requireArgs Whether to require arguments for this tag
          */
         void addRichTag(
             std::string id,
             ValidateArgs validate,
-            CharIterator iterator,
+            CharIterator iterate,
             bool updateText = true,
             bool requireArgs = true
         );

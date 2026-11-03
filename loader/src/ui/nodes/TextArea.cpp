@@ -403,7 +403,7 @@ public:
         std::string id,
         ValidateArgs validate,
         CreateCallback,
-        CharIterator iterator,
+        CharIterator iterate,
         TextReplacement replace,
         bool updateText,
         bool requireArgs
@@ -590,7 +590,7 @@ void RichTextArea::RichImpl::addRichTag(
     std::string id,
     ValidateArgs validate,
     CreateCallback create,
-    CharIterator iterator,
+    CharIterator iterate,
     TextReplacement replace,
     bool updateText,
     bool requireArgs
@@ -600,7 +600,7 @@ void RichTextArea::RichImpl::addRichTag(
         requireArgs,
         std::move(validate),
         std::move(create),
-        std::move(iterator),
+        std::move(iterate),
         std::move(replace)
     );
     if (updateText) {
@@ -741,12 +741,12 @@ void RichTextArea::addRichTag(
     );
 }
 
-void RichTextArea::addRichTag(std::string id, CharIterator iterator, bool updateText, bool requireArgs) {
+void RichTextArea::addRichTag(std::string id, CharIterator iterate, bool updateText, bool requireArgs) {
     m_richImpl->addRichTag(
         std::move(id),
         [](auto) { return true; },
         nullptr,
-        std::move(iterator),
+        std::move(iterate),
         nullptr,
         updateText,
         requireArgs
@@ -756,7 +756,7 @@ void RichTextArea::addRichTag(std::string id, CharIterator iterator, bool update
 void RichTextArea::addRichTag(
     std::string id,
     ValidateArgs validate,
-    CharIterator iterator,
+    CharIterator iterate,
     bool updateText,
     bool requireArgs
 ) {
@@ -764,7 +764,7 @@ void RichTextArea::addRichTag(
         std::move(id),
         std::move(validate),
         nullptr,
-        std::move(iterator),
+        std::move(iterate),
         nullptr,
         updateText,
         requireArgs
