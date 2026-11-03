@@ -419,12 +419,13 @@ public:
 
 void RichTextArea::RichImpl::parseRichText() {
     m_rawText = m_text;
+    m_emojiRegistry = EmojiRegistry::vanillaEmojis().clone();
 
     std::string newText;
     std::deque<TagInstance> stack;
     std::string tagText;
 
-    auto addReplacement = [&](TagInstance const& instance) {
+    auto replaceTag = [&](TagInstance const& instance) {
         auto repl = instance.makeReplacement(tagText);
         newText += repl;
         this->registerTag(repl, instance);
@@ -457,8 +458,8 @@ void RichTextArea::RichImpl::parseRichText() {
                     continue;
                 }
 
-                addReplacement(*t);
-                i += tag.length() + 1;
+                replaceTag(*t);
+                i += closing - i;
                 stack.pop_front();
                 continue;
             }
@@ -469,10 +470,10 @@ void RichTextArea::RichImpl::parseRichText() {
 
             std::string id;
             std::string arg;
-            size_t argPos = tag.find_first_of("-=");
-            if (argPos != std::string::npos) {
-                arg = tag.substr(argPos + 1);
-                id = tag.substr(0, argPos);
+            size_t sep = tag.find_first_of("-=");
+            if (sep != std::string::npos) {
+                arg = tag.substr(sep + 1);
+                id = tag.substr(0, sep);
             } else {
                 id = tag;
             }
@@ -482,7 +483,6 @@ void RichTextArea::RichImpl::parseRichText() {
                 newText += c;
                 continue;
             }
-
             auto instance = TagInstance{
                 .tag = &*it,
                 .id = std::move(id),
@@ -496,11 +496,11 @@ void RichTextArea::RichImpl::parseRichText() {
             }
 
             if (!stack.empty()) {
-                addReplacement(stack.at(0));
+                replaceTag(stack.at(0));
             }
 
             if (instance.tag->addText) {
-                addReplacement(instance);
+                replaceTag(instance);
             } else {
                 stack.push_front(std::move(instance));
             }
@@ -508,11 +508,9 @@ void RichTextArea::RichImpl::parseRichText() {
             i += closing - i;
         } else if (c == '\n') {
             if (!stack.empty()) {
-                addReplacement(stack.at(0));
-                newText += c;
-            } else {
-                newText += c;
+                replaceTag(stack.at(0));
             }
+            newText += c;
         } else {
             if (!stack.empty()) {
                 tagText += c;
@@ -523,7 +521,7 @@ void RichTextArea::RichImpl::parseRichText() {
     }
 
     if (!stack.empty()) {
-        addReplacement(stack.at(0));
+        replaceTag(stack.at(0));
     }
 
     m_text = newText;
@@ -545,12 +543,12 @@ void RichTextArea::RichImpl::registerTag(std::string const& str, TagInstance con
             log::info("THIS SHOULD BE UNREACHABLE. REPORT THIS BUG TO THE GEODE DEVELOPERS");
             return this->getErrorText();
         }
-        auto inter = str.substr(start + 1, idx - start - 1);
+        auto repl = str.substr(start + 1, idx - start - 1);
 
         std::string text;
-        size_t sep = inter.find("|");
+        size_t sep = repl.find("|");
         if (sep != std::string::npos) {
-            text = inter.substr(sep + 1);
+            text = repl.substr(sep + 1);
         }
 
         auto tag = instance.tag;
@@ -651,7 +649,7 @@ RichTextArea* RichTextArea::create(std::string font, std::string text, float sca
 bool RichTextArea::init(std::string font, std::string text, float scale, float width, bool const artificialWidth) {
     if (!SimpleTextArea::init(font, text, scale, width, artificialWidth)) return false;
     m_richImpl->m_rawText = m_impl->m_text;
-    m_richImpl->m_emojiRegistry = EmojiRegistry::vanillaEmojis();
+    m_richImpl->m_emojiRegistry = EmojiRegistry::vanillaEmojis().clone();
 
     // Default tags
     this->addRichTag(
