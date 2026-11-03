@@ -612,8 +612,8 @@ bool ModsLayer::init() {
     mainTabs->setPosition(m_frame->convertToWorldSpace(tabsTop->getPosition() + CCPoint{.0f, 6.f}));
 
     struct ModsTabItem {
-        std::string sprite;
-        std::string label;
+        ZStringView sprite;
+        ZStringView label;
         ModListSource* source;
         std::string id;
     };
