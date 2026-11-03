@@ -75,6 +75,15 @@ if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
 	string(REPLACE "\\" "/" GEODE_BINDINGS_REPO_PATH ${temp})
 endif()
 
+if (GEODE_BINDINGS_REPO_PATH)
+  file(GLOB GEODE_BINDINGS_CONTENTS "${GEODE_BINDINGS_REPO_PATH}/*")
+  list(LENGTH GEODE_BINDINGS_CONTENTS GEODE_BINDINGS_COUNT)
+
+  if(folder_count EQUAL 0)
+    set(GEODE_BINDINGS_REPO_PATH )
+  endif()
+endif()
+
 if (NOT GEODE_BINDINGS_REPO_PATH)
 	message(STATUS
 		"No override path for bindings provided, using CPM to clone default. "
