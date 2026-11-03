@@ -391,7 +391,7 @@ public:
     };
 
     void parseRichText();
-    void registerTag(std::string const& ir);
+    void registerTag(std::string const& str, TagInstance const& instance);
     Label* getErrorText();
 
     void addRichTag(
@@ -418,10 +418,10 @@ void RichTextArea::RichImpl::parseRichText() {
     std::deque<TagInstance> stack;
     std::string replString;
 
-    auto addReplacementStr = [&] {
+    auto addReplacementStr = [&](TagInstance const& instance) {
         replString += "]";
         newText += replString;
-        this->registerTag(replString);
+        this->registerTag(replString, instance);
         replString.clear();
     };
 
@@ -451,7 +451,7 @@ void RichTextArea::RichImpl::parseRichText() {
                     continue;
                 }
 
-                addReplacementStr();
+                addReplacementStr(*t);
                 i += tag.length() + 1;
                 stack.pop_front();
 
@@ -477,7 +477,12 @@ void RichTextArea::RichImpl::parseRichText() {
                 newText += c;
                 continue;
             }
-            auto instance = TagInstance{ &*it, std::move(id), std::move(arg) };
+
+            auto instance = TagInstance{
+                .tag = &*it,
+                .id = std::move(id),
+                .arg = std::move(arg)
+            };
 
             if (!instance.verifyArgs()) {
                 newText += c;
@@ -485,7 +490,7 @@ void RichTextArea::RichImpl::parseRichText() {
             }
 
             if (!stack.empty()) {
-                addReplacementStr();
+                addReplacementStr(stack.at(0));
             }
 
             replString += instance.replacementStrPrefix();
@@ -495,7 +500,7 @@ void RichTextArea::RichImpl::parseRichText() {
             if (!stack.empty()) {
                 auto current = stack.at(0);
 
-                addReplacementStr();
+                addReplacementStr(current);
                 newText += c;
                 replString += current.replacementStrPrefix();
             } else {
@@ -511,15 +516,15 @@ void RichTextArea::RichImpl::parseRichText() {
     }
 
     if (!stack.empty()) {
-        addReplacementStr();
+        addReplacementStr(stack.at(0));
     }
 
     m_text = newText;
 }
 
-void RichTextArea::RichImpl::registerTag(std::string const& ir) {
-    m_replacements.emplace_back(std::u32string(ir.begin(), ir.end()));
-    m_emojiRegistry.insert(m_replacements.back(), [this](std::u32string_view str32, size_t& idx) -> CCNode* {
+void RichTextArea::RichImpl::registerTag(std::string const& str, TagInstance const& instance) {
+    m_replacements.emplace_back(std::u32string(str.begin(), str.end()));
+    m_emojiRegistry.insert(m_replacements.back(), [this, instance](std::u32string_view str32, size_t& idx) -> CCNode* {
         auto str8 = string::utf32ToUtf8(str32);
         if (str8.isErr()) {
             log::error("Could not parse UTF-32: {}", str8.unwrapErr());
@@ -535,40 +540,26 @@ void RichTextArea::RichImpl::registerTag(std::string const& ir) {
         }
         auto inter = str.substr(start + 1, idx - start - 1);
 
-        // Split text and id
-        auto split = string::split(inter, "|");
-
-        std::string id;
-        std::string arg;
-
-        if (string::contains(split[0], "-")) {
-            auto k = string::split(split[0], "-");
-            id = k[0];
-            arg = k[1];
-        } else {
-            id = split[0];
+        std::string text;
+        size_t sep = inter.find("|");
+        if (sep != std::string::npos) {
+            text = inter.substr(sep + 1);
         }
 
-        auto tag = std::ranges::find(m_tags, id, &RichTag::id);
-        if (tag == m_tags.end()) {
-            log::error("Could not find tag '{}'", id);
-            log::info("THIS SHOULD BE UNREACHABLE. REPORT THIS BUG TO THE GEODE DEVELOPERS");
-            return this->getErrorText();
-        }
-
+        auto tag = instance.tag;
         if (tag->create) {
-            return tag->create(std::move(split[1]), std::move(arg));
+            return tag->create(std::move(text), instance.arg);
         } else if (tag->iterator) {
             // geode::Label doesn't have an easy method to add per-character
             // effects (ty quads) so we have to resort to this
-            auto ret = CCLabelBMFont::create(split[1].c_str(), m_font.c_str());
+            auto ret = CCLabelBMFont::create(std::move(text).c_str(), m_font.c_str());
             ret->setColor(to3B(m_color));
             ret->setOpacity(m_color.a);
 
             auto children = ret->getChildren();
             for (int i = 0; i < children->count(); i++) {
                 auto child = static_cast<CCFontSprite*>(children->objectAtIndex(i));
-                tag->iterator(child, arg, i);
+                tag->iterator(child, instance.arg, i);
             }
             return ret;
         } else {
