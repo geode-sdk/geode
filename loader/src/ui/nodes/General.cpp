@@ -251,14 +251,15 @@ Button* geode::addBackButton(CCNode* to, BackButtonStyle style) {
 }
 
 Button* geode::addBackButton(CCNode* to, Button::ButtonCallback callback, BackButtonStyle style) {
-    const char* sprite;
-    switch (style) {
-        default: [[fallthrough]];
+    auto sprite = [style]() -> ZStringView {
+        switch (style) {
+            default: [[fallthrough]];
 
-        case BackButtonStyle::Green: sprite = "GJ_arrow_01_001.png"; break;
-        case BackButtonStyle::Blue: sprite = "GJ_arrow_02_001.png"; break;
-        case BackButtonStyle::Pink: sprite = "GJ_arrow_03_001.png"; break;
-    }
+            case BackButtonStyle::Green: return "GJ_arrow_01_001.png";
+            case BackButtonStyle::Blue: return "GJ_arrow_02_001.png";
+            case BackButtonStyle::Pink: return "GJ_arrow_03_001.png";
+        }
+    }();
 
     auto backBtn = Button::createWithSpriteFrameName(sprite, std::move(callback));
     backBtn->setID("back-button");
