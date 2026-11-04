@@ -24,7 +24,7 @@ Here's a **Hello World** mod in Geode:
 using namespace geode::prelude;
 
 class $modify(MenuLayer) {
-	void onMoreGames(CCObject*) {
+	void onNews(CCObject*) {
 		FLAlertLayer::create(
 			"Geode",
 			"Hello World from my Custom Mod!",
