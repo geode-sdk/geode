@@ -246,11 +246,11 @@ void geode::pushSceneWithLayer(cocos2d::CCLayer *layer) {
     CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(.5f, scene));
 }
 
-CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, BackButtonStyle style) {
-    return geode::addBackButton(to, [](cocos2d::CCMenuItem*) { CCDirector::get()->popSceneWithTransition(.5f, PopTransition::kPopTransitionFade); }, style);
+Button* geode::addBackButton(CCNode* to, BackButtonStyle style) {
+    return geode::addBackButton(to, [](auto) { CCDirector::get()->popSceneWithTransition(.5f, PopTransition::kPopTransitionFade); }, style);
 }
 
-CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, geode::Function<void(cocos2d::CCMenuItem*)> callback, BackButtonStyle style) {
+Button* geode::addBackButton(CCNode* to, Button::ButtonCallback callback, BackButtonStyle style) {
     const char* sprite;
     switch (style) {
         default: [[fallthrough]];
@@ -260,18 +260,11 @@ CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, geode::Function
         case BackButtonStyle::Pink: sprite = "GJ_arrow_03_001.png"; break;
     }
 
-    auto backBtn = CCMenuItemExt::createSpriteExtra(
-        CCSprite::createWithSpriteFrameName(sprite),
-        std::move(callback)
-    );
+    auto backBtn = Button::createWithSpriteFrameName(sprite, std::move(callback));
     backBtn->setID("back-button");
     backBtn->setZOrder(1);
 
-    auto menu = CCMenu::createWithItem(backBtn);
-    menu->setID("back-menu");
-    menu->setPosition({ 25.0f, CCDirector::get()->getWinSize().height - 25.0f });
-    menu->setZOrder(1);
-    to->addChild(menu);
+    to->addChildAtPosition(backBtn, Anchor::TopLeft, {-25.f, -25.f}, false);
 
     return backBtn;
 }
