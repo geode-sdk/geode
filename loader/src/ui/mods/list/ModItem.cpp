@@ -700,13 +700,13 @@ void ModItem::updateState() {
 
     // On Grid View logo has constant size
     if (m_display == ModListDisplay::Grid) {
-        limitNodeSize(m_logo, {30.f, 30.f}, 999, .1f);
-        m_logo->setPosition(m_obContentSize.width / 2, m_obContentSize.height - 20);
+        limitNodeSize(m_logo, {30.f, 30.f}, 999.f, .1f);
+        m_logo->setPosition({m_obContentSize.width / 2.f, m_obContentSize.height - 20.f});
     }
     else {
-        auto logoSize = m_obContentSize.height - 10;
-        limitNodeSize(m_logo, {logoSize, logoSize}, 999, .1f);
-        m_logo->setPosition(m_obContentSize.height / 2 + 5, m_obContentSize.height / 2);
+        auto logoSize = m_obContentSize.height - 7.5f;
+        limitNodeSize(m_logo, {logoSize, logoSize}, 999.f, .1f);
+        m_logo->setPosition({m_obContentSize.height / 2.f + 5.f, m_obContentSize.height / 2});
     }
 
     // There's space to show the description only on the big list
