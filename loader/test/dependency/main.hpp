@@ -31,6 +31,8 @@ namespace api {
 
     struct Test {
         GEODE_EVENT_EXPORT_MEMBER(Test, geode::Result<int>, addNumbers, (int a, int b), (this, a, b));
+        GEODE_EVENT_EXPORT_MEMBER(Test, int, withDefaultArgs, (int a, int b = 0), (this, a, b));
+        GEODE_EVENT_EXPORT_MEMBER_STATIC(int, asStatic, (int a, int b = 0), (a, b));
     };
 }
 
