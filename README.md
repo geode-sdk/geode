@@ -34,7 +34,7 @@ class $modify(MenuLayer) {
 };
 ```
 
-This code modifies what happens when the "More Games" button is clicked on the home scene in Geometry Dash, showing a custom popup.
+This code modifies what happens when the "News" button is clicked on the home scene in Geometry Dash, showing a custom popup.
 
 ## Documentation
 
