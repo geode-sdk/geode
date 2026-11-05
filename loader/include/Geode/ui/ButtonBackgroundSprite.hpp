@@ -69,6 +69,11 @@ namespace geode {
          */
         void setNodeScale(float scale);
         float getNodeScale() const;
+        /*
+         * Set label y offset relative to scale (default to 4.0f so its actually centered like in normal buttonsprite)
+         */
+        void setLabelOffset(float offset);
+        float getLabelOffset() const;
 
         /*
          * Sets width of the button

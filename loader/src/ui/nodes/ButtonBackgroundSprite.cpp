@@ -17,6 +17,7 @@ public:
 
     float labelScale = 1.f;
     float nodeScale = 1.f;
+    float labelOffset = 4.f;
 
     std::optional<float> width = std::nullopt;
     float minWidth = 0.f;
@@ -250,6 +251,16 @@ float ButtonBackgroundSprite::getNodeScale() const{
     return m_impl->nodeScale;
 }
 
+void ButtonBackgroundSprite::setLabelOffset(float offset) {
+    m_impl->labelOffset = offset;
+
+    updateElements();
+}
+
+float ButtonBackgroundSprite::getLabelOffset() const {
+    return m_impl->labelOffset;
+}
+
 void ButtonBackgroundSprite::setWidth(std::optional<float> width) {
     m_impl->width = width;
 
@@ -410,9 +421,8 @@ void ButtonBackgroundSprite::updateElements() {
         m_impl->bg->updateLayout();
     }
 
-    // so the label is centered like in robs buttonsprite
     if (m_impl->label) {
-        m_impl->label->setPositionY(m_impl->label->getPositionY() - 4.0f * m_impl->label->getScale());
+        m_impl->label->setPositionY(m_impl->label->getPositionY() + m_impl->labelOffset * m_impl->label->getScale());
     }
     
     setContentSize(size);
