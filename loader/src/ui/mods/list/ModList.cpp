@@ -33,8 +33,7 @@ $on_mod(Loaded) {
 }
 
 bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
-    if (!CCNode::init())
-        return false;
+    if (!CCNode::init()) return false;
 
     this->setContentSize(size);
     this->setAnchorPoint({ .5f, .5f });

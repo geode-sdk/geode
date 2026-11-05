@@ -17,8 +17,8 @@ class ModListItem : public CCNode {
 protected:
     ModListDisplay m_display = ModListDisplay::SmallList;
     float m_targetWidth = 300;
-    NineSlice* m_bg;
-    CCMenu* m_viewMenu;
+    NineSlice* m_bg = nullptr;
+    CCNode* m_viewMenu = nullptr;
 
     bool init();
 
