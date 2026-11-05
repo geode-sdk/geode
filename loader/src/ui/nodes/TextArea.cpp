@@ -549,7 +549,6 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     ));
 
     m_impl->m_text = std::move(text);
-    log::info("text is {}", m_impl->m_text);
     castedImpl()->m_rawText = m_impl->m_text;
 
     updateContent();
