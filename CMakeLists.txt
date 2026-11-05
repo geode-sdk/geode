@@ -275,7 +275,7 @@ CPMAddPackage("gh:fmtlib/fmt#12.2.0")
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
-	set(GEODE_ARC_VERSION "@1.6.4" CACHE STRING "")
+	set(GEODE_ARC_VERSION "@1.6.5" CACHE STRING "")
 endif()
 if (NOT DEFINED GEODE_ASP_VERSION)
 	set(GEODE_ASP_VERSION "@1.6.0" CACHE STRING "")
