@@ -123,6 +123,8 @@ struct TextInput::Impl {
     ListenerHandle m_focusedListener;
     ListenerHandle m_unfocusedListener;
 
+    bool m_refocusOnEnter = false;
+
     OverflowMode m_overflow = OverflowMode::Scale;
 
     enum class ClickMode : uint8_t {
@@ -632,6 +634,8 @@ struct TextInput::Impl {
     }
 
     void setString(std::string_view str, bool triggerCallback) {
+        if (!triggerCallback && str == m_text) return;
+
         m_textU32.clear();
         if (!str.empty()) {
             m_textU32.resize(simdutf::utf32_length_from_utf8(str));
@@ -1146,9 +1150,17 @@ bool TextInput::detachWithIME() {
 void TextInput::onEnter() {
     CCNode::onEnter();
     this->registerWithTouchDispatcher();
+
+    if (m_impl->m_refocusOnEnter) {
+        m_impl->m_refocusOnEnter = false;
+        this->attachWithIME();
+    }
 }
 
 void TextInput::onExit() {
+    if (m_impl->m_hasFocus) {
+        m_impl->m_refocusOnEnter = true;
+    }
     CCNode::onExit();
     this->detachWithIME();
     CCTouchDispatcher::get()->removeDelegate(this);
@@ -1295,6 +1307,10 @@ void TextInput::focus() {
 
 void TextInput::unfocus() {
     this->detachWithIME();
+}
+
+bool TextInput::isFocused() const {
+    return m_impl->m_hasFocus;
 }
 
 Label* TextInput::getContentLabel() const {

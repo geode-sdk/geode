@@ -216,6 +216,8 @@ namespace geode {
         /// Blurs this input (deactivate the cursor)
         void unfocus();
 
+        bool isFocused() const;
+
         Label* getContentLabel() const;
         Label* getPlaceholderLabel() const;
         Label* getCaptionLabel() const;
