@@ -4,7 +4,7 @@ bool ModListItem::init() {
     if (!CCNode::init()) return false;
         
     m_bg = NineSlice::create("square02b_small.png");
-    m_bg->setID("bg");
+    m_bg->setID("background");
     m_bg->setOpacity(0);
     m_bg->ignoreAnchorPointForPosition(false);
     m_bg->setAnchorPoint({ 0.5f, 0.5f });
@@ -29,20 +29,18 @@ bool ModListItem::init() {
 }
 
 void ModListItem::updateState() {
-    auto size = this->getContentSize();
-
     // Update the size of the mod cell itself
     if (m_display == ModListDisplay::Grid) {
         auto widthWithoutGaps = m_targetWidth - 7.5f;
         this->setContentSize({widthWithoutGaps / roundf(widthWithoutGaps / 80.0f), 100.0f});
-        m_bg->setContentSize(size);
+        m_bg->setContentSize(this->getContentSize());
     }
     else {
         this->setContentSize({m_targetWidth, m_display == ModListDisplay::BigList ? 40.0f : 30.0f});
-        m_bg->setContentSize((size - CCSize{6.0f, 0.0f}));
+        m_bg->setContentSize((this->getContentSize() - CCSize{6.0f, 0.0f}));
     }
 
-    size = this->getContentSize();
+    auto const& size = this->getContentSize();
 
     if (m_display == ModListDisplay::Grid) {
         m_viewMenu->setContentWidth(size.width / m_viewMenu->getScaleX());
