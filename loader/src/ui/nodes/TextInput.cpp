@@ -1749,6 +1749,7 @@ bool TextInput::initWithSize(CCSize const& size, std::string placeholder, ZStrin
     stencil->setPosition({0.f, 0.f});
 
     m_impl->m_clip = CCClippingNode::create();
+    m_impl->m_clip->setID("clip");
     m_impl->m_clip->setAnchorPoint({0.f, 0.f});
     m_impl->m_clip->setPosition({0.f, 0.f});
     m_impl->m_clip->setContentSize(this->getContentSize());
@@ -1766,7 +1767,12 @@ bool TextInput::initWithSize(CCSize const& size, std::string placeholder, ZStrin
     this->setContentSize({size.width, height});
     m_impl->applyLayout();
 
-    this->setCommonFilter(font == "chatFont.fnt" ? CommonFilter::TextEmojis : CommonFilter::Any);
+    if (font == "chatFont.fnt") {
+        this->setCommonFilter(CommonFilter::TextEmojis);
+    } else {
+        this->setDisplayEmojis(false);
+        this->setCommonFilter(CommonFilter::Any);
+    }
 
     return true;
 }
