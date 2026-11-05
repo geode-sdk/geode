@@ -53,6 +53,7 @@ Loader::Impl::~Impl() = default;
 
 void Loader::Impl::createDirectories() {
     log::debug("Creating necessary directories");
+
     (void) utils::file::createDirectoryAll(dirs::getSaveDir());
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
     (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
@@ -60,6 +61,11 @@ void Loader::Impl::createDirectories() {
     (void) utils::file::createDirectoryAll(dirs::getGeodeLogDir());
     (void) utils::file::createDirectoryAll(dirs::getTempDir());
     (void) utils::file::createDirectoryAll(dirs::getModRuntimeDir());
+
+#ifdef GEODE_IS_ANDROID
+    // fallback for users who need to install resources manually
+    (void) utils::file::moveDirectoryContents(dirs::getGeodeDir() / "resources", dirs::getGeodeResourcesDir());
+#endif
 
     if (!ranges::contains(m_modSearchDirectories, dirs::getModsDir())) {
         m_modSearchDirectories.push_back(dirs::getModsDir());
@@ -1050,16 +1056,10 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
-
+    
     auto tempResDir = tempDir / "resources" / metadata.getID();
     if(tempResDir.exists() && tempResDir.isDir()) {
-        // Move tempResDir contents to resDir
-        for (auto result : GEODE_UNWRAP(asp::fs::iterDir(tempResDir))) {
-            auto path = GEODE_UNWRAP(result).path;
-            if(auto filename = path.filename()) {
-                GEODE_UNWRAP(asp::fs::move(path, resourceDir / path.filename().value()));
-            }
-        }
+        GEODE_UNWRAP(utils::file::moveDirectoryContents(tempResDir, resourceDir));
     }
 
     // Delete binaries for other platforms since they're pointless
