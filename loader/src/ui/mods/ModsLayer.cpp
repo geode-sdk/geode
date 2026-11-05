@@ -148,7 +148,7 @@ bool ModsStatusNode::init() {
     m_btnMenu = CCNode::create();
     m_btnMenu->setID("button-menu");
     m_btnMenu->setAnchorPoint({ .5f, .5f });
-    m_btnMenu->setContentWidth(m_obContentSize.width);
+    m_btnMenu->setContentWidth(this->getContentWidth());
     m_btnMenu->setContentHeight(25.f);
     auto restartSpr = createGeodeButton("Restart Now");
     m_restartBtn = Button::createWithNode(restartSpr, [this](auto) {
@@ -444,9 +444,7 @@ bool ModsLayer::init() {
     rightActionsMenu->setContentSize({38.f, 200.f});
     rightActionsMenu->setAnchorPoint({ .5f, .0f });
 
-    auto reloadSpr = createGeodeCircleButton(
-        CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f, CircleBaseSize::Medium
-    );
+    auto reloadSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("reload.png"_spr), 1.f, CircleBaseSize::Medium);
     reloadSpr->setTopOffset({1.f, .0f});
     auto reloadBtn = Button::createWithNode(
         reloadSpr,
@@ -535,7 +533,7 @@ bool ModsLayer::init() {
     m_frame = CCNode::create();
     m_frame->setID("mod-list-frame");
     m_frame->setAnchorPoint({ .5f, .5f });
-    m_frame->setContentSize({ 380, 205 });
+    m_frame->setContentSize({ 380.f, 205.f });
 
     auto frameBG = CCLayerColor::create(ColorProvider::get()->color("mod-list-bg"_spr));
     frameBG->setID("frame-bg");
@@ -805,7 +803,7 @@ bool ModsLayer::init() {
 
 void ModsLayer::gotoTab(ModListSource* src, bool searchingDev) {
     // Update selected tab
-    for (auto tab : m_tabs) {
+    for (auto const& tab : m_tabs) {
         auto selected = tab->getUserData() == static_cast<void*>(src);
         static_cast<GeodeTabSprite*>(tab->getDisplayNode())->select(selected);
         tab->setEnabled(!selected);
@@ -819,7 +817,7 @@ void ModsLayer::gotoTab(ModListSource* src, bool searchingDev) {
     // Lazily create new list and add it to UI
     if (!m_lists.contains(src)) {
         auto list = ModList::create(src, m_frame->getContentSize() - CCSize{30.f, .0f}, searchingDev);
-        list->setPosition(m_frame->getContentSize() / 2);
+        list->setPosition(m_frame->getContentSize() / 2.f);
         m_frame->addChild(list);
         m_lists.emplace(src, list);
     }
@@ -882,7 +880,7 @@ void ModsLayer::updateState() {
     }
 
     // Update display button
-    for (auto btn : m_displayBtns) {
+    for (auto const& btn : m_displayBtns) {
         static_cast<GeodeSquareSprite*>(btn->getDisplayNode())->setState(
             static_cast<ModListDisplay>(btn->getTag()) == m_modListDisplay
         );
@@ -972,7 +970,7 @@ void ModsLayer::installModFromFile() {
             "Do note that manually installed mods <co>are not verified to be safe and stable</c>!\n"
             "<cr>Proceed at your own risk!</c>",
             "OK", nullptr,
-            350
+            350.f
         )->show();
     }
 
