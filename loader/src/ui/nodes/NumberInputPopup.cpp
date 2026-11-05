@@ -66,7 +66,7 @@ NumberInputPopup::NumberInputPopup() : m_impl(std::make_unique<Impl>()) {}
 NumberInputPopup::~NumberInputPopup() {}
 
 bool NumberInputPopup::init(double current, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max) {
-    if (!Popup::init({210.f, 125.f}, bg.c_str())) return false;
+    if (!Popup::init({210.0f, 125.0f}, bg.c_str())) return false;
 
     m_impl->m_current = current;
 
@@ -83,14 +83,14 @@ bool NumberInputPopup::init(double current, std::string title, ZStringView bg, s
     m_impl->m_inputContainer->setAnchorPoint({.5f, .5f});
     m_impl->m_inputContainer->setLayout(
         RowLayout::create()
-            ->setGap(5.f)
+            ->setGap(5.0f)
             ->setAutoScale(false)
             ->setAutoGrowAxis(.1f)
             ->setGrowCrossAxis(true)
     );
     m_mainLayer->addChildAtPosition(m_impl->m_inputContainer, Anchor::Center);
 
-    m_impl->m_input = TextInput::create(55.f, "Num");
+    m_impl->m_input = TextInput::create(55.0f, "Num");
     m_impl->m_input->setID("page-input");
     m_impl->m_input->setCommonFilter(CommonFilter::Float);
 
@@ -129,7 +129,7 @@ bool NumberInputPopup::init(double current, std::string title, ZStringView bg, s
         }
     );
     m_impl->m_resetBtn->setScale(.875f);
-    m_mainLayer->addChildAtPosition(m_impl->m_resetBtn, Anchor::TopRight, {-20.f, -20.f});
+    m_mainLayer->addChildAtPosition(m_impl->m_resetBtn, Anchor::TopRight, {-20.0f, -20.0f});
 
     this->setupSubmitBtn("Submit", "GJ_button_01.png");
 
@@ -149,7 +149,7 @@ void NumberInputPopup::setupSubmitBtn(ZStringView text, ZStringView bg) {
     );
     m_impl->m_submitBtn->setID("submit-button");
     m_impl->m_submitBtn->setScale(.825f);
-    m_mainLayer->addChildAtPosition(m_impl->m_submitBtn, Anchor::Bottom, {.0f, 22.5f});
+    m_mainLayer->addChildAtPosition(m_impl->m_submitBtn, Anchor::Bottom, {0.0f, 22.5f});
 }
 
 void NumberInputPopup::setSubmitCallback(SubmitCallback cb) {
@@ -173,7 +173,7 @@ void NumberInputPopup::setPrecision(size_t precision) {
 }
 
 void NumberInputPopup::setInputWidth(float width) {
-    m_impl->m_input->setWidth(std::clamp(width, 50.f, m_mainLayer->getScaledContentWidth() - 62.5f));
+    m_impl->m_input->setWidth(std::clamp(width, 50.0f, m_mainLayer->getScaledContentWidth() - 62.5f));
     m_impl->m_inputContainer->updateLayout();
 }
 
