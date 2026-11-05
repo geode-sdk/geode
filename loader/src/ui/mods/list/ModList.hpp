@@ -26,20 +26,20 @@ struct InstalledModsUpdateCheck final {
 
 class ModList : public CCNode {
 protected:
-    ModListSource* m_source = nullptr;
+    ModListSource* m_source;
     size_t m_page = 0;
-    ScrollLayer* m_list = nullptr;
-    CCNode* m_statusContainer = nullptr;
-    Label* m_statusTitle = nullptr;
-    SimpleTextArea* m_statusDetails = nullptr;
-    Button* m_statusDetailsBtn = nullptr;
-    CCNode* m_statusLoadingCircle = nullptr;
+    ScrollLayer* m_list;
+    CCNode* m_statusContainer;
+    Label* m_statusTitle;
+    SimpleTextArea* m_statusDetails;
+    Button* m_statusDetailsBtn;
+    CCNode* m_statusLoadingCircle;
     ListenerHandle m_pageLoadHandle;
     async::TaskHolder<Result<ModListSource::ProvidedMods, ModListSource::LoadPageError>> m_listener;
-    Button* m_pagePrevBtn = nullptr;
-    Button* m_pageNextBtn = nullptr;
-    CCNode* m_topContainer = nullptr;
-    CCNode* m_searchMenu = nullptr;
+    Button* m_pagePrevBtn;
+    Button* m_pageNextBtn;
+    CCNode* m_topContainer;
+    CCNode* m_searchMenu;
     CCNode* m_updateAllContainer = nullptr;
     CCLayerGradient* m_updateAllBG = nullptr;
     CCNode* m_updateAllMenu = nullptr;
@@ -49,9 +49,9 @@ protected:
     CCNode* m_errorsContainer = nullptr;
     Toggler* m_toggleErrorsOnlyBtn = nullptr;
     Label* m_updateCountLabel = nullptr;
-    TextInput* m_searchInput = nullptr;
-    Button* m_filtersBtn = nullptr;
-    Button* m_clearFiltersBtn = nullptr;
+    TextInput* m_searchInput;
+    Button* m_filtersBtn;
+    Button* m_clearFiltersBtn;
     ListenerHandle m_invalidateCacheHandle;
     ListenerHandle m_checkUpdatesHandle;
     ListenerHandle m_downloadHandle;

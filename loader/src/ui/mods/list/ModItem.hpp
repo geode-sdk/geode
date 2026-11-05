@@ -50,22 +50,22 @@ struct matjson::Serialize<ModListDisplay> {
 class ModItem : public ModListItem {
 protected:
     ModSource m_source;
-    CCNode* m_logo = nullptr;
-    CCNode* m_infoContainer = nullptr;
-    CCNode* m_titleContainer = nullptr;
-    Ref<Label> m_titleLabel = nullptr;
-    Label* m_versionLabel = nullptr;
-    CCNode* m_developers = nullptr;
-    CCNode* m_recommendedBy = nullptr;
-    NineSlice* m_description = nullptr;
-    Button* m_developersBtn = nullptr;
-    ButtonSprite* m_restartRequiredLabel = nullptr;
-    ButtonSprite* m_outdatedLabel = nullptr;
-    ButtonSprite* m_deprecatedLabel = nullptr;
-    CCNode* m_modLabelsContainer = nullptr;
-    CCNode* m_downloadWaiting = nullptr;
-    CCNode* m_downloadBarContainer = nullptr;
-    ProgressBar* m_downloadBar = nullptr;
+    CCNode* m_logo;
+    CCNode* m_infoContainer;
+    CCNode* m_titleContainer;
+    Ref<Label> m_titleLabel;
+    Label* m_versionLabel;
+    CCNode* m_developers;
+    CCNode* m_recommendedBy;
+    NineSlice* m_description;
+    Button* m_developersBtn;
+    ButtonSprite* m_restartRequiredLabel;
+    ButtonSprite* m_outdatedLabel;
+    ButtonSprite* m_deprecatedLabel;
+    CCNode* m_modLabelsContainer;
+    CCNode* m_downloadWaiting;
+    CCNode* m_downloadBarContainer;
+    ProgressBar* m_downloadBar;
     Toggler* m_enableToggle = nullptr;
     Toggler* m_pinToggle = nullptr;
     Button* m_updateBtn = nullptr;
@@ -75,9 +75,9 @@ protected:
     server::ServerModUpdateOneCheck m_availableUpdate;
     ListenerHandle m_settingNodeHandle;
     Ref<CCNode> m_badgeContainer = nullptr;
-    Ref<CCNode> m_downloadCountContainer = nullptr;
-    Ref<CCNode> m_updatedAtContainer = nullptr;
-    Label* m_versionDownloadSeparator = nullptr;
+    Ref<CCNode> m_downloadCountContainer;
+    Ref<CCNode> m_updatedAtContainer;
+    Label* m_versionDownloadSeparator;
 
     std::optional<ccColor3B> getModtoberStyle(std::string_view year, bool winner = false);
 
