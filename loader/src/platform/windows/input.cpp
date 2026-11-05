@@ -777,6 +777,15 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         RawInputQueue::get().clear();
         KeyStateTracker::get().clear();
     }
+
+    void onGLFWMouseScrollCallback(GLFWwindow* window, double x, double y) {
+        constexpr double SPEED = 12;
+        // fixes robtop's hardcoded check that breaks horizontal scrolling
+        CCMouseDispatcher::get()->dispatchScrollMSG(
+            static_cast<float>(y * -SPEED),
+            static_cast<float>(x * SPEED)
+        );
+    }
 };
 
 static void GLFWFocusCallback(GLFWwindow* window, int focused) {
