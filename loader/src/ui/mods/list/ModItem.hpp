@@ -79,6 +79,8 @@ protected:
     Ref<CCNode> m_updatedAtContainer = nullptr;
     Label* m_versionDownloadSeparator = nullptr;
 
+    Result<ccColor3B> getModtoberStyle(std::string_view year, bool winner = false);
+
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable
      * before calling `init`!
@@ -87,14 +89,8 @@ protected:
 
     void updateState();
 
-    void onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result);
-
-    void onPin(CCObject*);
-    void onEnable(CCObject*);
-    void onView(CCObject*);
-    void onViewError(CCObject*);
-    void onInstall(CCObject*);
-    void onDevelopers(CCObject*);
+    void onView();
+    void onViewError();
 
 public:
     static ModItem* create(ModSource&& source, bool listItem = true);

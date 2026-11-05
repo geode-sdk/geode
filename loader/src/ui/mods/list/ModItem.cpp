@@ -21,8 +21,14 @@
 #include <ui/mods/sources/ModListSource.hpp>
 #include <ui/mods/sources/ModSource.hpp>
 #include <vector>
+#include <ranges>
 
 using namespace geode::prelude;
+
+static constexpr auto MODTOBER_WINNERS = std::to_array<std::pair<std::string_view, std::optional<std::string_view>>>({
+    {"24", "rainixgd.geome3dash"},
+    {"25", "alphalaneous.kablammo"},
+});
 
 bool ModItem::init(ModSource&& source, bool listItem) {
     if (!ModListItem::init()) return false;
@@ -192,7 +198,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     this->addChildAtPosition(m_infoContainer, Anchor::Left);
 
     ButtonSprite* spr = nullptr;
-    if (auto serverMod = m_source.asServer(); serverMod != nullptr) {
+    if (auto serverMod = m_source.asServer()) {
         auto& version = serverMod->latestVersion();
 
         auto geodeValid = Loader::get()->isModVersionSupported(version.getGeodeVersion());
@@ -214,63 +220,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
     }
 
     auto viewBtn = Button::createWithNode(spr, [this](auto) {
-        // This is a local static and not a mod saved value because we might want
-        // to periodically remind users that paid mods are paid
-        static bool shownPaidNotif = false;
-        if (m_source.asServer() && m_source.asServer()->tags.contains("paid") && !shownPaidNotif) {
-            shownPaidNotif = true;
-            return FLAlertLayer::create(
-                       nullptr,
-                       "Paid Content",
-                       "This mod contains <cg>Paid Content</c>. This means that some or all "
-                       "features of the mod <cj>require money to use</c>.\n\n"
-                       "<cy>Geode does not handle any payments. The mod handles all transactions "
-                       "in their own way.</c>\n\n"
-                       "<cp>The paid content may not be available in your country.</c>",
-                       "OK",
-                       nullptr,
-                       360.f
-                    )->show();
-        }
-
-        // Show popups for invalid mods
-        if (m_source.asServer()) {
-            auto& version = m_source.asServer()->latestVersion();
-            auto gameVersion = version.getGameVersion();
-            if (gameVersion == ".000") {
-                return FLAlertLayer::create(
-                           nullptr,
-                           "Invalid Platform",
-                           "This mod is <cr>not available</c> for your current platform.",
-                           "OK",
-                           nullptr,
-                           360.f
-                        )->show();
-            }
-            if (gameVersion && gameVersion != "*" && gameVersion != GEODE_STR(GEODE_GD_VERSION)) {
-                return FLAlertLayer::create(
-                           nullptr,
-                           "Unavailable",
-                           "This mod targets an <cr>unsupported version of Geometry Dash</c>.",
-                           "OK",
-                           nullptr,
-                           360.f
-                        )->show();
-            }
-            if (!Loader::get()->isModVersionSupported(version.getGeodeVersion())) {
-                return FLAlertLayer::create(
-                           nullptr,
-                           "Unavailable",
-                           "This mod targets an <cr>unsupported version of Geode</c>.",
-                           "OK",
-                           nullptr,
-                           360.f
-                        )->show();
-            }
-        }
-
-        // Always open up the popup for the installed mod page if that is possible
-        ModPopup::create(m_source.convertForPopup())->show();
+        this->onView();
     });
     viewBtn->setID("view-button");
     m_viewMenu->addChild(viewBtn);
@@ -343,64 +293,7 @@ bool ModItem::init(ModSource&& source, bool listItem) {
                         CircleBaseSize::Small
                     ),
                     [this](auto) {
-                        if (auto mod = m_source.asMod()) {
-                            // Deprecation gets special treatement
-                            // Note: this statement below should copy to and not move
-                            if (auto dep = m_source.hasUpdates().deprecation) {
-                                // The world if C++ had a nice way to map and join vectors rather
-                                // than having to do this bs
-                                // NOTE: the deprecation reason should describe why there
-                                // is no replacement, or if there will be one in the future
-                                StringBuffer byStr;
-                                if (!dep->by.empty()) {
-                                    byStr.append(
-                                        "It is recommended to <cj>install these mods instead</c>:"
-                                    );
-
-                                    byStr.append(asp::iter::from(dep->by).join("\n\n"));
-                                }
-
-                                MDPopup::create(
-                                    "Deprecated",
-                                    fmt::format(
-                                        "<cy>{0}</c> has been <co>deprecated</c>, meaning that it "
-                                        "is no longer being developed. You may start running into "
-                                        "<co>bugs and crashes</c>, and the mod may not be "
-                                        "available "
-                                        "for future GD versions.\n\n"
-                                        "**Reason:** {1}\n\n"
-                                        "{2}\n\n"
-                                        "It is recommended to <cr>uninstall {0}</c>.",
-                                        mod->getName(),
-                                        dep->reason,
-                                        byStr
-                                    ),
-                                    "OK"
-                                )
-                                    ->show();
-                            }
-                            else if (auto problem = mod->getLoadProblem()) {
-                                std::string title;
-
-                                switch (problem->type) {
-                                    default:
-
-                                    case LoadProblem::Type::Unknown: title = "Unknown error"; break;
-                                    case LoadProblem::Type::InvalidGeodeFile:
-                                        title = "Invalid Geode File";
-                                        break;
-                                    case LoadProblem::Type::MissingDependencies:
-                                        title = "Missing dependencies";
-                                        break;
-                                    case LoadProblem::Type::Outdated: title = "Outdated"; break;
-                                    case LoadProblem::Type::HasIncompatibilities:
-                                        title = "Incompatibilities";
-                                        break;
-                                }
-
-                                MDPopup::create(title, std::move(*problem).message, "OK")->show();
-                            }
-                        }
+                        this->onViewError();
                     }
                 );
                 viewErrorBtn->setID("view-error-button");
@@ -450,30 +343,31 @@ bool ModItem::init(ModSource&& source, bool listItem) {
             if (metadata.featured) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-featured.png"_spr));
             }
+
             if (metadata.tags.contains("paid")) {
                 auto shortVer = CCSprite::createWithSpriteFrameName("tag-paid.png"_spr);
                 shortVer->setTag(1);
                 m_badgeContainer->addChild(shortVer);
+
                 auto longVer = CCSprite::createWithSpriteFrameName("tag-paid-long.png"_spr);
                 longVer->setTag(2);
                 m_badgeContainer->addChild(longVer);
             }
+
             if (metadata.tags.contains("joke")) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-joke.png"_spr));
             }
+
             if (metadata.tags.contains("api")) {
                 m_badgeContainer->addChild(CCSprite::createWithSpriteFrameName("tag-api.png"_spr));
             }
 
-            for (auto [ year, winner ] : std::initializer_list<std::tuple<const char*, std::optional<const char*>>> {
-                { "24", "rainixgd.geome3dash" },
-                { "25", std::nullopt },
-            }) {
+            for (auto const& [year, winner] : MODTOBER_WINNERS) {
                 if (metadata.tags.contains(fmt::format("modtober{}winner", year)) || (winner.has_value() && m_source.getID() == winner)) {
-
                     auto shortVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner.png"_spr, year).c_str());
                     shortVer->setTag(1);
                     m_badgeContainer->addChild(shortVer);
+
                     auto longVer = CCSprite::createWithSpriteFrameName(fmt::format("tag-modtober{}-winner-long.png"_spr, year).c_str());
                     longVer->setTag(2);
                     m_badgeContainer->addChild(longVer);
@@ -578,9 +472,8 @@ bool ModItem::init(ModSource&& source, bool listItem) {
         m_checkUpdateListener.spawn(
             "ModItem update check",
             m_source.checkUpdates(),
-            [this](auto res) {
-                this->onCheckUpdates(std::move(res));
-                return ListenerResult::Propagate;
+            [this](server::ServerResult<server::ServerModUpdateOneCheck>) {
+                this->updateState();
             }
         );
     }
@@ -698,15 +591,17 @@ void ModItem::updateState() {
         m_badgeContainer->updateLayout();
     }
 
+    auto const size = this->getContentSize();
+
     // On Grid View logo has constant size
     if (m_display == ModListDisplay::Grid) {
         limitNodeSize(m_logo, {30.f, 30.f}, 999.f, .1f);
-        m_logo->setPosition({m_obContentSize.width / 2.f, m_obContentSize.height - 20.f});
+        m_logo->setPosition({size.width / 2.f, size.height - 20.f});
     }
     else {
-        auto logoSize = m_obContentSize.height - 7.5f;
+        auto logoSize = size.height - 7.5f;
         limitNodeSize(m_logo, {logoSize, logoSize}, 999.f, .1f);
-        m_logo->setPosition({m_obContentSize.height / 2.f + 5.f, m_obContentSize.height / 2});
+        m_logo->setPosition({size.height / 2.f + 5.f, size.height / 2});
     }
 
     // There's space to show the description only on the big list
@@ -719,8 +614,8 @@ void ModItem::updateState() {
         m_display == ModListDisplay::BigList ? m_description : m_developers;
 
     auto titleSpace = m_display == ModListDisplay::Grid ?
-        CCSize(m_obContentSize.width - 10, 35) :
-        CCSize(m_obContentSize.width - 145, m_obContentSize.height - 5);
+        CCSize{size.width - 10.f, 35.f} :
+        CCSize{size.width - 145.f, size.height - 5.f};
 
     // Divide by scale of info container since that actually determines the size
     // (Since the scale of m_titleContainer and m_developers is managed by its layout)
@@ -753,44 +648,59 @@ void ModItem::updateState() {
         m_downloadWaiting->setVisible(false);
     }
 
+    struct CellStyle {
+        ccColor3B color;
+        GLubyte opacity;
+    };
+
     // Set default colors based on source to start off with
     // (possibly overriding later based on state)
-    m_source.visit(makeVisitor {
-        [this](Mod* mod) {
-            if (isGeodeTheme()) {
-                m_bg->setColor(ccWHITE);
-                m_bg->setOpacity(mod->isOrWillBeEnabled() ? 25 : 10);
-            }
-            else {
-                m_bg->setColor(ccBLACK);
-                m_bg->setOpacity(mod->isOrWillBeEnabled() ? 90 : 60);
-            }
-            m_titleLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
-            m_versionLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
-            m_developersBtn->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
-        },
-        [this](server::ServerModMetadata const& metadata) {
-            m_bg->setColor(isGeodeTheme() ? ccWHITE : ccBLACK);
-            m_bg->setOpacity(isGeodeTheme() ? 25 : 90);
+    m_source.visit(
+        makeVisitor{
+            [this](Mod* mod) {
+                if (isGeodeTheme()) {
+                    m_bg->setColor(ccWHITE);
+                    m_bg->setOpacity(mod->isOrWillBeEnabled() ? 25 : 10);
+                }
+                else {
+                    m_bg->setColor(ccBLACK);
+                    m_bg->setOpacity(mod->isOrWillBeEnabled() ? 90 : 60);
+                }
+                m_titleLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
+                m_versionLabel->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
+                m_developersBtn->setOpacity(mod->isOrWillBeEnabled() ? 255 : 155);
+            },
+            [this](server::ServerModMetadata const& metadata) {
+                auto geode = isGeodeTheme();
+                auto has = [&metadata](ZStringView tag) {
+                    return metadata.tags.contains(tag);
+                };
 
-            if (metadata.tags.contains("paid")) {
-                m_bg->setColor("mod-list-paid-color"_cc3b);
-                m_bg->setOpacity(55);
-            }
-            if (metadata.tags.contains("modtober24")) {
-                m_bg->setColor({63, 91, 138});
-                m_bg->setOpacity(85);
-            }
-            if (metadata.tags.contains("modtober24winner") || m_source.getID() == "rainixgd.geome3dash") {
-                m_bg->setColor({104, 63, 138});
-                m_bg->setOpacity(85);
-            }
-            if (isGeodeTheme() && metadata.featured) {
-                m_bg->setColor("mod-list-featured-color"_cc3b);
-                m_bg->setOpacity(65);
+                auto const defaultStyle = [geode]() {
+                    return geode ? CellStyle{ccWHITE, 25} : CellStyle{ccBLACK, 90};
+                }();
+
+                auto const style = [this, &defaultStyle, &metadata, &has, geode]() -> CellStyle {
+                    if (geode && metadata.featured) return {"mod-list-featured-color"_cc3b, 65};
+
+                    for (auto const& year : MODTOBER_WINNERS | std::views::keys) {
+                        auto const win = fmt::format("modtober{}winner", year);
+                        if (has(win)) return {this->getModtoberStyle(year, true).unwrapOr(defaultStyle.color), 85};
+
+                        auto const entry = fmt::format("modtober{}", year);
+                        if (has(entry)) return {this->getModtoberStyle(year).unwrapOr(defaultStyle.color), 85};
+                    }
+
+                    if (has("paid")) return {"mod-list-paid-color"_cc3b, 55};
+
+                    return defaultStyle;
+                }();
+
+                m_bg->setColor(style.color);
+                m_bg->setOpacity(style.opacity);
             }
         }
-    });
+    );
 
     m_deprecatedLabel->setVisible(false);
     m_updateBtn->setVisible(false);
@@ -911,7 +821,7 @@ void ModItem::updateState() {
 
         default:
         case ModListDisplay::SmallList: {
-            m_infoContainer->updateAnchoredPosition(Anchor::Left, {m_obContentSize.height + 10.f, .0f}, {.0f, .5f});
+            m_infoContainer->updateAnchoredPosition(Anchor::Left, {size.height + 10.f, .0f}, {.0f, .5f});
             m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, {.0f, 2.f}, {.0f, 1.f});
             m_titleLabel->setLayoutOptions(
                 SimpleAxisLayoutOptions::create()
@@ -930,7 +840,7 @@ void ModItem::updateState() {
         } break;
 
         case ModListDisplay::BigList: {
-            m_infoContainer->updateAnchoredPosition(Anchor::Left, {m_obContentSize.height + 10.f, .0f}, {.0f, .5f});
+            m_infoContainer->updateAnchoredPosition(Anchor::Left, {size.height + 10.f, .0f}, {.0f, .5f});
             m_titleContainer->updateAnchoredPosition(Anchor::TopLeft, { .0f, .0f }, {.0f, 1.f});
             m_titleLabel->setLayoutOptions(
                 SimpleAxisLayoutOptions::create()
@@ -986,27 +896,134 @@ void ModItem::updateState() {
     ModItemUIEvent().send(this, m_source.getID(), std::nullopt);
 }
 
-void ModItem::onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result) {
-    this->updateState();
+Result<ccColor3B> ModItem::getModtoberStyle(std::string_view year, bool winner) {
+    static StringMap<std::pair<ccColor3B, ccColor3B>> const styles{ // <entry, winner>
+        {"24", {ccColor3B{63, 91, 138}, ccColor3B{104, 63, 138}}},
+        {"25", {ccColor3B{ 135, 103, 64 }, ccColor3B{ 179, 107, 36 }}},
+    }; // intellisense shows colors when explicitly constructing
+
+    auto const it = styles.find(year);
+    if (it != styles.end()) return Ok(winner ? it->second.second : it->second.first);
+
+    return Err("No entry found for year {}", year);
 }
 
-void ModItem::onView(CCObject*) {
-}
+void ModItem::onView() {
+    // This is a local static and not a mod saved value because we might want
+    // to periodically remind users that paid mods are paid
+    static bool shownPaidNotif = false;
+    if (m_source.asServer() && m_source.asServer()->tags.contains("paid") && !shownPaidNotif) {
+        shownPaidNotif = true;
+        return FLAlertLayer::create(
+            nullptr,
+            "Paid Content",
+            "This mod contains <cg>Paid Content</c>. This means that some or all "
+            "features of the mod <cj>require money to use</c>.\n\n"
+            "<cy>Geode does not handle any payments. The mod handles all transactions "
+            "in their own way.</c>\n\n"
+            "<cp>The paid content may not be available in your country.</c>",
+            "OK",
+            nullptr,
+            360.f
+        )->show();
+    }
 
-void ModItem::onViewError(CCObject*) {
-}
+    // Show popups for invalid mods
+    if (m_source.asServer()) {
+        auto const& version = m_source.asServer()->latestVersion();
 
-void ModItem::onEnable(CCObject*) {
-}
+        auto gameVersion = version.getGameVersion();
+        if (gameVersion == ".000") {
+            return FLAlertLayer::create(
+                nullptr,
+                "Invalid Platform",
+                "This mod is <cr>not available</c> for your current platform.",
+                "OK",
+                nullptr,
+                360.f
+            )->show();
+        }
 
-void ModItem::onPin(CCObject*) {
-}
+        if (gameVersion && gameVersion != "*" && gameVersion != GEODE_STR(GEODE_GD_VERSION)) {
+            return FLAlertLayer::create(
+                nullptr,
+                "Unavailable",
+                "This mod targets an <cr>unsupported version of Geometry Dash</c>.",
+                "OK",
+                nullptr,
+                360.f
+            )->show();
+        }
 
-void ModItem::onInstall(CCObject*) {
-}
+        if (!Loader::get()->isModVersionSupported(version.getGeodeVersion())) {
+            return FLAlertLayer::create(
+                nullptr,
+                "Unavailable",
+                "This mod targets an <cr>unsupported version of Geode</c>.",
+                "OK",
+                nullptr,
+                360.f
+            )->show();
+        }
+    }
 
-void ModItem::onDevelopers(CCObject*) {
-}
+    // Always open up the popup for the installed mod page if that is possible
+    ModPopup::create(m_source.convertForPopup())->show();
+};
+
+void ModItem::onViewError() {
+    if (auto mod = m_source.asMod()) {
+        // Deprecation gets special treatement
+        // Note: this statement below should copy to and not move
+        if (auto dep = m_source.hasUpdates().deprecation) {
+            // The world if C++ had a nice way to map and join vectors rather
+            // than having to do this bs
+            // NOTE: the deprecation reason should describe why there
+            // is no replacement, or if there will be one in the future
+            StringBuffer byStr;
+            if (!dep->by.empty()) {
+                byStr.append("It is recommended to <cj>install these mods instead</c>:\n\n");
+
+                for (auto const& id : dep->by) {
+                    byStr.append("<mod:{}>\n\n", id);
+                }
+            }
+
+            MDPopup::create(
+                "Deprecated",
+                fmt::format(
+                    "<cy>{0}</c> has been <co>deprecated</c>, meaning that it "
+                    "is no longer being developed. You may start running into "
+                    "<co>bugs and crashes</c>, and the mod may not be "
+                    "available "
+                    "for future GD versions.\n\n"
+                    "**Reason:** {1}\n\n"
+                    "{2}\n\n"
+                    "It is recommended to <cr>uninstall {0}</c>.",
+                    mod->getName(),
+                    dep->reason,
+                    byStr
+                ),
+                "OK"
+            )->show();
+        }
+        else if (auto problem = mod->getLoadProblem()) {
+            std::string title;
+
+            switch (problem->type) {
+                default:
+
+                case LoadProblem::Type::Unknown: title = "Unknown error"; break;
+                case LoadProblem::Type::InvalidGeodeFile: title = "Invalid Geode File"; break;
+                case LoadProblem::Type::MissingDependencies: title = "Missing dependencies"; break;
+                case LoadProblem::Type::Outdated: title = "Outdated"; break;
+                case LoadProblem::Type::HasIncompatibilities: title = "Incompatibilities"; break;
+            }
+
+            MDPopup::create(title, std::move(*problem).message, "OK")->show();
+        }
+    }
+};
 
 ModItem* ModItem::create(ModSource&& source, bool listItem) {
     auto ret = new ModItem();
