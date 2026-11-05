@@ -262,24 +262,24 @@ struct TextInput::Impl {
         auto clip = m_clip->convertToNodeSpace(world);
         auto size = m_parent->getContentSize();
 
+        if (this->maxScrollX() > 0.f) {
+            float right = size.width - m_padding.x;
+            float left = m_padding.x;
+            if (clip.x > right) {
+                m_scroll.x += clip.x - right;
+            } else if (clip.x < left) {
+                m_scroll.x -= left - clip.x;
+            }
+        }
+
         if (m_multiline) {
             float half = m_label->getLineHeight() * 0.5f;
             float top = size.height - m_padding.y;
             float bottom = m_padding.y;
             if (clip.y + half > top) {
                 m_scroll.y -= clip.y + half - top;
-            }
-            else if (clip.y - half < bottom) {
+            } else if (clip.y - half < bottom) {
                 m_scroll.y += bottom - clip.y + half;
-            }
-        } else {
-            float right = size.width - m_padding.x;
-            float left = m_padding.x;
-            if (clip.x > right) {
-                m_scroll.x += clip.x - right;
-            }
-            else if (clip.x < left) {
-                m_scroll.x -= left - clip.x;
             }
         }
 
@@ -680,6 +680,7 @@ struct TextInput::Impl {
             }
         }
 
+        m_placeholderLabel->setLimitLabelWidth(availW, m_placeholderScale);
         this->syncLabel(false);
     }
 
@@ -966,8 +967,124 @@ struct TextInput::Impl {
     }
 };
 
-std::string geode::getCommonFilterAllowedChars(CommonFilter filter) {
-    return "";
+std::string const& geode::getCommonFilterAllowedChars(CommonFilter filter) {
+    using CF = CommonFilter;
+    auto bits = static_cast<uint32_t>(filter);
+
+    static std::unordered_map<uint32_t, std::string> cache{{0, ""}};
+    auto it = cache.find(bits);
+    if (it != cache.end()) return it->second;
+
+    auto has = [bits](CF f) {
+        return (bits & static_cast<uint32_t>(f)) != 0;
+    };
+
+    std::u32string out;
+    auto push = [&out](std::initializer_list<char32_t> cps) {
+        out.insert(out.end(), cps.begin(), cps.end());
+    };
+    auto pushRange = [&out](char32_t from, char32_t to) {
+        for (char32_t c = from; c <= to; ++c) out.push_back(c);
+    };
+
+    // ASCII
+    if (has(CF::Uint)) pushRange(U'0', U'9');
+    if (has(CF::Lowercase)) pushRange(U'a', U'z');
+    if (has(CF::Uppercase)) pushRange(U'A', U'Z');
+    if (has(CF::Hex)) {
+        pushRange(U'0', U'9');
+        pushRange(U'a', U'f');
+        pushRange(U'A', U'F');
+    }
+    if (has(CF::Hyphen)) out.push_back(U'-');
+    if (has(CF::Dot)) out.push_back(U'.');
+    if (has(CF::Underscore)) out.push_back(U'_');
+    if (has(CF::Space)) out.push_back(U' ');
+    if (has(CF::Plus)) out.push_back(U'+');
+    if (has(CF::Slash)) out.push_back(U'/');
+    if (has(CF::Equals)) out.push_back(U'=');
+
+    if (has(CF::Latin)) {
+        pushRange(U'a', U'z');
+        pushRange(U'A', U'Z');
+        pushRange(0x00C0, 0x00D6); // À-Ö
+        pushRange(0x00D8, 0x00F6); // Ø-ö
+        pushRange(0x00F8, 0x00FF); // ø-ÿ
+        pushRange(0x0100, 0x017F); // Ā-ſ (Latin Extended-A)
+        pushRange(0x0180, 0x024F); // ƀ-ɏ (Latin Extended-B)
+        pushRange(0x1E00, 0x1EFF); // Ḁ-ỿ (Latin Extended Additional)
+        pushRange(0x0300, 0x036F); // diacritics
+        push({0x0259}); // ə
+    }
+
+    if (has(CF::Cyrillic)) {
+        pushRange(0x0400, 0x04FF); // Ѐ-ӿ (Cyrillic)
+        pushRange(0x0500, 0x052F); // Ԁ-ԯ (Cyrillic Supplement)
+    }
+
+    if (has(CommonFilter::Emoji)) {
+        auto& reg = EmojiRegistry::vanillaEmojis();
+        for (auto seq : reg.getSequences()) {
+            for (char32_t c : seq) {
+                if (c >= 0x80) out.push_back(c); // skip :name: ASCII chars
+            }
+        }
+
+        out.push_back(0x200D); // ZWJ (for 😵‍💫)
+    }
+
+    if (has(CF::Printable)) {
+        for (char32_t c = 0x20; c <= 0x7E; ++c) {
+            bool alnum = (c >= U'0' && c <= U'9')
+                      || (c >= U'a' && c <= U'z')
+                      || (c >= U'A' && c <= U'Z');
+            if (!alnum) out.push_back(c);
+        }
+        out.push_back(0x2022); // •
+    }
+
+    if (has(CF::PrintableExt)) {
+        for (char32_t c = 0x20; c <= 0x7E; ++c) {
+            bool alnum = (c >= U'0' && c <= U'9')
+                      || (c >= U'a' && c <= U'z')
+                      || (c >= U'A' && c <= U'Z');
+            if (!alnum) out.push_back(c);
+        }
+
+        // Latin-1 Supplement punctuation
+        push({
+            0x00A1, 0x00A3, 0x00A5, 0x00A9, 0x00AB, 0x00AE, 0x00B0,
+            0x00B1, 0x00B2, 0x00B3, 0x00B7, 0x00BB, 0x00BD, 0x00BF
+        });
+        // General Punctuation
+        push({
+            0x2013, 0x2014, 0x2018, 0x2019, 0x201A, 0x201C, 0x201D,
+            0x201E, 0x2022, 0x2026, 0x2039, 0x203A
+        });
+        // Currency Symbols
+        push({0x20A9, 0x20AA, 0x20AB, 0x20AC, 0x20B9, 0x20BA, 0x20BD});
+        // Letterlike Symbols
+        push({0x2116, 0x2122});
+        // Arrows
+        pushRange(0x2190, 0x2194);
+        // Math operators
+        push({0x2248, 0x2260});
+        // Misc Symbols
+        push({0x2605, 0x2606, 0x2661, 0x2665, 0x266A, 0x266B});
+        // Dingbats ✓✔✕✖✗
+        pushRange(0x2713, 0x2717);
+    }
+
+    // dedup
+    std::ranges::sort(out);
+    out.erase(std::ranges::unique(out).begin(), out.end());
+
+    std::string result;
+    result.resize(simdutf::utf8_length_from_utf32(out));
+    (void)simdutf::convert_utf32_to_utf8(out.data(), out.size(), result.data());
+
+    auto [it2, _] = cache.emplace(bits, std::move(result));
+    return it2->second;
 }
 
 TextInput::TextInput() : m_impl(std::make_unique<Impl>(this)) {}
@@ -1129,6 +1246,14 @@ void TextInput::setPlaceholderScale(float scale) {
 
 float TextInput::getPlaceholderScale() const {
     return m_impl->m_placeholderScale;
+}
+
+void TextInput::setDisplayEmojis(bool allow) {
+    if (allow) {
+        m_impl->m_label->setEmojiRegistry(EmojiRegistry::vanillaEmojis());
+    } else {
+        m_impl->m_label->removeEmojis();
+    }
 }
 
 void TextInput::hideBG() {
@@ -1624,6 +1749,8 @@ bool TextInput::initWithSize(CCSize const& size, std::string placeholder, ZStrin
 
     this->setContentSize({size.width, height});
     m_impl->applyLayout();
+
+    this->setCommonFilter(font == "chatFont.fnt" ? CommonFilter::TextEmojis : CommonFilter::Any);
 
     return true;
 }

@@ -9,26 +9,27 @@
 
 namespace geode {
     enum class CommonFilter : uint32_t {
-        None = 0,
+        None = 0, // No filtering
 
         Uint      = 1 << 0, // Allow an unsigned integer (0-9)
         Lowercase = 1 << 1, // a-z
         Uppercase = 1 << 2, // A-Z
-        Latin     = 1 << 3, // basic latin + Latin-1 + Latin Extended-A (diacritics)
+        Latin     = 1 << 3, // full latin (a-z, A-Z + Latin Extended A/B)
         Cyrillic  = 1 << 4, // а-я, А-Я + ukrainian, belarusian, etc.
-        Emoji     = 1 << 5, // only vanilla-supported emojis
-        Hex       = 1 << 6, // Allow a hexadecimal number (0-9, a-f, A-F)
+        Greek     = 1 << 5, // greek + few extended
+        Emoji     = 1 << 6, // only vanilla-supported emojis
+        Hex       = 1 << 7, // Allow a hexadecimal number (0-9, a-f, A-F)
 
-        Hyphen     = 1 << 7,  // -
-        Dot        = 1 << 8,  // .
-        Underscore = 1 << 9,  // _
-        Space      = 1 << 10, // (space)
-        Plus       = 1 << 11, // +
-        Slash      = 1 << 12, // /
-        Equals     = 1 << 13, // =
+        Hyphen     = 1 << 8,  // -
+        Dot        = 1 << 9,  // .
+        Underscore = 1 << 10, // _
+        Space      = 1 << 11, // (space)
+        Plus       = 1 << 12, // +
+        Slash      = 1 << 13, // /
+        Equals     = 1 << 14, // =
 
-        Printable    = 1 << 14, // any non-word printable character (supported by bigFont.fnt)
-        PrintableExt = 1 << 15, // any non-word printable character (supported by chatFont.fnt)
+        Printable    = 1 << 15, // any non-word printable character (supported by bigFont.fnt)
+        PrintableExt = 1 << 16, // any non-word printable character (supported by chatFont.fnt)
 
         Int          = Uint | Hyphen,                                // Allow a signed integer (0-9, -)
         UFloat       = Uint | Dot,                                   // Allow a non-negative floating point number (0-9, .)
@@ -40,13 +41,13 @@ namespace geode {
         Base64Normal = Alphanumeric | Plus | Slash | Equals,         // Allow a non-URL-safe Base64 number
         Base64URL    = Alphanumeric | Plus | Underscore | Equals,    // Allow a URL-safe Base64 number
 
-        Text       = Alphanumeric | Latin | Cyrillic | PrintableExt,  // Any text that is supported by chatFont.fnt
-        TextEmojis = Text | Emoji,                                    // Any text that is supported by chatFont.fnt, including emojis
+        Text       = Alphanumeric | Latin | Cyrillic | Greek | PrintableExt,  // Any text that is supported by chatFont.fnt
+        TextEmojis = Text | Emoji,                                            // Any text that is supported by chatFont.fnt, including emojis
 
-        Any = Alphanumeric | Printable, // [Old] Allows basically anything possible to type in an input
+        Any = Alphanumeric | Printable, // [Old] Allows basically anything possible to type in an input (supported by bigFont.fnt)
     };
 
-    GEODE_DLL std::string getCommonFilterAllowedChars(CommonFilter filter);
+    GEODE_DLL std::string const& getCommonFilterAllowedChars(CommonFilter filter);
 
     class GEODE_DLL TextInput :
         public cocos2d::CCNode,
@@ -169,6 +170,9 @@ namespace geode {
 
         void setPlaceholderScale(float scale);
         float getPlaceholderScale() const;
+
+        /// Enable/disable conversion of :emoji: names and unicode emoji characters into sprites
+        void setDisplayEmojis(bool allow);
 
         /// Hides the background of this input. Shorthand for
         /// `input->getBGSprite()->setVisible(false)`
