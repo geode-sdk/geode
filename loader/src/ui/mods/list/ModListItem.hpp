@@ -16,7 +16,7 @@ enum class ModListDisplay {
 class ModListItem : public CCNode {
 protected:
     ModListDisplay m_display = ModListDisplay::SmallList;
-    float m_targetWidth = 300;
+    float m_targetWidth = 300.0f;
     NineSlice* m_bg = nullptr;
     CCNode* m_viewMenu = nullptr;
 

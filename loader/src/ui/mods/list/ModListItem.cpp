@@ -7,55 +7,57 @@ bool ModListItem::init() {
     m_bg->setID("bg");
     m_bg->setOpacity(0);
     m_bg->ignoreAnchorPointForPosition(false);
-    m_bg->setAnchorPoint({ .5f, .5f });
-    m_bg->setScaleMultiplier(.7f);
+    m_bg->setAnchorPoint({ 0.5f, 0.5f });
+    m_bg->setScaleMultiplier(0.7f);
     this->addChildAtPosition(m_bg, Anchor::Center);
 
     m_viewMenu = CCNode::create();
     m_viewMenu->setID("view-menu");
-    m_viewMenu->setScale(.55f);
+    m_viewMenu->setScale(0.55f);
     m_viewMenu->setLayout(
         SimpleRowLayout::create()
             ->setMainAxisDirection(AxisDirection::RightToLeft)
             ->setMainAxisAlignment(MainAxisAlignment::Start)
             ->setMainAxisScaling(AxisScaling::Scale)
             ->setCrossAxisScaling(AxisScaling::Scale)
-            ->setMinRelativeScale(1.f)
-            ->setGap(10.f)
+            ->setMinRelativeScale(1.0f)
+            ->setGap(10.0f)
     );
-    this->addChildAtPosition(m_viewMenu, Anchor::Right, {-10.f, .0f});
+    this->addChildAtPosition(m_viewMenu, Anchor::Right, {-10.0f, 0.0f});
 
     return true;
 }
 
 void ModListItem::updateState() {
-    auto const size = this->getContentSize();
+    auto size = this->getContentSize();
 
     // Update the size of the mod cell itself
     if (m_display == ModListDisplay::Grid) {
         auto widthWithoutGaps = m_targetWidth - 7.5f;
-        this->setContentSize({widthWithoutGaps / roundf(widthWithoutGaps / 80.f), 100.f});
+        this->setContentSize({widthWithoutGaps / roundf(widthWithoutGaps / 80.0f), 100.0f});
         m_bg->setContentSize(size);
     }
     else {
-        this->setContentSize({m_targetWidth, m_display == ModListDisplay::BigList ? 40.f : 30.f});
-        m_bg->setContentSize((size - CCSize{6.f, .0f}));
+        this->setContentSize({m_targetWidth, m_display == ModListDisplay::BigList ? 40.0f : 30.0f});
+        m_bg->setContentSize((size - CCSize{6.0f, 0.0f}));
     }
-    
+
+    size = this->getContentSize();
+
     if (m_display == ModListDisplay::Grid) {
         m_viewMenu->setContentWidth(size.width / m_viewMenu->getScaleX());
-        m_viewMenu->updateAnchoredPosition(Anchor::Bottom, {.0f, .5f}, {.5f, .0f});
-        m_viewMenu->setScale(.45f);
+        m_viewMenu->updateAnchoredPosition(Anchor::Bottom, {0.0f, 5.0f}, {0.5f, 0.0f});
+        m_viewMenu->setScale(0.45f);
         static_cast<SimpleRowLayout*>(m_viewMenu->getLayout())->setMainAxisAlignment(MainAxisAlignment::Center);
     }
     else {
-        m_viewMenu->setContentWidth(size.width / m_viewMenu->getScaleX() / 2.f - 20.f);
-        m_viewMenu->updateAnchoredPosition(Anchor::Right, {-10.f, .0f}, {1.f, .5f});
-        m_viewMenu->setScale(.55f);
+        m_viewMenu->setContentWidth(size.width / m_viewMenu->getScaleX() / 2.0f - 20.0f);
+        m_viewMenu->updateAnchoredPosition(Anchor::Right, {-10.0f, 0.0f}, {1.0f, 0.5f});
+        m_viewMenu->setScale(0.55f);
         static_cast<SimpleRowLayout*>(m_viewMenu->getLayout())->setMainAxisAlignment(MainAxisAlignment::Start);
     }
 
-    m_viewMenu->setContentHeight(40.f);
+    m_viewMenu->setContentHeight(40.0f);
     m_viewMenu->updateLayout();
     
     this->updateLayout();

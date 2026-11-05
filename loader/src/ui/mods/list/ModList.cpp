@@ -36,7 +36,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     if (!CCNode::init()) return false;
 
     this->setContentSize(size);
-    this->setAnchorPoint({ .5f, .5f });
+    this->setAnchorPoint({ 0.5f, 0.5f });
     this->setID("ModList");
 
     m_source = src;
@@ -52,14 +52,14 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_list = ScrollLayer::create(size);
     // scroll clipping doesn't make sense when its the main (and only) scroll layer onscreen
     m_list->enableScrollClipping(false);
-    m_list->setAnchorPoint({.5f, .0f});
+    m_list->setAnchorPoint({0.5f, 0.0f});
     this->addChildAtPosition(m_list, Anchor::Bottom);
 
     m_topContainer = CCNode::create();
     m_topContainer->setID("top-container");
     m_topContainer->ignoreAnchorPointForPosition(false);
     m_topContainer->setContentWidth(size.width);
-    m_topContainer->setAnchorPoint({ .5f, 1.f });
+    m_topContainer->setAnchorPoint({ 0.5f, 1.0f });
 
     // Check for updates on installed mods, and show an update all button if there are some
     if (typeinfo_cast<InstalledModListSource*>(m_source)) {
@@ -80,7 +80,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_updateAllBG = CCLayerGradient::create(
             "mod-list-updates-available-bg"_cc4b,
             "mod-list-updates-available-bg-2"_cc4b,
-            {1.f, -.5f}
+            {1.0f, -0.5f}
         );
         m_updateAllBG->setID("update-all-bg");
         m_updateAllBG->setContentSize(m_updateAllContainer->getContentSize());
@@ -92,7 +92,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         );
         m_updateAllBG->addChildAtPosition(
             CCLayerColor::create("mod-list-bg"_cc4b, m_updateAllContainer->getContentWidth(), 1),
-            Anchor::BottomLeft, {.0f, -1.f}
+            Anchor::BottomLeft, {0.0f, -1.0f}
         );
 
         m_updateAllContainer->addChildAtPosition(m_updateAllBG, Anchor::Center);
@@ -101,14 +101,14 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_updateCountLabel->setID("update-count-label");
         m_updateCountLabel->setScale(.35f);
         m_updateCountLabel->setBreakWords(true);
-        m_updateCountLabel->setMaxWidth(((size.width / 2.f) - 30.f) / m_updateCountLabel->getScale());
-        m_updateCountLabel->setAnchorPoint({.0f, .5f});
-        m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, {10.f, .0f}, {});
+        m_updateCountLabel->setMaxWidth(((size.width / 2.0f) - 30.0f) / m_updateCountLabel->getScale());
+        m_updateCountLabel->setAnchorPoint({0.0f, 0.5f});
+        m_updateAllContainer->addChildAtPosition(m_updateCountLabel, Anchor::Left, {10.0f, 0.0f}, {0.0f, 0.0f});
 
         m_updateAllMenu = CCNode::create();
         m_updateAllMenu->setID("update-all-menu");
-        m_updateAllMenu->setContentSize({size.width / 2.f, 20.f});
-        m_updateAllMenu->setAnchorPoint({ 1, .5f });
+        m_updateAllMenu->setContentSize({size.width / 2.0f, 20.0f});
+        m_updateAllMenu->setAnchorPoint({ 1.0f, 0.5f });
 
         auto showUpdatesSpr = createGeodeButton(
             CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
@@ -146,19 +146,19 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         m_updateAllBtn->setID("update-all-button");
         m_updateAllMenu->addChild(m_updateAllBtn);
 
-        m_updateAllLoadingCircle = createLoadingCircle(32.f);
+        m_updateAllLoadingCircle = createLoadingCircle(32.0f);
         m_updateAllMenu->addChild(m_updateAllLoadingCircle);
 
         m_updateAllMenu->setLayout(
             SimpleRowLayout::create()
                 ->setMainAxisAlignment(MainAxisAlignment::End)
-                ->setMinRelativeScale(.5f)
-                ->setMaxRelativeScale(1.f)
+                ->setMinRelativeScale(0.5f)
+                ->setMaxRelativeScale(1.0f)
                 ->setGap(5)
                 ->setMainAxisScaling(AxisScaling::Scale)
                 ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
         );
-        m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, {-12.5f, 0.f});
+        m_updateAllContainer->addChildAtPosition(m_updateAllMenu, Anchor::Right, {-12.5f, 0.0f});
 
         m_topContainer->addChild(m_updateAllContainer);
 
@@ -166,13 +166,13 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             m_errorsContainer = CCNode::create();
             m_errorsContainer->setID("errors-container");
             m_errorsContainer->ignoreAnchorPointForPosition(false);
-            m_errorsContainer->setContentSize({ size.width, 30.f });
+            m_errorsContainer->setContentSize({ size.width, 30.0f });
             m_errorsContainer->setVisible(false);
 
             auto errorsBG = CCLayerGradient::create(
                 "mod-list-errors-found"_cc4b,
                 "mod-list-errors-found-2"_cc4b,
-                {1.f, -.5f}
+                {1.0f, -0.5f}
             );
             errorsBG->setID("errors-bg");
             errorsBG->setContentSize(m_errorsContainer->getContentSize());
@@ -184,14 +184,14 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             errorsLabel->setID("errors-label");
             errorsLabel->setScale(.35f);
             errorsLabel->setBreakWords(true);
-            errorsLabel->setMaxWidth(((size.width / 2.f) - 30.f) / errorsLabel->getScale());
-            errorsLabel->setAnchorPoint({.0f, .5f});
-            m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, {10.f, .0f}, {});
+            errorsLabel->setMaxWidth(((size.width / 2.0f) - 30.0f) / errorsLabel->getScale());
+            errorsLabel->setAnchorPoint({0.0f, 0.5f});
+            m_errorsContainer->addChildAtPosition(errorsLabel, Anchor::Left, {10.0f, 0.0f}, {});
 
             auto errorsMenu = CCNode::create();
             errorsMenu->setID("errors-menu");
             errorsMenu->setContentSize({size.width / 2, 20});
-            errorsMenu->setAnchorPoint({ 1, .5f });
+            errorsMenu->setAnchorPoint({ 1, 0.5f });
 
             auto showErrorsSpr = createGeodeButton(
                 CCSprite::createWithSpriteFrameName("GJ_filterIcon_001.png"),
@@ -222,13 +222,13 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             errorsMenu->setLayout(
                 SimpleRowLayout::create()
                     ->setMainAxisAlignment(MainAxisAlignment::End)
-                    ->setMinRelativeScale(.5f)
-                    ->setMaxRelativeScale(1.f)
+                    ->setMinRelativeScale(0.5f)
+                    ->setMaxRelativeScale(1.0f)
                     ->setGap(5)
                     ->setMainAxisScaling(AxisScaling::Scale)
                     ->setCrossAxisScaling(AxisScaling::ScaleDownGaps)
             );
-            m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, {-10.f, 0.f});
+            m_errorsContainer->addChildAtPosition(errorsMenu, Anchor::Right, {-10.0f, 0.0f});
 
             m_topContainer->addChild(m_errorsContainer);
         }
@@ -248,7 +248,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_searchInput = TextInput::create(size.width - 5, "Search Mods");
     m_searchInput->setID("search-input");
     m_searchInput->setScale(.75f);
-    m_searchInput->setAnchorPoint({ 0, .5f });
+    m_searchInput->setAnchorPoint({ 0.0f, 0.5f });
     m_searchInput->setTextAlign(TextInputAlign::Left);
     m_searchInput->setCommonFilter(CommonFilter::Any);
     m_searchInput->setCallback([this](auto const&) {
@@ -270,12 +270,12 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         this->stopActionByTag(123123);
         this->runAction(seq);
     });
-    m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, {7.5f, 0.f});
+    m_searchMenu->addChildAtPosition(m_searchInput, Anchor::Left, {7.5f, 0.0f});
 
     auto searchFiltersMenu = CCNode::create();
     searchFiltersMenu->setID("search-filters-menu");
     searchFiltersMenu->setContentSize({size.width - m_searchInput->getScaledContentWidth() - 5, 30});
-    searchFiltersMenu->setAnchorPoint({ 1, .5f });
+    searchFiltersMenu->setAnchorPoint({ 1.0f, 0.5f });
     searchFiltersMenu->setScale(.75f);
 
     auto sortBtn = Button::createWithNode(
@@ -319,19 +319,19 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         menu->setContentSize({ size.width, 30 });
 
         auto banner = CCSprite::createWithSpriteFrameName("modtober25-banner.png"_spr);
-        limitNodeWidth(banner, size.width, 1.f, .1f);
+        limitNodeWidth(banner, size.width, 1.0f, .1f);
         menu->addChildAtPosition(banner, Anchor::Center);
 
         auto label = Label::create("Modtober 2025 is Here!", "bigFont.fnt");
-        label->setScale(.5f);
-        menu->addChildAtPosition(label, Anchor::Left, {10.f, .0f}, {.0f, .5f});
+        label->setScale(0.5f);
+        menu->addChildAtPosition(label, Anchor::Left, {10.0f, 0.0f}, {0.0f, 0.5f});
 
         auto aboutBtn = Button::createWithNode(createGeodeButton("About"), [this](auto) {
             ModtoberPopup::create()->show();
         });
         aboutBtn->setID("about-button");
-        aboutBtn->setScale(.5f);
-        menu->addChildAtPosition(aboutBtn, Anchor::Right, {-35.f, 0.f});
+        aboutBtn->setScale(0.5f);
+        menu->addChildAtPosition(aboutBtn, Anchor::Right, {-35.0f, 0.0f});
 
         m_topContainer->addChild(menu);
     }
@@ -340,9 +340,9 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         SimpleRowLayout::create()
             ->setMainAxisAlignment(MainAxisAlignment::End)
             ->setMainAxisScaling(AxisScaling::Scale)
-            ->setGap(5.f)
+            ->setGap(5.0f)
     );
-    m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, {-10.f, 0.f});
+    m_searchMenu->addChildAtPosition(searchFiltersMenu, Anchor::Right, {-10.0f, 0.0f});
 
     m_topContainer->addChild(m_searchMenu);
 
@@ -350,7 +350,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         ColumnLayout::create()
             ->setGap(0)
             ->setAxisReverse(true)
-            ->setAutoGrowAxis(0.f)
+            ->setAutoGrowAxis(0.0f)
     );
 
     this->addChildAtPosition(m_topContainer, Anchor::Top);
@@ -359,8 +359,8 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
 
     auto pageLeftMenu = CCNode::create();
     pageLeftMenu->setID("page-left-menu");
-    pageLeftMenu->setContentWidth(30.f);
-    pageLeftMenu->setAnchorPoint({ 1.f, .5f });
+    pageLeftMenu->setContentWidth(30.0f);
+    pageLeftMenu->setAnchorPoint({ 1.0f, 0.5f });
 
     m_pagePrevBtn = Button::createWithSpriteFrameName(
         "GJ_arrow_02_001.png",
@@ -377,12 +377,12 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
             ->setMainAxisAlignment(MainAxisAlignment::End)
             ->setMainAxisDirection(AxisDirection::RightToLeft)
     );
-    this->addChildAtPosition(pageLeftMenu, Anchor::Left, {-20.f, 0.f});
+    this->addChildAtPosition(pageLeftMenu, Anchor::Left, {-20.0f, 0.0f});
 
     auto pageRightMenu = CCNode::create();
     pageRightMenu->setID("page-right-menu");
-    pageRightMenu->setContentWidth(30.f);
-    pageRightMenu->setAnchorPoint({ 0.f, .5f });
+    pageRightMenu->setContentWidth(30.0f);
+    pageRightMenu->setAnchorPoint({ 0.0f, 0.5f });
 
     m_pageNextBtn = Button::createWithSpriteFrameName(
         "GJ_arrow_02_001.png",
@@ -398,15 +398,15 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
         SimpleRowLayout::create()
         ->setMainAxisAlignment(MainAxisAlignment::Start)
     );
-    this->addChildAtPosition(pageRightMenu, Anchor::Right, {20.f, 0.f});
+    this->addChildAtPosition(pageRightMenu, Anchor::Right, {20.0f, 0.0f});
 
     // Status
 
     m_statusContainer = CCNode::create();
     m_statusContainer->setID("status-container");
-    m_statusContainer->setScale(.5f);
+    m_statusContainer->setScale(0.5f);
     m_statusContainer->setContentHeight(size.height / m_statusContainer->getScale());
-    m_statusContainer->setAnchorPoint({ .5f, .5f });
+    m_statusContainer->setAnchorPoint({ 0.5f, 0.5f });
     m_statusContainer->ignoreAnchorPointForPosition(false);
 
     m_statusTitle = Label::create("", "bigFont.fnt");
@@ -424,7 +424,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_statusDetailsBtn->setID("status-details-button");
     m_statusContainer->addChild(m_statusDetailsBtn);
 
-    m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f, 650.f);
+    m_statusDetails = SimpleTextArea::create("", "chatFont.fnt", .6f, 650.0f);
     m_statusDetails->setID("status-details-input");
     m_statusDetails->setAlignment(kCCTextAlignmentCenter);
     m_statusContainer->addChild(m_statusDetails);
@@ -435,7 +435,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_statusContainer->setLayout(
         SimpleColumnLayout::create()
             ->setMainAxisDirection(AxisDirection::TopToBottom)
-            ->setGap(5.f)
+            ->setGap(5.0f)
     );
     this->addChildAtPosition(m_statusContainer, Anchor::Center);
 
@@ -543,7 +543,7 @@ void ModList::onCheckUpdates(InstalledModsUpdateCheck const& check) {
         hideUpdatesText = "Hide";
     }
 
-    m_updateCountLabel->setText(std::move(updateCountText));
+    m_updateCountLabel->setRichText(std::move(updateCountText));
 
     auto updateAllSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("update.png"_spr), "Update All", GeodeButtonSprite::Install
@@ -597,14 +597,14 @@ void ModList::updateTopContainer() {
 
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
-    auto oldPosition = oldPositionArea > 0.f ?
+    auto oldPosition = oldPositionArea > 0.0f ?
         m_list->m_contentLayer->getPositionY() / oldPositionArea :
-        -1.f;
+        -1.0f;
 
     // Update list size to account for the top menu
     // (giving a little bit of extra padding for it, the same size as gap)
     m_list->setContentHeight(
-        m_topContainer->getContentHeight() > 0.f ?
+        m_topContainer->getContentHeight() > 0.0f ?
             this->getContentHeight() - m_topContainer->getContentHeight() - 2.5f :
             this->getContentHeight()
     );
@@ -652,9 +652,9 @@ void ModList::updateDisplay(ModListDisplay display) {
 
     // Store old relative scroll position (ensuring no divide by zero happens)
     auto oldPositionArea = m_list->m_contentLayer->getContentHeight() - m_list->getContentHeight();
-    auto oldPosition = oldPositionArea > 0.f ?
+    auto oldPosition = oldPositionArea > 0.0f ?
         m_list->m_contentLayer->getPositionY() / oldPositionArea :
-        -1.f;
+        -1.0f;
 
     // fix initial width being 0
     m_list->m_contentLayer->setContentWidth(m_list->getContentWidth());

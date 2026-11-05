@@ -79,7 +79,7 @@ protected:
     Ref<CCNode> m_updatedAtContainer = nullptr;
     Label* m_versionDownloadSeparator = nullptr;
 
-    Result<ccColor3B> getModtoberStyle(std::string_view year, bool winner = false);
+    std::optional<ccColor3B> getModtoberStyle(std::string_view year, bool winner = false);
 
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable
@@ -105,7 +105,7 @@ public:
 class AnyModItem : public ModListItem {
 protected:
     ModItem* m_item = nullptr;
-    LoadingSpinner* m_loading;
+    LoadingSpinner* m_loading = nullptr;
     async::TaskHolder<server::ServerResult<server::ServerModMetadata>> m_listener;
 
     bool init(ZStringView modID);
