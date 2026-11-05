@@ -169,8 +169,8 @@ namespace geode {
         /// @param callback Callback to invoke when the toggle changes.
         /// @param priority The event priority.
         template <class Callback>
-        void addToggleCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, Toggler::ToggleEvent(this), std::forward<Callback>(callback), priority);
+        void addToggleCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Toggler::ToggleEvent(this), std::forward<Callback>(callback), priority);
         }
 
         void activate() override;

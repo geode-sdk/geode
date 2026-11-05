@@ -63,24 +63,24 @@ namespace geode {
          * Add a callback for when the slider thumb is dragged
          */
         template <class Callback>
-        void addSlideCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, SliderNode::SliderEvent(this, SliderNode::SlideType::Slide), std::forward<Callback>(callback), priority);
+        void addSlideCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, SliderNode::SliderEvent(this, SliderNode::SlideType::Slide), std::forward<Callback>(callback), priority);
         }
 
         /**
          * Add a callback for when the slider thumb is clicked
          */
         template <class Callback>
-        void addClickCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, SliderNode::SliderEvent(this, SliderNode::SlideType::Click), std::forward<Callback>(callback), priority);
+        void addClickCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, SliderNode::SliderEvent(this, SliderNode::SlideType::Click), std::forward<Callback>(callback), priority);
         }
 
         /**
          * Add a callback for when the slider thumb is released
          */
         template <class Callback>
-        void addReleaseCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, SliderNode::SliderEvent(this, SliderNode::SlideType::Release), std::forward<Callback>(callback), priority);
+        void addReleaseCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, SliderNode::SliderEvent(this, SliderNode::SlideType::Release), std::forward<Callback>(callback), priority);
         }
 
         /**

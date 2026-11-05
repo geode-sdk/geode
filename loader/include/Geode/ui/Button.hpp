@@ -120,24 +120,24 @@ namespace geode {
          * Add a callback for when the button is activated
          */
         template <class Callback>
-        void addActivateCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, Button::ClickedEvent(this, Button::ClickType::Activated), std::forward<Callback>(callback), priority);
+        void addActivateCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Button::ClickedEvent(this, Button::ClickType::Activated), std::forward<Callback>(callback), priority);
         }
 
         /**
          * Add a callback for when the button is selected
          */
         template <class Callback>
-        void addSelectCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, Button::ClickedEvent(this, Button::ClickType::Selected), std::forward<Callback>(callback), priority);
+        void addSelectCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Button::ClickedEvent(this, Button::ClickType::Selected), std::forward<Callback>(callback), priority);
         }
 
         /**
          * Add a callback for when the button is unselected
          */
         template <class Callback>
-        void addUnselectCallback(ZStringView ID, Callback&& callback, int priority = 0) {
-            addEventListener(ID, Button::ClickedEvent(this, Button::ClickType::Unselected), std::forward<Callback>(callback), priority);
+        void addUnselectCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Button::ClickedEvent(this, Button::ClickType::Unselected), std::forward<Callback>(callback), priority);
         }
 
         /**
