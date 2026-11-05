@@ -19,17 +19,17 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
 
     auto foldersMenu = CCNode::create();
     foldersMenu->setID("folders-menu");
-    foldersMenu->setContentSize({ .0f, 30.f });
-    foldersMenu->setAnchorPoint({1.f, .0f});
+    foldersMenu->setContentSize({ 0.0f, 30.0f });
+    foldersMenu->setAnchorPoint({1.0f, 0.0f});
     foldersMenu->setLayout(RowLayout::create()
-        ->setGap(5.f)
+        ->setGap(5.0f)
         ->setDefaultScaleLimits(.1f, .6f)
         ->setAxisAlignment(AxisAlignment::End)
         ->setAxisReverse(true)
-        ->setAutoGrowAxis(30.f)
+        ->setAutoGrowAxis(30.0f)
         ->setGrowCrossAxis(true)
     );
-    m_mainLayer->addChildAtPosition(foldersMenu, Anchor::BottomRight, {-9.f, 10.f});
+    m_mainLayer->addChildAtPosition(foldersMenu, Anchor::BottomRight, {-9.0f, 10.0f});
 
     auto createFolderButton = [this, foldersMenu](ZStringView subSprName, Button::ButtonCallback callback) {
         auto folderSpr = CCSprite::createWithSpriteFrameName("folderIcon_001.png");
@@ -37,7 +37,7 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
         folderSprSub->setColor(ccBLACK);
         folderSprSub->setOpacity(155);
         folderSprSub->setScale(.55f);
-        folderSpr->addChildAtPosition(folderSprSub, Anchor::Center, {.0f, -3.f});
+        folderSpr->addChildAtPosition(folderSprSub, Anchor::Center, {0.0f, -3.0f});
 
         auto buttonSpr = createGeodeButton(folderSpr, "", GeodeButtonSprite::Default, m_forceDisableTheme);
         buttonSpr->getIcon()->setScale(buttonSpr->getIcon()->getScale() * 1.4f);

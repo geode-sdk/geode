@@ -25,7 +25,7 @@ bool KeybindEditPopup::init(
         auto fromModLabel = Label::create(mod->getName(), "bigFont.fnt");
         fromModLabel->setScale(.4f);
         fromModLabel->setColor({55, 155, 255});
-        m_mainLayer->addChildAtPosition(fromModLabel, Anchor::Top, {.0f, -40.f});
+        m_mainLayer->addChildAtPosition(fromModLabel, Anchor::Top, {0.0f, -40.0f});
     }
 
     m_setting = std::move(setting);
@@ -35,7 +35,7 @@ bool KeybindEditPopup::init(
     auto bottomMenu = CCNode::create();
     bottomMenu->setID("bottom-menu");
     bottomMenu->setAnchorPoint({.5f, .5f});
-    bottomMenu->setContentWidth(220.f);
+    bottomMenu->setContentWidth(220.0f);
 
     if (keybind.key == KEY_None) {
         auto addButton = Button::createWithNode(
@@ -67,8 +67,8 @@ bool KeybindEditPopup::init(
         bottomMenu->addChild(removeButton);
     }
 
-    bottomMenu->setLayout(RowLayout::create()->setGap(10.f));
-    m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, {.0f, 25.f});
+    bottomMenu->setLayout(RowLayout::create()->setGap(10.0f));
+    m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, {0.0f, 25.0f});
 
     this->addEventListener(KeyboardInputEvent(), [this](KeyboardInputData& data) {
         if (data.action == KeyboardInputData::Action::Press) {
@@ -114,7 +114,7 @@ void KeybindEditPopup::updateLabel() {
             m_originalKeybindContainer->addChild(originalKeybindInfoEnd);
 
             m_originalKeybindContainer->setLayout(SimpleRowLayout::create());
-            m_mainLayer->addChildAtPosition(m_originalKeybindContainer, Anchor::Bottom, {.0f, 60.f});
+            m_mainLayer->addChildAtPosition(m_originalKeybindContainer, Anchor::Bottom, {0.0f, 60.0f});
         }
     }
 
@@ -131,11 +131,11 @@ void KeybindEditPopup::updateLabel() {
         m_keybindNode = m_currentKeybind.createNode();
         // It just looks better if controller binds are scale 1
         if (!typeinfo_cast<CCSprite*>(m_keybindNode)) {
-            limitNodeWidth(m_keybindNode, m_mainLayer->getContentWidth() - 10.f, .75f, .1f);
+            limitNodeWidth(m_keybindNode, m_mainLayer->getContentWidth() - 10.0f, .75f, .1f);
         }
     }
     float keybindOffset = m_originalKeybindContainer ? 10 : 0;
-    m_mainLayer->addChildAtPosition(m_keybindNode, Anchor::Center, {.0f, keybindOffset});
+    m_mainLayer->addChildAtPosition(m_keybindNode, Anchor::Center, {0.0f, keybindOffset});
 }
 
 void KeybindEditPopup::doSet() {
@@ -194,7 +194,7 @@ bool KeybindListPopup::init(
     std::vector<Keybind> keybinds,
     Function<void(std::vector<Keybind>)> callback
 ) {
-    if (!GeodePopup::init(220.f, 250.f))
+    if (!GeodePopup::init(220.0f, 250.0f))
         return false;
 
     this->setTitle(setting->getDisplayName());
@@ -205,24 +205,24 @@ bool KeybindListPopup::init(
     m_currentKeybinds = std::move(keybinds);
     m_hasChanged = false;
 
-    auto background = CCLayerColor::create({0, 0, 0, 75}, 190.f, 150.f);
+    auto background = CCLayerColor::create({0, 0, 0, 75}, 190.0f, 150.0f);
     background->ignoreAnchorPointForPosition(false);
-    m_mainLayer->addChildAtPosition(background, Anchor::Center, {-5.f, 5.f});
+    m_mainLayer->addChildAtPosition(background, Anchor::Center, {-5.0f, 5.0f});
 
-    m_scrollLayer = ScrollLayer::create({ 190.f, 150.f });
+    m_scrollLayer = ScrollLayer::create({ 190.0f, 150.0f });
     m_scrollLayer->setID("keybind-list");
     m_scrollLayer->ignoreAnchorPointForPosition(false);
     m_scrollLayer->m_contentLayer->setLayout(ColumnLayout::create()->setAxisReverse(true)->setAxisAlignment(AxisAlignment::End)->setAutoGrowAxis(0));
-    m_mainLayer->addChildAtPosition(m_scrollLayer, Anchor::Center, {-5.f, 5.f});
+    m_mainLayer->addChildAtPosition(m_scrollLayer, Anchor::Center, {-5.0f, 5.0f});
 
-    m_mainLayer->addChildAtPosition(Scrollbar::create(m_scrollLayer), Anchor::Right, {-10.f, 5.f});
+    m_mainLayer->addChildAtPosition(Scrollbar::create(m_scrollLayer), Anchor::Right, {-10.0f, 5.0f});
 
-    m_mainLayer->addChildAtPosition(createGeodeListBorders({ 190.f, 150.f }), Anchor::Center, {-5.f, 5.f});
+    m_mainLayer->addChildAtPosition(createGeodeListBorders({ 190.0f, 150.0f }), Anchor::Center, {-5.0f, 5.0f});
 
     auto bottomMenu = CCNode::create();
     bottomMenu->setID("bottom-menu");
     bottomMenu->setAnchorPoint({.5f, .5f});
-    bottomMenu->setContentWidth(220.f);
+    bottomMenu->setContentWidth(220.0f);
 
     auto addButton = Button::createWithNode(
         createGeodeButton("Add", true),
@@ -246,8 +246,8 @@ bool KeybindListPopup::init(
     );
     bottomMenu->addChild(saveButton);
 
-    bottomMenu->setLayout(RowLayout::create()->setGap(10.f));
-    m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, {.0f, 25.f});
+    bottomMenu->setLayout(RowLayout::create()->setGap(10.0f));
+    m_mainLayer->addChildAtPosition(bottomMenu, Anchor::Bottom, {0.0f, 25.0f});
 
     this->updateKeybinds();
 
@@ -278,10 +278,10 @@ void KeybindListPopup::updateKeybinds() {
 
         auto menu = CCNode::create();
         menu->setAnchorPoint({.5f, .5f});
-        menu->setContentSize({ 190.f, button->getScaledContentHeight() });
+        menu->setContentSize({ 190.0f, button->getScaledContentHeight() });
         menu->addChild(button);
 
-        button->setPosition({ 95.f, button->getScaledContentHeight() / 2.f });
+        button->setPosition({ 95.0f, button->getScaledContentHeight() / 2.0f });
 
         m_scrollLayer->m_contentLayer->addChild(menu);
         index += 1;

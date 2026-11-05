@@ -74,7 +74,7 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
     };
 
     for (auto& tab : tabs) {
-        auto tabSpr = GeodeTabSprite::create(tab.sprName, tab.label, 120.f);
+        auto tabSpr = GeodeTabSprite::create(tab.sprName, tab.label, 120.0f);
         tabSpr->select(tab.id == m_tab);
 
         auto tabBtn = Button::createWithNode(tabSpr, [this, id = tab.id](auto) {
@@ -96,7 +96,7 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
     }
 
     m_tabsMenu->setLayout(RowLayout::create());
-    m_mainLayer->addChildAtPosition(m_tabsMenu, Anchor::Center, {.0f, 95.f});
+    m_mainLayer->addChildAtPosition(m_tabsMenu, Anchor::Center, {0.0f, 95.0f});
 
     this->onSelectTab(nullptr);
     if (mod) {

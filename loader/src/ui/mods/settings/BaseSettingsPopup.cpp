@@ -41,19 +41,19 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
 
     m_noElasticity = true;
 
-    const auto spacing = spacingForTabs ? 25.f : .0f;
-    m_listSize = CCSize{346.f, 200.f - spacing};
+    const auto spacing = spacingForTabs ? 25.0f : 0.0f;
+    m_listSize = CCSize{346.0f, 200.0f - spacing};
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
     layerBG->setContentSize(m_listSize);
     layerBG->ignoreAnchorPointForPosition(false);
-    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, {.0f, -spacing / 2.f});
+    m_mainLayer->addChildAtPosition(layerBG, Anchor::Center, {0.0f, -spacing / 2.0f});
 
     auto searchContainer = CCNode::create();
     searchContainer->setID("search-menu");
-    searchContainer->setContentSize({ m_listSize.width, 30.f });
+    searchContainer->setContentSize({ m_listSize.width, 30.0f });
 
-    m_searchInput = TextInput::create((m_listSize.width - 15.f) / .7f - 40.f, "Search settings...");
+    m_searchInput = TextInput::create((m_listSize.width - 15.0f) / .7f - 40.0f, "Search settings...");
     m_searchInput->setTextAlign(TextInputAlign::Left);
     m_searchInput->setScale(.7f);
     m_searchInput->setCallback([this](auto const&) {
@@ -61,7 +61,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
         m_list->moveToTop();
     });
     m_searchInput->setID("search-input");
-    searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, {7.5f, .0f}, {.0f, .5f});
+    searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, {7.5f, 0.0f}, {0.0f, .5f});
 
     m_searchClearBtn = Button::createWithNode(
         GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png", nullptr, m_forceDisableTheme),
@@ -73,12 +73,12 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     );
     m_searchClearBtn->setID("clear-search-button");
     m_searchClearBtn->setScale(.45f);
-    searchContainer->addChildAtPosition(m_searchClearBtn, Anchor::Right, {-20.f, .0f});
+    searchContainer->addChildAtPosition(m_searchClearBtn, Anchor::Right, {-20.0f, 0.0f});
 
-    layerBG->addChildAtPosition(searchContainer, Anchor::Top, {.0f, .0f}, {.5f, 1.f});
+    layerBG->addChildAtPosition(searchContainer, Anchor::Top, {0.0f, 0.0f}, {.5f, 1.0f});
 
-    m_list = ScrollLayer::create(m_listSize - CCSize{.0f, searchContainer->getContentHeight()});
-    m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(.0f));
+    m_list = ScrollLayer::create(m_listSize - CCSize{0.0f, searchContainer->getContentHeight()});
+    m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.0f));
 
     m_list->setID("settings-list");
     m_list->setTouchEnabled(true);
@@ -90,20 +90,20 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
 
     m_mainLayer->addChildAtPosition(
         createGeodeListBorders(m_listSize, m_forceDisableTheme),
-        Anchor::Center, {.0f, -spacing / 2.f}
+        Anchor::Center, {0.0f, -spacing / 2.0f}
     );
 
     auto scrollBar = Scrollbar::create(m_list);
     m_mainLayer->addChildAtPosition(
         scrollBar, Anchor::Center,
-        {layerBG->getContentWidth() / 2.f + 10.f, -spacing / 2.f}
+        {layerBG->getContentWidth() / 2.0f + 10.0f, -spacing / 2.0f}
     );
 
     // buttons
 
     m_applyMenu = CCNode::create();
     m_applyMenu->setID("apply-menu");
-    m_applyMenu->setContentWidth(150.f);
+    m_applyMenu->setContentWidth(150.0f);
     m_applyMenu->setAnchorPoint({.5f, .5f});
     m_applyMenu->setLayout(RowLayout::create()->setDefaultScaleLimits(.1f, .6f));
 
@@ -147,7 +147,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_applyBtn->setID("apply-button");
     m_applyMenu->addChild(m_applyBtn);
 
-    m_mainLayer->addChildAtPosition(m_applyMenu, Anchor::Bottom, {.0f, 20.f});
+    m_mainLayer->addChildAtPosition(m_applyMenu, Anchor::Bottom, {0.0f, 20.0f});
 
     auto resetBtn = Button::createWithNode(
         createGeodeButton("Reset All", true, GeodeButtonSprite::Default, m_forceDisableTheme),
@@ -169,7 +169,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     );
     resetBtn->setID("reset-settings-button");
     resetBtn->setScale(.6f);
-    m_mainLayer->addChildAtPosition(resetBtn, Anchor::BottomLeft, {45.f, 20.f});
+    m_mainLayer->addChildAtPosition(resetBtn, Anchor::BottomLeft, {45.0f, 20.0f});
 
     m_changeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {
         this->updateState(node);

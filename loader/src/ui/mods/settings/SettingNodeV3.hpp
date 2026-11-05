@@ -106,9 +106,9 @@ protected:
         auto bigArrowLeftSpr1 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         auto bigArrowLeftSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
 
-        bigArrowLeftBtnSpr->setContentSize(bigArrowLeftSpr1->getContentSize() + CCSize{20.f, .0f});
-        bigArrowLeftBtnSpr->addChildAtPosition(bigArrowLeftSpr2, Anchor::Center, {10.f, .0f});
-        bigArrowLeftBtnSpr->addChildAtPosition(bigArrowLeftSpr1, Anchor::Center, {-10.f, .0f});
+        bigArrowLeftBtnSpr->setContentSize(bigArrowLeftSpr1->getContentSize() + CCSize{20.0f, 0.0f});
+        bigArrowLeftBtnSpr->addChildAtPosition(bigArrowLeftSpr2, Anchor::Center, {10.0f, 0.0f});
+        bigArrowLeftBtnSpr->addChildAtPosition(bigArrowLeftSpr1, Anchor::Center, {-10.0f, 0.0f});
 
         m_bigArrowLeftBtn = Button::createWithNode(
             bigArrowLeftBtnSpr,
@@ -119,7 +119,7 @@ protected:
         m_bigArrowLeftBtn->setScale(.3f);
         m_bigArrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getBigArrowStepSize()));
         m_bigArrowLeftBtn->setVisible(setting->isBigArrowsEnabled());
-        this->getButtonMenu()->addChildAtPosition(m_bigArrowLeftBtn, Anchor::Left, {5.f, .0f});
+        this->getButtonMenu()->addChildAtPosition(m_bigArrowLeftBtn, Anchor::Left, {5.0f, 0.0f});
 
         m_arrowLeftBtn = Button::createWithSpriteFrameName(
             "GJ_arrow_01_001.png",
@@ -130,9 +130,9 @@ protected:
         m_arrowLeftBtn->setScale(.5f);
         m_arrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getArrowStepSize()));
         m_arrowLeftBtn->setVisible(setting->isArrowsEnabled());
-        this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, {22.f, .0f});
+        this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, {22.0f, 0.0f});
 
-        m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40.f, "Num");
+        m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40.0f, "Num");
         m_input->setScale(.7f);
         m_input->setCommonFilter(std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int);
         m_input->setCallback([this, setting](auto const& str) {
@@ -156,7 +156,7 @@ protected:
         m_arrowRightBtn->setUserObject(ObjWrapper<ValueType>::create(setting->getArrowStepSize()));
         m_arrowRightBtn->setVisible(setting->isArrowsEnabled());
         static_cast<CCSprite*>(m_arrowRightBtn->getDisplayNode())->setFlipX(true);
-        this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, {-22.f, .0f});
+        this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, {-22.0f, 0.0f});
 
         auto bigArrowRightBtnSpr = CCSprite::create();
         bigArrowRightBtnSpr->setCascadeOpacityEnabled(true);
@@ -165,9 +165,9 @@ protected:
         auto bigArrowRightSpr2 = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
         bigArrowRightSpr2->setFlipX(true);
 
-        bigArrowRightBtnSpr->setContentSize(bigArrowRightSpr1->getContentSize() + CCSize{20.f, .0f});
-        bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr1, Anchor::Center, {-10.f, .0f});
-        bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr2, Anchor::Center, {10.f, .0f});
+        bigArrowRightBtnSpr->setContentSize(bigArrowRightSpr1->getContentSize() + CCSize{20.0f, 0.0f});
+        bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr1, Anchor::Center, {-10.0f, 0.0f});
+        bigArrowRightBtnSpr->addChildAtPosition(bigArrowRightSpr2, Anchor::Center, {10.0f, 0.0f});
 
         m_bigArrowRightBtn = Button::createWithNode(
             bigArrowRightBtnSpr,
@@ -178,11 +178,11 @@ protected:
         m_bigArrowRightBtn->setScale(.3f);
         m_bigArrowRightBtn->setUserObject(ObjWrapper<ValueType>::create(setting->getBigArrowStepSize()));
         m_bigArrowRightBtn->setVisible(setting->isBigArrowsEnabled());
-        this->getButtonMenu()->addChildAtPosition(m_bigArrowRightBtn, Anchor::Right, {-5.f, .0f});
+        this->getButtonMenu()->addChildAtPosition(m_bigArrowRightBtn, Anchor::Right, {-5.0f, 0.0f});
 
         if (setting->isSliderEnabled()) {
             this->setContentHeight(45);
-            this->getButtonMenu()->updateAnchoredPosition(Anchor::Right, {-10.f, 7.f});
+            this->getButtonMenu()->updateAnchoredPosition(Anchor::Right, {-10.0f, 7.0f});
 
             m_slider = SliderNode::create([this](auto, float v) {
                 ValueType value = v;
@@ -192,8 +192,8 @@ protected:
                 }
             });
             m_slider->setScale(.5f);
-            m_slider->setMin(setting->getMinValue().value_or(-100.f));
-            m_slider->setMax(setting->getMaxValue().value_or(+100.f));
+            m_slider->setMin(setting->getMinValue().value_or(-100.0f));
+            m_slider->setMax(setting->getMaxValue().value_or(+100.0f));
             m_slider->setSnapStep(setting->getSliderSnap());
 
             unsigned int precision = 0; // only way i thought of removing the decimals when linking to slidernode
@@ -203,7 +203,7 @@ protected:
 
             m_slider->setValue(setting->getValue());
 
-            this->getButtonMenu()->addChildAtPosition(m_slider, Anchor::Center, {.0f, -20.f});
+            this->getButtonMenu()->addChildAtPosition(m_slider, Anchor::Center, {0.0f, -20.0f});
         }
 
         this->setValue(setting->getValue(), nullptr);
