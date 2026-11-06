@@ -50,6 +50,12 @@ namespace geode {
         bool useAnchorLayout = false
     );
     /**
+     * Gets the online GJGameLevel by its ID
+     * @param levelID The ID of the online level to get
+     * @return GJGameLevel object, or nullptr if not found
+     */
+    GEODE_DLL GJGameLevel* getOnlineLevelById(int levelID);
+    /**
      * Add side art (corner pieces) for a layer
      * @param to Layer to add corner pieces to
      * @param sides Which corners to populate; by default, populates all

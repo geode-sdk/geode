@@ -20,6 +20,30 @@ CCSprite* geode::createLayerBG() {
     return bg;
 }
 
+GJGameLevel* geode::getOnlineLevelById(int levelID) {
+    auto glm = GameLevelManager::get();
+    if (!glm) return nullptr;
+
+    auto searchObj = GJSearchObject::create(SearchType::Search, numToString(levelID));
+    searchObj->m_searchMode = 0;
+    auto key = searchObj->getKey();
+
+    CCArray* levels = nullptr;
+    if (key && key[0]) levels = glm->getStoredOnlineLevels(key);
+    if (!levels || levels->count() == 0) return nullptr;
+    if (key && key[0]) glm->getOnlineLevels(searchObj);
+
+    for (int i = 0; i < levels->count(); ++i) {
+        auto level = typeinfo_cast<GJGameLevel*>(levels->objectAtIndex(i));
+        if (!level) {
+            continue;
+        }
+        return level;
+    }
+    
+    return nullptr;
+};
+
 void geode::addSideArt(CCNode* to, SideArt sides, SideArtStyle style, bool useAnchorLayout) {
     const char* sprite;
     float offset;
