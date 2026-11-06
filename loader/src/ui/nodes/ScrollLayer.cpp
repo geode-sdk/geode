@@ -1,8 +1,12 @@
-#include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/ui/NineSlice.hpp>
+#include <Geode/cocos/misc_nodes/CCClippingNode.h>
+#include <algorithm>
 
 using namespace geode::prelude;
 
@@ -21,25 +25,31 @@ public:
     // robtop doesnt implement this simple check but lets add it anyway
     bool m_alreadyCancelled = false;
     bool m_stealingTouches = false;
+    bool m_touchClipping = true;
+    bool m_scrollClipping = true;
     float m_cancelTouchLimit = 10.f;
+    geode::Ref<CCNode> m_defaultStencil = nullptr;
+    geode::Ref<CCNode> m_stencil = nullptr;
+    geode::Ref<CCClippingNode> m_clippingNode = nullptr;
 
     Impl(ScrollLayer* self);
 
     void visit();
-    void scrollWheel(float y, float x);
+    bool scrollWheel(float y, float x);
     void enableScrollWheel(bool enable);
     bool ccTouchBegan(CCTouch* touch, CCEvent* event);
     void ccTouchMoved(CCTouch* touch, CCEvent* event);
     void ccTouchEnded(CCTouch* touch, CCEvent* event);
     void ccTouchCancelled(CCTouch* touch, CCEvent* event);
-    void scrollToTop();
     void setupScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical);
+    bool pointInsideRect(CCPoint const& point);
+    CCNode* getRealStencil();
 };
 
 GenericContentLayer::Impl::Impl(GenericContentLayer* self) : m_self(self) {}
 
 void GenericContentLayer::Impl::setPosition(CCPoint const& pos) {
-    auto parent = m_self->getParent();
+    auto parent = m_self->getParent() ? m_self->getParent()->getParent() : nullptr;
 
     if (parent && parent->getContentHeight() > m_self->getScaledContentHeight()) {
         auto y = parent->getContentHeight() - m_self->getScaledContentHeight();
@@ -70,30 +80,47 @@ void GenericContentLayer::Impl::setPosition(CCPoint const& pos) {
 
 ScrollLayer::Impl::Impl(ScrollLayer* self) : m_self(self) {}
 
-void ScrollLayer::Impl::visit() {
-    if (m_self->m_cutContent && m_self->isVisible()) {
-        glEnable(GL_SCISSOR_TEST);
-
-        if (m_self->getParent()) {
-            auto const bottomLeft = m_self->convertToWorldSpace(ccp(0, 0));
-            auto const topRight = m_self->convertToWorldSpace(m_self->getContentSize());
-            CCSize const size = topRight - bottomLeft;
-
-            CCEGLView::get()->setScissorInPoints(bottomLeft.x, bottomLeft.y, size.width, size.height);
-        }
+CCNode* ScrollLayer::Impl::getRealStencil() {
+    if (!m_defaultStencil) {
+        // i would use a CCLayerColor, but turns out CCClippingNode doesnt support them!
+        m_defaultStencil = NineSlice::create("cc_2x2_white_image");
     }
 
-    m_self->CCNode::visit();
-
-    if (m_self->m_cutContent && m_self->isVisible()) {
-        glDisable(GL_SCISSOR_TEST);
-    }
+    return m_stencil ? m_stencil : m_defaultStencil;
 }
 
-void ScrollLayer::Impl::scrollWheel(float y, float x) {
-    if (m_scrollWheelEnabled) {
-        m_self->scrollLayer(y);
-    }
+bool ScrollLayer::Impl::pointInsideRect(CCPoint const& point) {
+    auto local = m_self->convertToNodeSpace(point);
+    return CCRect{CCPointZero, m_self->getContentSize()}.containsPoint(local);
+}
+
+void ScrollLayer::Impl::visit() {
+    if (!m_self->isVisible())
+        return;
+
+    if (!m_self->m_cutContent)
+        return m_clippingNode->CCNode::visit();
+
+    m_clippingNode->setContentSize(m_self->getContentSize());
+    auto stencil = getRealStencil();
+    stencil->setContentSize(m_self->getContentSize());
+    stencil->setAnchorPoint(CCPointZero);
+    stencil->setPosition(CCPointZero);
+
+    m_self->CCNode::visit();
+}
+
+bool ScrollLayer::Impl::scrollWheel(float y, float x) {
+    if (!m_scrollWheelEnabled) return false;
+
+    if (!geode::cocos::nodeIsVisible(m_self)) return false;
+
+#ifdef GEODE_IS_DESKTOP
+    if (m_scrollClipping && !pointInsideRect(cocos::getMousePos())) return false;
+#endif
+
+    m_self->scrollLayer(y);
+    return true;
 }
 
 void ScrollLayer::Impl::enableScrollWheel(bool enable) { m_scrollWheelEnabled = enable; }
@@ -143,23 +170,26 @@ void ScrollLayer::Impl::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
     }
 }
 
-void ScrollLayer::Impl::scrollToTop() {
-    auto listTopScrollPos = -m_self->m_contentLayer->getContentHeight() + m_self->getContentHeight();
-    m_self->m_contentLayer->setPositionY(listTopScrollPos);
-}
-
 void ScrollLayer::Impl::setupScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical) {
+    m_self->ignoreAnchorPointForPosition(false);
+    m_self->setAnchorPoint(ccp(0.5f, 0.5f));
+
     m_scrollWheelEnabled = scrollWheelEnabled;
 
     m_self->m_disableVertical = !vertical;
     m_self->m_disableHorizontal = vertical;
     m_self->m_cutContent = true;
 
+    m_clippingNode = CCClippingNode::create(getRealStencil());
+    m_clippingNode->setAlphaThreshold(0.03f);
+    m_clippingNode->setContentSize(rect.size); 
+    m_self->addChild(m_clippingNode);
+
     m_self->m_contentLayer->removeFromParent();
     m_self->m_contentLayer = GenericContentLayer::create(rect.size.width, rect.size.height);
     m_self->m_contentLayer->setID("content-layer");
     m_self->m_contentLayer->setAnchorPoint({ 0, 0 });
-    m_self->addChild(m_self->m_contentLayer);
+    m_clippingNode->addChild(m_self->m_contentLayer);
 
     m_self->setID("ScrollLayer");
 
@@ -180,31 +210,28 @@ GenericContentLayer* GenericContentLayer::create(float width, float height) {
 GenericContentLayer::GenericContentLayer() : m_impl(std::make_unique<GenericContentLayer::Impl>(this)) {}
 GenericContentLayer::~GenericContentLayer() = default;
 
-void GenericContentLayer::setPosition(CCPoint const& pos) { 
-    m_impl->setPosition(pos); 
+void GenericContentLayer::setPosition(CCPoint const& pos) {
+    m_impl->setPosition(pos);
 }
 
-
-void ScrollLayer::visit() { 
-    m_impl->visit(); 
+void ScrollLayer::visit() {
+    m_impl->visit();
 }
 
-// TODO: 2.209
 bool ScrollLayer::scrollWheel(float y, float x) {
-    m_impl->scrollWheel(y, x);
-    return true;
+    return m_impl->scrollWheel(y, x);
 }
 
-void ScrollLayer::enableScrollWheel(bool enable) { 
-    m_impl->enableScrollWheel(enable); 
+void ScrollLayer::enableScrollWheel(bool enable) {
+    m_impl->enableScrollWheel(enable);
 }
 
-bool ScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) { 
-    return m_impl->ccTouchBegan(touch, event); 
+bool ScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    return m_impl->ccTouchBegan(touch, event);
 }
 
-void ScrollLayer::ccTouchMoved(CCTouch* touch, CCEvent* event) { 
-    m_impl->ccTouchMoved(touch, event); 
+void ScrollLayer::ccTouchMoved(CCTouch* touch, CCEvent* event) {
+    m_impl->ccTouchMoved(touch, event);
 }
 
 void ScrollLayer::ccTouchEnded(CCTouch* touch, CCEvent* event) {
@@ -215,8 +242,31 @@ void ScrollLayer::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
     m_impl->ccTouchCancelled(touch, event);
 }
 
-void ScrollLayer::scrollToTop() { 
-    m_impl->scrollToTop(); 
+bool ScrollLayer::touchInsideClip(cocos2d::CCPoint const& worldPoint) {
+    if (!m_cutContent || !m_impl->m_touchClipping) {
+        return true;
+    }
+
+    return m_impl->pointInsideRect(worldPoint);
+}
+
+float ScrollLayer::getScrollFromTop() const {
+    float viewHeight = this->getContentHeight();
+    float contentHeight = this->m_contentLayer->getContentHeight();
+    return this->m_contentLayer->getPositionY() - (viewHeight - contentHeight);
+}
+
+void ScrollLayer::scrollToFromTop(float offset) {
+    float viewHeight = this->getContentHeight();
+    float contentHeight = this->m_contentLayer->getContentHeight();
+    float maxOffset = std::max(0.f, contentHeight - viewHeight);
+    this->m_contentLayer->setPositionY(
+        (viewHeight - contentHeight) + std::clamp(offset, 0.f, maxOffset)
+    );
+}
+
+void ScrollLayer::scrollToTop() {
+    this->scrollToFromTop(0.f);
 }
 
 ScrollLayer::ScrollLayer(CCRect const& rect, bool scrollWheelEnabled, bool vertical) :
@@ -259,4 +309,33 @@ void ScrollLayer::setStealingTouches(bool steal) {
 
 bool ScrollLayer::isStealingTouches() const {
     return m_impl->m_stealingTouches;
+}
+
+void ScrollLayer::enableTouchClipping(bool clip) {
+    m_impl->m_touchClipping = clip;
+}
+
+bool ScrollLayer::hasTouchClipping() const {
+    return m_impl->m_touchClipping;
+}
+
+void ScrollLayer::enableScrollClipping(bool clip) {
+    m_impl->m_scrollClipping = clip;
+}
+
+bool ScrollLayer::hasScrollClipping() const {
+    return m_impl->m_scrollClipping;
+}
+
+void ScrollLayer::setStencil(cocos2d::CCNode* stencil) {
+    m_impl->m_stencil = stencil;
+    m_impl->m_clippingNode->setStencil(m_impl->getRealStencil());
+}
+
+cocos2d::CCNode* ScrollLayer::getStencil() const {
+    return m_impl->m_stencil;
+}
+
+cocos2d::CCClippingNode* ScrollLayer::getClippingNode() const {
+    return m_impl->m_clippingNode;
 }

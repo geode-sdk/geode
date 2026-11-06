@@ -92,7 +92,28 @@ namespace geode::geode_internal {
             return R{};
         }
     }
+
+    template <class Class, class Fn>
+    struct MemFnPtr;
+
+    template <class Class, class R, class... Args>
+    struct MemFnPtr<Class, R (*)(Args...)> {
+        using type = R (Class::*)(Args...);
+    };
+
+    template <class Class, class Fn>
+    using MemFnPtrT = typename MemFnPtr<Class, Fn>::type;
 }
+
+// Workaround for exported member functions on Windows, note that this only supports clang and there is no MSVC equivalent
+//
+// Other platforms allow there to be an inline + non-inline member function in the class and they just pick the non-inline symbol,
+// but windows does not like this and causes a duplicate symbol error. Forcing the inline def to be internal linkage causes it to work.
+#ifdef __clang__
+# define GEODE_INTERNAL_LINKAGE __attribute__((internal_linkage))
+#else
+# define GEODE_INTERNAL_LINKAGE
+#endif
 
 /// A hacky way to turn return type & parameters of a function into a function pointer type.
 /// Unlike a simple `ret (*)(params)`, this allows specifying default arguments because it uses a function declaration
@@ -103,6 +124,9 @@ namespace geode::geode_internal {
         return &uniq_name; \
     }())
 
+#define GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, uniq_name) \
+    ::geode::geode_internal::MemFnPtrT<Class, GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, uniq_name)>
+
 #define GEODE_EVENT_EXPORT_CALL(ret, name, params, args, eventID)                                       \
     static ret (name) params {                                                                          \
         using FnType = GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__)); \
@@ -112,8 +136,9 @@ namespace geode::geode_internal {
     }
 
 #define GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, eventID)                                \
-    inline ret (name) params {                                                                                 \
-        static auto storage = geode::geode_internal::callEventExportListener<ret (Class::*) params>(eventID);  \
+    GEODE_INTERNAL_LINKAGE inline ret (name) params {                                                          \
+        using FnType = GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__)); \
+        static auto storage = geode::geode_internal::callEventExportListener<FnType>(eventID);                  \
         if (!storage) return geode::geode_internal::getValueOnFailed<ret>();                                   \
         return storage args;                                                                                   \
     }
@@ -129,7 +154,25 @@ namespace geode::geode_internal {
 #define GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, eventID)                               \
     ret name params;                                                                                            \
     static inline bool GEODE_EVENT_EXPORT_UNIQUE(_geode_event_export_reg_, __COUNTER__)                         \
-    = geode::geode_internal::getEventExportListener(static_cast<ret (Class::*) params>(&Class::name), eventID);
+    = geode::geode_internal::getEventExportListener(static_cast<                                                \
+        GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__)) \
+    >(&Class::name), eventID);
+
+#define GEODE_EVENT_EXPORT_DEFINE_MEMBER_STATIC(ret, name, params, args, eventID) \
+    static ret name params;                                                                             \
+    static inline bool GEODE_EVENT_EXPORT_UNIQUE(_geode_event_export_reg_, __COUNTER__)                 \
+    = geode::geode_internal::getEventExportListener(                                                    \
+        static_cast<GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__))>(&name), \
+        eventID \
+    );
+
+#define GEODE_EVENT_EXPORT_CALL_MEMBER_STATIC(ret, name, params, args, eventID) \
+    GEODE_INTERNAL_LINKAGE static ret (name) params { \
+        using FnType = GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__)); \
+        static auto storage = geode::geode_internal::callEventExportListener<FnType>(eventID);            \
+        if (!storage) return geode::geode_internal::getValueOnFailed<ret>(); \
+        return storage args; \
+    }
 
 #ifndef GEODE_DEFINE_EVENT_EXPORTS
     #define GEODE_EVENT_EXPORT(ret, name, params, args) \
@@ -143,6 +186,12 @@ namespace geode::geode_internal {
 
     #define GEODE_EVENT_EXPORT_MEMBER_ID(Class, ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, (eventID))
+
+    #define GEODE_EVENT_EXPORT_MEMBER_STATIC(ret, name, params, args) \
+        GEODE_EVENT_EXPORT_CALL_MEMBER_STATIC(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
+
+    #define GEODE_EVENT_EXPORT_MEMBER_STATIC_ID(ret, name, params, args, eventID) \
+        GEODE_EVENT_EXPORT_CALL_MEMBER_STATIC(ret, name, params, args, (eventID))
 #else
     #define GEODE_EVENT_EXPORT(ret, name, params, args) \
         GEODE_EVENT_EXPORT_DEFINE(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
@@ -155,4 +204,10 @@ namespace geode::geode_internal {
 
     #define GEODE_EVENT_EXPORT_MEMBER_ID(Class, ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, (eventID))
+
+    #define GEODE_EVENT_EXPORT_MEMBER_STATIC(ret, name, params, args) \
+        GEODE_EVENT_EXPORT_DEFINE_MEMBER_STATIC(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
+
+    #define GEODE_EVENT_EXPORT_MEMBER_STATIC_ID(ret, name, params, args, eventID) \
+        GEODE_EVENT_EXPORT_DEFINE_MEMBER_STATIC(ret, name, params, args, (eventID))
 #endif

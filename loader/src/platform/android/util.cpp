@@ -20,6 +20,8 @@
 #include <sys/system_properties.h>
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
+#include <Geode/cocos/actions/CCActionManager.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 
 using namespace geode::prelude;
 

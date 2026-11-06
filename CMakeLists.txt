@@ -75,6 +75,15 @@ if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
 	string(REPLACE "\\" "/" GEODE_BINDINGS_REPO_PATH ${temp})
 endif()
 
+if (GEODE_BINDINGS_REPO_PATH)
+  file(GLOB GEODE_BINDINGS_CONTENTS "${GEODE_BINDINGS_REPO_PATH}/*")
+  list(LENGTH GEODE_BINDINGS_CONTENTS GEODE_BINDINGS_COUNT)
+
+  if(GEODE_BINDINGS_COUNT EQUAL 0)
+    set(GEODE_BINDINGS_REPO_PATH "")
+  endif()
+endif()
+
 if (NOT GEODE_BINDINGS_REPO_PATH)
 	message(STATUS
 		"No override path for bindings provided, using CPM to clone default. "
@@ -266,10 +275,10 @@ CPMAddPackage("gh:fmtlib/fmt#12.2.0")
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
-	set(GEODE_ARC_VERSION "@1.6.4" CACHE STRING "")
+	set(GEODE_ARC_VERSION "@1.6.5" CACHE STRING "")
 endif()
 if (NOT DEFINED GEODE_ASP_VERSION)
-	set(GEODE_ASP_VERSION "@1.5.3" CACHE STRING "")
+	set(GEODE_ASP_VERSION "@1.6.0" CACHE STRING "")
 endif()
 
 CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")
