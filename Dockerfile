@@ -2,131 +2,78 @@
 
 ARG SDK_VERSION=5.9.0
 ARG BINDINGS=geode-sdk/bindings
-ARG GIT_INVALIDATE_CLONE=0
 
-FROM prevter/geode-sdk:android-${SDK_VERSION} AS build-repositories
+FROM ghcr.io/geode-sdk/tools:android-latest AS clone-codegen
 ARG BINDINGS
-ARG GIT_INVALIDATE_CLONE
+
+FROM ghcr.io/geode-sdk/tools:android-latest AS build-android32
 
 WORKDIR /workspace
-COPY bindings bindings
-
-WORKDIR /workspace/bindings/codegen
-
-RUN --mount=type=cache,target=/workspace/cpm-cache \
-    --mount=type=cache,target=/workspace/bindings/codegen/build-docker,id=codegen \
-    cmake -G Ninja -B build-docker \
-    -DCPM_SOURCE_CACHE=/workspace/cpm-cache \
-    && cmake --build build-docker --parallel \
-    && cp build-docker/Codegen /workspace/
-
-
-FROM prevter/geode-sdk:android-${SDK_VERSION} AS build-android32
-
-WORKDIR /workspace
-COPY bindings bindings
-
-COPY --from=build-repositories /workspace/Codegen .
-
-WORKDIR /workspace/project
 COPY . .
 
-RUN --mount=type=cache,target=/workspace/cpm-cache \
-    --mount=type=cache,target=/workspace/project/build-docker,id=android32 \
-    mkdir -p /workspace/project/build-docker/bindings/codegen \
-    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
-    && cmake --preset docker-a32 \
-    && cmake --build --preset docker-a32
+RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
+    --mount=type=cache,target=/workspace/build-android32,id=build-android32 \
+    cmake --preset android32 --presets-file=/docker/CMakePresets.json \
+    && cmake --build-preset android32 --presets-file=/docker/CMakePresets.json
 
 FROM scratch AS export-android32
 COPY --from=build-android32 /workspace/project/bin/nightly/* .
 
-# Android 64
-FROM prevter/geode-sdk:android-${SDK_VERSION} AS build-android64
+FROM ghcr.io/geode-sdk/tools:android-latest AS build-android64
 
 WORKDIR /workspace
-COPY bindings bindings
-
-COPY --from=build-repositories /workspace/Codegen .
-
-WORKDIR /workspace/project
 COPY . .
 
-RUN --mount=type=cache,target=/workspace/cpm-cache \
-    --mount=type=cache,target=/workspace/project/build-docker,id=android64 \
-    mkdir -p /workspace/project/build-docker/bindings/codegen \
-    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
-    && cmake --preset docker-a64 \
-    && cmake --build --preset docker-a64
+RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
+    --mount=type=cache,target=/workspace/build-android64,id=build-android64 \
+    cmake --preset android64 --presets-file=/docker/CMakePresets.json \
+    && cmake --build-preset android64 --presets-file=/docker/CMakePresets.json
 
 FROM scratch AS export-android64
 COPY --from=build-android64 /workspace/project/bin/nightly/* .
 
-# iOS
-FROM prevter/geode-sdk:ios-${SDK_VERSION} AS build-ios
+
+FROM ghcr.io/geode-sdk/tools:android-latest AS build-ios
 
 WORKDIR /workspace
-COPY bindings bindings
-
-COPY --from=build-repositories /workspace/Codegen .
-
-WORKDIR /workspace/project
 COPY . .
 
-RUN --mount=type=cache,target=/workspace/cpm-cache \
-    --mount=type=cache,target=/workspace/project/build-docker,id=ios \
-    mkdir -p /workspace/project/build-docker/bindings/codegen \
-    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
-    && cmake --preset docker-ios \
-    && cmake --build --preset docker-ios
+RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
+    --mount=type=cache,target=/workspace/build-ios,id=build-ios \
+    cmake --preset ios --presets-file=/docker/CMakePresets.json \
+    && cmake --build-preset ios --presets-file=/docker/CMakePresets.json
 
 FROM scratch AS export-ios
 COPY --from=build-ios /workspace/project/bin/nightly/* .
 
 
-# MacOS
-FROM prevter/geode-sdk:macos-${SDK_VERSION} AS build-macos
-ARG CPM_CACHE_DIR
+FROM ghcr.io/geode-sdk/tools:android-latest AS build-mac
 
 WORKDIR /workspace
-COPY bindings bindings
-
-COPY --from=build-repositories /workspace/Codegen .
-
-WORKDIR /workspace/project
 COPY . .
 
-RUN --mount=type=cache,target=/workspace/cpm-cache \
-    --mount=type=cache,target=/workspace/project/build-docker,id=macos \
-    mkdir -p /workspace/project/build-docker/bindings/codegen \
-    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
-    && cmake --preset docker-mac \
-    && cmake --build --preset docker-mac
+RUN --mount=type=cache,target=/cpm-cache,id=cpm-mac \
+    --mount=type=cache,target=/workspace/build-mac,id=build-mac \
+    cmake --preset mac --presets-file=/docker/CMakePresets.json \
+    && cmake --build-preset mac --presets-file=/docker/CMakePresets.json
 
-FROM scratch AS export-macos
-COPY --from=build-macos /workspace/project/bin/nightly/* .
+FROM scratch AS export-mac
+COPY --from=build-mac /workspace/project/bin/nightly/* .
 
-# Windows
-FROM prevter/geode-sdk:windows-${SDK_VERSION} AS build-windows
-ARG CPM_CACHE_DIR
+
+FROM ghcr.io/geode-sdk/tools:android-latest AS build-win
 
 WORKDIR /workspace
-COPY bindings bindings
-
-COPY --from=build-repositories /workspace/Codegen .
-
-WORKDIR /workspace/project
 COPY . .
 
-RUN --mount=type=cache,target=/workspace/cpm-cache \
-    --mount=type=cache,target=/workspace/project/build-docker,id=windows \
-    mkdir -p /workspace/project/build-docker/bindings/codegen \
-    && cp /workspace/Codegen /workspace/project/build-docker/bindings/codegen/Codegen \
-    && cmake --preset docker-win \
-    && cmake --build --preset docker-win
+RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
+    --mount=type=cache,target=/workspace/build-win,id=build-win \
+    cmake --preset win --presets-file=/docker/CMakePresets.json \
+    && cmake --build-preset win --presets-file=/docker/CMakePresets.json
 
-FROM scratch AS export-windows
-COPY --from=build-windows /workspace/project/bin/nightly/* .
+FROM scratch AS export-win
+COPY --from=build-win /workspace/project/bin/nightly/* .
+
 
 FROM debian:bookworm-slim AS export-combine
 
@@ -136,17 +83,18 @@ COPY --from=export-android32 /Geode.android32.so.sym .
 COPY --from=export-android64 /Geode.android64.so .
 COPY --from=export-android64 /Geode.android64.so.sym .
 COPY --from=export-ios /Geode.ios.dylib .
-COPY --from=export-macos /Geode.dylib .
-COPY --from=export-macos /GeodeBootstrapper.dylib .
-COPY --from=export-windows /Geode.dll .
-COPY --from=export-windows /Geode.lib .
-COPY --from=export-windows /Geode.pdb .
-COPY --from=export-windows /GeodeUpdater.exe .
-COPY --from=export-windows /GeodeUpdater.pdb .
-COPY --from=export-windows /XInput1_4.dll .
-COPY --from=export-windows /XInput1_4.lib .
-COPY --from=export-windows /XInput1_4.pdb .
-COPY --from=export-windows /resources .
+COPY --from=export-mac /Geode.dylib .
+COPY --from=export-mac /GeodeBootstrapper.dylib .
+COPY --from=export-win /Geode.dll .
+COPY --from=export-win /Geode.lib .
+COPY --from=export-win /Geode.pdb .
+COPY --from=export-win /GeodeUpdater.exe .
+COPY --from=export-win /GeodeUpdater.pdb .
+COPY --from=export-win /XInput1_4.dll .
+COPY --from=export-win /XInput1_4.lib .
+COPY --from=export-win /XInput1_4.pdb .
+COPY --from=export-win /resources .
+
 
 WORKDIR /
 COPY docker-extract.sh .
