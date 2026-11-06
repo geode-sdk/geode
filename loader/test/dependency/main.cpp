@@ -209,6 +209,14 @@ Result<int> api::Test::addNumbers(int a, int b) {
     return Ok(a + b);
 }
 
+int api::Test::withDefaultArgs(int a, int b) {
+    return a + b;
+}
+
+int api::Test::asStatic(int a, int b) {
+    return a + b;
+}
+
 int api::randomNumber() {
     // chosen by fair dice roll.
     // guaranteed to be random.

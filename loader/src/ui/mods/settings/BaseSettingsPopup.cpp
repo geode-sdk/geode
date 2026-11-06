@@ -76,13 +76,14 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
     m_list->setTouchEnabled(true);
     m_list->moveToTop();
+    m_list->setAnchorPoint(ccp(0.5f, 0));
 
     const int buttonPriority = m_list->getTouchPriority() - 1;
 
     m_buttonMenu->setTouchPriority(buttonPriority);
     searchContainer->setTouchPriority(buttonPriority);
 
-    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
+    layerBG->addChildAtPosition(m_list, Anchor::Bottom);
 
     // layer borders
 
