@@ -241,4 +241,29 @@ namespace geode {
         struct Impl;
         std::unique_ptr<Impl> m_impl;
     };
+
+    class GEODE_DLL ContextMenu : public NineSlice, public cocos2d::CCTouchDelegate {
+    public:
+        ContextMenu();
+        ~ContextMenu() override;
+
+        static ContextMenu* create();
+
+        void onEnter() override;
+        void onExit() override;
+
+        void addItem(ZStringView name, Function<void()> callback, ZStringView description = "");
+        void addSeparator();
+
+        void show(cocos2d::CCPoint pos);
+
+        static void closeAll();
+
+        bool init() override;
+        bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+
+    private:
+        struct Impl;
+        std::unique_ptr<Impl> m_impl;
+    };
 }

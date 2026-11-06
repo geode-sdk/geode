@@ -1,13 +1,16 @@
+#include <Geode/binding/PlatformToolbox.hpp>
+#include <Geode/binding/TextInputDelegate.hpp>
 #include <Geode/cocos/draw_nodes/CCDrawNode.h>
 #include <Geode/cocos/misc_nodes/CCClippingNode.h>
 #include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/robtop/mouse_dispatcher/CCMouseDispatcher.h>
-#include <Geode/binding/PlatformToolbox.hpp>
-#include <Geode/binding/TextInputDelegate.hpp>
-#include <Geode/modify/CCTextInputNode.hpp>
+#include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
 #include <Geode/loader/Log.hpp>
+#include <Geode/modify/CCTextInputNode.hpp>
+#include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/Keyboard.hpp>
 #include <simdutf/implementation.h>
@@ -803,6 +806,7 @@ struct TextInput::Impl {
             switch (data.key) {
                 case KEY_Enter: {
                     if (m_multiline) {
+                        ContextMenu::closeAll();
                         this->insertText("\n", 1, KEY_Enter);
                         return ListenerResult::Stop;
                     }
@@ -810,6 +814,7 @@ struct TextInput::Impl {
                 }
                 case KEY_A: {
                     if (ctrl) {
+                        ContextMenu::closeAll();
                         this->selectAll();
                         this->resetCaretBlink();
                         return ListenerResult::Stop;
@@ -818,6 +823,7 @@ struct TextInput::Impl {
                 }
                 case KEY_C: {
                     if (ctrl && this->hasSelection()) {
+                        ContextMenu::closeAll();
                         this->copySelection();
                         return ListenerResult::Stop;
                     }
@@ -825,6 +831,7 @@ struct TextInput::Impl {
                 }
                 case KEY_X: {
                     if (ctrl && this->hasSelection()) {
+                        ContextMenu::closeAll();
                         this->cutSelection();
                         this->resetCaretBlink();
                         return ListenerResult::Stop;
@@ -832,6 +839,7 @@ struct TextInput::Impl {
                     return ListenerResult::Propagate;
                 }
                 case KEY_Home: {
+                    ContextMenu::closeAll();
                     if (shift) {
                         if (m_selectionStart < 0) {
                             m_selectionStart = m_cursorPos;
@@ -847,6 +855,7 @@ struct TextInput::Impl {
                     return ListenerResult::Stop;
                 }
                 case KEY_End: {
+                    ContextMenu::closeAll();
                     if (shift) {
                         if (m_selectionStart < 0) {
                             m_selectionStart = m_cursorPos;
@@ -1353,6 +1362,7 @@ void TextInput::didAttachWithIME() {
 }
 
 void TextInput::didDetachWithIME() {
+    ContextMenu::closeAll();
     m_impl->m_hasFocus = false;
     m_impl->m_caret->setVisible(false);
 
@@ -1557,13 +1567,111 @@ bool TextInput::scrollWheel(float y, float x) {
     return m_impl->m_scroll != before;
 }
 
+// i'm sorry, but this is what RobTop does for CCTextInputNode
+static bool isCoveredByPopup(TextInput* input) {
+    auto touchDispatcher = CCTouchDispatcher::get();
+    auto handler = touchDispatcher->findHandler(input);
+    if (!handler) return false;
+    return handler->getPriority() > touchDispatcher->getTargetPrio();
+}
+
 bool TextInput::rightClick(float x, float y) {
-    // TODO: context menu (Cut / Copy / Paste / Select All)
-    return false;
+    auto local = this->convertToNodeSpace({x, y});
+    CCRect rect{0.f, 0.f, this->getContentWidth(), this->getContentHeight()};
+    if (!rect.containsPoint(local) || isCoveredByPopup(this)) return false;
+
+    this->attachWithIME();
+
+    auto labelPos = m_impl->m_label->convertToNodeSpace({x, y});
+    int newPos = m_impl->codepointAtLabelPos(labelPos);
+
+    bool insideSelection = false;
+    if (m_impl->hasSelection()) {
+        int a = std::min(m_impl->m_selectionStart, m_impl->m_cursorPos);
+        int b = std::max(m_impl->m_selectionStart, m_impl->m_cursorPos);
+        insideSelection = newPos >= a && newPos <= b;
+    }
+
+    if (!insideSelection) {
+        m_impl->m_selectionStart = -1;
+        m_impl->m_cursorPos = newPos;
+        m_impl->m_goalX = -1.f;
+        m_impl->updateCaretPosition();
+        m_impl->updateSelectionHighlight();
+        m_impl->resetCaretBlink();
+    }
+
+    auto ctx = ContextMenu::create();
+
+    bool hasSel = m_impl->hasSelection();
+    bool hasText = !m_impl->m_textU32.empty();
+    bool hasPassword = m_impl->m_password;
+
+#if defined(GEODE_IS_MACOS) || defined(GEODE_IS_IOS)
+    #define CTRL_NAME "Cmd"
+#else
+    #define CTRL_NAME "Ctrl"
+#endif
+
+    if (hasSel && !hasPassword) {
+        ctx->addItem("Cut", [self = WeakRef(this)] {
+            if (auto s = self.lock()) {
+                s->m_impl->cutSelection();
+                s->m_impl->resetCaretBlink();
+            }
+        }, CTRL_NAME "+X");
+        ctx->addItem("Copy", [self = WeakRef(this)] {
+            if (auto s = self.lock()) {
+                s->m_impl->copySelection();
+            }
+        }, CTRL_NAME "+C");
+    }
+
+    if (!hasPassword) {
+        if (!clipboard::read().empty()) {
+            ctx->addItem("Paste", [self = WeakRef(this)] {
+                if (auto s = self.lock()) {
+                    auto text = clipboard::read();
+                    if (!text.empty()) {
+                        s->m_impl->insertText(
+                            text.data(),
+                            static_cast<int>(text.size()),
+                            KEY_None
+                        );
+                    }
+                }
+            }, CTRL_NAME "+V");
+        }
+    }
+
+    if (hasText) {
+        ctx->addItem("Select All", [self = WeakRef(this)] {
+            if (auto s = self.lock()) {
+                s->m_impl->selectAll();
+                s->m_impl->resetCaretBlink();
+            }
+        }, CTRL_NAME "+A");
+        ctx->addSeparator();
+        ctx->addItem("Clear", [self = WeakRef(this)] {
+            if (auto s = self.lock()) {
+                s->m_impl->m_textU32.clear();
+                s->m_impl->m_cursorPos = 0;
+                s->m_impl->m_selectionStart = -1;
+                s->m_impl->syncLabel();
+            }
+        });
+    }
+
+#undef CTRL_NAME
+
+    ctx->show({x, y});
+
+    return true;
 }
 
 void TextInput::registerWithTouchDispatcher() {
-    CCTouchDispatcher::get()->addTargetedDelegate(this, kCCMenuHandlerPriority, true);
+    // rob uses -500 so i guess that's fine
+    CCTouchDispatcher::get()->addTargetedDelegate(this, -500, true);
     CCMouseDispatcher::get()->addDelegate(this);
 }
 
@@ -1773,6 +1881,214 @@ bool TextInput::initWithSize(CCSize const& size, std::string placeholder, ZStrin
         this->setDisplayEmojis(false);
         this->setCommonFilter(CommonFilter::Any);
     }
+
+    return true;
+}
+
+struct ContextMenu::Impl {
+    struct Entry {
+        Ref<CCNode> content;
+        Ref<Label> label;
+        Function<void()> action;
+    };
+
+    std::vector<Entry> m_entries;
+
+    static constexpr float BUTTON_SCALE = 0.35f;
+    static constexpr float DESCRIPTION_SCALE = 0.45f;
+
+    CCNode* makeRow(CCNode* parent, Entry& entry, float maxW) {
+        auto* row = CCLayerColor::create({255, 255, 255, 0}, maxW, 1);
+        row->ignoreAnchorPointForPosition(false);
+
+        row->addChild(entry.content);
+        if (entry.label) {
+            row->addChild(entry.label);
+        }
+
+        row->setLayout(
+            SimpleRowLayout::create()
+                ->setMainAxisAlignment(MainAxisAlignment::Between)
+                ->setCrossAxisAlignment(CrossAxisAlignment::Center)
+                ->setMainAxisScaling(AxisScaling::None)
+                ->setCrossAxisScaling(AxisScaling::Fit)
+                ->setPadding(Padding::symmetric(4.f, 2.f))
+        );
+
+        auto btn = Button::createWithNode(row, [parent, callback = std::move(entry.action)](auto*) mutable {
+            callback();
+            parent->removeFromParent();
+        });
+
+        btn->setSelectCallback([row, label = entry.label](auto* btn) {
+            row->stopAllActions();
+            row->runAction(CCFadeTo::create(0.1f, 120));
+            if (label) {
+                label->stopAllActions();
+                label->runAction(CCTintTo::create(0.1f, 255, 255, 255));
+            }
+        });
+
+        btn->setUnselectCallback([row, label = entry.label](auto* btn) {
+            row->stopAllActions();
+            row->runAction(CCFadeTo::create(0.1f, 0));
+            if (label) {
+                label->stopAllActions();
+                label->runAction(CCTintTo::create(0.1f, 175, 175, 175));
+            }
+        });
+
+        btn->setAnimationType(Button::AnimationType::None);
+
+        return btn;
+    }
+
+    void populateItems(CCNode* container) {
+        float maxW = 0.f;
+        for (auto& entry : m_entries) {
+            if (!entry.content) continue;
+
+            auto w = entry.content->getScaledContentWidth();
+            if (entry.label) {
+                w += entry.label->getScaledContentWidth() + 16.f;
+            }
+
+            maxW = std::max(maxW, w);
+        }
+
+        for (auto& entry : m_entries) {
+            if (!entry.content) {
+                // separator
+                container->addChild(CCLayerColor::create({255, 255, 255, 160}, maxW, 0.5f));
+                continue;
+            }
+
+            auto btn = makeRow(container, entry, maxW);
+            container->addChild(btn);
+        }
+    }
+};
+
+ContextMenu::ContextMenu() : m_impl(std::make_unique<Impl>()) {}
+ContextMenu::~ContextMenu() = default;
+
+ContextMenu* ContextMenu::create() {
+    auto ret = new ContextMenu();
+    if (ret->init()) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+void ContextMenu::onEnter() {
+    CCNode::onEnter();
+    CCTouchDispatcher::get()->addTargetedDelegate(this, kCCMenuHandlerPriority, true);
+}
+
+void ContextMenu::onExit() {
+    CCNode::onExit();
+    CCTouchDispatcher::get()->removeDelegate(this);
+}
+
+void ContextMenu::addItem(
+    ZStringView name,
+    Function<void()> callback,
+    ZStringView description
+) {
+    auto label = Label::createRich(name, "bigFont.fnt");
+    label->setScale(Impl::BUTTON_SCALE);
+
+    Label* descLabel = nullptr;
+    if (!description.empty()) {
+        descLabel = Label::createRich(description, "chatFont.fnt");
+        descLabel->setScale(Impl::DESCRIPTION_SCALE);
+        descLabel->setColor({175, 175, 175});
+    }
+
+    m_impl->m_entries.emplace_back(Impl::Entry{
+        label,
+        descLabel,
+        std::move(callback)
+    });
+}
+
+void ContextMenu::addSeparator() {
+    m_impl->m_entries.emplace_back(Impl::Entry{nullptr, nullptr, nullptr});
+}
+
+void ContextMenu::show(CCPoint pos) {
+    if (m_impl->m_entries.empty()) {
+        return;
+    }
+
+    m_impl->populateItems(this);
+    this->updateLayout();
+
+    if (auto scene = CCScene::get()) {
+        this->closeAll();
+
+        auto z = scene->getHighestChildZ();
+        scene->addChild(this, z + 1);
+
+        auto size = this->getScaledContentSize();
+        auto winSize = CCDirector::get()->getWinSize();
+
+        CCPoint anchor{0.f, 1.f};
+
+        auto right = pos.x + size.width;
+        if (right > winSize.width) {
+            anchor.x = 1.f;
+        }
+
+        auto bottom = pos.y - size.height;
+        if (bottom < 0) {
+            auto fract = -bottom / size.height;
+            anchor.y = 1.f - fract;
+        }
+
+        this->setAnchorPoint(anchor);
+        this->setPosition(pos);
+    }
+}
+
+void ContextMenu::closeAll() {
+    if (auto scene = CCScene::get()) {
+        while (auto menu = scene->getChildByType<ContextMenu>()) {
+            menu->removeFromParent();
+        }
+    }
+}
+
+bool ContextMenu::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    auto local = this->convertToNodeSpace(touch->getLocation());
+    CCRect rect{0.f, 0.f, this->getContentWidth(), this->getContentHeight()};
+    if (rect.containsPoint(local)) {
+        return true;
+    }
+
+    this->removeFromParent();
+    return false;
+}
+
+bool ContextMenu::init() {
+    if (!NineSlice::initWithFile("square02b_001.png", {0, 0, 80, 80}, {})) {
+        return false;
+    }
+
+    this->setColor({0, 0, 0});
+    this->setOpacity(220);
+    this->setScaleMultiplier(0.25f);
+
+    this->setLayout(
+        SimpleColumnLayout::create()
+            ->setMainAxisScaling(AxisScaling::Fit)
+            ->setCrossAxisScaling(AxisScaling::Fit)
+            ->setMainAxisAlignment(MainAxisAlignment::Center)
+            ->setCrossAxisAlignment(CrossAxisAlignment::Start)
+            ->setPadding(Padding::uniform(2.f))
+    );
 
     return true;
 }
