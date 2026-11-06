@@ -69,7 +69,7 @@
     !insertmacro GEODE_LANGUAGE "TradChinese"
     !insertmacro GEODE_LANGUAGE "Korean"
     !insertmacro GEODE_LANGUAGE "Indonesian"
-    !insertmacro MUI_LANGUAGE "Romanian"
+    !insertmacro GEODE_LANGUAGE "Romanian"
 
     !insertmacro MUI_RESERVEFILE_LANGDLL
 
