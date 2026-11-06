@@ -17,7 +17,7 @@ T findSymbolOrMangled(void* dylib, char const* name, char const* mangled) {
 
 Result<> Mod::Impl::loadPlatformBinary() {
     auto dylib =
-        dlopen(utils::string::pathToString(this->getBinaryPath()).c_str(), RTLD_LAZY);
+        dlopen(this->getBinaryPath().c_str(), RTLD_LAZY);
     if (dylib) {
         if (m_platformInfo) {
             delete m_platformInfo;
@@ -40,6 +40,6 @@ Result<> Mod::Impl::loadPlatformBinary() {
     return Err("Unable to load the DYLIB: dlerror returned (" + err + ")");
 }
 
-void Mod::Impl::addNativeBinariesPath(std::filesystem::path const& path) {
+void Mod::Impl::addNativeBinariesPath(asp::fs::Path const& path) {
     log::warn("LoaderImpl::addNativeBinariesPath not implement on this platform, not adding path {}", path);
 }

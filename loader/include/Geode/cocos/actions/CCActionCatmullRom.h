@@ -106,12 +106,12 @@ public:
      */
     virtual CCObject* copyWithZone(CCZone *zone);
 
-    const gd::vector<CCPoint*>* getControlPoints();
+    const std::vector<CCPoint*>* getControlPoints();
 
-    void setControlPoints(gd::vector<CCPoint*> *controlPoints);
+    void setControlPoints(std::vector<CCPoint*> *controlPoints);
 public:
     /** Array that contains the control points */
-    gd::vector<CCPoint*> *m_pControlPoints;
+    std::vector<CCPoint*> *m_pControlPoints;
 };
 
 /** Cardinal Spline path.

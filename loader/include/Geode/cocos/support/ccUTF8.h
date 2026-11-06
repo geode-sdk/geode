@@ -15,7 +15,7 @@ NS_CC_BEGIN
 
 CC_DLL int cc_wcslen(const unsigned short* str);
 
-CC_DLL void cc_utf8_trim_ws(gd::vector<unsigned short>* str);
+CC_DLL void cc_utf8_trim_ws(std::vector<unsigned short>* str);
 
 /*
  * @ch is the unicode character whitespace?
@@ -47,9 +47,9 @@ cc_utf8_strlen (const char * p, int max);
  *
  * Return value: the index of the last character that is not c.
  * */
-CC_DLL unsigned int cc_utf8_find_last_not_char(gd::vector<unsigned short> str, unsigned short c);
+CC_DLL unsigned int cc_utf8_find_last_not_char(std::vector<unsigned short> str, unsigned short c);
 
-CC_DLL gd::vector<unsigned short> cc_utf16_vec_from_utf16_str(const unsigned short* str);
+CC_DLL std::vector<unsigned short> cc_utf16_vec_from_utf16_str(const unsigned short* str);
 
 /*
  * cc_utf8_to_utf16:

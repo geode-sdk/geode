@@ -21,6 +21,14 @@ namespace geode {
     protected:
         std::unordered_map<std::string, Provider<cocos2d::CCNode>> m_providers;
 
+        NodeIDs();
+        ~NodeIDs();
+
+        NodeIDs(NodeIDs const&) = delete;
+        NodeIDs(NodeIDs&&) = delete;
+        NodeIDs& operator=(NodeIDs const&) = delete;
+        NodeIDs& operator=(NodeIDs&&) = delete;
+
     public:
         static NodeIDs* get();
 

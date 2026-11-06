@@ -6,6 +6,9 @@
 #include <Geode/utils/addresser.hpp>
 #include <cstdlib>
 #include <stddef.h>
+#ifdef GEODE_IS_WINDOWS
+#include <Windows.h>
+#endif
 
 #define GEODE_ADDRESSER_NEST1(macro, begin)                                                      \
     macro(GEODE_CONCAT(begin, 0)), macro(GEODE_CONCAT(begin, 1)), macro(GEODE_CONCAT(begin, 2)), \

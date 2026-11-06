@@ -1,6 +1,7 @@
 #include "ConfirmUninstallPopup.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/TextArea.hpp>
+#include <Geode/ui/Label.hpp>
 
 bool ConfirmUninstallPopup::init(Mod* mod) {
     if (!Popup::init(300.f, 150.f, "square01_001.png"))
@@ -10,20 +11,21 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
 
     this->setTitle(fmt::format("Uninstall {}", mod->getName()));
 
+    // TODO: 2.209 (change to Label?)
     auto text = TextArea::create(
         fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{:.100}</c>?", mod->getName()),
         "chatFont.fnt",
         1.f, m_size.width - 35,
-        ccp(.5f, .5f), 20.f, false
+        ccp(.5f, .5f), 20.f, false, 0
     );
     m_mainLayer->addChildAtPosition(text, Anchor::Center, ccp(0, 20));
 
-    auto deleteDataLabel = CCLabelBMFont::create("Delete the Mod's save data", "bigFont.fnt");
+    auto deleteDataLabel = Label::create("Delete the Mod's save data", "bigFont.fnt");
     deleteDataLabel->setScale(.35f);
     m_buttonMenu->addChildAtPosition(deleteDataLabel, Anchor::Center, ccp(-70, -15), ccp(0, .5f));
 
     if (mod->isInternal()) {
-        deleteDataLabel->setString("Delete ALL mods and their save data");
+        deleteDataLabel->setText("Delete ALL mods and their save data");
         deleteDataLabel->setScale(0.275f);
     }
 

@@ -2,7 +2,6 @@
 
 #include "cplatform.h"
 #include <string>
-#include <functional>
 #include <memory>
 
 #if !defined(__PRETTY_FUNCTION__) && !defined(__GNUC__)

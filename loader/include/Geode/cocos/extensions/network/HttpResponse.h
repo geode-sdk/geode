@@ -25,7 +25,7 @@
 #ifndef __HTTP_RESPONSE__
 #define __HTTP_RESPONSE__
 
-#include "../../include/cocos2d.h"
+#include "../../cocoa/CCObject.h"
 #include "../ExtensionMacros.h"
 #include "HttpRequest.h"
 
@@ -95,13 +95,13 @@ public:
     };
 
     /** Get the http response raw data */
-    inline gd::vector<char>* getResponseData()
+    inline std::vector<char>* getResponseData()
     {
         return &_responseData;
     }
 
     /** get the Rawheader **/
-    inline gd::vector<char>* getResponseHeader()
+    inline std::vector<char>* getResponseHeader()
     {
         return &_responseHeader;
     }
@@ -137,14 +137,14 @@ public:
 
     /** Set the http response raw buffer, is used by CCHttpClient
      */
-    inline void setResponseData(gd::vector<char>* data)
+    inline void setResponseData(std::vector<char>* data)
     {
         _responseData = *data;
     }
 
     /** Set the http response Header raw buffer, is used by CCHttpClient
      */
-    inline void setResponseHeader(gd::vector<char>* data)
+    inline void setResponseHeader(std::vector<char>* data)
     {
         _responseHeader = *data;
     }
@@ -162,7 +162,7 @@ public:
      */
     inline void setErrorBuffer(const char* value)
     {
-        _errorBuffer = gd::string(value);
+        _errorBuffer = std::string(value);
     };
 
 protected:
@@ -171,10 +171,10 @@ public:
     // properties
     CCHttpRequest*        _pHttpRequest;  /// the corresponding HttpRequest pointer who leads to this response
     bool                _succeed;       /// to indecate if the http reqeust is successful simply
-    gd::vector<char>   _responseData;  /// the returned raw data. You can also dump it as a string
-    gd::vector<char>   _responseHeader;  /// the returned raw header data. You can also dump it as a string
+    std::vector<char>   _responseData;  /// the returned raw data. You can also dump it as a string
+    std::vector<char>   _responseHeader;  /// the returned raw header data. You can also dump it as a string
     int                 _responseCode;    /// the status code returned from libcurl, e.g. 200, 404
-    gd::string         _errorBuffer;   /// if _responseCode != 200, please read _errorBuffer to find the reason
+    std::string         _errorBuffer;   /// if _responseCode != 200, please read _errorBuffer to find the reason
 
 };
 

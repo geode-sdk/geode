@@ -1,6 +1,6 @@
 #include "Geode/utils/ColorProvider.hpp"
 #include <Geode/ui/General.hpp>
-#include <cocos-ext.h>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 
 using namespace geode::prelude;
 
@@ -246,32 +246,26 @@ void geode::pushSceneWithLayer(cocos2d::CCLayer *layer) {
     CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(.5f, scene));
 }
 
-CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, BackButtonStyle style) {
-    return geode::addBackButton(to, [](cocos2d::CCMenuItem*) { CCDirector::get()->popSceneWithTransition(.5f, PopTransition::kPopTransitionFade); }, style);
+Button* geode::addBackButton(CCNode* to, BackButtonStyle style) {
+    return geode::addBackButton(to, [](auto) { CCDirector::get()->popSceneWithTransition(.5f, PopTransition::kPopTransitionFade); }, style);
 }
 
-CCMenuItemSpriteExtra* geode::addBackButton(cocos2d::CCNode* to, geode::Function<void(cocos2d::CCMenuItem*)> callback, BackButtonStyle style) {
-    const char* sprite;
-    switch (style) {
-        default: [[fallthrough]];
+Button* geode::addBackButton(CCNode* to, Button::ButtonCallback callback, BackButtonStyle style) {
+    auto sprite = [style]() -> ZStringView {
+        switch (style) {
+            default: [[fallthrough]];
 
-        case BackButtonStyle::Green: sprite = "GJ_arrow_01_001.png"; break;
-        case BackButtonStyle::Blue: sprite = "GJ_arrow_02_001.png"; break;
-        case BackButtonStyle::Pink: sprite = "GJ_arrow_03_001.png"; break;
-    }
+            case BackButtonStyle::Green: return "GJ_arrow_01_001.png";
+            case BackButtonStyle::Blue: return "GJ_arrow_02_001.png";
+            case BackButtonStyle::Pink: return "GJ_arrow_03_001.png";
+        }
+    }();
 
-    auto backBtn = CCMenuItemExt::createSpriteExtra(
-        CCSprite::createWithSpriteFrameName(sprite),
-        std::move(callback)
-    );
+    auto backBtn = Button::createWithSpriteFrameName(sprite, std::move(callback));
     backBtn->setID("back-button");
     backBtn->setZOrder(1);
 
-    auto menu = CCMenu::createWithItem(backBtn);
-    menu->setID("back-menu");
-    menu->setPosition({ 25.0f, CCDirector::get()->getWinSize().height - 25.0f });
-    menu->setZOrder(1);
-    to->addChild(menu);
+    to->addChildAtPosition(backBtn, Anchor::TopLeft, {-25.f, -25.f}, false);
 
     return backBtn;
 }

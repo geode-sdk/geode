@@ -6,7 +6,10 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/cocos/actions/CCActionEase.h>
+#include <Geode/cocos/particle_nodes/CCParticleSystemQuad.h>
 
 static float shakeyNoise(float x) {
     // i wrote some stuff in geogebra until i got a shakey looking function
@@ -128,7 +131,7 @@ bool EventWinnerAnimation::init() {
 
     this->runAction(CCSequence::create(
         CCDelayTime::create(2.f),
-        CallFuncExt::create([=, this]() {
+        CallFuncExt::create([this, flash, cloud, particles, logo]() {
             flash->removeFromParent();
             cloud->removeFromParent();
 
@@ -158,7 +161,7 @@ bool EventWinnerAnimation::init() {
             circleWave->m_color = ccc3(255, 255, 255);
             this->addChildAtPosition(circleWave, Anchor::Center);
 
-            auto modtoberWinnerLabel = CCLabelBMFont::create("Modtober Winner", "goldFont.fnt");
+            auto modtoberWinnerLabel = Label::create("Modtober Winner", "goldFont.fnt");
             float offset = 0.f;
             for (auto ch : CCArrayExt<CCNode*>(modtoberWinnerLabel->getChildren())) {
                 ch->setScale(0.f);
@@ -176,7 +179,7 @@ bool EventWinnerAnimation::init() {
             modtoberWinnerSpr->runAction(CCEaseInOut::create(CCScaleTo::create(.5f, .4f), 2.f));
             this->addChildAtPosition(modtoberWinnerSpr, Anchor::Center, ccp(0, 45));
 
-            auto winnerNameLabel = CCLabelBMFont::create("Geome3Dash", "bigFont.fnt");
+            auto winnerNameLabel = Label::create("Geome3Dash", "bigFont.fnt");
             winnerNameLabel->setScale(.7f);
             offset = 0.f;
             for (auto ch : CCArrayExt<CCNode*>(winnerNameLabel->getChildren())) {
@@ -190,7 +193,7 @@ bool EventWinnerAnimation::init() {
             }
             this->addChildAtPosition(winnerNameLabel, Anchor::Center, ccp(0, -50));
 
-            auto winnerDevLabel = CCLabelBMFont::create("Rainix & Adaf", "goldFont.fnt");
+            auto winnerDevLabel = Label::create("Rainix & Adaf", "goldFont.fnt");
             winnerDevLabel->setScale(.5f);
             offset = 0.f;
             for (auto ch : CCArrayExt<CCNode*>(winnerDevLabel->getChildren())) {

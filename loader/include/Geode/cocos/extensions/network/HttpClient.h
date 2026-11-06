@@ -26,7 +26,7 @@
 #ifndef __CCHTTPREQUEST_H__
 #define __CCHTTPREQUEST_H__
 
-#include "../../include/cocos2d.h"
+#include "../../cocoa/CCObject.h"
 #include "../ExtensionMacros.h"
 
 #include "HttpRequest.h"
@@ -118,7 +118,7 @@ public:
     int _timeoutForConnect;
     int _timeoutForRead;
 
-    // gd::string reqId;
+    // std::string reqId;
 };
 
 // end of Network group

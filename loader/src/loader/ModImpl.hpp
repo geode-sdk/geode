@@ -5,7 +5,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/utils/ZStringView.hpp>
-#include <Geode/loader/Signal.hpp>
+// #include <Geode/loader/Signal.hpp>
 
 namespace geode {
     enum class SaveRequestState {
@@ -40,11 +40,11 @@ namespace geode {
         /**
          * Mod temp directory name
          */
-        std::filesystem::path m_tempDirName;
+        asp::fs::Path m_tempDirName;
         /**
          * Mod save directory name
          */
-        std::filesystem::path m_saveDirPath;
+        asp::fs::Path m_saveDirPath;
         /**
          * Pointers to mods that depend on this Mod.
          * Makes it possible to enable / disable them automatically,
@@ -67,7 +67,8 @@ namespace geode {
         /**
          * Setting observer.
          */
-        comm::Observer m_settingObserver;
+         // TODO: reenable?
+        // comm::Observer m_settingObserver;
         /**
          * Whether the mod resources are loaded or not
          */
@@ -100,15 +101,15 @@ namespace geode {
         std::vector<std::string> const& getDevelopers() const;
         std::optional<std::string> const& getDescription() const;
         std::optional<std::string> const& getDetails() const;
-        std::filesystem::path getPackagePath() const;
+        asp::fs::Path getPackagePath() const;
         VersionInfo getVersion() const;
         bool isLoaded() const;
         bool isInternal() const;
         bool isInvalid() const;
         bool needsEarlyLoad(std::vector<Mod*>& checked) const;
         ModMetadata const& getMetadata() const;
-        std::filesystem::path getTempDir() const;
-        std::filesystem::path getBinaryPath() const;
+        asp::fs::Path getTempDir() const;
+        asp::fs::Path getBinaryPath() const;
 
         /**
          * If a mod should be considered ephemeral, in which case it will not attempt to save/load its data.
@@ -129,9 +130,9 @@ namespace geode {
         Result<> saveData();
         Result<> loadData();
 
-        std::filesystem::path getSaveDir() const;
-        std::filesystem::path getConfigDir(bool create = true) const;
-        std::filesystem::path getPersistentDir(bool create = true) const;
+        asp::fs::Path getSaveDir() const;
+        asp::fs::Path getConfigDir(bool create = true) const;
+        asp::fs::Path getPersistentDir(bool create = true) const;
 
         bool hasSettings() const;
         std::vector<std::string> getSettingKeys() const;
@@ -184,7 +185,7 @@ namespace geode {
         void setPinned(bool pinned);
 
         // native binary loading
-        void addNativeBinariesPath(std::filesystem::path const& path);
+        void addNativeBinariesPath(asp::fs::Path const& path);
         void loadNativeModBinaries();
     };
 

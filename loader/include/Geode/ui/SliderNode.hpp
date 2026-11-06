@@ -1,10 +1,12 @@
 #pragma once
 
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/touch_dispatcher/CCTouchDelegateProtocol.h>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/ZStringView.hpp>
-#include <cocos2d.h>
 
 namespace geode {
     class GEODE_DLL SliderNode : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {
@@ -106,7 +108,7 @@ namespace geode {
          * Link a label. This will make the label automatically update whenever
          * the slider is dragged.
          */
-        void linkLabel(cocos2d::CCLabelBMFont* label, unsigned int precision);
+        void linkLabel(geode::Label* label, unsigned int precision);
 
         /**
          * Unlink a linked label
@@ -119,7 +121,7 @@ namespace geode {
         void setLabelPrecision(unsigned int precision);
 
         unsigned int getLabelPrecision();
-        cocos2d::CCLabelBMFont* getLinkedLabel();
+        geode::Label* getLinkedLabel();
 
         /**
          * Set the slider as read only. This will hide the thumb and will disallow edits made
@@ -159,7 +161,7 @@ namespace geode {
 
         bool initCustom(cocos2d::CCSprite* thumb, cocos2d::CCSprite* thumbSelected, NineSlice* groove, ZStringView bar, SliderCallback callback, cocos2d::CCSize const& barOffset);
         bool initStandard(SliderCallback callback, bool alt);
-        
+
         void updateSize();
         void updateFromTouch(cocos2d::CCTouch* touch);
 

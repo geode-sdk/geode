@@ -7,9 +7,16 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Log.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/ModEvent.hpp>
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/async.hpp>
 #include <loader/LogImpl.hpp>
+
+#include <Geode/platform/cplatform.h>
+
+#ifdef GEODE_IS_WINDOWS
+#include <Windows.h>
+#endif
 
 #include "internal/about.hpp"
 
@@ -199,7 +206,9 @@ int geodeEntry(void* platformData) {
     if (logMaxAge > 0) {
         // put it in a task so that it doesn't slow down launch times
         async::runtime().spawnBlocking<void>([logMaxAge] {
-            log::Logger::get()->deleteOldLogs(std::chrono::days{logMaxAge});
+            if (auto e = log::Logger::get()->deleteOldLogs(asp::Duration::fromDays(logMaxAge)).err()) {
+                log::error("Unable to delete old logs: {}", e);
+            }
         });
     }
 

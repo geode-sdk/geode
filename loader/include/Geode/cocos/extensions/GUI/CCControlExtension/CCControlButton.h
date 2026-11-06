@@ -127,9 +127,9 @@ public:
 
     static CCControlButton* create(CCNode* label, CCScale9Sprite* backgroundSprite);
 
-    virtual bool initWithTitleAndFontNameAndFontSize(gd::string title, const char * fontName, float fontSize);
+    virtual bool initWithTitleAndFontNameAndFontSize(std::string title, const char * fontName, float fontSize);
 
-    static CCControlButton* create(gd::string title, const char * fontName, float fontSize);
+    static CCControlButton* create(std::string title, const char * fontName, float fontSize);
 
     virtual bool initWithBackgroundSprite(CCScale9Sprite* sprite);
 

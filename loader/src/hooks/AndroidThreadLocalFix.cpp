@@ -1,6 +1,4 @@
-#include <Geode/Geode.hpp>
-
-using namespace geode::prelude;
+#include <Geode/platform/cplatform.h>
 
 // This fix may or may not be irrelevant once robtop updates NDK, but for now we have to deal with it.
 //
@@ -19,6 +17,9 @@ using namespace geode::prelude;
 // Bionic libc had this function since at least 2015, and it does not use pthread keys, so on all semi-recent devices this should fix the use-after-free.
 
 #ifdef GEODE_IS_ANDROID
+#include <Geode/loader/Mod.hpp>
+
+using namespace geode::prelude;
 
 using AtexitFn = int(*)(void (*)(void*), void*, void*);
 static AtexitFn g_atexitFn = nullptr;

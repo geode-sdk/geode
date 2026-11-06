@@ -2,7 +2,7 @@
 
 #include <Geode/Loader.hpp>
 #include <Geode/utils/StringBuffer.hpp>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <string>
 
 /**
@@ -32,7 +32,7 @@ namespace crashlog {
      * @returns Path to the directory, or an empty string if the platform does
      * not support crash logs
      */
-    std::filesystem::path GEODE_DLL getCrashLogDirectory();
+    asp::fs::Path GEODE_DLL getCrashLogDirectory();
 
     struct Image {
         uintptr_t address = 0;
@@ -89,15 +89,15 @@ namespace crashlog {
         static std::vector<Image> getImages();
         static std::vector<StackFrame> getStacktrace();
         static std::vector<Register> getRegisters();
-        static std::string_view getGeodeBinaryName();
+        static asp::fs::PathView getGeodeBinaryName();
         void writeInfo(Buffer& stream);
     };
 
     std::string GEODE_DLL writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers);
     std::string GEODE_DLL writeCrashlog(const CrashContext& ctx);
 
-    std::string writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers, std::filesystem::path& outCrashlogPath);
-    std::string writeCrashlog(const CrashContext& ctx, std::filesystem::path& outCrashlogPath);
+    std::string writeCrashlog(geode::Mod* faultyMod, std::string_view info, std::string_view stacktrace, std::string_view registers, asp::fs::Path& outCrashlogPath);
+    std::string writeCrashlog(const CrashContext& ctx, asp::fs::Path& outCrashlogPath);
 
     std::string getDateString(bool filesafe);
 

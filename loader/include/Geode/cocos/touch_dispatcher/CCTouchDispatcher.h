@@ -207,9 +207,15 @@ public:
 	// @note RobTop Addition
     bool isUsingForcePrio();
 	// @note RobTop Addition
-    void registerForcePrio(cocos2d::CCObject*, int);
+    void registerForcePrio(cocos2d::CCObject*, int, int);
 	// @note RobTop Addition
     void unregisterForcePrio(cocos2d::CCObject*);
+    // @note RobTop Addition
+    bool ownerLevelOf(CCNode*, int&);
+    // @note RobTop Addition
+    bool ownerLevelFor(CCTouchDelegate*, int&);
+    // @note RobTop Addition
+    unsigned int getTouchCount() const;
 
 private:
     // @note RobTop Addition
@@ -240,12 +246,24 @@ public:
 
 protected:
 
-    // 2.2 changes
+    // @note Robtop Addition, 2.209
+    int m_globalTouchCounter;
 
+    // 2.2 changes
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(int, m_targetPrio, TargetPrio);
     // @note RobTop Addition
     CCDictionary* m_pForcePrioDict;
+
+    // @note Robtop Addition, 2.209
+    CCDictionary* m_touchPrioOwnedNodeDict;
+
+    // the touch prio stored in extraneous dict gets their priority added
+    // with the priority of the parent and put into the main dict instead
+
+    // @note Robtop Addition, 2.209
+    CCDictionary* m_extraneousTouchPrioOwnedNodeDict;
+
     // @note RobTop Addition
     int m_forcePrio;
 };

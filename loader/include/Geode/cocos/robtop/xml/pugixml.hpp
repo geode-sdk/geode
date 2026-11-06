@@ -13,7 +13,6 @@
 
 #ifndef GEODE_NO_PUGIXML_HEADER
 
-#include "../../include/cocos2d.h"
 
 #ifndef PUGIXML_VERSION
 // Define version macro; evaluates to major * 100 + minor so that it's safe to use in less-than comparisons

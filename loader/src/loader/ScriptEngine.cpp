@@ -1,4 +1,3 @@
-#include <cocos2d.h>
 #include <Geode/loader/ModEvent.hpp>
 #include <Geode/ui/NodeEvent.hpp>
 
@@ -11,7 +10,7 @@ namespace geode {
             // Javascript engine is called without needing to change m_nLuaID
             return cocos2d::ccScriptType::kScriptTypeJavascript;
         }
-        
+
         int executeNodeEvent(CCNode* node, int action) {
             NodeEvent(node, static_cast<NodeEventType>(action)).send();
             return -1;
@@ -38,7 +37,7 @@ namespace geode {
         int executeEvent(int handler, const char* eventName, CCObject* eventSource, const char* eventSourceClassName) { return -1; }
         int executeEventWithArgs(int handler, CCArray* args) { return -1; }
         bool handleAssert(const char* msg) { return false; }
-        bool parseConfig(ConfigType type, const gd::string& str) { return false; }
+        bool parseConfig(ConfigType type, const std::string& str) { return false; }
     };
 }
 

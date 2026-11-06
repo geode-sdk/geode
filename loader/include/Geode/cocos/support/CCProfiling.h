@@ -89,7 +89,7 @@ public:
     void reset();
 
 public:
-    gd::string m_NameStr;
+    std::string m_NameStr;
     int               numberOfCalls;
     int               m_dAverageTime1;
     int               m_dAverageTime2;

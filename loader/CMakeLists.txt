@@ -77,7 +77,6 @@ file(GLOB SOURCES CONFIGURE_DEPENDS
 	src/ui/mods/settings/*.cpp
 	src/ui/mods/test/*.cpp
 	src/ui/*.cpp
-	src/c++stl/*.cpp
 	hash/hash.cpp
 )
 
@@ -230,7 +229,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE GEODE_MOD_ID="geode.loader")
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
 	# Markdown support
-	CPMAddPackage("gh:mity/md4c#release-0.5.2")
+	CPMAddPackage("gh:mity/md4c@0.6.0")
 
 	# Zip support (needed for in-memory streams, which zlib's minizip doesn't support)
 	set(MZ_ZSTD ON CACHE INTERNAL "")
@@ -267,8 +266,9 @@ if (NOT GEODE_BUILDING_DOCS)
 
 	set(SIMDUTF_TESTS OFF)
 	set(SIMDUTF_TOOLS OFF)
-	CPMAddPackage("gh:simdutf/simdutf@8.0.0")
-	CPMAddPackage("gh:fastfloat/fast_float@8.2.3")
+	set(SIMDUTF_CXX_STANDARD 23)
+	CPMAddPackage("gh:simdutf/simdutf@9.3.2")
+	CPMAddPackage("gh:fastfloat/fast_float@8.3.2")
 
 	target_include_directories(${PROJECT_NAME} PRIVATE ${md4c_SOURCE_DIR}/src)
 
@@ -357,27 +357,24 @@ endif()
 
 add_subdirectory(test)
 
-# Add install target on CLI >= 2.10.0 (which adds `geode profile path`)
+# Add install target using CLI
 if (NOT GEODE_BUILDING_DOCS)
-	# nest this because when building docs GEODE_CLI_VERSION is not defined
-	if (${GEODE_CLI_VERSION} VERSION_GREATER_EQUAL "2.10.0")
-		execute_process(
-			COMMAND ${GEODE_CLI} profile path -d
-			OUTPUT_VARIABLE GEODE_PROFILE_GD_PATH
-			RESULT_VARIABLE GEODE_PROFILE_GD_PATH_RESULT
+	execute_process(
+		COMMAND ${GEODE_CLI} profile path -d
+		OUTPUT_VARIABLE GEODE_PROFILE_GD_PATH
+		RESULT_VARIABLE GEODE_PROFILE_GD_PATH_RESULT
+	)
+	if (${GEODE_PROFILE_GD_PATH_RESULT} EQUAL 0)
+		string(STRIP ${GEODE_PROFILE_GD_PATH} GEODE_PROFILE_GD_PATH)
+		install(
+			TARGETS geode-loader ${LAUNCHER_TARGET}
+			RUNTIME
+			DESTINATION "${GEODE_PROFILE_GD_PATH}"
 		)
-		if (${GEODE_PROFILE_GD_PATH_RESULT} EQUAL 0)
-			string(STRIP ${GEODE_PROFILE_GD_PATH} GEODE_PROFILE_GD_PATH)
-			install(
-				TARGETS geode-loader ${LAUNCHER_TARGET}
-				RUNTIME
-				DESTINATION "${GEODE_PROFILE_GD_PATH}"
-			)
-			file(GLOB RESOURCE_FILES ${GEODE_BIN_PATH}/nightly/resources/*.*)
-			install(
-				FILES ${RESOURCE_FILES}
-				DESTINATION "${GEODE_PROFILE_GD_PATH}/geode/resources/geode.loader"
-			)
-		endif()
+		file(GLOB RESOURCE_FILES ${GEODE_BIN_PATH}/nightly/resources/*.*)
+		install(
+			FILES ${RESOURCE_FILES}
+			DESTINATION "${GEODE_PROFILE_GD_PATH}/geode/resources/geode.loader"
+		)
 	endif()
 endif()

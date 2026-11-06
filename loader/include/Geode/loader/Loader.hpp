@@ -1,9 +1,8 @@
 #pragma once
 
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <Geode/Result.hpp>
 #include "Log.hpp"
-#include "ModEvent.hpp"
 #include "ModMetadata.hpp"
 #include "Types.hpp"
 
@@ -12,6 +11,7 @@
 #include <mutex>
 #include <optional>
 #include <string_view>
+#include <variant>
 
 namespace geode {
     using ScheduledFunction = geode::Function<void()>;
@@ -30,7 +30,7 @@ namespace geode {
             HasIncompatibilities = 4,
         };
         Type type;
-        std::variant<std::filesystem::path, ModMetadata, Mod*> cause;
+        std::variant<asp::fs::Path, ModMetadata, Mod*> cause;
         /// Human-readable message (that should also suggest a fix; aka be UI-ready)
         std::string message;
 

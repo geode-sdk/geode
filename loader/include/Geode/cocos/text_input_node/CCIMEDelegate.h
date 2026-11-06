@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define __CC_IME_DELEGATE_H__
 
 #include "../cocoa/CCGeometry.h"
+#include "../robtop/keyboard_dispatcher/CCKeyboardDelegate.h"
 
 NS_CC_BEGIN
 

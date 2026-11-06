@@ -26,12 +26,11 @@
 #ifndef __CCEDITTEXT_H__
 #define __CCEDITTEXT_H__
 
-#include "../../../include/cocos2d.h"
+#include "../../../text_input_node/CCIMEDelegate.h"
 #include "../../ExtensionMacros.h"
 #include "../CCControlExtension/CCControlExtensions.h"
 
 NS_CC_EXT_BEGIN
-
 
 enum KeyboardReturnType {
     kKeyboardReturnTypeDefault = 0,
@@ -154,7 +153,7 @@ public:
      * @param editBox The edit box object that generated the event.
      * @param text The new text.
      */
-    virtual void editBoxTextChanged(CCEditBox* editBox, const gd::string& text) {};
+    virtual void editBoxTextChanged(CCEditBox* editBox, const std::string& text) {};
 
     /**
      * This method is called when the return button was pressed or the outside area of keyboard was touched.
@@ -408,11 +407,11 @@ public:
     EditBoxInputFlag    m_eEditBoxInputFlag;
     KeyboardReturnType  m_eKeyboardReturnType;
 
-    gd::string m_strText;
-    gd::string m_strPlaceHolder;
+    std::string m_strText;
+    std::string m_strPlaceHolder;
 
-    gd::string m_strFontName;
-    gd::string m_strPlaceholderFontName;
+    std::string m_strFontName;
+    std::string m_strPlaceholderFontName;
 
     int m_nFontSize;
     int m_nPlaceholderFontSize;

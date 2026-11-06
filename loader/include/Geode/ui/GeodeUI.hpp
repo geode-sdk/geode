@@ -108,7 +108,7 @@ namespace geode {
     /**
      * Create a logo sprite for a mod from a .geode file
      */
-    GEODE_DLL cocos2d::CCNode* createModLogo(std::filesystem::path const& geodePackage);
+    GEODE_DLL cocos2d::CCNode* createModLogo(asp::fs::PathView geodePackage);
     /**
      * Create a logo sprite for a mod downloaded from the Geode servers. The
      * logo is initially a loading circle, with the actual sprite downloaded

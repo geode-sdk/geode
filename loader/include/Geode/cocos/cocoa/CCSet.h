@@ -35,7 +35,7 @@ NS_CC_BEGIN
  * @{
  */
 
-typedef gd::set<CCObject *>::iterator CCSetIterator;
+typedef std::set<CCObject *>::iterator CCSetIterator;
 
 class CC_DLL CCSet : public CCObject
 {
@@ -115,7 +115,7 @@ public:
     virtual void acceptVisitor(CCDataVisitor &visitor);
 
 public:
-    gd::set<CCObject *> *m_pSet;
+    std::set<CCObject *> *m_pSet;
 };
 
 // end of data_structure group

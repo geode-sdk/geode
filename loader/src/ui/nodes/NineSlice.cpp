@@ -1,5 +1,6 @@
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/cocos/shaders/CCShaderCache.h>
 
 using namespace geode::prelude;
 

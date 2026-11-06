@@ -1,3 +1,5 @@
+// TODO: reenable maybe?
+#if 0
 #include <Geode/loader/Signal.hpp>
 
 namespace geode::comm {
@@ -38,3 +40,5 @@ namespace geode::comm {
 	ObserverContext::ObserverContext(geode::Function<void()> eff, std::monostate) noexcept
 		: impl(std::make_shared<ObserverContext::Impl>(std::move(eff))) {}
 }
+
+#endif

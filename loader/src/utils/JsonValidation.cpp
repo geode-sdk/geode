@@ -1,5 +1,6 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
+#include <unordered_set>
 
 using namespace geode::prelude;
 

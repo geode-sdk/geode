@@ -10,7 +10,7 @@
 #include <tulip/TulipHook.hpp>
 #include <Geode/utils/ObjcHook.hpp>
 #include <array>
-#include <filesystem>
+#include <asp/fs/fs.hpp>
 #include <Geode/Loader.hpp>
 #include "../../loader/console.hpp"
 #include "../../loader/LoaderImpl.hpp"
@@ -31,59 +31,47 @@ void updateFiles() {
     auto updatesDir = dirs::getGeodeDir() / "update";
     auto resourcesDir = dirs::getGeodeResourcesDir();
 
-    if (std::filesystem::exists(frameworkDir) && std::filesystem::exists(updatesDir)) {
-        std::error_code error;
-        auto bootFile = "GeodeBootstrapper.dylib";
-        auto geodeFile = "Geode.dylib";
+    if (frameworkDir.exists() && updatesDir.exists()) {
+        auto overwrite = [&](std::string_view name) {
+            auto src = updatesDir / name;
+            auto dst = frameworkDir / name;
 
-        if (std::filesystem::exists(updatesDir / bootFile)) {
-            std::filesystem::remove(frameworkDir / bootFile, error);
-            if (error) {
-                log::warn("Couldn't remove old GeodeBootstrapper.dylib: {}", error.message());
+            if (!src.exists()) return;
+
+            if (auto e = asp::fs::remove(dst).err()) {
+                log::warn("Couldn't remove old {}: {}", name, *e);
+                return;
+            }
+
+            if (auto e = asp::fs::rename(src, dst).err()) {
+                log::warn("Couldn't move new {}: {}", name, *e);
+                return;
+            }
+            log::info("Updated {}", name);
+        };
+
+        overwrite("GeodeBootstrapper.dylib");
+        overwrite("Geode.dylib");
+
+        auto srcResources = updatesDir / "resources";
+        auto dstResources = resourcesDir / "geode.loader";
+
+        if (asp::fs::exists(srcResources)) {
+            if (auto e = asp::fs::remove(dstResources).err()) {
+                log::warn("Couldn't remove old resources: {}", *e);
             }
             else {
-                std::filesystem::rename(updatesDir / bootFile, frameworkDir / bootFile, error);
-                if (error) {
-                    log::warn("Couldn't move new GeodeBootstrapper.dylib: {}", error.message());
-                }
-                else {
-                    log::info("Updated GeodeBootstrapper.dylib");
-                }
-            }
-        }
-        if (std::filesystem::exists(updatesDir / geodeFile)) {
-            std::filesystem::remove(frameworkDir / geodeFile, error);
-            if (error) {
-                log::warn("Couldn't remove old Geode.dylib: {}", error.message());
-            }
-            else {
-                std::filesystem::rename(updatesDir / geodeFile, frameworkDir / geodeFile, error);
-                if (error) {
-                    log::warn("Couldn't move new Geode.dylib: {}", error.message());
-                }
-                else {
-                    log::info("Updated Geode.dylib");
-                }
-            }
-        }
-        if (std::filesystem::exists(updatesDir / "resources")) {
-            std::filesystem::remove_all(resourcesDir / "geode.loader", error);
-            if (error) {
-                log::warn("Couldn't remove old resources: {}", error.message());
-            }
-            else {
-                std::filesystem::rename(updatesDir / "resources", resourcesDir / "geode.loader", error);
-                if (error) {
-                    log::warn("Couldn't move new resources: {}", error.message());
+                if (auto e = asp::fs::move(srcResources, dstResources).err()) {
+                    log::warn("Couldn't move new resources: {}", *e);
                 }
                 else {
                     log::info("Updated resources");
                 }
             }
         }
-        std::filesystem::remove_all(updatesDir, error);
-        if (error) {
-            log::warn("Couldn't remove old update directory: {}", error.message());
+
+        if (auto e = asp::fs::removeDirAll(updatesDir).err()) {
+            log::warn("Couldn't remove old update directory: {}", *e);
         }
     }
 }
@@ -99,16 +87,11 @@ $execute {
 };
 
 void updateGeode() {
-    std::filesystem::path oldSavePath = "/Users/Shared/Geode/geode";
+    asp::fs::Path oldSavePath = "/Users/Shared/Geode/geode";
     auto newSavePath = dirs::getSaveDir() / "geode";
-    if (std::filesystem::exists(oldSavePath)) {
-        std::error_code error;
-
-        std::filesystem::rename(oldSavePath, newSavePath, error);
-        if (error) {
-            log::warn("Couldn't migrate old save files from {} to {}", 
-                oldSavePath, newSavePath
-            );
+    if (oldSavePath.exists()) {
+        if (auto e = asp::fs::move(oldSavePath, newSavePath).err()) {
+            log::warn("Couldn't migrate old save files from {} to {}: {}", oldSavePath, newSavePath, *e);
         }
     }
 

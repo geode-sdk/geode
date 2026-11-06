@@ -1,6 +1,7 @@
-#include <Geode/Geode.hpp>
+#include <Geode/platform/cplatform.h>
 
 #ifdef GEODE_IS_WINDOWS
+#include <Windows.h>
 
 #include <loader/LoaderImpl.hpp>
 

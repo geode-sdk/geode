@@ -8,7 +8,8 @@
 #include <arc/sync/Mutex.hpp>
 #include <loader/LoaderImpl.hpp>
 #include "../internal/about.hpp"
-#include "Geode/loader/Loader.hpp"
+#include <Geode/loader/ModEvent.hpp>
+#include <Geode/loader/Loader.hpp>
 
 using namespace server;
 

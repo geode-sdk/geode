@@ -4,7 +4,6 @@
 #include "../../include/ccMacros.h"
 #include "CCStdC.h"
 #include "CCControllerState.h"
-#include <Xinput.h>
 
 class CC_DLL CXBOXController
 {
@@ -14,7 +13,7 @@ public:
     //CCControllerState getState();
     //void updateConnected();
 
-    XINPUT_STATE m_xinputState;
+    cocos2d::CCControllerState m_xinputState;
     int m_userIndex;
     bool m_controllerConnected;
     bool m_dpadUp;

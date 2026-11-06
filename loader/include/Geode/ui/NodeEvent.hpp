@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../loader/Event.hpp"
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/menu_nodes/CCMenuItem.h>
 
 namespace cocos2d {
     class CCNode;
@@ -37,4 +39,37 @@ namespace geode {
         public:
         using Event::Event;
     };
+}
+
+
+namespace cocos2d {
+    template <class Callback>
+    inline geode::comm::ListenerHandle* CCNode::addOnEnterCallback(Callback&& callback, int priority) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnEnter), std::forward<Callback>(callback), priority);
+    }
+
+    template <class Callback>
+    inline geode::comm::ListenerHandle* CCNode::addOnEnterTransitionDidFinishCallback(Callback&& callback, int priority) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnEnterTransitionDidFinish), std::forward<Callback>(callback), priority);
+    }
+
+    template <class Callback>
+    inline geode::comm::ListenerHandle* CCNode::addOnExitCallback(Callback&& callback, int priority) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnExit), std::forward<Callback>(callback), priority);
+    }
+
+    template <class Callback>
+    inline geode::comm::ListenerHandle* CCNode::addOnExitTransitionDidStartCallback(Callback&& callback, int priority) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnExitTransitionDidStart), std::forward<Callback>(callback), priority);
+    }
+
+    template <class Callback>
+    inline geode::comm::ListenerHandle* CCNode::addCleanupCallback(Callback&& callback, int priority) {
+        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnCleanup), std::forward<Callback>(callback), priority);
+    }
+
+    template <class Callback>
+    inline geode::comm::ListenerHandle* CCMenuItem::addActivateCallback(Callback&& callback, int priority) {
+        return this->addEventListener("", geode::MenuItemActivatedEvent(this), std::forward<Callback>(callback), priority);
+    }
 }

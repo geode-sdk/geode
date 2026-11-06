@@ -10,6 +10,7 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/async.hpp>
+#include <asp/fs/fs.hpp>
 #include <asp/time/SystemTime.hpp>
 #include <arc/future/Select.hpp>
 #include <arc/time/Sleep.hpp>
@@ -142,7 +143,7 @@ void log::vlogImpl(Severity sev, Mod* mod, fmt::string_view format, fmt::format_
         thread::getName(), mod->getName(), mod);
 }
 
-std::filesystem::path const& log::getCurrentLogPath() {
+asp::fs::PathView log::getCurrentLogPath() {
     return Logger::get()->getLogPath();
 }
 
@@ -230,13 +231,16 @@ void Logger::setup() {
     auto logDir = dirs::getGeodeLogDir();
 
     // on the first launch, this doesn't exist yet..
-    if (!std::filesystem::exists(logDir)) {
-        std::error_code ec;
-        std::filesystem::create_directories(logDir, ec);
-    }
+    (void) asp::fs::createDirAll(logDir);
 
     m_logPath = logDir / log::generateLogName();
-    m_logStream = std::ofstream(m_logPath);
+
+    auto streamResult = asp::fs::File::createBuffered(m_logPath);
+    if (streamResult) {
+        m_logStream = std::move(streamResult).unwrap();
+    } else {
+        log::error("Unable to create log file: {}", streamResult.unwrapErr());
+    }
 
     // Logs can and will probably be added before setup() is called, so we'll write them now
     for (Log const& log : m_logRx->drain()) {
@@ -306,40 +310,24 @@ arc::Future<> Logger::workerThread() {
     }
 }
 
-void Logger::deleteOldLogs(size_t maxAgeHours) {
+Result<> Logger::deleteOldLogs(asp::Duration maxAge) {
     auto logDir = dirs::getGeodeLogDir();
+    auto iter = GEODE_UNWRAP(asp::fs::iterDir(logDir));
 
-    auto now = std::chrono::file_clock::now();
+    for (auto entryRes : iter) {
+        auto entry = GEODE_UNWRAP(entryRes);
 
-    std::error_code ec;
-    auto iterator = std::filesystem::directory_iterator(logDir, ec);
-    std::filesystem::directory_iterator end;
+        if (entry.isFile() && entry.path.extension() == "log") {
+            auto modifiedAt = GEODE_UNWRAP(entry.path.metadata()).modifiedAt;
+            if (!modifiedAt) continue;
 
-    if (ec != std::error_code{}) {
-        log::error("Failed to delete old logs: {}", ec.message());
-        return;
-    }
-
-    while (iterator != end) {
-        auto& entry = *iterator;
-        if (entry.is_regular_file(ec) && entry.path().extension() == ".log") {
-            auto time = std::filesystem::last_write_time(entry, ec);
-            if (ec == std::error_code{}) {
-                auto diff = now - time;
-                if (diff > std::chrono::hours(maxAgeHours)) {
-                    std::filesystem::remove(entry, ec);
-                }
+            if (modifiedAt->elapsed() > maxAge) {
+                GEODE_UNWRAP(asp::fs::removeFile(entry.path));
             }
-
-        }
-
-        ec.clear();
-        iterator.increment(ec);
-        if (ec != std::error_code{}) {
-            log::error("Failed to iterate log directory: {}", ec.message());
-            return;
         }
     }
+
+    return Ok();
 }
 
 Severity Logger::getConsoleLogLevel() {
@@ -398,8 +386,9 @@ void Logger::outputLog(BorrowedLog const& log, bool dontFlush) {
     if (logConsole && logModLevel) {
         console::log(buf.c_str(), sev);
     }
-    if (logFile && logModLevel) {
-        m_logStream << buf.view() << '\n';
+    if (logFile && logModLevel && m_logStream) {
+        (void) m_logStream->write(buf.view());
+        (void) m_logStream->write("\n");
         // don't flush stream for every log as that's super slow
         if (!dontFlush) {
             this->flushLocked();
@@ -433,7 +422,7 @@ void Logger::flush() {
 }
 
 void Logger::flushLocked() {
-    m_logStream << std::flush;
+    if (m_logStream) (void) m_logStream->flush();
 }
 
 void Logger::flushExternal() {
@@ -456,7 +445,7 @@ Nest::Nest(std::shared_ptr<Nest::Impl> impl) : m_impl(std::move(impl)) { }
 Nest::Impl::Impl(int32_t nestLevel, int32_t nestCountOffset) :
     m_nestLevel(nestLevel), m_nestCountOffset(nestCountOffset) { }
 
-std::filesystem::path const& Logger::getLogPath() const {
+asp::fs::Path const& Logger::getLogPath() const {
     return m_logPath;
 }
 

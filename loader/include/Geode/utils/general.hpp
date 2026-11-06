@@ -7,19 +7,20 @@
 #include <Geode/utils/hash.hpp>
 #include <asp/time/SystemTime.hpp>
 #include "../DefaultInclude.hpp"
+#include <Geode/cocos/cocoa/CCGeometry.h>
 #include <chrono>
 #include <iomanip>
 #include <string>
 #include <array>
 #include <vector>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <matjson.hpp>
 #include <span>
 #include <charconv>
 #include <clocale>
 #include <type_traits>
+#include <variant>
 #include <fmt/format.h>
-#include <cocos2d.h>
 
 namespace geode {
     using ByteVector = std::vector<uint8_t>;
@@ -365,17 +366,10 @@ namespace geode::utils::game {
      * Restarts the game, optionally saving the game data.
      *
      * @param saveData Whether to save the game data
-     */
-    GEODE_DLL void restart(bool saveData /* = true */);
-
-    /**
-     * Restarts the game, optionally saving the game data.
-     *
-     * @param saveData Whether to save the game data
      * @param safeMode Whether to restart in safe mode
 
      */
-    GEODE_DLL void restart(bool saveData /* = true */, bool safeMode /* = false */);
+    GEODE_DLL void restart(bool saveData /* = true */, bool safeMode = false);
 
     /**
      * Launches the loader uninstaller, optionally deleting saved data.

@@ -80,7 +80,7 @@ namespace geode {
 
     class ModMetadata::Impl {
     public:
-        std::filesystem::path m_path;
+        asp::fs::Path m_path;
         std::string m_binaryName;
         VersionInfo m_version { 1, 0, 0 };
         std::string m_id;
@@ -116,12 +116,12 @@ namespace geode {
 
         static ModMetadata parse(ModJson const& rawJson, std::optional<std::string_view> guessedID);
         static ModMetadata createInvalidMetadata(
-            std::filesystem::path const& path,
+            asp::fs::PathView path,
             std::string_view error,
             std::optional<std::string_view> guessedID
         );
 
-        Result<> addSpecialFiles(std::filesystem::path const& dir);
+        Result<> addSpecialFiles(asp::fs::PathView dir);
         Result<> addSpecialFiles(utils::file::Unzip& zip);
 
         std::vector<std::pair<std::string, std::optional<std::string>*>> getSpecialFiles();

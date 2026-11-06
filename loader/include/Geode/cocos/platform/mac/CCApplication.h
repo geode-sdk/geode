@@ -77,17 +77,17 @@ public:
      *  Sets the Resource root path.
      *  @deprecated Please use CCFileUtils::sharedFileUtils()->setSearchPaths() instead.
      */
-    CC_DEPRECATED_ATTRIBUTE void setResourceRootPath(const gd::string& rootResDir);
+    void setResourceRootPath(const std::string& rootResDir);
 
     /**
      *  Gets the Resource root path.
      *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead.
      */
-    CC_DEPRECATED_ATTRIBUTE const gd::string& getResourceRootPath(void);
+    const std::string& getResourceRootPath(void);
 
-    void setStartupScriptFilename(const gd::string& startupScriptFile);
+    void setStartupScriptFilename(const std::string& startupScriptFile);
 
-    const gd::string& getStartupScriptFilename(void);
+    const std::string& getStartupScriptFilename(void);
 
     //Robtop modification
     virtual void openURL(char const* link);
@@ -97,8 +97,8 @@ public:
 protected:
     static CCApplication * sm_pSharedApplication;
 
-    gd::string m_resourceRootPath;
-    gd::string m_startupScriptFilename;
+    std::string m_resourceRootPath;
+    std::string m_startupScriptFilename;
 };
 
 NS_CC_END

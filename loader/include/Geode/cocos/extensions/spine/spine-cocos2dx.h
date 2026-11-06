@@ -27,7 +27,7 @@
 #define SPINE_COCOS2DX_H_
 
 #include "spine.h"
-#include "../../include/cocos2d.h"
+#include "../../include/ccTypes.h"
 #include "CCSkeleton.h"
 #include "CCSkeletonAnimation.h"
 

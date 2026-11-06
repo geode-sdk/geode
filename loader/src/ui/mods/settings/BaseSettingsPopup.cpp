@@ -38,10 +38,10 @@ static bool matchSearch(SettingNode* node, ZStringView query) {
 bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     if (!GeodePopup::init(440, 280, GeodePopupStyle::Default, forceDisableTheme))
         return false;
-    
+
     m_noElasticity = true;
 
-    const auto spacing = spacingForTabs ? 25 : 0;
+    const auto spacing = spacingForTabs ? 25.f : 0.f;
     m_listSize = CCSize(346, 200 - spacing);
 
     auto layerBG = CCLayerColor::create({ 0, 0, 0, 75 });
@@ -76,13 +76,14 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
     m_list->setTouchEnabled(true);
     m_list->moveToTop();
+    m_list->setAnchorPoint(ccp(0.5f, 0));
 
     const int buttonPriority = m_list->getTouchPriority() - 1;
 
     m_buttonMenu->setTouchPriority(buttonPriority);
     searchContainer->setTouchPriority(buttonPriority);
 
-    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
+    layerBG->addChildAtPosition(m_list, Anchor::Bottom);
 
     // layer borders
 
@@ -241,13 +242,13 @@ void BaseSettingsPopup::updateState(SettingNode* invoker) {
                     bg = !bg;
                 }
             }
-        }     
+        }
         // Avoid infinite loops
         if (sett == invoker) {
             continue;
         }
         if (sett->getSetting() && sett->getSetting()->getEnableIf()) {
-            sett->updateState2(nullptr);
+            sett->updateState(nullptr);
         }
     }
     m_list->m_contentLayer->updateLayout();

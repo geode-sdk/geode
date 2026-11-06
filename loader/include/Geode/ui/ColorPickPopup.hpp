@@ -1,9 +1,12 @@
 #pragma once
 
+#include "../loader/Event.hpp"
 #include "Popup.hpp"
 #include "TextInput.hpp"
-#include "../loader/Event.hpp"
+
+#include <GUI/CCControlExtension/ColorPickerDelegate.h>
 #include <Geode/binding/TextInputDelegate.hpp>
+#include <Geode/mapping/ColorPickerDelegate.hpp>
 #include <Geode/utils/function.hpp>
 
 namespace geode {
@@ -11,8 +14,7 @@ namespace geode {
 
     class GEODE_DLL ColorPickPopup :
         public Popup,
-        public cocos2d::extension::ColorPickerDelegate,
-        public TextInputDelegate {
+        public cocos2d::extension::ColorPickerDelegate {
         class Impl;
         std::unique_ptr<Impl> m_impl;
     protected:

@@ -1,8 +1,8 @@
-
 #include <Geode/DefaultInclude.hpp>
 
 #ifdef GEODE_IS_WINDOWS
 
+    #include <Windows.h>
     #include <loader/LoaderImpl.hpp>
     #include <Geode/loader/Mod.hpp>
     #include <Geode/modify/Modify.hpp>

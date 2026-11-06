@@ -83,7 +83,7 @@ public:
     // 2.2 addition
     void updateTargetValue(float);
 
-    gd::string        m_strKey;
+    std::string        m_strKey;
     // @note RobTop Addition
     int               m_nIntTag;
     float            m_fFrom, m_fTo;

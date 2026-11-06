@@ -25,12 +25,12 @@ namespace geode {
             __nop(); __nop(); __nop(); __nop(); __nop(); __nop();
             return emptyFunction<UUID>();
         }
-    #elif defined(GEODE_IS_INTEL_MAC) 
+    #elif defined(GEODE_IS_INTEL_MAC)
         template <auto UUID>
         static void __attribute__((naked)) emptyFunction() {
             __asm__ volatile(
-                "0:\n\t"                 
-                ".rept 30\n\t"           
+                "0:\n\t"
+                ".rept 30\n\t"
                 "nop\n\t"
                 ".endr\n\t"
                 "jmp 0b\n\t"
@@ -40,11 +40,11 @@ namespace geode {
         template <auto UUID>
         static void __attribute__((naked)) emptyFunction() {
             __asm__ volatile(
-                "0:\n\t"                 
-                ".rept 8\n\t"            
+                "0:\n\t"
+                ".rept 8\n\t"
                 "nop\n\t"
                 ".endr\n\t"
-                "bl 0b\n\t"              
+                "bl 0b\n\t"
             );
         }
     #elif defined(GEODE_IS_ANDROID32)
@@ -53,16 +53,16 @@ namespace geode {
             __asm__ volatile(
             #if defined(__thumb__)
                 ".syntax unified\n\t"
-                "0:\n\t"                 
-                ".rept 16\n\t"           
+                "0:\n\t"
+                ".rept 16\n\t"
                 "nop\n\t"
                 ".endr\n\t"
-                "bl 0b\n\t"              
+                "bl 0b\n\t"
 
             #else
                 ".syntax unified\n\t"
-                "0:\n\t"                 
-                ".rept 8\n\t"           
+                "0:\n\t"
+                ".rept 8\n\t"
                 "nop\n\t"
                 ".endr\n\t"
                 "bl 0b\n\t"
@@ -135,10 +135,10 @@ namespace geode {
          * @param convention The calling convention for the hook.
          * @param hookMetadata Additional metadata for the hook.
          *
-         * @return A result containing the hook, if successful. Will return a nullopt if the hook has already been created.
+         * @return A result containing the hook, if successful. Will return nullptr if the hook has already been created.
          */
         template<auto Function, class Class>
-        Result<std::optional<Hook*>> addHook(
+        Result<Hook*> addHook(
             Class* instance, std::string displayName = "",
             tulip::hook::TulipConvention convention = tulip::hook::TulipConvention::Default,
             tulip::hook::HookMetadata hookMetadata = tulip::hook::HookMetadata{}
@@ -166,7 +166,7 @@ namespace geode {
                     return Ok(hook);
                 }
             }
-            return Ok(std::nullopt);
+            return Ok(nullptr);
         }
 
         /**

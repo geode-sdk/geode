@@ -8,9 +8,9 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/StringMap.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <iostream>
+#include <Geode/loader/ModEvent.hpp>
 #include <tulip/TulipHook.hpp>
-#include <arc/future/PollableMetadata.hpp>
+#include <arc/util/Typename.hpp>
 
 #define GEODE_APPLY_MODIFY_FOR_FUNCTION(AddressInline_, Convention_, ClassName_, FunctionName_, ...)          \
     do {                                                                                                      \
@@ -474,8 +474,7 @@ namespace geode {
         using Self = Derived;
 
         static inline constexpr std::string_view SELF_NAME = [] {
-            auto [ptr, size] = arc::getTypename<Self>();
-            return std::string_view{ptr, size};
+            return arc::getTypename<Self>();
         }();
 
         // abusing the internal stuff

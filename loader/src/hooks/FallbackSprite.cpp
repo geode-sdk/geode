@@ -1,4 +1,3 @@
-#include <Geode/Geode.hpp>
 #include <Geode/modify/CCSprite.hpp>
 #include <Geode/modify/CCSpriteFrameCache.hpp>
 #include <Geode/modify/CCSpriteBatchNode.hpp>
@@ -11,22 +10,21 @@ static constexpr int FALLBACK_TAG = 105871529;
 
 // Geode extension functions
 
-bool cocos2d::CCSprite::isUsingFallback() {
+bool CCSprite::isUsingFallback() {
     return getUserFlag("fallback"_spr);
 }
 
-bool cocos2d::CCSpriteFrame::isUsingFallback() {
+bool CCSpriteFrame::isUsingFallback() {
     return getTag() == FALLBACK_TAG;
 }
 
-bool cocos2d::CCSpriteBatchNode::isUsingFallback() {
+bool CCSpriteBatchNode::isUsingFallback() {
     return getUserFlag("fallback"_spr);
 }
 
-
-unsigned char* getFallbackData(int width, int height) {
-    const int bytesPerPixel = 3;
-    unsigned char* data = new unsigned char[width * height * bytesPerPixel];
+static std::unique_ptr<uint8_t[]> getFallbackData(size_t width, size_t height) {
+    const size_t bytesPerPixel = 3;
+    auto data = std::make_unique_for_overwrite<uint8_t[]>(width * height * bytesPerPixel);
 
     const unsigned char fallback[2][2][3] =
     {
@@ -52,7 +50,7 @@ unsigned char* getFallbackData(int width, int height) {
     return data;
 }
 
-cocos2d::CCTexture2D* getFallbackTexture() {
+CCTexture2D* getFallbackTexture() {
     CCTexture2D* fallback = static_cast<CCTexture2D*>(CCTextureCache::get()->m_pTextures->objectForKey("fallback.png"_spr));
 
     if (!fallback) {
@@ -60,15 +58,13 @@ cocos2d::CCTexture2D* getFallbackTexture() {
 
         auto factor = CCDirector::get()->getContentScaleFactor();
 
-        int width = 32 * factor;
-        int height = 32 * factor;
+        size_t width = 32 * factor;
+        size_t height = 32 * factor;
 
         auto data = getFallbackData(width, height);
 
-        fallback->initWithData(data, kCCTexture2DPixelFormat_RGB888, width, height, CCSizeMake(width, height));
+        fallback->initWithData(data.get(), kCCTexture2DPixelFormat_RGB888, width, height, CCSize(width, height));
         fallback->autorelease();
-
-        delete[] data;
 
         CCTextureCache::get()->m_pTextures->setObject(fallback, "fallback.png"_spr);
     }
@@ -79,7 +75,6 @@ cocos2d::CCTexture2D* getFallbackTexture() {
 static void assignFallbackObj(CCNode* node) {
     if (!node) return;
     node->setUserFlag("fallback"_spr, true);
-    node->setUserObject("geode.texture-loader/fallback", CCBool::create(true));
 }
 
 class $modify(CCSprite) {
@@ -119,7 +114,7 @@ class $modify(CCSprite) {
         if(!spriteFrame || spriteFrame->getTag() == FALLBACK_TAG) {
             assignFallbackObj(this);
         }
-        
+
         return CCSprite::initWithSpriteFrameName(name);
     }
 

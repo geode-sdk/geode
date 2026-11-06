@@ -131,7 +131,7 @@ ccLanguageType CCApplication::getCurrentLanguage()
     return ret;
 }
 
-void CCApplication::setResourceRootPath(const gd::string& rootResDir)
+void CCApplication::setResourceRootPath(const std::string& rootResDir)
 {
     m_resourceRootPath = rootResDir;
     if (m_resourceRootPath[m_resourceRootPath.length() - 1] != '/')
@@ -139,23 +139,23 @@ void CCApplication::setResourceRootPath(const gd::string& rootResDir)
         m_resourceRootPath += '/';
     }
     CCFileUtils* pFileUtils = CCFileUtils::sharedFileUtils();
-    gd::vector<gd::string> searchPaths = pFileUtils->getSearchPaths();
+    std::vector<std::string> searchPaths = pFileUtils->getSearchPaths();
     searchPaths.insert(searchPaths.begin(), m_resourceRootPath);
     pFileUtils->setSearchPaths(searchPaths);
 }
 
-const gd::string& CCApplication::getResourceRootPath(void)
+const std::string& CCApplication::getResourceRootPath(void)
 {
     return m_resourceRootPath;
 }
 
-void CCApplication::setStartupScriptFilename(const gd::string& startupScriptFile)
+void CCApplication::setStartupScriptFilename(const std::string& startupScriptFile)
 {
     m_startupScriptFilename = startupScriptFile;
     std::replace(m_startupScriptFilename.begin(), m_startupScriptFilename.end(), '\\', '/');
 }
 
-const gd::string& CCApplication::getStartupScriptFilename(void)
+const std::string& CCApplication::getStartupScriptFilename(void)
 {
     return m_startupScriptFilename;
 }

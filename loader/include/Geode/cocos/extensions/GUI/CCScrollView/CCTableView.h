@@ -246,12 +246,12 @@ public:
     /**
      * index set to query the indexes of the cells used.
      */
-    gd::set<unsigned int>* m_pIndices;
+    std::set<unsigned int>* m_pIndices;
 
     /**
      * vector with all cell positions
      */
-    gd::vector<float> m_vCellsPositions;
+    std::vector<float> m_vCellsPositions;
     //NSMutableIndexSet *indices_;
     /**
      * cells that are currently in the table

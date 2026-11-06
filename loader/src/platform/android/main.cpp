@@ -3,10 +3,8 @@
 #include "../load.hpp"
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
-#include "internalString.hpp"
-#include <cocos2d.h>
 #include <Geode/loader/Log.hpp>
-#include <filesystem>
+#include <asp/fs/fs.hpp>
 #include <Geode/loader/Dirs.hpp>
 
 using namespace geode::prelude;
@@ -48,22 +46,12 @@ extern "C" [[gnu::visibility("default")]] jint JNI_OnLoad(JavaVM* vm, void* rese
     glDeleteVertexArraysOESEXT = (PFNGLDELETEVERTEXARRAYSOESPROC)eglGetProcAddress("glDeleteVertexArraysOES");
 
     auto updatePath = geode::dirs::getGameDir() / "update";
-    std::error_code ec;
-    std::filesystem::remove_all(updatePath, ec);
-    if (ec) {
-        geode::log::warn("Failed to remove update directory: {}", ec.message());
-    }
-
-    {
-        // Epic hack: get the empty internal string from CCString
-        // avoid ::create as to not call autorelease
-        auto* cc = new CCString();
-        setEmptyInternalString(&cc->m_sString);
-        delete cc;
+    if (auto err = asp::fs::removeDirAll(updatePath, false).err()) {
+        geode::log::warn("Failed to remove update directory: {}", *err);
     }
 
     reportPlatformCapability("internal_callbacks_v2");
-    reportPlatformCapability("resize_callbacks");
+    // reportPlatformCapability("resize_callbacks");
 
     geodeEntry(nullptr);
     return JNI_VERSION_1_6;

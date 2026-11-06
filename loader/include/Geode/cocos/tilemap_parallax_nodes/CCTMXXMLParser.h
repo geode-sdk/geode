@@ -91,7 +91,7 @@ class CC_DLL CCTMXLayerInfo : public CCObject
     GEODE_FRIEND_MODIFY
     CC_PROPERTY(CCDictionary*, m_pProperties, Properties);
 public:
-    gd::string         m_sName;
+    std::string         m_sName;
     CCSize              m_tLayerSize;
     unsigned int        *m_pTiles;
     bool                m_bVisible;
@@ -120,13 +120,13 @@ class CC_DLL CCTMXTilesetInfo : public CCObject
 {
     GEODE_FRIEND_MODIFY
 public:
-    gd::string     m_sName;
+    std::string     m_sName;
     unsigned int    m_uFirstGid;
     CCSize          m_tTileSize;
     unsigned int    m_uSpacing;
     unsigned int    m_uMargin;
     //! filename containing the tiles (should be spritesheet / texture atlas)
-    gd::string     m_sSourceImage;
+    std::string     m_sSourceImage;
     //! size in pixels of the image
     CCSize          m_tImageSize;
 public:
@@ -228,11 +228,11 @@ private:
     void internalInit(const char* tmxFileName, const char* resourcePath);
 public:
     //! tmx filename
-    gd::string m_sTMXFileName;
+    std::string m_sTMXFileName;
     // tmx resource path
-    gd::string m_sResources;
+    std::string m_sResources;
     //! current string
-    gd::string m_sCurrentString;
+    std::string m_sCurrentString;
     //! tile properties
     CCDictionary* m_pTileProperties;
     unsigned int m_uCurrentFirstGID;

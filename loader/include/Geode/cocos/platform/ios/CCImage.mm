@@ -626,8 +626,8 @@ bool CCImage::saveToFile(const char *pszFilePath, bool bIsToRGB)
 {
     bool saveToPNG = false;
     bool needToCopyPixels = false;
-    gd::string filePath(pszFilePath);
-    if (gd::string::npos != filePath.find(".png"))
+    std::string filePath(pszFilePath);
+    if (std::string::npos != filePath.find(".png"))
     {
         saveToPNG = true;
     }

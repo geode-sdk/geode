@@ -1,4 +1,4 @@
-#include <cocos2d.h>
+#include <Geode/cocos/cocoa/CCArray.h>
 
 using namespace cocos2d;
 

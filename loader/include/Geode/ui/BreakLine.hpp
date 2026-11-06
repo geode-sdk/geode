@@ -1,6 +1,6 @@
 #pragma once
+#include <Geode/cocos/base_nodes/CCNode.h>
 
-#include <cocos2d.h>
 
 namespace geode {
     class GEODE_DLL BreakLine : public cocos2d::CCNode {

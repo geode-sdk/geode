@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/utils/cocos.hpp>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 
 using namespace geode::prelude;
 

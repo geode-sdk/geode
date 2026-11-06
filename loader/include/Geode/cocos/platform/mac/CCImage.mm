@@ -519,7 +519,7 @@ bool isFileExists(const char* szFilePath)
 	} while (0);
 	if (!bFind)
 	{
-		//gd::string strFilenName = s_strRelativePath + szFilePath;
+		//std::string strFilenName = s_strRelativePath + szFilePath;
 		unsigned char * pBuffer = NULL;
 		unzFile pFile = NULL;
 		unsigned long pSize = 0;
@@ -573,15 +573,15 @@ CCImage::~CCImage()
 
 bool CCImage::initWithImageFile(const char * strPath, EImageFormat eImgFmt/* = eFmtPng*/)
 {
-    gd::string strTemp = CCFileUtils::sharedFileUtils()->fullPathForFilename(strPath);
+    std::string strTemp = CCFileUtils::sharedFileUtils()->fullPathForFilename(strPath);
 	if (m_bEnabledScale)
 	{
 		if (!isFileExists(strTemp.c_str()))
 		{
-			if (strTemp.rfind("@2x") == gd::string::npos)
+			if (strTemp.rfind("@2x") == std::string::npos)
 			{
 				int t = strTemp.rfind(".");
-				if (t != gd::string::npos)
+				if (t != std::string::npos)
 				{
 					strTemp.insert(t, "@2x");
 				}

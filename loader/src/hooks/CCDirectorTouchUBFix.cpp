@@ -1,5 +1,6 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CCDirector.hpp>
+#include <Geode/cocos/extensions/network/HttpResponse.h>
 
 using namespace geode::prelude;
 

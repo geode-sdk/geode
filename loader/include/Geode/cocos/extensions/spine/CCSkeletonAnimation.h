@@ -28,7 +28,6 @@
 
 #include "spine.h"
 #include "CCSkeleton.h"
-#include "../../include/cocos2d.h"
 
 namespace cocos2d { namespace extension {
 
@@ -37,7 +36,7 @@ Draws an animated skeleton, providing a simple API for applying one or more anim
 */
 class CC_DLL CCSkeletonAnimation: public CCSkeleton {
 public:
-	gd::vector<AnimationState*> states;
+	std::vector<AnimationState*> states;
 
 	static CCSkeletonAnimation* createWithData (SkeletonData* skeletonData);
 	static CCSkeletonAnimation* createWithFile (const char* skeletonDataFile, Atlas* atlas, float scale = 1);
@@ -63,7 +62,7 @@ protected:
 
 public:
 	typedef CCSkeleton super;
-	gd::vector<AnimationStateData*> stateDatas;
+	std::vector<AnimationStateData*> stateDatas;
 
 private:
 	void initialize ();

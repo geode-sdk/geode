@@ -11,6 +11,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <asp/fs/fs.hpp>
 #import <Foundation/Foundation.h>
 
 #include <loader/LogImpl.hpp>
@@ -53,8 +54,8 @@ void console::log(ZStringView zmsg, Severity severity) {
 void console::openIfClosed() {
     if (s_isOpen) return;
 
-    std::filesystem::path(getpwuid(getuid())->pw_dir);
-    freopen(utils::string::pathToString(dirs::getGeodeDir() / "geode_log.txt").c_str(), "w", stdout);
+    asp::fs::Path(getpwuid(getuid())->pw_dir);
+    freopen((dirs::getGeodeDir() / "geode_log.txt").c_str(), "w", stdout);
     s_isOpen = true;
 }
 
@@ -79,11 +80,11 @@ bool Loader::Impl::supportsLaunchArguments() const {
 
 std::string Loader::Impl::getLaunchCommand() const {
     auto launchArgsFile = dirs::getModRuntimeDir() / "launch-args.txt";
-    if (std::filesystem::exists(launchArgsFile)) {
-        log::debug("Reading launch arguments from {}", utils::string::pathToString(launchArgsFile));
+    if (launchArgsFile.exists()) {
+        log::debug("Reading launch arguments from {}", launchArgsFile);
         auto content = file::readString(launchArgsFile);
         if (content.isOk()) {
-            std::filesystem::remove(launchArgsFile);
+            (void) asp::fs::remove(launchArgsFile);
             return content.unwrap();
         }
     }

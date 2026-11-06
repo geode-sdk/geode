@@ -1,11 +1,11 @@
 #include "../ui/mods/ModsLayer.hpp"
 #include <Geode/loader/GameEvent.hpp>
 #include <Geode/modify/MenuLayer.hpp>
-#include <Geode/modify/Modify.hpp>
 #include <Geode/modify/IDManager.hpp>
 #include <Geode/utils/NodeIDs.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Notification.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/PopupManager.hpp>
 #include <Geode/ui/MDPopup.hpp>
@@ -242,7 +242,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
 
             m_fields->m_updateCheckTask.spawn(ModsLayer::checkInstalledModsForUpdates(), [this](auto result) {
                 if (result.isOk()) {
-                    auto updatesFound = result.unwrap();
+                    auto& updatesFound = result.unwrap();
                     if (updatesFound.modsWithUpdates.size() || updatesFound.modsWithDeprecations.size()) {
                         if (updatesFound.modsWithUpdates.size()) {
                             log::info(
@@ -302,7 +302,7 @@ struct CustomMenuLayer : Modify<CustomMenuLayer, MenuLayer> {
             icon->setScale(.65f);
 
             if (count > 0) {
-                auto countLabel = CCLabelBMFont::create(std::to_string(count).c_str(), "bigFont.fnt");
+                auto countLabel = Label::create(std::to_string(count), "bigFont.fnt");
                 countLabel->setScale(.5f);
                 icon->addChildAtPosition(countLabel, Anchor::Center);
             }

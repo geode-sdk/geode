@@ -112,9 +112,9 @@ void terminateProcessJNI() {
     }
 }
 
-gd::string getPackageNameJNI() {
+std::string getPackageNameJNI() {
     JniMethodInfo t;
-    gd::string ret("");
+    std::string ret("");
 
     if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "getCocos2dxPackageName", "()Ljava/lang/String;")) {
         jstring str = (jstring)t.env->CallStaticObjectMethod(t.classID, t.methodID);
@@ -125,9 +125,9 @@ gd::string getPackageNameJNI() {
     return ret;
 }
 
-gd::string getFileDirectoryJNI() {
+std::string getFileDirectoryJNI() {
     JniMethodInfo t;
-    gd::string ret("");
+    std::string ret("");
 
     if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "getCocos2dxWritablePath", "()Ljava/lang/String;")) {
         jstring str = (jstring)t.env->CallStaticObjectMethod(t.classID, t.methodID);
@@ -139,9 +139,9 @@ gd::string getFileDirectoryJNI() {
     return ret;
 }
 
-gd::string getCurrentLanguageJNI() {
+std::string getCurrentLanguageJNI() {
     JniMethodInfo t;
-    gd::string ret("");
+    std::string ret("");
 
     if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "getCurrentLanguage", "()Ljava/lang/String;")) {
         jstring str = (jstring)t.env->CallStaticObjectMethod(t.classID, t.methodID);
@@ -249,10 +249,10 @@ double getDoubleForKeyJNI(const char* pKey, double defaultValue)
     return defaultValue;
 }
 
-gd::string getStringForKeyJNI(const char* pKey, const char* defaultValue)
+std::string getStringForKeyJNI(const char* pKey, const char* defaultValue)
 {
     JniMethodInfo t;
-    gd::string ret("");
+    std::string ret("");
 
     if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "getStringForKey", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;")) {
         jstring stringArg1 = t.env->NewStringUTF(pKey);

@@ -314,6 +314,7 @@ THE SOFTWARE.
 #include "../support/component/CCComponentContainer.h"
 
 //robtop
+#include "../robtop/keyboard_dispatcher/CCKeyboardActionManager.h"
 #include "../robtop/keyboard_dispatcher/CCKeyboardDelegate.h"
 #include "../robtop/keyboard_dispatcher/CCKeyboardDispatcher.h"
 
@@ -328,6 +329,8 @@ THE SOFTWARE.
 
 #include "../robtop/sprite_nodes/CCFontSprite.h"
 #include "../robtop/sprite_nodes/CCSpriteExtra.h"
+
+#include "../robtop/touch_dispatcher/CCTouchClipper.h"
 
 #include "../robtop/xml/DS_Dictionary.h"
 #include "../robtop/xml/ObjectDecoder.h"

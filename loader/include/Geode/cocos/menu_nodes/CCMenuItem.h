@@ -30,7 +30,10 @@ THE SOFTWARE.
 #include "../base_nodes/CCNode.h"
 #include "../include/CCProtocols.h"
 #include "../cocoa/CCArray.h"
-#include <Geode/ui/NodeEvent.hpp>
+
+namespace geode {
+    class MenuItemActivatedEvent;
+}
 
 NS_CC_BEGIN
 
@@ -117,9 +120,7 @@ public:
     geode::comm::ListenerHandle* addActivateCallback(
         Callback&& callback,
         int priority = 0
-    ) {
-        return this->addEventListener("", geode::MenuItemActivatedEvent(this), std::forward<Callback>(callback), priority);
-    }
+    );
 
 public:
     CCObject*       m_pListener;
@@ -276,7 +277,7 @@ protected:
     void recreateLabel();
 public:
     unsigned int m_uFontSize;
-    gd::string m_strFontName;
+    std::string m_strFontName;
 };
 
 

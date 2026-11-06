@@ -47,8 +47,8 @@ struct FallbackSaveLoader : Modify<FallbackSaveLoader, CCApplication> {
 
 // redirects the save path to what geode knows, in case launcher's fopen hook fails
 struct FileOperationOverride : Modify<FileOperationOverride, FileOperation> {
-    static gd::string getFilePath() {
-        return utils::string::pathToString(dirs::getSaveDir()) + "/";
+    static std::string getFilePath() {
+        return dirs::getSaveDir().string() + "/";
     }
 };
 

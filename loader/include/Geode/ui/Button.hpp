@@ -1,7 +1,10 @@
 #pragma once
 
 #include <Geode/utils/ZStringView.hpp>
-#include <cocos2d.h>
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/touch_dispatcher/CCTouchDelegateProtocol.h>
+#include <Geode/cocos/actions/CCActionInterval.h>
+#include <Geode/cocos/actions/CCActionEase.h>
 
 namespace geode {
     class GEODE_DLL Button : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {
@@ -108,7 +111,7 @@ namespace geode {
         int getTouchPriority();
 
         /**
-         * Set the touch multiplier, which increases the distance from the 
+         * Set the touch multiplier, which increases the distance from the
          * center that the button can be pressed (default is 1)
          */
         void setTouchMultiplier(float multipler);
@@ -145,7 +148,21 @@ namespace geode {
          */
         virtual void setEnabled(bool enabled);
         virtual bool isEnabled();
-        
+
+        /**
+         * Set if the button swallows touches or not (default true)
+         */
+        void setSwallowTouches(bool swallow);
+        bool isSwallowingTouches();
+
+        /**
+         * Set the distance that must be dragged before the touch is cancelled.
+         * Useful for scroll layers in combination with swallow touches off.
+         * 0 = never cancel, default 0
+         */
+        void setDragCancelDistance(float distance);
+        float getDragCancelDistance();
+
         /**
          * Get the selected state of the button
          */
@@ -208,7 +225,7 @@ namespace geode {
          * Unregister a button (must be called in onExit)
          */
         void unregisterButton(Button* button);
-        
+
         /**
          * Pass moves from ccTouchMoved to all buttons sharing a parent
          */

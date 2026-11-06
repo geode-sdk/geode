@@ -33,7 +33,7 @@ std::optional<std::string> Mod::getDetails() const {
     return m_impl->getDetails();
 }
 
-std::filesystem::path Mod::getPackagePath() const {
+asp::fs::Path Mod::getPackagePath() const {
     return m_impl->getPackagePath();
 }
 
@@ -85,15 +85,15 @@ ModMetadata const& Mod::getMetadata() const {
     return m_impl->getMetadata();
 }
 
-std::filesystem::path Mod::getTempDir() const {
+asp::fs::Path Mod::getTempDir() const {
     return m_impl->getTempDir();
 }
 
-std::filesystem::path Mod::getBinaryPath() const {
+asp::fs::Path Mod::getBinaryPath() const {
     return m_impl->getBinaryPath();
 }
 
-std::filesystem::path Mod::getResourcesDir() const {
+asp::fs::Path Mod::getResourcesDir() const {
     return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
 }
 
@@ -139,15 +139,15 @@ Result<> Mod::loadData() {
     return m_impl->loadData();
 }
 
-std::filesystem::path Mod::getSaveDir() const {
+asp::fs::Path Mod::getSaveDir() const {
     return m_impl->getSaveDir();
 }
 
-std::filesystem::path Mod::getConfigDir(bool create) const {
+asp::fs::Path Mod::getConfigDir(bool create) const {
     return m_impl->getConfigDir(create);
 }
 
-std::filesystem::path Mod::getPersistentDir(bool create) const {
+asp::fs::Path Mod::getPersistentDir(bool create) const {
     return m_impl->getPersistentDir(create);
 }
 

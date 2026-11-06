@@ -3,6 +3,7 @@
 #include "Event.hpp"
 #include "../platform/platform.hpp"
 #include "Log.hpp"
+#include <variant>
 
 namespace geode::comm {
 	class ObserverContext;
@@ -83,7 +84,7 @@ namespace geode::comm {
 
 			Impl() noexcept {}
 			Impl(std::convertible_to<Type> auto&& v) noexcept : value(v) {}
-		
+
 			void removePortReceiver(ReceiverHandle handle) noexcept override {
 				port.removeReceiver(handle);
 			}

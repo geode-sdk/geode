@@ -1,12 +1,12 @@
 #include <Geode/loader/IPC.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
-#include <filesystem>
+#include <asp/fs/fs.hpp>
 #include <jni.h>
 
 using namespace geode::prelude;
 
-std::filesystem::path getInternalDir() {
+asp::fs::Path getInternalDir() {
     std::string path = "/data/user/0/com.geode.launcher/files/";
 
     JniMethodInfo t;
@@ -24,29 +24,26 @@ std::filesystem::path getInternalDir() {
         }
     }
 
-    return std::filesystem::path(path);
+    return asp::fs::Path(path);
 }
 
 std::string Loader::Impl::getGameVersion() {
     if (m_gdVersion.empty()) {
-        std::ifstream version_file(getInternalDir() / "game_version.txt");
-        if (!version_file) {
+        auto res = asp::fs::readToString(getInternalDir() / "game_version.txt");
+        if (!res) {
             // probably on an older launcher
             return m_gdVersion;
         }
 
-        int version_code = 0;
-        version_file >> version_code;
+        int versionCode = utils::numFromString<int>(res.unwrap()).unwrapOr(0);
 
-        version_file.close();
-
-        switch (version_code) {
+        switch (versionCode) {
             case 37: m_gdVersion = "2.200"; break;
             case 38: m_gdVersion = "2.205"; break;
             case 39: m_gdVersion = "2.206"; break;
             case 40: m_gdVersion = "2.2074"; break;
             case 41: m_gdVersion = "2.2081"; break;
-            default: m_gdVersion = std::to_string(version_code);
+            default: m_gdVersion = std::to_string(versionCode);
         }
     }
 

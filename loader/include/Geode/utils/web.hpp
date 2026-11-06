@@ -114,7 +114,7 @@ namespace geode::utils::web {
         }
 
         MultipartForm& file(std::string name, std::span<uint8_t const> data, std::string filename, std::string mime = "application/octet-stream");
-        Result<MultipartForm&> file(std::string name, std::filesystem::path const& path, std::string mime = "application/octet-stream");
+        Result<MultipartForm&> file(std::string name, asp::fs::PathView path, std::string mime = "application/octet-stream");
 
         /**
          * Returns the unique boundary string used in the multipart form.
@@ -187,7 +187,7 @@ namespace geode::utils::web {
         Result<matjson::Value> json() const;
         ByteVector const& data() const&;
         ByteVector data() &&;
-        Result<> into(std::filesystem::path const& path) const;
+        Result<> into(asp::fs::PathView path) const;
 
         std::vector<std::string> headers() const;
         std::optional<ZStringView> header(std::string_view name) const;

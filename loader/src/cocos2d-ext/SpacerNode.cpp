@@ -1,4 +1,3 @@
-#include <cocos2d.h>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/loader/Log.hpp>

@@ -1,13 +1,13 @@
 #include <Geode/ui/IconButtonSprite.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
-#include <cocos-ext.h>
 
 using namespace geode::prelude;
 
 class IconButtonSprite::Impl final {
 public:
     NineSlice* bg = nullptr;
-    cocos2d::CCLabelBMFont* label = nullptr;
+    geode::Label* label = nullptr;
     cocos2d::CCNode* icon = nullptr;
 };
 
@@ -28,8 +28,9 @@ bool IconButtonSprite::init(
     }
     this->addChild(m_impl->bg);
 
-    m_impl->label = CCLabelBMFont::create(text, font);
+    m_impl->label = Label::create(text, font);
     m_impl->label->setZOrder(1);
+    m_impl->label->setLimitLabelWidth(100, .6f, .1f);
     this->addChildAtPosition(m_impl->label, Anchor::Center);
 
     if (icon) {
@@ -50,7 +51,6 @@ void IconButtonSprite::updateLayout() {
 
     CCSize size = ccp(PADDING * 2, 35);
     if (hasText) {
-        m_impl->label->limitLabelWidth(100, .6f, .1f);
         size.width += m_impl->label->getScaledContentWidth();
         if (m_impl->icon) {
             size.width += PADDING;
@@ -165,7 +165,7 @@ NineSlice* IconButtonSprite::getBg() {
     return m_impl->bg;
 }
 
-cocos2d::CCLabelBMFont* IconButtonSprite::getLabel() {
+geode::Label* IconButtonSprite::getLabel() {
     return m_impl->label;
 }
 

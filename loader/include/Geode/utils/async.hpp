@@ -6,6 +6,7 @@
 #include <arc/task/CancellationToken.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/loader/Loader.hpp>
+#include <variant>
 
 namespace geode::async {
 
@@ -208,9 +209,10 @@ private:
 /// and waits for it to complete. Returns null/false if the function failed to send the result.
 /// (although that usually cannot happen in practice)
 /// This pollable is cancel-safe and won't be destroyed until the function finishes running or is confirmed to be aborted.
-template <typename T = void, typename F>
+template <typename T = arc::InferReturn, typename F>
 auto waitForMainThread(F&& func) {
-    return WaitForMainAwaiter<T>(std::forward<F>(func));
+    using Output = std::decay_t<arc::DoInferReturnType<T, F>>;
+    return WaitForMainAwaiter<Output>(std::forward<F>(func));
 }
 
 /// Allows an async task to be spawned and then automatically aborted when the holder goes out of scope.

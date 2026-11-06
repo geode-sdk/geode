@@ -1,11 +1,12 @@
 #pragma once
 
-#include <string>
-#include <matjson.hpp>
 #include <Geode/loader/Event.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/web.hpp>
+#include <string>
+#include <variant>
+#include <matjson.hpp>
 
 namespace geode::updater {
     using UpdateFinished = std::monostate;

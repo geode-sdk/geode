@@ -262,7 +262,7 @@ public:
         NONE,
         COCOSTUDIO,
     };
-    virtual bool parseConfig(ConfigType type, const gd::string& str) = 0;
+    virtual bool parseConfig(ConfigType type, const std::string& str) = 0;
 };
 
 /**

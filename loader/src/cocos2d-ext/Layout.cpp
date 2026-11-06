@@ -1,4 +1,3 @@
-#include <cocos2d.h>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/ranges.hpp>
 #include <Geode/loader/Log.hpp>
@@ -45,6 +44,12 @@ bool CCNode::hasAncestor(CCNode* ancestor) {
         return m_pParent->hasAncestor(ancestor);
     }
     return false;
+}
+
+void CCNode::addChildren(std::span<cocos2d::CCNode* const> children) {
+    for (auto& child : children) {
+        addChild(child);
+    }
 }
 
 // these use setContentSize and getContentSize because they're virtuals and

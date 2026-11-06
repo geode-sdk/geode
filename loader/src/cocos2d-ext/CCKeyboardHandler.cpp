@@ -1,8 +1,10 @@
-#include <cocos2d.h>
-
-using namespace cocos2d;
+#include <Geode/platform/cplatform.h>
 
 #ifdef GEODE_IS_IOS
+
+#include <Geode/mapping/CCKeyboardHandler.hpp>
+
+using namespace cocos2d;
 
 CCKeyboardHandler::~CCKeyboardHandler() {}
 

@@ -5,6 +5,7 @@
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/IconButtonSprite.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/binding/SetTextPopupDelegate.hpp>
 #include <Geode/binding/SetIDPopupDelegate.hpp>
 #include <Geode/cocos/cocoa/CCObject.h>
@@ -30,8 +31,8 @@ protected:
     };
 
     NineSlice* m_statusBG;
-    CCLabelBMFont* m_status;
-    CCLabelBMFont* m_statusPercentage;
+    geode::Label* m_status;
+    geode::Label* m_statusPercentage;
     Slider* m_progressBar;
     CCNode* m_loadingCircle;
     CCMenu* m_btnMenu;
@@ -62,7 +63,7 @@ protected:
     ModListSource* m_currentSource = nullptr;
     std::unordered_map<ModListSource*, Ref<ModList>> m_lists;
     CCMenu* m_pageMenu;
-    CCLabelBMFont* m_pageLabel;
+    geode::Label* m_pageLabel;
     CCMenuItemSpriteExtra* m_goToPageBtn;
     ModsStatusNode* m_statusNode;
     ListenerHandle m_updateStateHandle;

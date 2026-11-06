@@ -99,7 +99,7 @@ public:
 
 public:
     // string to render
-    gd::string m_sString;
+    std::string m_sString;
     // the first char in the charmap
     unsigned int m_uMapStartChar;
 };

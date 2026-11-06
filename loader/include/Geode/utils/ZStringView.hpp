@@ -1,9 +1,8 @@
 #pragma once
 #include <string>
 #include <string_view>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <matjson.hpp>
-#include <Geode/c++stl/string.hpp>
 #include <fmt/format.h>
 
 namespace geode {
@@ -34,7 +33,7 @@ namespace geode {
         BasicZStringView(std::basic_string<C> const& str) : m_str(str.c_str()), m_length(str.size()) {}
 
 #ifdef GEODE_IS_ANDROID
-        BasicZStringView(gd::string const& str) requires std::same_as<C, char> : m_str(str.c_str()), m_length(str.size()) {}
+        BasicZStringView(std::string const& str) requires std::same_as<C, char> : m_str(str.c_str()), m_length(str.size()) {}
 #endif
 
         BasicZStringView(BasicZStringView const& other) = default;
@@ -53,13 +52,13 @@ namespace geode {
         }
 
 #ifdef GEODE_IS_ANDROID
-        operator gd::string() const requires std::same_as<C, char> {
-            return gd::string(m_str, _size());
+        operator std::string() const requires std::same_as<C, char> {
+            return std::string(m_str, _size());
         }
 #endif
 
-        operator std::filesystem::path() const {
-            return std::filesystem::path(this->view());
+        operator asp::fs::Path() const {
+            return asp::fs::Path(this->view());
         }
 
         C const* c_str() const {
@@ -77,7 +76,7 @@ namespace geode {
         size_t size() const {
             return _size();
         }
-        
+
         size_t length() const {
             return _size();
         }
@@ -117,7 +116,7 @@ namespace geode {
 
             return m_length;
         }
-        
+
         friend std::basic_ostream<C>& operator<<(std::basic_ostream<C>& os, BasicZStringView const& zsv) {
             os << zsv.view();
             return os;
@@ -132,10 +131,10 @@ namespace geode {
 
     template <typename T, typename C>
     requires std::same_as<std::remove_cvref_t<T>, BasicZStringView<C>>
-    std::filesystem::path operator/(std::filesystem::path const& lhs, T&& rhs) {
+    asp::fs::Path operator/(asp::fs::Path const& lhs, T&& rhs) {
         return lhs / rhs.view();
     }
-    
+
     template <typename T, typename C>
     requires std::same_as<std::remove_cvref_t<T>, BasicZStringView<C>>
     std::basic_string<C> operator+(std::basic_string<C> const& lhs, T&& rhs) {
@@ -145,7 +144,7 @@ namespace geode {
         out += rhs.view();
         return out;
     }
-    
+
     template <typename T, typename C>
     requires std::same_as<std::remove_cvref_t<T>, BasicZStringView<C>>
     std::basic_string<C> operator+(C const* lhs, T&& rhs) {
@@ -155,7 +154,7 @@ namespace geode {
         out += rhs.view();
         return out;
     }
-    
+
     template <typename T, typename C>
     requires std::same_as<std::remove_cvref_t<T>, BasicZStringView<C>>
     std::basic_string<C> operator+(T&& lhs, std::basic_string<C> const& rhs) {
@@ -165,7 +164,7 @@ namespace geode {
         out += rhs;
         return out;
     }
-    
+
     template <typename T, typename C>
     requires std::same_as<std::remove_cvref_t<T>, BasicZStringView<C>>
     std::basic_string<C> operator+(T&& lhs, C const* rhs) {

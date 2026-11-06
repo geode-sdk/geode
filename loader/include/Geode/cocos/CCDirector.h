@@ -399,7 +399,10 @@ public:
     // @note RobTop Addition
     void showFPSLabel();
     // @note RobTop Addition
-    void toggleShowFPS(bool, gd::string, cocos2d::CCPoint);
+    void toggleShowFPS(bool, std::string, cocos2d::CCPoint);
+    // @note RobTop Addition
+    void noteInput();
+
 protected:
     // @note RobTop Addition
     void createStatsLabel();
@@ -450,6 +453,10 @@ public:
 
     // @note RobTop Addition
     CC_PROPERTY(CCMouseDispatcher*, m_pMouseDispatcher, MouseDispatcher);
+#if GEODE_COMP_GD_VERSION >= 22090
+    // @note RobTop Addition
+    CC_SYNTHESIZE_READONLY_NV(double, m_lastInputTime, LastInputTime);
+#endif
 
     /** CCAccelerometer associated with this director
      @since v2.0

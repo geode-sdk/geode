@@ -2,7 +2,7 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/web.hpp>
-#include <filesystem>
+#include <asp/fs/Path.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/permission.hpp>
 #include <Geode/loader/Loader.hpp>
@@ -20,10 +20,36 @@
 #include <sys/system_properties.h>
 #include <jni.h>
 #include <Geode/cocos/platform/android/jni/JniHelper.h>
+#include <Geode/cocos/actions/CCActionManager.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 
 using namespace geode::prelude;
 
 using geode::utils::permission::Permission;
+
+static void* getLibHandle() {
+    static void* handle = dlopen("libcocos2dcpp.so", RTLD_LAZY | RTLD_NOLOAD);
+    return handle;
+}
+
+uintptr_t base::get() {
+    static std::uintptr_t basePtr = 0u;
+    if (basePtr == 0u) {
+        auto handle = getLibHandle();
+
+        // JNI_OnLoad is present on all versions of GD
+        auto sym = dlsym(handle, "JNI_OnLoad");
+        assert(sym != nullptr);
+
+        Dl_info p;
+        auto dlAddrRes = dladdr(sym, &p);
+        assert(dlAddrRes != 0);
+
+        basePtr = reinterpret_cast<std::uintptr_t>(p.dli_fbase);
+    }
+
+    return basePtr;
+}
 
 bool utils::clipboard::write(ZStringView data) {
     JniMethodInfo t;
@@ -72,11 +98,11 @@ namespace {
     // jni breaks over multithreading, so the value is stored to avoid more jni calls
     std::string s_savedBaseDir = "";
 
-    std::filesystem::path getBaseDir() {
+    asp::fs::Path getBaseDir() {
         std::string path = "/storage/emulated/0/Android/data/com.geode.launcher/files";
 
         if (!s_savedBaseDir.empty()) {
-            return std::filesystem::path(s_savedBaseDir);
+            return asp::fs::Path(s_savedBaseDir);
         }
 
         JniMethodInfo t;
@@ -90,19 +116,19 @@ namespace {
         }
 
         s_savedBaseDir = path;
-        return std::filesystem::path(path);
+        return asp::fs::Path(path);
     }
 }
 
-std::filesystem::path dirs::getGameDir() {
+asp::fs::Path dirs::getGameDir() {
     return getBaseDir() / "game";
 }
 
-std::filesystem::path dirs::getSaveDir() {
+asp::fs::Path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
-std::filesystem::path dirs::getModRuntimeDir() {
+asp::fs::Path dirs::getModRuntimeDir() {
     static std::string cachedResult = [] {
         // incase the jni fails, default to this
         std::string path = "/data/user/0/com.geode.launcher/files/";
@@ -119,10 +145,10 @@ std::filesystem::path dirs::getModRuntimeDir() {
 
         return path;
     }();
-    return std::filesystem::path(cachedResult) / "geode" / "unzipped";
+    return asp::fs::Path(cachedResult) / "geode" / "unzipped";
 }
 
-std::filesystem::path dirs::getResourcesDir() {
+asp::fs::Path dirs::getResourcesDir() {
     return "assets";
 }
 
@@ -141,10 +167,10 @@ void utils::web::openLinkUnsafe(ZStringView url) {
     }
 }
 
-bool utils::file::openFolder(std::filesystem::path const& path) {
+bool utils::file::openFolder(asp::fs::PathView path) {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "openFolder", "(Ljava/lang/String;)Z")) {
-        jstring stringArg1 = t.env->NewStringUTF(utils::string::pathToString(path).c_str());
+        jstring stringArg1 = t.env->NewStringUTF(path.string().c_str());
 
         jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
 
@@ -170,7 +196,7 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFileCallba
 
     const std::lock_guard lock(s_callbackMutex);
     if (s_fileTx) {
-        (void) s_fileTx->send(Ok(std::filesystem::path(dataStr)));
+        (void) s_fileTx->send(Ok(asp::fs::Path(dataStr)));
         s_fileTx.reset();
     }
 }
@@ -183,7 +209,7 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_selectFilesCallb
 ) {
     auto isCopy = jboolean();
     auto count = env->GetArrayLength(datas);
-    auto result = std::vector<std::filesystem::path>();
+    auto result = std::vector<asp::fs::Path>();
     result.reserve(count);
     for (int i = 0; i < count; i++) {
         auto data = (jstring)env->GetObjectArrayElement(datas, i);
@@ -236,7 +262,9 @@ arc::Future<file::PickResult> file::pick(file::PickMode mode, file::FilePickOpti
         JniMethodInfo t;
         if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", method.c_str(), "(Ljava/lang/String;)Z")) {
             jstring stringArg1 = t.env->NewStringUTF(
-                utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path()).filename()).c_str()
+                options.defaultPath.and_then([](auto p) {
+                    return p.filename();
+                }).value_or("").string().c_str()
             );
 
             jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
@@ -275,7 +303,7 @@ arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
         JniMethodInfo t;
         if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "selectFiles", "(Ljava/lang/String;)Z")) {
             jstring stringArg1 = t.env->NewStringUTF(
-                utils::string::pathToString(options.defaultPath.value_or(std::filesystem::path())).c_str()
+                options.defaultPath.value_or(asp::fs::Path()).c_str()
             );
 
             jboolean result = t.env->CallStaticBooleanMethod(t.classID, t.methodID, stringArg1);
@@ -327,7 +355,7 @@ void geode::utils::game::exit(bool save) {
     ), CCDirector::get()->getRunningScene(), false);
 }
 
-void geode::utils::game::restart(bool save) {
+void geode::utils::game::restart(bool saveData, bool safeMode) {
     // if (CCApplication::sharedApplication() &&
     //     (GameManager::get()->m_playLayer || GameManager::get()->m_levelEditorLayer)) {
     //     log::error("Cannot restart in PlayLayer or LevelEditorLayer!");
@@ -344,20 +372,43 @@ void geode::utils::game::restart(bool save) {
                 t.env->DeleteLocalRef(t.classID);
             }
         }
+
+        void restartSafe() {
+            JniMethodInfo t;
+            if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "restartGame", "(Z)V")) {
+                t.env->CallStaticVoidMethod(t.classID, t.methodID, true);
+
+                t.env->DeleteLocalRef(t.classID);
+                return;
+            }
+
+            clearJNIException();
+
+            // only normal restart is supported on older launchers
+            restart();            
+        }
     };
     // Not implemented
     // log::error("Restarting the game is not implemented on android");
 
-    if (save) {
+    if (saveData) {
         AppDelegate::get()->trySaveGame(true);
     }
     // AppDelegate::get()->showLoadingCircle(false, true);
 
-    CCDirector::get()->getActionManager()->addAction(CCSequence::create(
-        CCDelayTime::create(0.5f),
-        CCCallFunc::create(nullptr, callfunc_selector(Exit::restart)),
-        nullptr
-    ), CCDirector::get()->getRunningScene(), false);
+    if (safeMode) {
+        CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+            CCDelayTime::create(0.5f),
+            CCCallFunc::create(nullptr, callfunc_selector(Exit::restartSafe)),
+            nullptr
+        ), CCDirector::get()->getRunningScene(), false);
+    } else {
+        CCDirector::get()->getActionManager()->addAction(CCSequence::create(
+            CCDelayTime::create(0.5f),
+            CCCallFunc::create(nullptr, callfunc_selector(Exit::restart)),
+            nullptr
+        ), CCDirector::get()->getRunningScene(), false);
+    }
 }
 
 static const char* permissionToName(Permission permission) {

@@ -2,13 +2,16 @@
 #include <Geode/binding/CCTextInputNode.hpp>
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/SliderThumb.hpp>
+#include <Geode/mapping/CCControlColourPicker.hpp>
 #include <Geode/ui/ColorPickPopup.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/function.hpp>
 #include <charconv>
 #include <clocale>
 #include <Geode/loader/Mod.hpp>
+#include <GUI/CCControlExtension/CCControlColourPicker.h>
 
 using namespace geode::prelude;
 
@@ -42,8 +45,6 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
     m_noElasticity = true;
     m_impl->m_color = color;
     m_impl->m_originalColor = color;
-
-    auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     this->setTitle("Select Color");
 
@@ -168,7 +169,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
     rColumn->setID("r-column");
     rgbRow->addChild(rColumn);
 
-    auto rText = CCLabelBMFont::create("R", "goldFont.fnt");
+    auto rText = Label::create("R", "goldFont.fnt");
     rText->setScale(.55f);
     rText->setID("r-text");
     rColumn->addChild(rText);
@@ -197,7 +198,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
     gColumn->setID("g-column");
     rgbRow->addChild(gColumn);
 
-    auto gText = CCLabelBMFont::create("G", "goldFont.fnt");
+    auto gText = Label::create("G", "goldFont.fnt");
     gText->setScale(.55f);
     gText->setID("g-text");
     gColumn->addChild(gText);
@@ -226,7 +227,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
     bColumn->setID("b-column");
     rgbRow->addChild(bColumn);
 
-    auto bText = CCLabelBMFont::create("B", "goldFont.fnt");
+    auto bText = Label::create("B", "goldFont.fnt");
     bText->setScale(.55f);
     bText->setID("b-text");
     bColumn->addChild(bText);
@@ -255,7 +256,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
     hexColumn->setID("hex-column");
     inputColumn->addChild(hexColumn);
 
-    auto hexText = CCLabelBMFont::create("Hex", "goldFont.fnt");
+    auto hexText = Label::create("Hex", "goldFont.fnt");
     hexText->setScale(.55f);
     hexText->setID("hex-text");
     hexColumn->addChild(hexText);
@@ -298,7 +299,7 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
         opacitySection->addChild(sliderColumn);
 
 
-        auto opacityText = CCLabelBMFont::create("Opacity", "goldFont.fnt");
+        auto opacityText = Label::create("Opacity", "goldFont.fnt");
         opacityText->setScale(.55f);
         opacityText->setID("opacity-text");
         sliderColumn->addChild(opacityText);
@@ -395,23 +396,23 @@ void ColorPickPopup::textChanged(CCTextInputNode* input) {
                 break;
 
             case TAG_OPACITY_INPUT: {
-                auto res = numFromString<float>(input->getString().c_str());
+                auto res = numFromString<float>(input->getString());
                 if (res) m_impl->m_color.a = std::clamp(static_cast<int>(res.unwrap() * 255.f), 0, 255);
                 break;
             }
 
             case TAG_R_INPUT: {
-                auto res = numFromString<uint32_t>(input->getString().c_str());
+                auto res = numFromString<uint32_t>(input->getString());
                 if (res) m_impl->m_color.r = std::clamp(res.unwrap(), 0u, 255u);
                 break;
             }
             case TAG_G_INPUT: {
-                auto res = numFromString<uint32_t>(input->getString().c_str());
+                auto res = numFromString<uint32_t>(input->getString());
                 if (res) m_impl->m_color.g = std::clamp(res.unwrap(), 0u, 255u);
                 break;
             }
             case TAG_B_INPUT: {
-                auto res = numFromString<uint32_t>(input->getString().c_str());
+                auto res = numFromString<uint32_t>(input->getString());
                 if (res) m_impl->m_color.b = std::clamp(res.unwrap(), 0u, 255u);
                 break;
             }

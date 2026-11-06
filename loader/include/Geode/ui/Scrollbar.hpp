@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cocos2d.h>
-#include <cocos-ext.h>
 #include <Geode/binding/CCScrollLayerExt.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <memory>
@@ -16,7 +14,7 @@ namespace geode {
         void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
         void ccTouchEnded(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
         void ccTouchCancelled(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
-        void scrollWheel(float y, float x) override;
+        bool scrollWheel(float y, float x) override;
         void registerWithTouchDispatcher() override;
 
         void draw() override;

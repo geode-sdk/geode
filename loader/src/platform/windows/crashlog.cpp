@@ -6,11 +6,11 @@
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <DbgHelp.h>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <Windows.h>
+#include <DbgHelp.h>
 #include <ctime>
 #include <errhandlingapi.h>
 #include <iomanip>
@@ -18,6 +18,7 @@
 #include <string>
 #include <fmt/format.h>
 #include "ehdata_structs.hpp"
+#include <asp/fs/fs.hpp>
 
 #include <tlhelp32.h>
 
@@ -367,7 +368,7 @@ std::vector<Register> CrashContext::getRegisters() {
     return registers;
 }
 
-std::string_view CrashContext::getGeodeBinaryName() {
+asp::fs::PathView CrashContext::getGeodeBinaryName() {
     return "Geode.dll";
 }
 
@@ -555,7 +556,7 @@ void CrashContext::writeInfo(Buffer& stream) {
 
 static void handleException(LPEXCEPTION_POINTERS info) {
     std::string text;
-    std::filesystem::path crashlogPath;
+    asp::fs::Path crashlogPath;
     g_excPtr = info;
 
     // calling SymInitialize from multiple threads can have unexpected behavior, so synchronize this part
@@ -591,7 +592,7 @@ static void handleException(LPEXCEPTION_POINTERS info) {
     }
 
     // defined in crashlogWindow.cpp
-    extern bool showCustomCrashlogWindow(std::string text, std::filesystem::path const& crashlogPath);
+    extern bool showCustomCrashlogWindow(std::string text, asp::fs::PathView crashlogPath);
 
     if (!showCustomCrashlogWindow(text, crashlogPath)) {
         // if the window fails to show, we show a message box instead
@@ -610,10 +611,9 @@ bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
-    if (std::filesystem::exists(lastCrashedFile)) {
+    if (lastCrashedFile.exists()) {
         g_lastLaunchCrashed = true;
-        std::error_code ec;
-        std::filesystem::remove(lastCrashedFile, ec);
+        (void) asp::fs::remove(lastCrashedFile);
     }
     return true;
 }
@@ -630,6 +630,6 @@ void crashlog::setupPlatformHandlerPost() {
     }
 }
 
-std::filesystem::path crashlog::getCrashLogDirectory() {
+asp::fs::Path crashlog::getCrashLogDirectory() {
     return dirs::getGeodeDir() / "crashlogs";
 }

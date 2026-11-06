@@ -5,6 +5,7 @@
 #include <Geode/utils/web.hpp>
 #include <chrono>
 #include <matjson.hpp>
+#include <variant>
 #include <vector>
 
 using namespace geode::prelude;

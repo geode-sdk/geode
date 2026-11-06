@@ -1,11 +1,10 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include <cocos2d.h>
-#include <cocos-ext.h>
 
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <Geode/ui/Button.hpp>
 
 namespace geode {
     /**
@@ -109,33 +108,24 @@ namespace geode {
      */
     GEODE_DLL void pushSceneWithLayer(cocos2d::CCLayer* layer);
 
-    enum class BackButtonStyle {
+    enum class BackButtonStyle : uint8_t {
         Green,
         Blue,
         Pink
     };
 
     /**
-     * Add a back button to a layer, will call `CCDirector::get()->popSceneWithTransition()` on activate
+     * Create & add a back button to a layer, will call `CCDirector::get()->popSceneWithTransition()` on activate
      * @param to Layer to add the back button to
      * @param style Style of button to use
-     * @returns The created back button
      */
-    GEODE_DLL CCMenuItemSpriteExtra* addBackButton(
-        cocos2d::CCNode* to,
-        BackButtonStyle style = BackButtonStyle::Green
-    );
+    GEODE_DLL Button* addBackButton(cocos2d::CCNode* to, BackButtonStyle style = BackButtonStyle::Green);
 
     /**
-     * Add a back button to a layer with a custom callback
+     * Create & add a back button to a layer with a custom callback
      * @param to Layer to add the back button to
      * @param callback Callback to call on activate
      * @param style Style of button to use
-     * @returns The created back button
      */
-    GEODE_DLL CCMenuItemSpriteExtra* addBackButton(
-        cocos2d::CCNode* to,
-        geode::Function<void(cocos2d::CCMenuItem*)> callback,
-        BackButtonStyle style = BackButtonStyle::Green
-    );
+    GEODE_DLL Button* addBackButton(cocos2d::CCNode* to, Button::ButtonCallback callback, BackButtonStyle style = BackButtonStyle::Green);
 }

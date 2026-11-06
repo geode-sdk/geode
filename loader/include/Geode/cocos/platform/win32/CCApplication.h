@@ -1,10 +1,12 @@
 #ifndef __CC_APPLICATION_WIN32_H__
 #define __CC_APPLICATION_WIN32_H__
 
+#include <Windows.h>
 #include "../../include/ccMacros.h"
 #include "CCStdC.h"
 #include "../CCCommon.h"
 #include "../CCApplicationProtocol.h"
+#include "../../cocoa/CCGeometry.h"
 #include "CXBOXController.h"
 #include <string>
 
@@ -69,7 +71,7 @@ public:
     void leftMouseUp();
 
     // @note RobTop Addition
-    void logTimeElapsed(gd::string);
+    void logTimeElapsed(std::string);
 
     // @note RobTop Addition
     void moveMouse(int, int);
@@ -83,22 +85,28 @@ public:
     // @note RobTop Addition
     void updateMouseControl();
 
+    // @note RobTop Addition
+    void applySwapInterval();
+    // @note RobTop Addition
+    void checkMonitorChanged();
+    // @note RobTop Addition
+    void resyncVerticalSync();
 
     /**
      *  Sets the Resource root path.
      *  @deprecated Please use CCFileUtils::sharedFileUtils()->setSearchPaths() instead.
      */
-    CC_DEPRECATED_ATTRIBUTE void setResourceRootPath(const gd::string& rootResDir);
+    void setResourceRootPath(const std::string& rootResDir);
 
     /**
      *  Gets the Resource root path.
      *  @deprecated Please use CCFileUtils::sharedFileUtils()->getSearchPaths() instead.
      */
-    CC_DEPRECATED_ATTRIBUTE const gd::string& getResourceRootPath(void);
+    const std::string& getResourceRootPath(void);
 
-    void setStartupScriptFilename(const gd::string& startupScriptFile);
+    void setStartupScriptFilename(const std::string& startupScriptFile);
 
-    const gd::string& getStartupScriptFilename(void)
+    const std::string& getStartupScriptFilename(void)
     {
         return m_startupScriptFilename;
     }
@@ -108,8 +116,8 @@ public:
     HACCEL              m_hAccelTable;
     LARGE_INTEGER       m_nAnimationInterval;
     LARGE_INTEGER       m_nVsyncInterval;
-    gd::string          m_resourceRootPath;
-    gd::string          m_startupScriptFilename;
+    std::string          m_resourceRootPath;
+    std::string          m_startupScriptFilename;
     CXBOXController* m_pControllerHandler;
     CXBOXController* m_pController2Handler; //might be swapped with m_pControllerHandler
     bool m_bUpdateController;
@@ -120,6 +128,7 @@ public:
     bool m_bMouseControl;
     float m_fAnimationInterval;
     float m_fVsyncInterval;
+    HMONITOR m_hMonitor;
     CC_SYNTHESIZE_READONLY_NV(bool, m_bVerticalSyncEnabled, VerticalSyncEnabled);
     CC_SYNTHESIZE_READONLY_NV(bool, m_bControllerConnected, ControllerConnected);
     CC_SYNTHESIZE_NV(bool, m_bSleepMode, SleepMode);

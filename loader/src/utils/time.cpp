@@ -1,4 +1,5 @@
 #include <Geode/utils/general.hpp>
+#include <fmt/chrono.h>
 
 std::string geode::utils::timePointAsString(std::chrono::system_clock::time_point const& tp) {
     return fmt::format("{:%a %b %e %H:%M:%S %Y}", tp);

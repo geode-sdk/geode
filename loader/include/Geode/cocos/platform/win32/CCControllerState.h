@@ -10,8 +10,8 @@ class CC_DLL CCControllerState
 {
     GEODE_FRIEND_MODIFY
 public:
-    DWORD m_packetNumber;
-    WORD m_buttons;
+    unsigned int m_packetNumber;
+    unsigned short m_buttons;
     unsigned char m_leftTrigger;
     unsigned char m_rightTrigger;
     short m_thumbLX;

@@ -1,7 +1,10 @@
 #include <Geode/utils/StringBuffer.hpp>
 #include <Geode/loader/Formatter.hpp>
 #include <Geode/loader/Mod.hpp>
+#include <Geode/loader/ModEvent.hpp>
 #include <ranges>
+#include <Geode/cocos/cocoa/CCBool.h>
+#include <Geode/cocos/cocoa/CCInteger.h>
 
 using namespace geode::prelude;
 
@@ -36,7 +39,7 @@ std::string geode::format_as(CCNode* obj) {
 }
 
 std::string geode::format_as(CCArray* arr) {
-    if (!arr && !arr->count()) return "[empty]";
+    if (!arr || arr->count() == 0) return "[empty]";
 
     StringBuffer<> buffer;
 
@@ -140,12 +143,12 @@ $on_mod(Loaded) {
 
         bool first = true;
 
-        for (CCSetIterator setIter = obj->begin(); setIter != obj->end(); ++setIter) {
+        for (auto elem : *obj) {
             if (!first) buffer.append(std::string_view(", "));
             if (!rawFormat) buffer.append(std::string_view("\n\t"));
             first = false;
 
-            buffer.append("{}", format::wrap(static_cast<CCObject*>(*setIter)));
+            buffer.append("{}", format::wrap(elem));
         }
 
         if (!rawFormat) buffer.append('\n');

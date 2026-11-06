@@ -183,7 +183,7 @@ void askConfirmModInstalls() {
                 for (auto mod : toConfirm.toDisable) {
                     (void)mod->disable();
                 }
-                for (auto modId : toConfirm.toDisableModId) {
+                for (auto& modId : toConfirm.toDisableModId) {
                     Mod::get()->setSavedValue("should-load-" + modId, false);
                 }
                 for (auto mod : toConfirm.toEnable) {

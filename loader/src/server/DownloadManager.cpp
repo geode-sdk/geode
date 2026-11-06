@@ -2,12 +2,15 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/utils/map.hpp>
+#include <Geode/utils/crypto.hpp>
 #include <Geode/utils/StringMap.hpp>
 #include <fmt/format.h>
 #include <optional>
 #include <hash/hash.hpp>
 #include <loader/LoaderImpl.hpp>
 #include <loader/ModImpl.hpp>
+
+#include <asp/fs/fs.hpp>
 
 using namespace server;
 
@@ -29,7 +32,7 @@ public:
         std::optional<std::string> replacesMod
     )
       : m_id(std::move(id)),
-        m_version(std::move(version)),
+        m_version(version),
         m_dependencyFor(std::move(dependencyFor)),
         m_replacesMod(std::move(replacesMod)),
         m_status(DownloadStatusFetching {
@@ -45,7 +48,7 @@ public:
                     m_version = data.metadata.getVersion();
 
                     // Start downloads for any missing required dependencies
-                    for (auto dep : data.metadata.getDependencies()) {
+                    for (auto& dep : data.metadata.getDependencies()) {
                         if (!dep.getMod() && dep.isRequired()) {
                             ModDownloadManager::get()->startDownload(
                                 dep.getID(), dep.getVersion().getUnderlyingVersion(),
@@ -115,11 +118,10 @@ public:
 
         std::string id = m_replacesMod.has_value() ? m_replacesMod.value() : m_id;
         if (auto mod = Loader::get()->getInstalledMod(id)) {
-            std::error_code ec;
-            std::filesystem::remove(mod->getPackagePath(), ec);
-            if (ec) {
+            auto result = asp::fs::remove(mod->getPackagePath());
+            if (!result) {
                 m_status = DownloadStatusError {
-                    .details = fmt::format("Unable to delete existing .geode package (code {})", ec),
+                    .details = fmt::format("Unable to delete existing .geode package: {}", result.unwrapErr()),
                 };
                 return;
             }

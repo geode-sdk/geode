@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/ui/General.hpp>
+#include <Geode/ui/Label.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
@@ -9,6 +10,7 @@
 #include "ModListItem.hpp"
 #include "../sources/ModListSource.hpp"
 #include <server/DownloadManager.hpp>
+#include <variant>
 
 using namespace geode::prelude;
 
@@ -27,7 +29,7 @@ protected:
     size_t m_page = 0;
     ScrollLayer* m_list;
     CCMenu* m_statusContainer;
-    CCLabelBMFont* m_statusTitle;
+    Label* m_statusTitle;
     SimpleTextArea* m_statusDetails;
     CCMenuItemSpriteExtra* m_statusDetailsBtn;
     CCNode* m_statusLoadingCircle;

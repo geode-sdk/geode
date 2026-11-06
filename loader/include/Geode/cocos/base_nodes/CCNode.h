@@ -41,12 +41,14 @@
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/utils/ZStringView.hpp>
-#include <Geode/ui/NodeEvent.hpp>
+#include <span>
 
 namespace geode {
     class Layout;
     class LayoutOptions;
+    class NodeEvent;
     enum class Anchor;
+    enum class NodeEventType;
 }
 
 NS_CC_BEGIN
@@ -358,6 +360,10 @@ public:
     virtual void  setPositionY(float y);
     virtual float getPositionY(void);
 
+    // @note RobTop Addition
+    virtual void offsetPosition(float, float);
+    // @note RobTop Addition
+    virtual void applyScale(float);
 
     /**
      * Changes the X skew angle of the node in degrees.
@@ -672,6 +678,20 @@ public:
      * @returns A pointer to the parnet node
      */
     virtual CCNode* getParent();
+    
+    /**
+     * Util function to add multiple children in one call
+     * @note Geode addition
+     */
+    GEODE_DLL void addChildren(std::span<cocos2d::CCNode* const> children);
+    /**
+     * Util function to add multiple children in one call
+     * @note Geode addition
+     */
+    template <typename... Args>
+    void addChildren(Args... children) {
+        (addChild(children), ...);
+    }
 
 
     ////// REMOVES //////
@@ -1157,41 +1177,31 @@ public:
     geode::comm::ListenerHandle* addOnEnterCallback(
         Callback&& callback,
         int priority = 0
-    ) {
-        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnEnter), std::forward<Callback>(callback), priority);
-    }
+    );
 
     template <class Callback>
     geode::comm::ListenerHandle* addOnEnterTransitionDidFinishCallback(
         Callback&& callback,
         int priority = 0
-    ) {
-        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnEnterTransitionDidFinish), std::forward<Callback>(callback), priority);
-    }
+    );
 
     template <class Callback>
     geode::comm::ListenerHandle* addOnExitCallback(
         Callback&& callback,
         int priority = 0
-    ) {
-        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnExit), std::forward<Callback>(callback), priority);
-    }
+    );
 
     template <class Callback>
     geode::comm::ListenerHandle* addOnExitTransitionDidStartCallback(
         Callback&& callback,
         int priority = 0
-    ) {
-        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnExitTransitionDidStart), std::forward<Callback>(callback), priority);
-    }
+    );
 
     template <class Callback>
     geode::comm::ListenerHandle* addCleanupCallback(
         Callback&& callback,
         int priority = 0
-    ) {
-        return this->addEventListener("", geode::NodeEvent(this, geode::NodeEventType::OnCleanup), std::forward<Callback>(callback), priority);
-    }
+    );
 
     /**
      * Get child at index. Checks bounds. A negative
@@ -1969,7 +1979,7 @@ public:
 
     // 2.2 additions
     bool m_bUseChildIndex;
-    bool m_bUnkBool2;
+    bool m_bDisableScheduling;
 };
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)

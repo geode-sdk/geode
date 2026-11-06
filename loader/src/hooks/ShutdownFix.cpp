@@ -3,6 +3,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/ObjcHook.hpp>
 #include <objc/message.h>
+#include <Geode/cocos/CCScheduler.h>
 
 using namespace geode::prelude;
 

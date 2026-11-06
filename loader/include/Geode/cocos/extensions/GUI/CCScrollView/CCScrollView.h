@@ -26,7 +26,7 @@
 #ifndef __CCSCROLLVIEW_H__
 #define __CCSCROLLVIEW_H__
 
-#include "../../../include/cocos2d.h"
+#include "../../../layers_scenes_transitions_nodes/CCLayer.h"
 #include "../../ExtensionMacros.h"
 
 NS_CC_EXT_BEGIN
@@ -347,7 +347,7 @@ public:
     void unregisterScriptHandler(int nScriptEventType);
     int  getScriptHandler(int nScriptEventType);
 public:
-    gd::map<int,int> m_mapScriptHandler;
+    std::map<int,int> m_mapScriptHandler;
 };
 
 // end of GUI group

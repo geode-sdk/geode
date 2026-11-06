@@ -1,7 +1,6 @@
 #pragma once
 #include "../utils/addresser.hpp"
 #include "Traits.hpp"
-#include "../loader/Log.hpp"
 
 namespace geode::modifier {
 /**
