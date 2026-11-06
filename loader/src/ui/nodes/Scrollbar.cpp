@@ -15,8 +15,14 @@ public:
     float m_width = 0.f;
     bool m_resizeThumb = false;
     bool m_trackIsRotated = false;
-    bool m_hoverHighlight = false;
     bool m_touchDown = false;
+    Scrollbar::Style m_style = Scrollbar::Style::Geode;
+    NineSlice::Insets m_insets = {};
+    bool m_shrinkWithOverscroll = false;
+    bool m_onlyTouchInThumb = false;
+    float m_touchOffsetLocalY = 0;
+    cocos2d::ccColor4B m_selectedColor = ccc4(255, 255, 255, 255);
+    cocos2d::ccColor4B m_normalColor = ccc4(255, 255, 255, 255);
 
     Impl(Scrollbar* self) : m_self(self) {}
 
@@ -24,26 +30,32 @@ public:
     void ccTouchEnded(CCTouch*, CCEvent*);
     void ccTouchCancelled(CCTouch*, CCEvent*);
     void ccTouchMoved(CCTouch* touch, CCEvent*);
-    void scrollWheel(float x, float y);
+    bool scrollWheel(float x, float y);
     void registerWithTouchDispatcher();
     void draw();
-    bool init(CCScrollLayerExt* target);
+    bool init(CCScrollLayerExt* target, Style style);
     void setTarget(CCScrollLayerExt* target) { m_target = target; }
+    void setStyle(Scrollbar::Style style);
+    float calcThumbHeightP();
+    float calcTargetScrollP();
 };
 
 bool Scrollbar::Impl::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     // hitbox
     auto const size = m_self->getContentSize();
     auto const pos = m_self->convertToNodeSpace(touch->getLocation());
-    auto const rect = CCRect{0, 0, size.width, size.height};
+    auto const rect = m_onlyTouchInThumb ? CCRect{m_thumb->getPosition() - m_thumb->getScaledContentSize() * m_thumb->getAnchorPoint(), m_thumb->getScaledContentSize()} : CCRect{0, 0, size.width, size.height};
 
     if (!m_target || !rect.containsPoint(pos)) return false;
 
+    if (m_onlyTouchInThumb)
+        m_touchOffsetLocalY = pos.y - m_thumb->getPositionY();
+    else
+        m_touchOffsetLocalY = 0;
+
     // trigger scrollbar thumb move
     m_self->ccTouchMoved(touch, event);
-
     m_touchDown = true;
-
     return true;
 }
 
@@ -63,6 +75,7 @@ void Scrollbar::Impl::ccTouchMoved(CCTouch* touch, CCEvent*) {
 
     auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
 
+    pos.y -= m_touchOffsetLocalY;
     auto posY = h *
         ((-pos.y + thumbHeight / 4 - 5) / (targetHeight - thumbHeight / 2 + 10));
 
@@ -72,13 +85,49 @@ void Scrollbar::Impl::ccTouchMoved(CCTouch* touch, CCEvent*) {
     m_target->m_contentLayer->setPositionY(posY);
 }
 
-void Scrollbar::Impl::scrollWheel(float x, float y) {
-    if (!m_target) return;
-    m_target->scrollWheel(x, y);
+bool Scrollbar::Impl::scrollWheel(float x, float y) {
+    if (!m_target) return false;
+    return m_target->scrollWheel(x, y);
 }
 
 void Scrollbar::Impl::registerWithTouchDispatcher() {
     CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(m_self, 0, true);
+}
+
+float Scrollbar::Impl::calcThumbHeightP() {
+    float percent = m_target->getScaledContentHeight() / m_target->m_contentLayer->getScaledContentHeight();
+
+    if (m_shrinkWithOverscroll) {
+        float pos = m_target->m_contentLayer->getPositionY();
+        float min = m_target->getMinY();
+        float max = m_target->getMaxY();
+
+        float overScroll = 0;
+
+        if (pos < min) {
+            overScroll = min - pos;
+        } else if (pos > max) {
+            overScroll = pos - max;
+        }
+
+        if (overScroll > 0)
+            percent *= (1.0f / (1.0f + (overScroll / m_target->getScaledContentHeight())));    
+    }
+
+    if (m_target->m_contentLayer->getScaledContentHeight() <= m_target->getScaledContentHeight())
+        percent = 1.0f;
+
+    return percent;
+}
+
+float Scrollbar::Impl::calcTargetScrollP() {
+    auto fTo01 = [&](float value, float min, float max) -> float {
+        if (min == max)
+            return 0;
+        return (value - min) / (max - min);
+    };
+
+    return std::clamp<float>(fTo01(m_target->m_contentLayer->getPositionY(), m_target->getMaxY(), m_target->getMinY()), 0, 1);
 }
 
 void Scrollbar::Impl::draw() {
@@ -86,8 +135,8 @@ void Scrollbar::Impl::draw() {
 
     if (!m_target) return;
 
-    auto contentHeight = m_target->m_contentLayer->getScaledContentSize().height;
-    auto targetHeight = m_target->getScaledContentSize().height;
+    auto contentHeight = m_target->m_contentLayer->getScaledContentHeight();
+    auto targetHeight = m_target->getScaledContentHeight();
 
     if (m_trackIsRotated) {
         m_track->setContentSize({ targetHeight / m_track->getScale(),
@@ -98,112 +147,113 @@ void Scrollbar::Impl::draw() {
                                   targetHeight / m_track->getScale() });
     }
     m_track->setPosition(m_self->m_obContentSize / 2);
-
     m_self->setContentSize({ m_width, targetHeight });
 
-    auto h = contentHeight - targetHeight + m_target->m_scrollLimitTop;
-    auto p = targetHeight / contentHeight;
+    float scrollP = calcTargetScrollP();
+    float min = m_insets.bottom;
+    float max = m_self->getContentHeight() - m_insets.top;
+    float thumbH = m_resizeThumb ? calcThumbHeightP() * (max - min) : m_thumb->getScaledContentHeight();
 
-    GLubyte o;
-    if (m_hoverHighlight) {
-        o = 100;
-        // if (m_extMouseHovered) {
-        // o = 160;
-        // }
-        if (m_touchDown) {
-            o = 255;
-        }
-    }
-    else {
-        o = 255;
-        if (m_touchDown) {
-            o = 125;
-        }
-    }
-    m_thumb->setColor({ o, o, o });
-
-    auto y = m_target->m_contentLayer->getPositionY();
-
-    auto thumbHeight = m_resizeThumb ? std::min(p, 1.f) * targetHeight / .4f : 0;
-    if (thumbHeight < 15.f) {
-        thumbHeight = 15.f;
+    if (m_touchDown) {
+        m_thumb->setColor(ccc3(m_selectedColor.r, m_selectedColor.g, m_selectedColor.b));
+        m_thumb->setOpacity(m_selectedColor.a);
+    } else {
+        m_thumb->setColor(ccc3(m_normalColor.r, m_normalColor.g, m_normalColor.b));
+        m_thumb->setOpacity(m_normalColor.a);
     }
 
-    auto thumbPosY = -targetHeight / 2 + thumbHeight / 4 - 5.0f +
-        (h ? (-y) / h : 1.f) * (targetHeight - thumbHeight / 2 + 10.0f);
 
-    auto fHeightTop = [&]() -> float {
-        return thumbPosY - targetHeight / 2 + thumbHeight * .4f / 2 + 3.0f;
-    };
-    auto fHeightBottom = [&]() -> float {
-        return thumbPosY + targetHeight / 2 - thumbHeight * .4f / 2 - 3.0f;
-    };
-
-    if (fHeightTop() > 0.0f) {
-        thumbHeight -= fHeightTop();
-        if (thumbHeight < 15.f) {
-            thumbHeight = 15.f;
-        }
-        thumbPosY -= fHeightTop();
-    }
-
-    if (fHeightBottom() < 0.f) {
-        thumbHeight += fHeightBottom();
-        if (thumbHeight < 15.f) {
-            thumbHeight = 15.f;
-        }
-        thumbPosY -= fHeightBottom();
-    }
-
-    m_thumb->setPosition(m_self->m_obContentSize / 2 + ccp(0.f, thumbPosY));
+    m_thumb->setPosition(ccp(std::lerp<double>(m_insets.left, m_self->m_obContentSize.width - m_insets.right, 0.5f), std::lerp<double>(min + thumbH / 2, max - thumbH / 2, scrollP)));
     if (m_resizeThumb) {
-        m_thumb->setContentSize({ m_width, thumbHeight });
+        m_thumb->setContentSize(ccp(m_width - m_insets.left - m_insets.right, thumbH));
     }
 }
 
-bool Scrollbar::Impl::init(CCScrollLayerExt* target) {
+bool Scrollbar::Impl::init(CCScrollLayerExt* target, Style style) {
     if (!m_self->CCLayer::init()) return false;
 
     m_self->ignoreAnchorPointForPosition(false);
 
     m_target = target;
 
-    if (cocos::fileExistsInSearchPaths("scrollbar.png"_spr)) {
-        m_track = NineSlice::create("scrollbar.png"_spr);
-        m_track->setColor({ 0, 0, 0 });
-        m_track->setOpacity(150);
-        m_track->setScale(.8f);
+    setStyle(style);
 
-        m_thumb = NineSlice::create("scrollbar.png"_spr);
-        m_thumb->setScale(.4f);
+    m_self->setTouchEnabled(true);
+    return true;
+}
 
-        m_width = 8.f;
-        m_resizeThumb = true;
-        m_trackIsRotated = false;
-        m_hoverHighlight = true;
-    }
-    else {
-        m_track = NineSlice::create("slidergroove.png");
-        m_track->setRotation(90);
-        m_track->setScale(.8f);
+void Scrollbar::Impl::setStyle(Scrollbar::Style style) {
+    m_style = style;
 
-        m_thumb = NineSlice::create("sliderthumb.png");
-        m_thumb->setScale(.6f);
+    if (m_track)
+        m_track->removeFromParent();
 
-        m_width = 12.f;
-        m_resizeThumb = false;
-        m_trackIsRotated = true;
-        m_hoverHighlight = false;
+    if (m_thumb)
+        m_thumb->removeFromParent();
+
+    switch (style)
+    {
+        case Style::GDScrollbar: {
+            m_track = NineSlice::create("cc_2x2_white_image");
+            m_track->setOpacity(0);
+
+            m_thumb = NineSlice::create("cc_2x2_white_image");
+
+            m_width = 3;
+            m_resizeThumb = true;
+            m_trackIsRotated = false;
+            m_shrinkWithOverscroll = false;
+            m_insets = { 1.0f, 0.0f, 1.0f, 0.0f };
+            m_normalColor = m_selectedColor = ccc4(255, 255, 255, 125);
+            m_onlyTouchInThumb = true;
+            break;
+        }
+
+        case Style::GDSlider: {
+            m_track = NineSlice::create("slidergroove.png");
+            m_track->setRotation(90);
+            m_track->setScaleMultiplier(0.8f);
+
+            m_thumb = NineSlice::create("sliderthumb.png");
+            m_thumb->setScale(0.6f);
+
+            m_width = 12.f;
+            m_resizeThumb = false;
+            m_trackIsRotated = true;
+            m_shrinkWithOverscroll = false;
+            m_insets = { 0.0f, 0.0f, 0.0f, 0.0f };
+            m_normalColor = ccc4(255, 255, 255, 255);
+            m_selectedColor = ccc4(125, 125, 125, 255);
+            m_onlyTouchInThumb = false;
+            break;
+        }
+
+        default:
+        case Style::Geode: {
+            m_track = NineSlice::create("scrollbar.png"_spr);
+            m_track->setColor({ 0, 0, 0 });
+            m_track->setOpacity(150);
+            m_track->setScaleMultiplier(0.8f);
+
+            m_thumb = NineSlice::create("scrollbar.png"_spr);
+            m_thumb->setScaleMultiplier(0.4f);
+
+            m_width = 8.f;
+            m_resizeThumb = true;
+            m_trackIsRotated = false;
+            m_shrinkWithOverscroll = true;
+            m_insets = { 2.4f, 2.4f, 2.4f, 2.4f };
+            m_normalColor = ccc4(100, 100, 100, 255);
+            m_selectedColor = ccc4(255, 255, 255, 255);
+            m_onlyTouchInThumb = false;
+            break;
+        }
     }
 
     m_self->addChild(m_track);
     m_self->addChild(m_thumb);
 
-    m_self->setTouchEnabled(true);
-    // Make sure the size is accurate in the first frame
     m_self->draw();
-
-    return true;
 }
 
 // Scrollbar public forwards / wiring
@@ -225,8 +275,7 @@ void Scrollbar::ccTouchMoved(CCTouch* t, CCEvent* e) {
 }
 // TODO: 2.209
 bool Scrollbar::scrollWheel(float x, float y) {
-    m_impl->scrollWheel(x, y);
-    return true;
+    return m_impl->scrollWheel(x, y);
 }
 void Scrollbar::registerWithTouchDispatcher() { 
     m_impl->registerWithTouchDispatcher(); 
@@ -234,8 +283,8 @@ void Scrollbar::registerWithTouchDispatcher() {
 void Scrollbar::draw() { 
     m_impl->draw(); 
 }
-bool Scrollbar::init(CCScrollLayerExt* target) {
-    return m_impl->init(target);
+bool Scrollbar::init(CCScrollLayerExt* target, Style style) {
+    return m_impl->init(target, style);
 }
 
 bool Scrollbar::isTouching() {
@@ -266,10 +315,39 @@ void Scrollbar::setThumb(NineSlice* thumb) {
     m_impl->m_thumb = thumb;
 }
 
-Scrollbar* Scrollbar::create(CCScrollLayerExt* target) {
+Scrollbar::Style Scrollbar::getStyle() const {
+    return m_impl->m_style;
+}
+
+void Scrollbar::setStyle(Style style) {
+    m_impl->setStyle(style);
+}
+
+void Scrollbar::setShrinkWithOverscroll(bool shrink) {
+    m_impl->m_shrinkWithOverscroll = shrink;
+}
+
+bool Scrollbar::getShrinkWithOverscroll() const {
+    return m_impl->m_shrinkWithOverscroll;
+}
+
+void Scrollbar::setTouchInThumb(bool onlyInThumb) {
+    m_impl->m_onlyTouchInThumb = onlyInThumb;
+}
+
+bool Scrollbar::getTouchInThumb() const {
+    return m_impl->m_onlyTouchInThumb;
+}
+
+void Scrollbar::setThumbColors(cocos2d::ccColor4B normal, cocos2d::ccColor4B selected) {
+    m_impl->m_normalColor = normal;
+    m_impl->m_selectedColor = selected;
+}
+
+Scrollbar* Scrollbar::create(CCScrollLayerExt* target, Style style) {
     auto ret = new Scrollbar;
 
-    if (ret->init(target)) {
+    if (ret->init(target, style)) {
         ret->autorelease();
         return ret;
     }
