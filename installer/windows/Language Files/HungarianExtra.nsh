@@ -20,7 +20,7 @@ ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "A telepítő végigvezeti Önt a
 ${LangFileString} GEODE_TEXT_GD_MISSING "$\r$\n$\r$\nEzzen az útvonalon nem található Geometry Dash telepítés!"
 ${LangFileString} GEODE_TEXT_GD_OLD "$\r$\n$\r$\nA Geomtery Dash-ed verziója régi a Geode futattására!"
 ${LangFileString} GEODE_TEXT_GD_RUNNING "Kérlek zárd be a Geometry Dash-t mielőtt telepíted a Geode-ot."
-${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Ezzen az útvonalon más modok vannak telepítve!$\r$\nEzeket a Geode felülírja. (a DLL védjegye)"
+${LangFileString} GEODE_TEXT_MOD_LOADER_ALREADY_INSTALLED "Ezzen az útvonalon más modok vannak telepítve!$\r$\nEzeket a Geode felülírja. (the dll trademark)"
 ${LangFileString} GEODE_TEXT_INSTALLING_VCREDIST "A VS Runtime telepítése. Ellenőrizze a tálcán, hogy nyílt-e új ablak..."
 
 ; uninstaller
