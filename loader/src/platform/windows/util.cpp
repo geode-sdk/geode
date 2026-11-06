@@ -195,15 +195,6 @@ void utils::web::openLinkUnsafe(ZStringView url) {
     ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
 }
 
-CCPoint cocos::getMousePos() {
-    auto* director = CCDirector::get();
-    auto* gl = director->getOpenGLView();
-    auto winSize = director->getWinSize();
-    auto frameSize = gl->getFrameSize();
-    auto mouse = gl->getMousePosition() / frameSize;
-    return ccp(mouse.x, 1.f - mouse.y) * winSize;
-}
-
 asp::fs::Path dirs::getGameDir() {
     // only fetch the path once, since ofc it'll never change
     // throughout the execution

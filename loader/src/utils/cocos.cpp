@@ -2,6 +2,7 @@
 #include <Geode/cocos/platform/CCFileUtils.h>
 #include <Geode/cocos/textures/CCTextureCache.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchHandler.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/modify/LoadingLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/binding/CCTextInputNode.hpp>
@@ -635,6 +636,10 @@ void GEODE_DLL geode::cocos::handleTouchPriority(cocos2d::CCNode* node, bool for
         }
         handleTouchPriorityWith(node, 0, force);
     });
+}
+
+cocos2d::CCPoint GEODE_DLL geode::cocos::getMousePos() {
+    return cocos2d::CCEGLView::sharedOpenGLView()->getMousePosition();
 }
 
 struct LoadingFinished : Modify<LoadingFinished, LoadingLayer> {
