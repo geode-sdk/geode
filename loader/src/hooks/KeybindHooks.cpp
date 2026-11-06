@@ -365,10 +365,12 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         );
         m_mainLayer->updateLayout();
 
-        auto scrollbar = Scrollbar::create(nullptr);
+        auto scrollbar = Scrollbar::create(nullptr, Scrollbar::Style::GDScrollbar);
+        scrollbar->setZOrder(1);
+        scrollbar->setAnchorPoint(ccp(1, 0.5f));
         scrollbar->setID("scrollbar");
         m_mainLayer->addChildAtPosition(
-            scrollbar, Anchor::Right, {(-list::VIEW_PADDING_X / 2) - 1.5f, 0}
+            scrollbar, Anchor::Center, {370 / 2, 0}
         );
         m_fields->scrollbar = scrollbar;
 
@@ -488,7 +490,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         }
 
         auto scrollbar = m_fields->scrollbar;
-        scrollbar->updateAnchoredPosition(Anchor::Right, {(-list::VIEW_PADDING_X / 2) - 1.5f, offsetY});
+        scrollbar->updateAnchoredPosition(Anchor::Center, {viewW / 2, offsetY});
         this->updateScrollbar();
 
         LoaderImpl::get()->queueInMainThread([self = Ref(this)] {
