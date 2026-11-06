@@ -212,22 +212,27 @@ void ModSource::requestEnable() {
             auto dependants = mod->getEnabledDependants();
             bool status = mod->isOrWillBeEnabled();
             if (dependants.size() > 0 && status) {
-                // the string building is not very i18n compatible
-                // but we'll cross that bridge when we get there
-                auto popup = createQuickPopup(
+                std::string dependantsStr;
+                for (const auto dependant : dependants) {
+                    dependantsStr += fmt::format("<mod:{0}>\n\n", dependant->getID());
+                }
+
+                MDPopup::create(
                     fmt::format("{0} Mod", status ? "Disable" : "Enable").c_str(),
                     fmt::format(
-                        "Are you sure you want to <cr>{0}</c> <co>{2}</c>? Doing this will make <cy>{3} other mods</c> {1}.",
+                        "Are you sure you want to <cr>{0}</c> <co>{2}</c>?\n\n"
+                        "Doing so will make the following mods <cy>{1}</c>:\n\n"
+                        "{3}\n\n",
                         status ? "disable" : "enable", status ? "fail to load" : "work",
-                        mod->getName(), dependants.size()
+                        mod->getName(), dependantsStr
                     ),
                     "No", "Yes",
-                    [doEnable = std::move(doEnable)] (auto, bool btn2) mutable {
+                    [doEnable = std::move(doEnable)] (bool btn2) mutable {
                         if (btn2) {
                             doEnable();
                         }
                     }
-                );
+                )->show();
             } else {
                 doEnable();
             }
