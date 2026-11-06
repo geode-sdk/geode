@@ -265,7 +265,7 @@ Button* geode::addBackButton(CCNode* to, Button::ButtonCallback callback, BackBu
     backBtn->setID("back-button");
     backBtn->setZOrder(1);
 
-    to->addChildAtPosition(backBtn, Anchor::TopLeft, {-25.f, -25.f}, false);
+    to->addChildAtPosition(backBtn, Anchor::TopLeft, {25.f, -25.f}, false);
 
     return backBtn;
 }
