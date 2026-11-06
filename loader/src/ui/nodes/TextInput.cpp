@@ -1378,10 +1378,13 @@ void TextInput::didDetachWithIME() {
 }
 
 void TextInput::insertText(char const* text, int len, enumKeyCodes key) {
+    if (!m_impl->m_enabled) return;
     m_impl->insertText(text, len, key);
 }
 
 void TextInput::deleteBackward() {
+    if (!m_impl->m_enabled) return;
+
     if (m_impl->hasSelection()) {
         m_impl->deleteSelection();
         m_impl->syncLabel();
@@ -1410,6 +1413,8 @@ void TextInput::deleteBackward() {
 }
 
 void TextInput::deleteForward() {
+    if (!m_impl->m_enabled) return;
+
     if (m_impl->hasSelection()) {
         m_impl->deleteSelection();
         m_impl->syncLabel();
@@ -1500,7 +1505,7 @@ bool TextInput::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 }
 
 void TextInput::ccTouchMoved(CCTouch* touch, CCEvent* event) {
-    if (!m_impl->m_isDragging) return;
+    if (!m_impl->m_isDragging || !m_impl->m_enabled) return;
 
     m_impl->m_goalX = -1.f;
 
@@ -1576,6 +1581,8 @@ static bool isCoveredByPopup(TextInput* input) {
 }
 
 bool TextInput::rightClick(float x, float y) {
+    if (!m_impl->m_enabled) return false;
+
     auto local = this->convertToNodeSpace({x, y});
     CCRect rect{0.f, 0.f, this->getContentWidth(), this->getContentHeight()};
     if (!rect.containsPoint(local) || isCoveredByPopup(this)) return false;
