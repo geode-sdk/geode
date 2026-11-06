@@ -151,6 +151,7 @@ protected:
         this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, ccp(22, 0));
 
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40, "Num");
+        m_input->setNumericMode(true);
         m_input->setScale(.7f);
         m_input->setCommonFilter(std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int);
         m_input->setCallback([this, setting](auto const& str) {
