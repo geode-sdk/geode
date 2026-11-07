@@ -70,7 +70,7 @@ namespace geode {
         /// @param show Whether to show the reset button or not
         void showResetButton(bool show);
 
-        /// Reset the callback that would've fired when the user submit a number
+        /// Reset the callback that would've fired when the user submitted a number
         void resetSubmitCallback();
 
         double getValue() const;
