@@ -25,16 +25,16 @@ public:
     CCSprite* m_thumbSelected;
     CCSprite* m_bar;
     geode::NineSlice* m_groove;
-
-    SliderCallback m_slideCallback;
-    SliderCallback m_clickCallback;
-    SliderCallback m_releaseCallback;
-
+    
     geode::TextInput* m_linkedTextInput;
     unsigned int m_textInputPrecision;
 
     Label* m_linkedLabel;
     unsigned int m_labelPrecision;
+
+    geode::ListenerHandle m_slideListener;
+    geode::ListenerHandle m_clickListener;
+    geode::ListenerHandle m_releaseListener;
 
     int m_touchPriority = kCCMenuHandlerPriority;
 };
@@ -97,7 +97,10 @@ bool SliderNode::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice*
     addChild(m_impl->m_groove);
     addChild(m_impl->m_bar);
 
-    m_impl->m_slideCallback = std::move(callback);
+    m_impl->m_slideListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
+        if (callback) callback(this, value);
+    });
+
     m_impl->m_barOffset = barOffset;
 
     setAnchorPoint({0.5f, 0.5f});
@@ -148,15 +151,21 @@ void SliderNode::updateSize() {
 }
 
 void SliderNode::setSlideCallback(SliderCallback callback) {
-    m_impl->m_slideCallback = std::move(callback);
+    m_impl->m_slideListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
+        if (callback) callback(this, value);
+    });
 }
 
 void SliderNode::setClickCallback(SliderCallback callback) {
-    m_impl->m_clickCallback = std::move(callback);
+    m_impl->m_clickListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Click).listen([this, callback = std::move(callback)] (float value) {
+        if (callback) callback(this, value);
+    });
 }
 
 void SliderNode::setReleaseCallback(SliderCallback callback) {
-    m_impl->m_releaseCallback = std::move(callback);
+    m_impl->m_releaseListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Release).listen([this, callback = std::move(callback)] (float value) {
+        if (callback) callback(this, value);
+    });
 }
 
 void SliderNode::setMin(float min) {
@@ -199,7 +208,7 @@ void SliderNode::setPercent(float percent) {
     updateLinkedLabel();
     updateSize();
 
-    if (m_impl->m_slideCallback) m_impl->m_slideCallback(this, getValue());
+    SliderEvent(this, SlideType::Slide).send(getValue());
 }
 
 float SliderNode::getPercent() {
@@ -253,7 +262,7 @@ void SliderNode::linkTextInput(geode::TextInput* input, unsigned int precision) 
                 m_impl->m_thumb->setPositionX(getContentWidth() * m_impl->m_percent);
                 updateSize();
                 updateLinkedLabel();
-                if (m_impl->m_slideCallback) m_impl->m_slideCallback(this, getValue());
+                SliderEvent(this, SlideType::Slide).send(getValue());
             }
         });
     }
@@ -382,7 +391,7 @@ bool SliderNode::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 
     updateFromTouch(touch);
 
-    if (m_impl->m_clickCallback) m_impl->m_clickCallback(this, getValue());
+    SliderEvent(this, SlideType::Click).send(getValue());
 
     return true;
 }
@@ -400,7 +409,7 @@ void SliderNode::ccTouchEnded(CCTouch* touch, CCEvent* event) {
     m_impl->m_thumbRegular->setVisible(true);
     m_impl->m_thumbSelected->setVisible(false);
 
-    if (m_impl->m_releaseCallback) m_impl->m_releaseCallback(this, getValue());
+    SliderEvent(this, SlideType::Release).send(getValue());
 }
 
 void SliderNode::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
