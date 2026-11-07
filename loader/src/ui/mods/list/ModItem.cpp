@@ -583,7 +583,7 @@ void ModItem::updateState() {
         m_logo->setPosition(m_obContentSize.width / 2, m_obContentSize.height - 20);
     }
     else {
-        auto logoSize = m_obContentSize.height - 10;
+        auto logoSize = m_obContentSize.height - 7.5f;
         limitNodeSize(m_logo, ccp(logoSize, logoSize), 999, .1f);
         m_logo->setPosition(m_obContentSize.height / 2 + 5, m_obContentSize.height / 2);
     }
