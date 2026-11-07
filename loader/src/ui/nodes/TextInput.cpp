@@ -1135,7 +1135,7 @@ TextInput* TextInput::createMultiline(CCSize const& size, std::string placeholde
 
 bool TextInput::attachWithIME() {
     if (!m_impl->m_enabled) return false;
-    if (cocos::nodeIsVisible(this)) return false;
+    if (!cocos::nodeIsVisible(this)) return false;
     if (m_impl->m_hasFocus) return true;
 
 #ifdef GEODE_IS_MOBILE
@@ -1380,13 +1380,13 @@ void TextInput::didDetachWithIME() {
 
 void TextInput::insertText(char const* text, int len, enumKeyCodes key) {
     if (!m_impl->m_enabled) return;
-    if (cocos::nodeIsVisible(this)) return;
+    if (!cocos::nodeIsVisible(this)) return;
     m_impl->insertText(text, len, key);
 }
 
 void TextInput::deleteBackward() {
     if (!m_impl->m_enabled) return;
-    if (cocos::nodeIsVisible(this)) return;
+    if (!cocos::nodeIsVisible(this)) return;
 
     if (m_impl->hasSelection()) {
         m_impl->deleteSelection();
@@ -1417,7 +1417,7 @@ void TextInput::deleteBackward() {
 
 void TextInput::deleteForward() {
     if (!m_impl->m_enabled) return;
-    if (cocos::nodeIsVisible(this)) return;
+    if (!cocos::nodeIsVisible(this)) return;
 
     if (m_impl->hasSelection()) {
         m_impl->deleteSelection();
@@ -1451,7 +1451,7 @@ char const* TextInput::getContentText() {
 
 bool TextInput::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     if (!m_impl->m_enabled) return false;
-    if (cocos::nodeIsVisible(this)) return false;
+    if (!cocos::nodeIsVisible(this)) return false;
 
     auto local = this->convertToNodeSpace(touch->getLocation());
     CCRect rect{0.f, 0.f, this->getContentWidth(), this->getContentHeight()};
@@ -1511,7 +1511,7 @@ bool TextInput::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 
 void TextInput::ccTouchMoved(CCTouch* touch, CCEvent* event) {
     if (!m_impl->m_isDragging || !m_impl->m_enabled) return;
-    if (cocos::nodeIsVisible(this)) return;
+    if (!cocos::nodeIsVisible(this)) return;
 
     m_impl->m_goalX = -1.f;
 
@@ -1554,7 +1554,7 @@ void TextInput::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
 
 bool TextInput::scrollWheel(float y, float x) {
     if (!m_impl->m_enabled) return false;
-    if (cocos::nodeIsVisible(this)) return false;
+    if (!cocos::nodeIsVisible(this)) return false;
 
     y *= 0.1f;
     x *= 0.1f;
@@ -1589,7 +1589,7 @@ static bool isCoveredByPopup(TextInput* input) {
 
 bool TextInput::rightClick(float x, float y) {
     if (!m_impl->m_enabled) return false;
-    if (cocos::nodeIsVisible(this)) return false;
+    if (!cocos::nodeIsVisible(this)) return false;
 
     auto local = this->convertToNodeSpace({x, y});
     CCRect rect{0.f, 0.f, this->getContentWidth(), this->getContentHeight()};
