@@ -18,8 +18,7 @@ static std::vector<Mod*> getModsSorted() {
 }
 
 bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool forceDisableTheme) {
-    if (!BaseSettingsPopup::init(forceDisableTheme, true))
-        return false;
+    if (!BaseSettingsPopup::init(forceDisableTheme, true)) return false;
 
     m_tab = tab.value_or(POPUP_TAB);
 
@@ -31,7 +30,7 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
             if (auto sett = typeinfo_pointer_cast<KeybindSettingV3>(mod->getSetting(key))) {
                 if (!addedSubtitle) {
                     m_settings.push_back(TitleSettingNodeV3::create(
-                        mod->getName(), "Test popup", m_listSize.width
+                        mod->getName(), m_listSize.width
                     ));
                     addedSubtitle = true;
                 }
@@ -40,29 +39,64 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
         }
     }
 
-    m_tabsMenu = CCMenu::create();
-    m_tabsMenu->ignoreAnchorPointForPosition(false);
+    m_tabsMenu = CCNode::create();
+    m_tabsMenu->setID("tabs-menu");
+    m_tabsMenu->setAnchorPoint({.5f, .5f});
     m_tabsMenu->setContentWidth(m_listSize.width);
 
-    for (auto tab : {
-        std::make_tuple(KeybindsPopupTab::All, "keybinds.png"_spr, "All"),
-        std::make_tuple(KeybindsPopupTab::Universal, "GJ_sMagicIcon_001.png", "Universal"),
-        std::make_tuple(KeybindsPopupTab::Gameplay, "controllerBtn_DPad_Right_001.png", "Gameplay"),
-        std::make_tuple(KeybindsPopupTab::Editor, "GJ_hammerIcon_001.png", "Editor"),
-    }) {
-        auto id = std::get<0>(tab);
-        auto tabSpr = GeodeTabSprite::create(std::get<1>(tab), std::get<2>(tab), 120);
-        tabSpr->setScale(.7f);
+    struct TabInfo {
+        KeybindsPopupTab id;
+        const char* sprName;
+        const char* label;
+    };
 
-        auto tabBtn = CCMenuItemSpriteExtra::create(
-            tabSpr, this, menu_selector(KeybindsPopup::onSelectTab)
-        );
-        tabBtn->setTag(static_cast<int>(id));
+    static constexpr auto tabs = std::array{
+        TabInfo{
+            KeybindsPopupTab::All,
+            "keybinds.png"_spr,
+            "All",
+        },
+        TabInfo{
+            KeybindsPopupTab::Universal,
+            "GJ_sMagicIcon_001.png",
+            "Universal",
+        },
+        TabInfo{
+            KeybindsPopupTab::Gameplay,
+            "controllerBtn_DPad_Right_001.png",
+            "Gameplay",
+        },
+        TabInfo{
+            KeybindsPopupTab::Editor,
+            "GJ_hammerIcon_001.png",
+            "Editor",
+        },
+    };
+
+    for (auto& tab : tabs) {
+        auto tabSpr = GeodeTabSprite::create(tab.sprName, tab.label, 120.0f);
+        tabSpr->select(tab.id == m_tab);
+
+        auto tabBtn = Button::createWithNode(tabSpr, [this, id = tab.id](auto) {
+            m_tab = id;
+            POPUP_TAB = m_tab;
+
+            for (auto tab : CCArrayExt<Button*>(m_tabsMenu->getChildren())) {
+                auto tabId = static_cast<KeybindsPopupTab>(tab->getTag());
+                static_cast<GeodeTabSprite*>(tab->getDisplayNode())->select(tabId == m_tab);
+                tab->setEnabled(tabId != m_tab);
+            }
+
+            this->updateState(nullptr);
+        });
+        tabBtn->setScale(.7f);
+        tabBtn->setTag(static_cast<int>(tab.id));
+        tabBtn->setEnabled(tab.id != m_tab);
         m_tabsMenu->addChild(tabBtn);
     }
 
     m_tabsMenu->setLayout(RowLayout::create());
-    m_mainLayer->addChildAtPosition(m_tabsMenu, Anchor::Center, ccp(0, 95));
+    m_mainLayer->addChildAtPosition(m_tabsMenu, Anchor::Center, {0.0f, 95.0f});
 
     this->onSelectTab(nullptr);
     if (mod) {
@@ -113,17 +147,6 @@ void KeybindsPopup::focusMod(Mod* mod) {
 }
 
 void KeybindsPopup::onSelectTab(CCObject* sender) {
-    if (sender) {
-        m_tab = static_cast<KeybindsPopupTab>(static_cast<CCNode*>(sender)->getTag());
-        POPUP_TAB = m_tab;
-    }
-    for (auto tab : CCArrayExt<CCMenuItemSpriteExtra*>(m_tabsMenu->getChildren())) {
-        static_cast<GeodeTabSprite*>(tab->getNormalImage())->select(
-            static_cast<KeybindsPopupTab>(tab->getTag()) == m_tab
-        );
-        tab->setEnabled(static_cast<KeybindsPopupTab>(tab->getTag()) != m_tab);
-    }
-    this->updateState(nullptr);
 }
 
 KeybindsPopup* KeybindsPopup::create(bool forceDisableTheme) {
