@@ -710,23 +710,6 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
                     newCharacterIndices.push_back(characterIndex);
                 }
 
-                size_t characterIndexInLine = 0;
-                for (auto sprite : CCArrayExt<cocos2d::CCFontSprite*>(line->getChildren())) {
-                    if (characterIndexInLine >= newCharacterIndices.size()) {
-                        break;
-                    }
-
-                    auto sourceCharacterIndex = newCharacterIndices[characterIndexInLine++];
-                    
-                    for (const auto& [instancePtr, localIndex] : effectsForCharacter[sourceCharacterIndex]) {
-                        instancePtr->applyChangesToSprite(sprite, localIndex, static_cast<int>(sourceCharacterIndex + 1));
-
-                        if (instancePtr->isButton() && !instancePtr->isCancellation()) {
-                            m_charactersForButton[instancePtr].insert(sprite);
-                        }
-                    }
-                }
-
                 if (currentCharacterWasRendered) {
                     for (const auto& [key, instancePtr] : appliedRichTextInstances) {
                         m_charIndexForInstance[instancePtr]++;
@@ -739,19 +722,33 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
 
             characterIndicesForLine[line].push_back(characterIndex);
             if (line->getChildren()->lastObject() != nullptr) {
-                auto lastChar = static_cast<cocos2d::CCFontSprite*>(line->getChildren()->lastObject());
-
-                for (const auto& [instancePtr, localIndex] : effectsForCharacter[characterIndex]) {
-                    instancePtr->applyChangesToSprite(lastChar, localIndex, static_cast<int>(characterIndex + 1));
-
-                    if (instancePtr->isButton() && !instancePtr->isCancellation()) {
-                        m_charactersForButton[instancePtr].insert(lastChar);
-                    }
-                }
-
                 for (const auto& [key, instancePtr] : appliedRichTextInstances) {
                     m_charIndexForInstance[instancePtr]++;
                 }
+            }
+        }
+    }
+
+    std::vector<std::pair<cocos2d::CCFontSprite*, size_t>> spritesToUpdate;
+    for (auto* line : m_lines) {
+        auto const& characterIndices = characterIndicesForLine[line];
+        auto children = line->getChildren();
+        auto childCount = std::min<size_t>(children->count(), characterIndices.size());
+
+        for (size_t i = 0; i < childCount; i++) {
+            spritesToUpdate.emplace_back(
+                static_cast<cocos2d::CCFontSprite*>(children->objectAtIndex(i)),
+                characterIndices[i]
+            );
+        }
+    }
+
+    for (auto const& [sprite, sourceCharacterIndex] : spritesToUpdate) {
+        for (const auto& [instancePtr, localIndex] : effectsForCharacter[sourceCharacterIndex]) {
+            instancePtr->applyChangesToSprite(sprite, localIndex, static_cast<int>(sourceCharacterIndex + 1));
+
+            if (instancePtr->isButton() && !instancePtr->isCancellation()) {
+                m_charactersForButton[instancePtr].insert(sprite);
             }
         }
     }
