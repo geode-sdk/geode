@@ -83,8 +83,9 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_list->setID("settings-list");
     m_list->setTouchEnabled(true);
     m_list->moveToTop();
+    m_list->setAnchorPoint({0.5f, 0.0f});
 
-    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
+    layerBG->addChildAtPosition(m_list, Anchor::Bottom);
 
     // layer borders
 

@@ -254,6 +254,8 @@ function(setup_geode_mod proname)
 
     endif()
 
+    geode_build_check(${proname})
+
     # Add package target + make output name the mod id
     set_target_properties(${proname} PROPERTIES PREFIX "")
     if (DEFINED GEODE_MOD_BINARY_SUFFIX)
