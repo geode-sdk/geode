@@ -21,7 +21,7 @@ namespace geode {
             using GlobalEvent::GlobalEvent;
         };
 
-        using ButtonCallback = geode::CopyableFunction<void(Button* sender)>;
+        using ButtonCallback = geode::Function<void(Button* sender)>;
 
         enum class AnimationType {
             // No animations at all
