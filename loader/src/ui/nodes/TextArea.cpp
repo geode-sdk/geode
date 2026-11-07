@@ -41,6 +41,8 @@ public:
 
     void updateContainer();
 
+    virtual void didUpdateContainer() {}
+
     virtual void setTextImpl(std::string text);
 };
 
@@ -210,6 +212,8 @@ void geode::SimpleTextAreaImpl::updateContainer() {
 
         m_container->addChild(line);
     }
+
+    didUpdateContainer();
 }
 
 void geode::SimpleTextAreaImpl::setTextImpl(std::string text){
@@ -376,11 +380,20 @@ public:
     std::map<std::shared_ptr<RichTextKeyInstanceBase>, std::set<CCFontSprite*>> m_charactersForButton{};
     std::shared_ptr<RichTextKeyInstanceBase> m_currentlyHeldButton = nullptr;
 
+    struct PendingSpriteEffect {
+        CCFontSprite* sprite;
+        std::shared_ptr<RichTextKeyInstanceBase> instance;
+        int localIndex;
+        size_t sourceCharacterIndex;
+    };
+    std::vector<PendingSpriteEffect> m_pendingSpriteEffects;
+
     std::string m_rawText;
 
     std::map<CCFontSprite*, ccColor3B> m_ogColorForLink{};
 
     void charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) override;
+    void didUpdateContainer() override;
     void formatRichText();
 
     void processLinkClick(
@@ -582,6 +595,7 @@ std::vector<std::shared_ptr<RichTextKeyBase>> RichTextArea::getTextKeys(){
 void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) {
     float top = 0;
     m_lines.clear();
+    m_pendingSpriteEffects.clear();
     cocos2d::CCLabelBMFont* line = this->createLabel("", top);
     m_lines = { line };
 
@@ -729,27 +743,37 @@ void RichTextArea::RichImpl::charIteration(geode::FunctionRef<cocos2d::CCLabelBM
         }
     }
 
-    std::vector<std::pair<cocos2d::CCFontSprite*, size_t>> spritesToUpdate;
     for (auto* line : m_lines) {
         auto const& characterIndices = characterIndicesForLine[line];
         auto children = line->getChildren();
         auto childCount = std::min<size_t>(children->count(), characterIndices.size());
 
         for (size_t i = 0; i < childCount; i++) {
-            spritesToUpdate.emplace_back(
-                static_cast<cocos2d::CCFontSprite*>(children->objectAtIndex(i)),
-                characterIndices[i]
-            );
+            auto* sprite = static_cast<cocos2d::CCFontSprite*>(children->objectAtIndex(i));
+            const size_t sourceCharacterIndex = characterIndices[i];
+            for (const auto& [instancePtr, localIndex] : effectsForCharacter[sourceCharacterIndex]) {
+                m_pendingSpriteEffects.push_back({
+                    sprite,
+                    instancePtr,
+                    localIndex,
+                    sourceCharacterIndex
+                });
+            }
         }
     }
+}
 
-    for (auto const& [sprite, sourceCharacterIndex] : spritesToUpdate) {
-        for (const auto& [instancePtr, localIndex] : effectsForCharacter[sourceCharacterIndex]) {
-            instancePtr->applyChangesToSprite(sprite, localIndex, static_cast<int>(sourceCharacterIndex + 1));
+void RichTextArea::RichImpl::didUpdateContainer() {
+    auto pendingSpriteEffects = std::move(m_pendingSpriteEffects);
+    for (const auto& effect : pendingSpriteEffects) {
+        effect.instance->applyChangesToSprite(
+            effect.sprite,
+            effect.localIndex,
+            static_cast<int>(effect.sourceCharacterIndex + 1)
+        );
 
-            if (instancePtr->isButton() && !instancePtr->isCancellation()) {
-                m_charactersForButton[instancePtr].insert(sprite);
-            }
+        if (effect.instance->isButton() && !effect.instance->isCancellation()) {
+            m_charactersForButton[effect.instance].insert(effect.sprite);
         }
     }
 }
