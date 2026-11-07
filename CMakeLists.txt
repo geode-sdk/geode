@@ -89,8 +89,10 @@ if (GEODE_BINDINGS_REPO_PATH)
       message(DEBUG "Found pull promise, updating bindings to latest")
       execute_process(
         COMMAND ${GIT_EXECUTABLE} pull
+        WORKING_DIRECTORY "$GEODE_BINDINGS_REPO_PATH"
         ERROR_QUIET
       )
+      file(REMOVE "$GEODE_BINDINGS_REPO_PATH/.pull-latest-promise")
     endif()
   endif()
 endif()
