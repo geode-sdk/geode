@@ -18,12 +18,9 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <queue>
 #include <string>
-#include <thread>
 #include <tulip/TulipHook.hpp>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 namespace geode {
@@ -44,7 +41,7 @@ namespace geode {
 
         std::vector<asp::fs::Path> m_modSearchDirectories;
         std::vector<LoadProblem> m_problems;
-        StringMap<Mod*> m_mods;
+        utils::StringMap<Mod*> m_mods;
         std::deque<Mod*> m_modsToLoad;
         std::vector<asp::fs::Path> m_texturePaths;
         bool m_isSetup = false;
@@ -77,7 +74,7 @@ namespace geode {
 
         utils::StringMap<std::string> m_launchArgs;
 
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_timerBegin;
+        asp::Instant m_timerBegin;
 
         std::string getGameVersion();
         bool isForwardCompatMode();
