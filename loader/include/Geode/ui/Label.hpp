@@ -449,6 +449,9 @@ namespace geode {
         /// or an empty registry if none was assigned.
         EmojiRegistry getEmojiRegistry();
 
+        /// Resets the emoji registry to an empty one
+        void removeEmojis();
+
         void setColor(cocos2d::ccColor3B const& color) override;
         cocos2d::ccColor3B const& getColor() override;
         cocos2d::ccColor3B const& getDisplayedColor() override;
