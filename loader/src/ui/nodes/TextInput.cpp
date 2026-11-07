@@ -1466,8 +1466,8 @@ bool TextInput::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     int newPos = m_impl->codepointAtLabelPos(labelPos);
 
     auto now = asp::time::SystemTime::now();
-    bool quick = m_impl->m_lastClickTime.elapsed().millis() < 500;
-    bool nearPos = touch->getLocation().getDistance(m_impl->m_lastClickPos) < 15.f;
+    bool quick = m_impl->m_lastClickTime.elapsed().millis() < 300;
+    bool nearPos = touch->getLocation().getDistance(m_impl->m_lastClickPos) < 5.f;
     m_impl->m_clickCount = (quick && nearPos) ? m_impl->m_clickCount + 1 : 1;
     m_impl->m_lastClickTime = now;
     m_impl->m_lastClickPos = touch->getLocation();
