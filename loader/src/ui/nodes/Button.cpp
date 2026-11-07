@@ -21,10 +21,6 @@ static bool isInsideClippers(CCNode* node, CCPoint worldPoint) {
 
 class Button::Impl final {
 public:
-    ButtonCallback m_activateCallback = nullptr;
-    ButtonCallback m_selectCallback = nullptr;
-    ButtonCallback m_unselectCallback = nullptr;
-
     bool m_enabled = true;
     bool m_selected = false;
     bool m_defaultsSet = false;
@@ -54,6 +50,11 @@ public:
     cocos2d::CCNode* m_displayNode = nullptr;
 
     geode::Ref<cocos2d::CCNodeRGBA> m_defaults = nullptr;
+
+    geode::ListenerHandle m_activateListener;
+    geode::ListenerHandle m_selectedListener;
+    geode::ListenerHandle m_unselectedListener;
+
 };
 
 Button::Button() : m_impl(std::make_unique<Impl>()) {}
@@ -113,7 +114,10 @@ Button* Button::createWithLabel(ZStringView text, ZStringView font, ButtonCallba
 bool Button::init(ButtonCallback activateCallback) {
     if (!CCNodeRGBA::init()) return false;
     m_impl->m_defaults = CCNodeRGBA::create();
-    m_impl->m_activateCallback = std::move(activateCallback);
+
+    m_impl->m_activateListener = Button::ClickedEvent(this, Button::ClickType::Activated).listen([this, activateCallback = std::move(activateCallback)]  {
+        if (activateCallback) activateCallback(this);
+    });
 
     setCascadeColorEnabled(true);
     setCascadeOpacityEnabled(true);
@@ -310,7 +314,7 @@ void Button::selected() {
         runAction(m_impl->m_activeClickAction);
     }
 
-    if (m_impl->m_selectCallback) m_impl->m_selectCallback(this);
+    Button::ClickedEvent(this, Button::ClickType::Selected).send();
 
     m_impl->m_selected = true;
 }
@@ -327,7 +331,7 @@ void Button::unselected() {
         runAction(m_impl->m_activeReleaseAction);
     }
 
-    if (m_impl->m_unselectCallback) m_impl->m_unselectCallback(this);
+    Button::ClickedEvent(this, Button::ClickType::Unselected).send();
 
     m_impl->m_selected = false;
 }
@@ -338,7 +342,7 @@ void Button::activate() {
 
     resetDefaults();
 
-    if (m_impl->m_activateCallback) m_impl->m_activateCallback(this);
+    Button::ClickedEvent(this, Button::ClickType::Activated).send();
 }
 
 void Button::setScaleMultiplier(float multiplier) {
@@ -350,7 +354,7 @@ float Button::getScaleMultiplier() {
 }
 
 void Button::setMoveOffset(cocos2d::CCPoint const& offset) {
-    m_impl->m_offset = std::move(offset);
+    m_impl->m_offset = offset;
 }
 
 cocos2d::CCPoint Button::getMoveOffset() {
@@ -462,15 +466,21 @@ void Button::registerWithTouchDispatcher() {
 }
 
 void Button::setActivateCallback(ButtonCallback callback) {
-    m_impl->m_activateCallback = std::move(callback);
+    m_impl->m_activateListener = Button::ClickedEvent(this, Button::ClickType::Activated).listen([this, callback = std::move(callback)]  {
+        if (callback) callback(this);
+    });
 }
 
 void Button::setSelectCallback(ButtonCallback callback) {
-    m_impl->m_selectCallback = std::move(callback);
+    m_impl->m_selectedListener = Button::ClickedEvent(this, Button::ClickType::Selected).listen([this, callback = std::move(callback)]  {
+        if (callback) callback(this);
+    });
 }
 
 void Button::setUnselectCallback(ButtonCallback callback) {
-    m_impl->m_unselectCallback = std::move(callback);
+    m_impl->m_unselectedListener = Button::ClickedEvent(this, Button::ClickType::Unselected).listen([this, callback = std::move(callback)]  {
+        if (callback) callback(this);
+    });
 }
 
 void Button::setSwallowTouches(bool swallow) {
