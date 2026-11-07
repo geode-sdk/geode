@@ -385,7 +385,8 @@ public:
 
     void processLinkClick(
         std::string const& link,
-        bool keyDown,
+        int keyState,
+        bool hoverClickOn,
         cocos2d::CCFontSprite* specificSpriteClicked,
         std::set<cocos2d::CCFontSprite*> const& wordClicked
     );
@@ -543,8 +544,8 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         [](std::string value) -> Result<std::string> {
             return Ok(value);
         },
-        [&](std::string const& value, bool keyDown, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked) {
-            this->castedImpl()->processLinkClick(value, keyDown, specificSpriteClicked, wordClicked);
+        [&](std::string const& value, int keyState, bool hoverClickOn, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked) {
+            this->castedImpl()->processLinkClick(value, keyState, hoverClickOn, specificSpriteClicked, wordClicked);
         }
     ));
 
@@ -861,33 +862,37 @@ void RichTextArea::RichImpl::formatRichText() {
 
 void RichTextArea::RichImpl::processLinkClick(
     std::string const& link,
-    bool keyDown,
+    int keyState,
+    bool hoverClickOn,
     cocos2d::CCFontSprite* specificSpriteClicked,
     std::set<cocos2d::CCFontSprite*> const& wordClicked
 ){
-    if (keyDown){
-        for (const auto& linkCharacter : wordClicked)
-        {
-            this->m_ogColorForLink.insert({
-                linkCharacter,
-                linkCharacter->getColor() == ccColor3B{255, 255, 255} ?
-                    ccColor3B{m_self->getColor().r, m_self->getColor().g, m_self->getColor().b} :
-                    linkCharacter->getColor()
-                }
-            );
+    if (hoverClickOn){
+        if (keyState == 1) {
+            for (const auto& linkCharacter : wordClicked)
+            {
+                this->m_ogColorForLink.insert({
+                    linkCharacter,
+                    linkCharacter->getColor() == ccColor3B{255, 255, 255} ?
+                        ccColor3B{m_self->getColor().r, m_self->getColor().g, m_self->getColor().b} :
+                        linkCharacter->getColor()
+                    }
+                );
 
-            linkCharacter->setColor({ 78, 78, 255 });
+                linkCharacter->setColor({ 78, 78, 255 });
+            }
         }
+
+        if (specificSpriteClicked != nullptr && keyState == 3)
+            web::openLinkInBrowser(link);
     }
-    else {
+
+    if (!hoverClickOn || keyState == 3) {
         for (const auto& linkCharacter : wordClicked) {
             if (this->m_ogColorForLink.contains(linkCharacter)) {
                 linkCharacter->setColor(this->m_ogColorForLink[linkCharacter]);
             }
         }
-
-        if (specificSpriteClicked != nullptr)
-            web::openLinkInBrowser(link);
     }
 }
 
@@ -925,7 +930,7 @@ bool RichTextArea::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
 
             auto touchInSpace = fontSpr->convertTouchToNodeSpace(pTouch);
             if (touchInSpace.x > 0 && touchInSpace.y > 0 && touchInSpace.x <= fontSpr->getContentWidth() && touchInSpace.y <= fontSpr->getContentHeight()){
-                btnKey->callButton(true, fontSpr, textForBtn);
+                btnKey->callButton(1, true, fontSpr, textForBtn);
                 this->castedImpl()->m_currentlyHeldButton = btnKey;
                 return true;
             }
@@ -933,6 +938,25 @@ bool RichTextArea::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
     }
 
     return false;
+}
+
+void RichTextArea::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent){
+    if (this->castedImpl()->m_charactersForButton.contains(this->castedImpl()->m_currentlyHeldButton)){
+        auto textForBtn = this->castedImpl()->m_charactersForButton[this->castedImpl()->m_currentlyHeldButton];
+
+        for (const auto& fontSpr : textForBtn)
+        {
+            if (fontSpr == nullptr) continue;
+
+            auto touchInSpace = fontSpr->convertTouchToNodeSpace(pTouch);
+            if (touchInSpace.x > 0 && touchInSpace.y > 0 && touchInSpace.x <= fontSpr->getContentWidth() && touchInSpace.y <= fontSpr->getContentHeight()){
+                this->castedImpl()->m_currentlyHeldButton->callButton(2, true, fontSpr, textForBtn);
+                return;
+            }
+        }
+
+        this->castedImpl()->m_currentlyHeldButton->callButton(2, false, nullptr, textForBtn);
+    }
 }
 
 void RichTextArea::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent){
@@ -945,13 +969,13 @@ void RichTextArea::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent){
 
             auto touchInSpace = fontSpr->convertTouchToNodeSpace(pTouch);
             if (touchInSpace.x > 0 && touchInSpace.y > 0 && touchInSpace.x <= fontSpr->getContentWidth() && touchInSpace.y <= fontSpr->getContentHeight()){
-                this->castedImpl()->m_currentlyHeldButton->callButton(false, fontSpr, textForBtn);
+                this->castedImpl()->m_currentlyHeldButton->callButton(3, true, fontSpr, textForBtn);
                 this->castedImpl()->m_currentlyHeldButton = nullptr;
                 return;
             }
         }
 
-        this->castedImpl()->m_currentlyHeldButton->callButton(false, nullptr, textForBtn);
+        this->castedImpl()->m_currentlyHeldButton->callButton(3, false, nullptr, textForBtn);
     }
 
     this->castedImpl()->m_currentlyHeldButton = nullptr;
