@@ -1,7 +1,7 @@
 #ifndef GEODE_IS_IOS
 
 #include "LoaderImpl.hpp"
-#include "ui/mods/GeodeStyle.hpp"
+#include "ui/GeodeStyle.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/GJKeybindManager.hpp>

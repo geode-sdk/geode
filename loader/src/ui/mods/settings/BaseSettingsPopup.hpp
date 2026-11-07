@@ -1,13 +1,14 @@
 #pragma once
 
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
+#include "SettingNode.hpp"
+
 #include <Geode/ui/ScrollLayer.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include "SettingNode.hpp"
 
 using namespace geode::prelude;
 
-class BaseSettingsPopup : public GeodePopup {
+class BaseSettingsPopup : public geode::GeodePopup {
 protected:
     ScrollLayer* m_list;
     std::vector<Ref<SettingNode>> m_settings;
