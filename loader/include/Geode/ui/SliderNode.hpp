@@ -22,7 +22,7 @@ namespace geode {
             using GlobalEvent::GlobalEvent;
         };
 
-        using SliderCallback = geode::CopyableFunction<void(SliderNode* sender, float value)>;
+        using SliderCallback = geode::Function<void(SliderNode* sender, float value)>;
 
         /**
          * Create a custom Slider

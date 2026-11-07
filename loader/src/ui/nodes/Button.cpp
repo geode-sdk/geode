@@ -51,6 +51,10 @@ public:
 
     geode::Ref<cocos2d::CCNodeRGBA> m_defaults = nullptr;
 
+    ButtonCallback m_activateCallback = nullptr;
+    ButtonCallback m_selectedCallback = nullptr;
+    ButtonCallback m_unselectedCallback = nullptr;
+
     geode::ListenerHandle m_activateListener;
     geode::ListenerHandle m_selectedListener;
     geode::ListenerHandle m_unselectedListener;
@@ -115,8 +119,17 @@ bool Button::init(ButtonCallback activateCallback) {
     if (!CCNodeRGBA::init()) return false;
     m_impl->m_defaults = CCNodeRGBA::create();
 
-    m_impl->m_activateListener = Button::ClickedEvent(this, Button::ClickType::Activated).listen([this, activateCallback = std::move(activateCallback)]  {
-        if (activateCallback) activateCallback(this);
+    m_impl->m_activateCallback = std::move(activateCallback);
+    m_impl->m_activateListener = Button::ClickedEvent(this, Button::ClickType::Activated).listen([this]  {
+        if (m_impl->m_activateCallback) m_impl->m_activateCallback(this);
+    });
+
+    m_impl->m_selectedListener = Button::ClickedEvent(this, Button::ClickType::Selected).listen([this]  {
+        if (m_impl->m_selectedCallback) m_impl->m_selectedCallback(this);
+    });
+
+    m_impl->m_unselectedListener = Button::ClickedEvent(this, Button::ClickType::Selected).listen([this]  {
+        if (m_impl->m_unselectedCallback) m_impl->m_unselectedCallback(this);
     });
 
     setCascadeColorEnabled(true);
@@ -466,21 +479,15 @@ void Button::registerWithTouchDispatcher() {
 }
 
 void Button::setActivateCallback(ButtonCallback callback) {
-    m_impl->m_activateListener = Button::ClickedEvent(this, Button::ClickType::Activated).listen([this, callback = std::move(callback)]  {
-        if (callback) callback(this);
-    });
+    m_impl->m_activateCallback = std::move(callback);
 }
 
 void Button::setSelectCallback(ButtonCallback callback) {
-    m_impl->m_selectedListener = Button::ClickedEvent(this, Button::ClickType::Selected).listen([this, callback = std::move(callback)]  {
-        if (callback) callback(this);
-    });
+    m_impl->m_selectedCallback = std::move(callback);
 }
 
 void Button::setUnselectCallback(ButtonCallback callback) {
-    m_impl->m_unselectedListener = Button::ClickedEvent(this, Button::ClickType::Unselected).listen([this, callback = std::move(callback)]  {
-        if (callback) callback(this);
-    });
+    m_impl->m_unselectedCallback = std::move(callback);
 }
 
 void Button::setSwallowTouches(bool swallow) {
