@@ -3,18 +3,16 @@
 #include <Geode/ui/General.hpp>
 #include <server/Server.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/Slider.hpp>
-#include <Geode/binding/CCMenuItemToggler.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/ui/ProgressBar.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/Button.hpp>
+#include <Geode/ui/Toggler.hpp>
 #include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <server/DownloadManager.hpp>
 #include "../sources/ModSource.hpp"
 #include "../UpdateModListState.hpp"
 #include "ModListItem.hpp"
-
-using namespace geode::prelude;
 
 // i made it this way just in case someone wanted to add to the enum in the future
 // mat is allowed to judge
@@ -60,17 +58,17 @@ protected:
     CCNode* m_developers;
     CCNode* m_recommendedBy;
     NineSlice* m_description;
-    Label* m_developerLabel;
+    Button* m_developersBtn;
     ButtonSprite* m_restartRequiredLabel;
     ButtonSprite* m_outdatedLabel;
     ButtonSprite* m_deprecatedLabel;
     CCNode* m_modLabelsContainer;
     CCNode* m_downloadWaiting;
     CCNode* m_downloadBarContainer;
-    Slider* m_downloadBar;
-    CCMenuItemToggler* m_enableToggle = nullptr;
-    CCMenuItemToggler* m_pinToggle = nullptr;
-    CCMenuItemSpriteExtra* m_updateBtn = nullptr;
+    ProgressBar* m_downloadBar;
+    Toggler* m_enableToggle = nullptr;
+    Toggler* m_pinToggle = nullptr;
+    Button* m_updateBtn = nullptr;
     ListenerHandle m_updateStateHandle;
     async::TaskHolder<server::ServerResult<server::ServerModUpdateOneCheck>> m_checkUpdateListener;
     ListenerHandle m_downloadHandle;
@@ -81,6 +79,8 @@ protected:
     Ref<CCNode> m_updatedAtContainer;
     Label* m_versionDownloadSeparator;
 
+    std::optional<ccColor3B> getModtoberStyle(std::string_view year, bool winner = false);
+
     /**
      * @warning Make sure `getMetadata` and `createModLogo` are callable
      * before calling `init`!
@@ -89,14 +89,8 @@ protected:
 
     void updateState();
 
-    void onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result);
-
-    void onPin(CCObject*);
-    void onEnable(CCObject*);
-    void onView(CCObject*);
-    void onViewError(CCObject*);
-    void onInstall(CCObject*);
-    void onDevelopers(CCObject*);
+    void onView();
+    void onViewError();
 
 public:
     static ModItem* create(ModSource&& source, bool listItem = true);
@@ -111,7 +105,7 @@ public:
 class AnyModItem : public ModListItem {
 protected:
     ModItem* m_item = nullptr;
-    LoadingSpinner* m_loading;
+    LoadingSpinner* m_loading = nullptr;
     async::TaskHolder<server::ServerResult<server::ServerModMetadata>> m_listener;
 
     bool init(ZStringView modID);
