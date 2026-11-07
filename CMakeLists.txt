@@ -82,6 +82,17 @@ if (GEODE_BINDINGS_REPO_PATH)
   if(GEODE_BINDINGS_COUNT EQUAL 0)
     set(GEODE_BINDINGS_REPO_PATH "")
   endif()
+
+  if (EXISTS "$GEODE_BINDINGS_REPO_PATH/.pull-latest-promise")
+    find_package(Git)
+    if (Git_FOUND)
+      message(DEBUG "Found pull promise, updating bindings to latest")
+      execute_process(
+        COMMAND ${GIT_EXECUTABLE} pull
+        ERROR_QUIET
+      )
+    endif()
+  endif()
 endif()
 
 if (NOT GEODE_BINDINGS_REPO_PATH)
