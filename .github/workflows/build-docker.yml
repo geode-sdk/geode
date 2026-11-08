@@ -26,8 +26,10 @@ jobs:
             target: export-android64
           - platform: ios
             target: export-ios
-          - platform: mac
-            target: export-mac
+          - platform: macm1
+            target: export-macm1
+          - platform: macintel
+            target: export-macintel
           - platform: win
             target: export-win
 
@@ -81,7 +83,12 @@ jobs:
             ios)
               test -f out/ios/Geode.ios.dylib
               ;;
-            mac)
+            macm1)
+              test -f out/mac/Geode.dylib
+              test -f out/mac/GeodeBootstrapper.dylib
+              test -f out/mac/libfmod.dylib
+              ;;
+            macintel)
               test -f out/mac/Geode.dylib
               test -f out/mac/GeodeBootstrapper.dylib
               test -f out/mac/libfmod.dylib
@@ -100,9 +107,42 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  merge-macos:
+    name: Merge macOS binaries
+    runs-on: ubuntu-24.04
+    needs: build
+
+    steps:
+      - name: Download macOS binaries (M1)
+        uses: actions/download-artifact@v4
+        with:
+          name: geode-macm1
+          path: bin/m1
+
+      - name: Download macOS binaries (Intel)
+        uses: actions/download-artifact@v4
+        with:
+          name: geode-macintel
+          path: bin/intel
+
+      - name: Merge platform binaries
+        run: |
+          mkdir -p bin/nightly
+          lipo -create bin/intel/Geode.dylib bin/m1/Geode.dylib -output bin/nightly/Geode.dylib
+          lipo -create bin/intel/GeodeBootstrapper.dylib bin/m1/GeodeBootstrapper.dylib -output bin/nightly/GeodeBootstrapper.dylib
+          cp bin/m1/libfmod.dylib bin/nightly/libfmod.dylib
+
+      - name: Upload universal macOS binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: geode-mac
+          path: bin/nightly/
+          if-no-files-found: error
+          retention-days: 7
+
   installers:
     name: Build ${{ matrix.installer }} installer
-    needs: build
+    needs: [build, merge-macos]
     strategy:
       fail-fast: false
       matrix:
@@ -219,6 +259,18 @@ jobs:
           zip -j "../../geode-${{ steps.ref.outputs.hash }}-mac.zip" \
             Geode.dylib GeodeBootstrapper.dylib libfmod.dylib
 
+      - name: Zip macOS artifacts (M1)
+        run: |
+          cd artifacts/geode-macm1
+          zip -j "../../geode-${{ steps.ref.outputs.hash }}-macm1.zip" \
+            Geode.dylib GeodeBootstrapper.dylib libfmod.dylib
+
+      - name: Zip macOS artifacts (Intel)
+        run: |
+          cd artifacts/geode-macintel
+          zip -j "../../geode-${{ steps.ref.outputs.hash }}-macintel.zip" \
+            Geode.dylib GeodeBootstrapper.dylib libfmod.dylib
+
       - name: Zip Windows artifacts
         run: |
           cd artifacts/geode-win
@@ -264,6 +316,8 @@ jobs:
             ./geode-installer-${{ steps.ref.outputs.hash }}-linux.sh
             ./geode-${{ steps.ref.outputs.hash }}-win.zip
             ./geode-${{ steps.ref.outputs.hash }}-mac.zip
+            ./geode-${{ steps.ref.outputs.hash }}-macm1.zip
+            ./geode-${{ steps.ref.outputs.hash }}-macintel.zip
             ./geode-${{ steps.ref.outputs.hash }}-android32.zip
             ./geode-${{ steps.ref.outputs.hash }}-android64.zip
             ./geode-${{ steps.ref.outputs.hash }}-ios.zip

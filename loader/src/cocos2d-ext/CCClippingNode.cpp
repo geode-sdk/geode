@@ -1,4 +1,5 @@
 #include <Geode/utils/cocos.hpp>
+#include <Geode/mapping/CCClippingNode.hpp>
 
 using namespace cocos2d;
 

@@ -86,6 +86,44 @@ FROM scratch AS export-mac
 COPY --from=build-mac /workspace/bin/nightly/ .
 
 
+FROM ghcr.io/geode-sdk/tools:macos-latest AS build-macm1
+
+WORKDIR /workspace
+COPY . .
+
+RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads/main/docker/CMakePresets.json -o CMakePresets.json
+
+COPY --from=clone-bindings /bindings /bindings
+
+RUN --mount=type=cache,target=/cpm-cache,id=cpm-macm1 \
+    --mount=type=cache,target=/opt/sccache/cache,id=sccache-macm1 \
+    cmake --preset macm1-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
+    && cmake --build --preset macm1-cache && \
+    ls /workspace/bin/nightly
+
+FROM scratch AS export-macm1
+COPY --from=build-macm1 /workspace/bin/nightly/ .
+
+
+FROM ghcr.io/geode-sdk/tools:macos-latest AS build-macintel
+
+WORKDIR /workspace
+COPY . .
+
+RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads/main/docker/CMakePresets.json -o CMakePresets.json
+
+COPY --from=clone-bindings /bindings /bindings
+
+RUN --mount=type=cache,target=/cpm-cache,id=cpm-macintel \
+    --mount=type=cache,target=/opt/sccache/cache,id=sccache-macintel \
+    cmake --preset macintel-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
+    && cmake --build --preset macintel-cache && \
+    ls /workspace/bin/nightly
+
+FROM scratch AS export-macintel
+COPY --from=build-macm1 /workspace/bin/nightly/ .
+
+
 FROM ghcr.io/geode-sdk/tools:windows-latest AS build-win
 
 WORKDIR /workspace
