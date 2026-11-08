@@ -128,8 +128,8 @@ jobs:
       - name: Merge platform binaries
         run: |
           mkdir -p bin/nightly
-          lipo -create bin/intel/Geode.dylib bin/m1/Geode.dylib -output bin/nightly/Geode.dylib
-          lipo -create bin/intel/GeodeBootstrapper.dylib bin/m1/GeodeBootstrapper.dylib -output bin/nightly/GeodeBootstrapper.dylib
+          llvm-lipo -create bin/intel/Geode.dylib bin/m1/Geode.dylib -output bin/nightly/Geode.dylib
+          llvm-lipo -create bin/intel/GeodeBootstrapper.dylib bin/m1/GeodeBootstrapper.dylib -output bin/nightly/GeodeBootstrapper.dylib
           cp bin/m1/libfmod.dylib bin/nightly/libfmod.dylib
 
       - name: Upload universal macOS binaries
@@ -162,7 +162,7 @@ jobs:
           submodules: recursive
 
       - name: Download Windows binaries
-        if: matrix.installer == 'win'
+        if: matrix.installer == 'win' || matrix.installer == 'linux'
         uses: actions/download-artifact@v4
         with:
           name: geode-win
@@ -207,11 +207,15 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Prepare Linux installer
+      - name: Build Linux Installer
         if: matrix.installer == 'linux'
         run: |
+          # same files that go on the geode-win zip
           mkdir -p dist
-          cp ./installer/linux/install.sh ./dist/geode-installer-linux.sh
+          zip -j tmp.zip ./bin/nightly/{XInput1_4.dll,Geode.dll,GeodeUpdater.exe,Geode.pdb}
+          cat ./installer/linux/install-offline.sh tmp.zip > ./dist/geode-installer-linux.sh
+          chmod +x ./dist/geode-installer-linux.sh
+          zip -A ./dist/geode-installer-linux.sh
 
       - name: Upload Linux installer
         if: matrix.installer == 'linux'
