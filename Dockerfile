@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
     && cmake --build --preset android32
 
 FROM scratch AS export-android32
-COPY --from=build-android32 /workspace/project/bin/nightly/* .
+COPY --from=build-android32 /workspace/bin/nightly/* .
 
 
 FROM ghcr.io/geode-sdk/tools:android-latest AS build-android64
@@ -43,7 +43,7 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
     && cmake --build --preset android64
 
 FROM scratch AS export-android64
-COPY --from=build-android64 /workspace/project/bin/nightly/* .
+COPY --from=build-android64 /workspace/bin/nightly/* .
 
 
 FROM ghcr.io/geode-sdk/tools:ios-latest AS build-ios
@@ -61,7 +61,7 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
     && cmake --build --preset ios
 
 FROM scratch AS export-ios
-COPY --from=build-ios /workspace/project/bin/nightly/* .
+COPY --from=build-ios /workspace/bin/nightly/* .
 
 
 FROM ghcr.io/geode-sdk/tools:macos-latest AS build-mac
@@ -79,7 +79,7 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-mac \
     && cmake --build --preset mac
 
 FROM scratch AS export-mac
-COPY --from=build-mac /workspace/project/bin/nightly/* .
+COPY --from=build-mac /workspace/bin/nightly/* .
 
 
 FROM ghcr.io/geode-sdk/tools:windows-latest AS build-win
@@ -97,7 +97,7 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
     && cmake --build --preset win
 
 FROM scratch AS export-win
-COPY --from=build-win /workspace/project/bin/nightly/* .
+COPY --from=build-win /workspace/bin/nightly/* .
 
 
 FROM debian:bookworm-slim AS export-combine
