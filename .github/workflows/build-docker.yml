@@ -68,6 +68,7 @@ jobs:
           outputs: type=local,dest=./out/${{ matrix.platform }}
           cache-from: type=gha,scope=geode-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=geode-${{ matrix.platform }}
+          provenance: false
 
       - name: Verify expected output
         shell: bash
@@ -139,6 +140,7 @@ jobs:
           "$LIPO" -create bin/intel/Geode.dylib bin/m1/Geode.dylib -output bin/nightly/Geode.dylib
           "$LIPO" -create bin/intel/GeodeBootstrapper.dylib bin/m1/GeodeBootstrapper.dylib -output bin/nightly/GeodeBootstrapper.dylib
           cp bin/m1/libfmod.dylib bin/nightly/libfmod.dylib
+          cp -r bin/m1/resources bin/nightly/resources
 
       - name: Upload universal macOS binaries
         uses: actions/upload-artifact@v4
