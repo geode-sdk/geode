@@ -46,8 +46,6 @@ jobs:
         with:
           path: cache-mount
           key: cache-mount-${{ matrix.platform }}
-          restore-keys: |
-            cache-mount-${{ matrix.platform }}-
 
       - name: Restore Docker cache mounts
         uses: reproducible-containers/buildkit-cache-dance@v3
