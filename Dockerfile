@@ -21,7 +21,7 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android32 \
-    cmake --preset android32-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+    cmake --preset android32-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset android32-cache && \
     ls /workspace/bin/nightly
 
@@ -43,7 +43,7 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android64 \
-    cmake --preset android64-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+    cmake --preset android64-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset android64-cache && \
     ls /workspace/bin/nightly
 
@@ -65,7 +65,7 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-ios \
-    cmake --preset ios-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+    cmake --preset ios-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset ios-cache && \
     ls /workspace/bin/nightly
 
@@ -87,7 +87,7 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-mac \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-mac \
-    cmake --preset mac-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+    cmake --preset mac-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset mac-cache && \
     ls /workspace/bin/nightly
 
@@ -109,7 +109,7 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-macm1 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-macm1 \
-    cmake --preset macm1-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+    cmake --preset macm1-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset macm1-cache && \
     ls /workspace/bin/nightly
 
@@ -131,7 +131,7 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-macintel \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-macintel \
-    cmake --preset macintel-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+    cmake --preset macintel-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset macintel-cache && \
     ls /workspace/bin/nightly
 
@@ -153,7 +153,7 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-win \
-    cmake --preset win-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On \
+    cmake --preset win-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset win-cache && \
     ls /workspace/bin/nightly
 
