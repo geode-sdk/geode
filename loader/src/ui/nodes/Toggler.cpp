@@ -11,6 +11,7 @@ public:
     CCNode* m_offNode = nullptr;
     CCNode* m_onNode = nullptr;
 
+    ToggleCallback m_toggleCallback;
     geode::ListenerHandle m_toggleListener;
 };
 
@@ -122,8 +123,9 @@ bool Toggler::init(
 
     m_impl->m_offNode = offNode;
     m_impl->m_onNode = onNode;
-    m_impl->m_toggleListener = ToggleEvent(this).listen([this, callback = std::move(toggleCallback)] (bool isToggled) {
-        if (callback) callback(this, isToggled);
+    m_impl->m_toggleCallback = std::move(toggleCallback);
+    m_impl->m_toggleListener = ToggleEvent(this).listen([this] (bool isToggled) {
+        if (m_impl->m_toggleCallback) m_impl->m_toggleCallback(this, isToggled);
     });
 
     addChild(offNode);
@@ -182,9 +184,7 @@ void Toggler::setOnNode(CCNode* node) {
 }
 
 void Toggler::setToggleCallback(ToggleCallback callback) {
-    m_impl->m_toggleListener = ToggleEvent(this).listen([this, callback = std::move(callback)] (bool isToggled) {
-        if (callback) callback(this, isToggled);
-    });
+    m_impl->m_toggleCallback = std::move(callback);
 }
 
 void Toggler::activate() {
