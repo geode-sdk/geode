@@ -259,16 +259,6 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: geode-macm1
-          path: artifacts/geode-macm1
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: geode-macintel
-          path: artifacts/geode-macintel
-
-      - uses: actions/download-artifact@v4
-        with:
           name: geode-win
           path: artifacts/geode-win
 
@@ -317,18 +307,6 @@ jobs:
           zip -j "../../geode-${{ steps.ref.outputs.hash }}-mac.zip" \
             Geode.dylib GeodeBootstrapper.dylib libfmod.dylib
 
-      - name: Zip macOS artifacts (M1)
-        run: |
-          cd artifacts/geode-macm1
-          zip -j "../../geode-${{ steps.ref.outputs.hash }}-macm1.zip" \
-            Geode.dylib GeodeBootstrapper.dylib libfmod.dylib
-
-      - name: Zip macOS artifacts (Intel)
-        run: |
-          cd artifacts/geode-macintel
-          zip -j "../../geode-${{ steps.ref.outputs.hash }}-macintel.zip" \
-            Geode.dylib GeodeBootstrapper.dylib libfmod.dylib
-
       - name: Zip Windows artifacts
         run: |
           cd artifacts/geode-win
@@ -374,8 +352,6 @@ jobs:
             ./geode-installer-${{ steps.ref.outputs.hash }}-linux.sh
             ./geode-${{ steps.ref.outputs.hash }}-win.zip
             ./geode-${{ steps.ref.outputs.hash }}-mac.zip
-            ./geode-${{ steps.ref.outputs.hash }}-macm1.zip
-            ./geode-${{ steps.ref.outputs.hash }}-macintel.zip
             ./geode-${{ steps.ref.outputs.hash }}-android32.zip
             ./geode-${{ steps.ref.outputs.hash }}-android64.zip
             ./geode-${{ steps.ref.outputs.hash }}-ios.zip
