@@ -146,11 +146,25 @@ jobs:
         sudo apt install nsis
         makensis -WX -V3 ./installer/windows/installer.nsi
 
+    - name: Package Linux Installer
+      run: |
+        # same files that go on the geode-win zip
+        zip -j tmp.zip ./bin/nightly/{XInput1_4.dll,Geode.dll,GeodeUpdater.exe,Geode.pdb}
+        cat ./installer/linux/install-offline.sh tmp.zip > geode-installer-linux.sh
+        chmod +x geode-installer-linux.sh
+        zip -A geode-installer-linux.sh
+
     - name: Upload Installer
       uses: actions/upload-artifact@v4
       with:
         name: geode-installer-win
         path: './installer/windows/geode-installer-win.exe'
+
+    - name: Upload Linux Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: geode-installer-linux
+        path: './geode-installer-linux.sh'
 
     - name: Complete Build Debug Info
       uses: ./.github/actions/build-debug-info-post
@@ -402,7 +416,7 @@ jobs:
         run: |
           mv geode-installer-mac/geode-installer-mac.pkg geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
           mv geode-installer-win/geode-installer-win.exe geode-installer-${{ steps.ref.outputs.hash }}-win.exe
-          mv ./installer/linux/install.sh geode-installer-${{ steps.ref.outputs.hash }}-linux.sh
+          mv geode-installer-linux/geode-installer-linux.sh geode-installer-${{ steps.ref.outputs.hash }}-linux.sh
 
       - name: Zip MacOS Artifacts
         uses: vimtor/action-zip@v1.2
