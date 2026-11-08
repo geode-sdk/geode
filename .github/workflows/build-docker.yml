@@ -84,14 +84,14 @@ jobs:
               test -f out/ios/Geode.ios.dylib
               ;;
             macm1)
-              test -f out/mac/Geode.dylib
-              test -f out/mac/GeodeBootstrapper.dylib
-              test -f out/mac/libfmod.dylib
+              test -f out/macm1/Geode.dylib
+              test -f out/macm1/GeodeBootstrapper.dylib
+              test -f out/macm1/libfmod.dylib
               ;;
             macintel)
-              test -f out/mac/Geode.dylib
-              test -f out/mac/GeodeBootstrapper.dylib
-              test -f out/mac/libfmod.dylib
+              test -f out/macintel/Geode.dylib
+              test -f out/macintel/GeodeBootstrapper.dylib
+              test -f out/macintel/libfmod.dylib
               ;;
             win)
               test -f out/win/Geode.dll
