@@ -22,7 +22,8 @@ COPY --from=clone-bindings /bindings /bindings
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
     --mount=type=cache,target=/workspace/build-android32,id=build-android32 \
     cmake --preset android32 \
-    && cmake --build --preset android32
+    && cmake --build --preset android32 && \
+    ls /workspace/bin/nightly
 
 FROM scratch AS export-android32
 COPY --from=build-android32 /workspace/bin/nightly/* .
@@ -40,7 +41,8 @@ COPY --from=clone-bindings /bindings /bindings
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
     --mount=type=cache,target=/workspace/build-android64,id=build-android64 \
     cmake --preset android64 \
-    && cmake --build --preset android64
+    && cmake --build --preset android64 && \
+    ls /workspace/bin/nightly
 
 FROM scratch AS export-android64
 COPY --from=build-android64 /workspace/bin/nightly/* .
@@ -58,7 +60,8 @@ COPY --from=clone-bindings /bindings /bindings
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
     --mount=type=cache,target=/workspace/build-ios,id=build-ios \
     cmake --preset ios \
-    && cmake --build --preset ios
+    && cmake --build --preset ios && \
+    ls /workspace/bin/nightly
 
 FROM scratch AS export-ios
 COPY --from=build-ios /workspace/bin/nightly/* .
@@ -76,7 +79,8 @@ COPY --from=clone-bindings /bindings /bindings
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-mac \
     --mount=type=cache,target=/workspace/build-mac,id=build-mac \
     cmake --preset mac \
-    && cmake --build --preset mac
+    && cmake --build --preset mac && \
+    ls /workspace/bin/nightly
 
 FROM scratch AS export-mac
 COPY --from=build-mac /workspace/bin/nightly/* .
@@ -93,8 +97,10 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
     --mount=type=cache,target=/workspace/build-win,id=build-win \
+    ls /workspace/build-win && \
     cmake --preset win \
-    && cmake --build --preset win
+    && cmake --build --preset win && \
+    ls /workspace/bin/nightly
 
 FROM scratch AS export-win
 COPY --from=build-win /workspace/bin/nightly/* .
