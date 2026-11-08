@@ -41,6 +41,7 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        id: setup-buildx
 
       - name: Cache
         uses: actions/cache@v4
@@ -55,7 +56,17 @@ jobs:
         uses: reproducible-containers/buildkit-cache-dance@v3
         with:
           builder: ${{ steps.setup-buildx.outputs.name }}
-          cache-dir: cache-mount
+          cache-map: |
+            {
+              "cache-mount/cpm-${{ matrix.platform }}": {
+                "id":"cpm-${{ matrix.platform }}",
+                "target":"/var/cache-target"
+              },
+              "cache-mount/sccache-${{ matrix.platform }}": {
+                "id":"sccache-${{ matrix.platform }}",
+                "target":"/var/cache-target"
+              }
+            }
           dockerfile: Dockerfile
           skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 
