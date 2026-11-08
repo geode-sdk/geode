@@ -97,7 +97,6 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-win \
-    ls /workspace/build-win && \
     cmake --preset win-cache \
     && cmake --build --preset win-cache && \
     ls /workspace/bin/nightly
