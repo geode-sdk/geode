@@ -45,8 +45,14 @@ jobs:
         with:
           cache-map: |
             {
-              "/cpm-cache": "cpm-${{ matrix.platform }}",
-              "/workspace/build-${{ matrix.platform }}": "build-${{ matrix.platform }}"
+              "geode-cpm-${{ matrix.platform }}": {
+                "target": "/cpm-cache",
+                "id": "cpm-${{ matrix.platform }}"
+              },
+              "geode-build-${{ matrix.platform }}": {
+                "target": "/workspace/build-${{ matrix.platform }}",
+                "id": "build-${{ matrix.platform }}"
+              }
             }
           skip-extraction: false
 
