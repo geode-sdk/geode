@@ -73,11 +73,9 @@ jobs:
           case "${{ matrix.platform }}" in
             android32)
               test -f out/android32/Geode.android32.so
-              test -f out/android32/Geode.android32.so.sym
               ;;
             android64)
               test -f out/android64/Geode.android64.so
-              test -f out/android64/Geode.android64.so.sym
               test -d out/android64/resources
               ;;
             ios)
@@ -86,6 +84,7 @@ jobs:
             mac)
               test -f out/mac/Geode.dylib
               test -f out/mac/GeodeBootstrapper.dylib
+              test -f out/mac/libfmod.dylib
               ;;
             win)
               test -f out/win/Geode.dll
@@ -218,7 +217,7 @@ jobs:
         run: |
           cd artifacts/geode-mac
           zip -j "../../geode-${{ steps.ref.outputs.hash }}-mac.zip" \
-            Geode.dylib GeodeBootstrapper.dylib
+            Geode.dylib GeodeBootstrapper.dylib libfmod.dylib
 
       - name: Zip Windows artifacts
         run: |
@@ -230,13 +229,13 @@ jobs:
         run: |
           cd artifacts/geode-android32
           zip -j "../../geode-${{ steps.ref.outputs.hash }}-android32.zip" \
-            Geode.android32.so Geode.android32.so.sym
+            Geode.android32.so
 
       - name: Zip Android 64-bit artifacts
         run: |
           cd artifacts/geode-android64
           zip -j "../../geode-${{ steps.ref.outputs.hash }}-android64.zip" \
-            Geode.android64.so Geode.android64.so.sym
+            Geode.android64.so
 
       - name: Zip iOS artifacts
         run: |

@@ -104,12 +104,11 @@ FROM debian:bookworm-slim AS export-combine
 
 WORKDIR /workspace/export
 COPY --from=export-android32 /Geode.android32.so .
-COPY --from=export-android32 /Geode.android32.so.sym .
 COPY --from=export-android64 /Geode.android64.so .
-COPY --from=export-android64 /Geode.android64.so.sym .
 COPY --from=export-ios /Geode.ios.dylib .
 COPY --from=export-mac /Geode.dylib .
 COPY --from=export-mac /GeodeBootstrapper.dylib .
+COPY --from=export-mac /libfmod.dylib .
 COPY --from=export-win /Geode.dll .
 COPY --from=export-win /Geode.lib .
 COPY --from=export-win /Geode.pdb .
