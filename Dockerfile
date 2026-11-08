@@ -121,7 +121,7 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-macintel \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-macintel
-COPY --from=build-macm1 /workspace/bin/nightly/ .
+COPY --from=build-macintel /workspace/bin/nightly/ .
 
 
 FROM ghcr.io/geode-sdk/tools:windows-latest AS build-win
