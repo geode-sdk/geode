@@ -40,6 +40,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Inject cache mounts
+        uses: reproducible-containers/buildkit-cache-dance@v3
+        with:
+          cache-map: |
+            {
+              "/cpm-cache": "cpm-${{ matrix.platform }}",
+              "/workspace/build-${{ matrix.platform }}": "build-${{ matrix.platform }}"
+            }
+          skip-extraction: false
+
       - name: Build platform
         uses: docker/build-push-action@v6
         with:
