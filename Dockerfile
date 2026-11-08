@@ -25,6 +25,9 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
     && cmake --build --preset android32-cache && \
     ls /workspace/bin/nightly
 
+RUN --mount=type=cache,target=/opt/sccache/cache,id=sccache-android32 \
+    sccache --show-stats
+
 FROM scratch AS export-android32
 COPY --from=build-android32 /workspace/bin/nightly/ .
 
@@ -43,6 +46,9 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
     cmake --preset android64-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset android64-cache && \
     ls /workspace/bin/nightly
+
+RUN --mount=type=cache,target=/opt/sccache/cache,id=sccache-android64 \
+    sccache --show-stats
 
 FROM scratch AS export-android64
 COPY --from=build-android64 /workspace/bin/nightly/ .
@@ -63,6 +69,9 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
     && cmake --build --preset ios-cache && \
     ls /workspace/bin/nightly
 
+RUN --mount=type=cache,target=/opt/sccache/cache,id=sccache-ios \
+    sccache --show-stats
+
 FROM scratch AS export-ios
 COPY --from=build-ios /workspace/bin/nightly/ .
 
@@ -81,6 +90,9 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-mac \
     cmake --preset mac-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset mac-cache && \
     ls /workspace/bin/nightly
+
+RUN --mount=type=cache,target=/opt/sccache/cache,id=sccache-mac \
+    sccache --show-stats
 
 FROM scratch AS export-mac
 COPY --from=build-mac /workspace/bin/nightly/ .
@@ -101,6 +113,9 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-macm1 \
     && cmake --build --preset macm1-cache && \
     ls /workspace/bin/nightly
 
+RUN --mount=type=cache,target=/opt/sccache/cache,id=sccache-macm1 \
+    sccache --show-stats
+
 FROM scratch AS export-macm1
 COPY --from=build-macm1 /workspace/bin/nightly/ .
 
@@ -120,6 +135,9 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-macintel \
     && cmake --build --preset macintel-cache && \
     ls /workspace/bin/nightly
 
+RUN --mount=type=cache,target=/opt/sccache/cache,id=sccache-macintel \
+    sccache --show-stats
+
 FROM scratch AS export-macintel
 COPY --from=build-macintel /workspace/bin/nightly/ .
 
@@ -138,6 +156,9 @@ RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
     cmake --preset win-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset win-cache && \
     ls /workspace/bin/nightly
+
+RUN --mount=type=cache,target=/opt/sccache/cache,id=sccache-win \
+    sccache --show-stats
 
 FROM scratch AS export-win
 COPY --from=build-win /workspace/bin/nightly/ .

@@ -113,6 +113,11 @@ jobs:
     needs: build
 
     steps:
+      - name: Install LLVM
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm
+
       - name: Download macOS binaries (M1)
         uses: actions/download-artifact@v4
         with:
@@ -127,9 +132,12 @@ jobs:
 
       - name: Merge platform binaries
         run: |
+          set -euo pipefail
+          LIPO=$(compgen -c | grep -E '^llvm-lipo-[0-9]+$' | sort -V | tail -n 1)
+
           mkdir -p bin/nightly
-          llvm-lipo -create bin/intel/Geode.dylib bin/m1/Geode.dylib -output bin/nightly/Geode.dylib
-          llvm-lipo -create bin/intel/GeodeBootstrapper.dylib bin/m1/GeodeBootstrapper.dylib -output bin/nightly/GeodeBootstrapper.dylib
+          "$LIPO" -create bin/intel/Geode.dylib bin/m1/Geode.dylib -output bin/nightly/Geode.dylib
+          "$LIPO" -create bin/intel/GeodeBootstrapper.dylib bin/m1/GeodeBootstrapper.dylib -output bin/nightly/GeodeBootstrapper.dylib
           cp bin/m1/libfmod.dylib bin/nightly/libfmod.dylib
 
       - name: Upload universal macOS binaries
