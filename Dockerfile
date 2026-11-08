@@ -21,8 +21,8 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android32 \
-    cmake --preset android32 \
-    && cmake --build --preset android32 && \
+    cmake --preset android32-cache \
+    && cmake --build --preset android32-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-android32
@@ -40,8 +40,8 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android64 \
-    cmake --preset android64 \
-    && cmake --build --preset android64 && \
+    cmake --preset android64-cache \
+    && cmake --build --preset android64-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-android64
@@ -59,8 +59,8 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-ios \
-    cmake --preset ios \
-    && cmake --build --preset ios && \
+    cmake --preset ios-cache \
+    && cmake --build --preset ios-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-ios
@@ -78,8 +78,8 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-mac \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-mac \
-    cmake --preset mac \
-    && cmake --build --preset mac && \
+    cmake --preset mac-cache \
+    && cmake --build --preset mac-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-mac
@@ -98,8 +98,8 @@ COPY --from=clone-bindings /bindings /bindings
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-win \
     ls /workspace/build-win && \
-    cmake --preset win \
-    && cmake --build --preset win && \
+    cmake --preset win-cache \
+    && cmake --build --preset win-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-win
