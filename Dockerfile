@@ -20,7 +20,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
-    --mount=type=cache,target=/workspace/build-android32,id=build-android32 \
+    --mount=type=cache,target=/opt/sccache/cache,id=sccache-android32 \
     cmake --preset android32 \
     && cmake --build --preset android32 && \
     ls /workspace/bin/nightly
@@ -39,7 +39,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
-    --mount=type=cache,target=/workspace/build-android64,id=build-android64 \
+    --mount=type=cache,target=/opt/sccache/cache,id=sccache-android64 \
     cmake --preset android64 \
     && cmake --build --preset android64 && \
     ls /workspace/bin/nightly
@@ -58,7 +58,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
-    --mount=type=cache,target=/workspace/build-ios,id=build-ios \
+    --mount=type=cache,target=/opt/sccache/cache,id=sccache-ios \
     cmake --preset ios \
     && cmake --build --preset ios && \
     ls /workspace/bin/nightly
@@ -77,7 +77,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-mac \
-    --mount=type=cache,target=/workspace/build-mac,id=build-mac \
+    --mount=type=cache,target=/opt/sccache/cache,id=sccache-mac \
     cmake --preset mac \
     && cmake --build --preset mac && \
     ls /workspace/bin/nightly
@@ -96,7 +96,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
-    --mount=type=cache,target=/workspace/build-win,id=build-win \
+    --mount=type=cache,target=/opt/sccache/cache,id=sccache-win \
     ls /workspace/build-win && \
     cmake --preset win \
     && cmake --build --preset win && \
