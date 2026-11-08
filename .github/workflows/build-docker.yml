@@ -252,11 +252,55 @@ jobs:
           echo "version=$(cat VERSION | xargs)" >> "$GITHUB_OUTPUT"
           echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_OUTPUT"
 
-      - name: Download platform artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          pattern: geode-*
-          path: artifacts
+          name: geode-mac
+          path: artifacts/geode-mac
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-macm1
+          path: artifacts/geode-macm1
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-macintel
+          path: artifacts/geode-macintel
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-win
+          path: artifacts/geode-win
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-android32
+          path: artifacts/geode-android32
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-android64
+          path: artifacts/geode-android64
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-ios
+          path: artifacts/geode-ios
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-installer-win
+          path: artifacts/geode-installer-win
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-installer-mac
+          path: artifacts/geode-installer-mac
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-installer-linux
+          path: artifacts/geode-installer-linux
 
       - name: Prepare installer filenames
         run: |
