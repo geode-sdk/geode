@@ -21,12 +21,12 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android32 \
-    cmake --preset android32-cache \
+    cmake --preset android32-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset android32-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-android32
-COPY --from=build-android32 /workspace/bin/nightly/* .
+COPY --from=build-android32 /workspace/bin/nightly/ .
 
 
 FROM ghcr.io/geode-sdk/tools:android-latest AS build-android64
@@ -40,12 +40,12 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android64 \
-    cmake --preset android64-cache \
+    cmake --preset android64-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset android64-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-android64
-COPY --from=build-android64 /workspace/bin/nightly/* .
+COPY --from=build-android64 /workspace/bin/nightly/ .
 
 
 FROM ghcr.io/geode-sdk/tools:ios-latest AS build-ios
@@ -59,12 +59,12 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-ios \
-    cmake --preset ios-cache \
+    cmake --preset ios-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset ios-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-ios
-COPY --from=build-ios /workspace/bin/nightly/* .
+COPY --from=build-ios /workspace/bin/nightly/ .
 
 
 FROM ghcr.io/geode-sdk/tools:macos-latest AS build-mac
@@ -78,12 +78,12 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-mac \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-mac \
-    cmake --preset mac-cache \
+    cmake --preset mac-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset mac-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-mac
-COPY --from=build-mac /workspace/bin/nightly/* .
+COPY --from=build-mac /workspace/bin/nightly/ .
 
 
 FROM ghcr.io/geode-sdk/tools:windows-latest AS build-win
@@ -97,12 +97,12 @@ COPY --from=clone-bindings /bindings /bindings
 
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-win \
-    cmake --preset win-cache \
+    cmake --preset win-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset win-cache && \
     ls /workspace/bin/nightly
 
 FROM scratch AS export-win
-COPY --from=build-win /workspace/bin/nightly/* .
+COPY --from=build-win /workspace/bin/nightly/ .
 
 
 FROM debian:bookworm-slim AS export-combine
