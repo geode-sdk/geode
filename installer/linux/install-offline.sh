@@ -12,7 +12,7 @@ SELF="${BASH_SOURCE[0]:-}"
 
 if [ -z "$SELF" ] || [ ! -f "$SELF" ]; then
     echo -e "${RED}Error${NC}: script is being piped to bash" >&2
-    echo "This breaks self-extraciton, download the script first and then run it" >&2
+    echo "This breaks self-extraction, download the script first and then run it" >&2
     exit 1
 fi
 
