@@ -64,7 +64,7 @@ protected:
 
     bool init(ModSource&& src);
     CCNode* createContainer(CCSize const& size);
-    RepoPlatform getRepoPlatform(ZStringView url);
+    RepoPlatform getRepoPlatform(std::string_view url);
     ZStringView getPlatformSprite(std::optional<std::string> const& url);
     void updateState();
 
