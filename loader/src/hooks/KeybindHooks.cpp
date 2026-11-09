@@ -1,3 +1,5 @@
+#include <Geode/platform/cplatform.h>
+
 #ifndef GEODE_IS_IOS
 
 #include "LoaderImpl.hpp"
