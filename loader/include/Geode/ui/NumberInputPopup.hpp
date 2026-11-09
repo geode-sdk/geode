@@ -2,6 +2,7 @@
 
 #include "BasedButtonSprite.hpp"
 #include "Popup.hpp"
+#include "TextInput.hpp"
 
 #include <Geode/utils/function.hpp>
 
@@ -70,10 +71,10 @@ namespace geode {
         /// @param show Whether to show the reset button or not
         void showResetButton(bool show);
 
-        /// Reset the callback that would've fired when the user submitted a number
+        /// Reset the callback that would've been called when the user submitted a number
         void resetSubmitCallback();
 
-        double getValue() const;
+        double getValue() const noexcept;
         double getMin() const noexcept;
         double getMax() const noexcept;
 
@@ -82,5 +83,7 @@ namespace geode {
         double getArrowStep() const noexcept;
 
         size_t getPrecision() const noexcept;
+
+        TextInput* getInputNode() const noexcept;
     };
 };
