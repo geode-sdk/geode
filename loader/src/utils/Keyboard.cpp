@@ -6,6 +6,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/utils/StringMap.hpp>
+#include <Geode/platform/cplatform.h>
 #include <optional>
 
 using namespace geode::prelude;
