@@ -1,3 +1,5 @@
+#include <Geode/platform/cplatform.h>
+
 #ifndef GEODE_IS_IOS
 
 #include "LoaderImpl.hpp"
@@ -453,7 +455,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         list->setID("keybinds-list");
         list->m_contentLayer->setLayout(listColumnLayout(list::ROW_GAP, false));
         m_mainLayer->addChildAtPosition(
-            list, Anchor::Center, {-list->getContentWidth() / 2, -list->getContentHeight() / 2 + offsetY}
+            list, Anchor::Center, {0, offsetY}
         );
         m_fields->list = list;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/loader/Event.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchDelegateProtocol.h>
@@ -9,6 +10,17 @@
 namespace geode {
     class GEODE_DLL Button : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {
     public:
+
+        enum class ClickType {
+            Selected,
+            Activated,
+            Unselected
+        };
+
+        class ClickedEvent : public geode::GlobalEvent<ClickedEvent, bool(Button*, ClickType), bool(), Button*, ClickType> {
+            using GlobalEvent::GlobalEvent;
+        };
+
         using ButtonCallback = geode::Function<void(Button* sender)>;
 
         enum class AnimationType {
@@ -103,6 +115,30 @@ namespace geode {
          * Set a callback for when the button is unselected
          */
         void setUnselectCallback(ButtonCallback callback);
+
+        /**
+         * Add a callback for when the button is activated
+         */
+        template <class Callback>
+        void addActivateCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Button::ClickedEvent(this, Button::ClickType::Activated), std::forward<Callback>(callback), priority);
+        }
+
+        /**
+         * Add a callback for when the button is selected
+         */
+        template <class Callback>
+        void addSelectCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Button::ClickedEvent(this, Button::ClickType::Selected), std::forward<Callback>(callback), priority);
+        }
+
+        /**
+         * Add a callback for when the button is unselected
+         */
+        template <class Callback>
+        void addUnselectCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Button::ClickedEvent(this, Button::ClickType::Unselected), std::forward<Callback>(callback), priority);
+        }
 
         /**
          * Set the touch priority of the Button
