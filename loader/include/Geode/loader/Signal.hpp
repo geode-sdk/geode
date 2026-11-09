@@ -1,4 +1,6 @@
 #pragma once
+// TODO: disabled because of event changes in v6
+#if 0
 
 #include "Event.hpp"
 #include "../platform/platform.hpp"
@@ -166,3 +168,5 @@ namespace geode::comm {
 	template <class Type>
 	using ThreadSafeSignal = Signal<Type, true>;
 };
+
+#endif

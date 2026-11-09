@@ -32,6 +32,10 @@ public:
     Label* m_linkedLabel;
     unsigned int m_labelPrecision;
 
+    SliderCallback m_slideCallback;
+    SliderCallback m_clickCallback;
+    SliderCallback m_releaseCallback;
+
     geode::ListenerHandle m_slideListener;
     geode::ListenerHandle m_clickListener;
     geode::ListenerHandle m_releaseListener;
@@ -97,8 +101,15 @@ bool SliderNode::initCustom(CCSprite* thumb, CCSprite* thumbSelected, NineSlice*
     addChild(m_impl->m_groove);
     addChild(m_impl->m_bar);
 
-    m_impl->m_slideListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
-        if (callback) callback(this, value);
+    m_impl->m_slideCallback = std::move(callback);
+    m_impl->m_slideListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Slide).listen([this] (float value) {
+        if (m_impl->m_slideCallback) m_impl->m_slideCallback(this, value);
+    });
+    m_impl->m_clickListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Click).listen([this] (float value) {
+        if (m_impl->m_clickCallback) m_impl->m_clickCallback(this, value);
+    });
+    m_impl->m_releaseListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Release).listen([this] (float value) {
+        if (m_impl->m_releaseCallback) m_impl->m_releaseCallback(this, value);
     });
 
     m_impl->m_barOffset = barOffset;
@@ -151,21 +162,15 @@ void SliderNode::updateSize() {
 }
 
 void SliderNode::setSlideCallback(SliderCallback callback) {
-    m_impl->m_slideListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Slide).listen([this, callback = std::move(callback)] (float value) {
-        if (callback) callback(this, value);
-    });
+    m_impl->m_slideCallback = std::move(callback);
 }
 
 void SliderNode::setClickCallback(SliderCallback callback) {
-    m_impl->m_clickListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Click).listen([this, callback = std::move(callback)] (float value) {
-        if (callback) callback(this, value);
-    });
+    m_impl->m_clickCallback = std::move(callback);
 }
 
 void SliderNode::setReleaseCallback(SliderCallback callback) {
-    m_impl->m_releaseListener = SliderNode::SliderEvent(this, SliderNode::SlideType::Release).listen([this, callback = std::move(callback)] (float value) {
-        if (callback) callback(this, value);
-    });
+    m_impl->m_releaseCallback = std::move(callback);
 }
 
 void SliderNode::setMin(float min) {

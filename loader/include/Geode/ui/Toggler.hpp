@@ -14,7 +14,7 @@ namespace geode {
             using GlobalEvent::GlobalEvent;
         };
 
-        using ToggleCallback = geode::CopyableFunction<void(Toggler* sender, bool isToggled)>;
+        using ToggleCallback = geode::Function<void(Toggler* sender, bool isToggled)>;
 
         /// Creates a toggle with on/off nodes.
         ///
