@@ -86,7 +86,7 @@ namespace geode {
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
         std::optional<LoadProblem> m_problem;
 
-        Impl(Mod* self, ModMetadata const& metadata);
+        Impl(Mod* self, ModMetadata metadata);
         ~Impl();
         Impl(Impl const&) = delete;
         Impl(Impl&&) = delete;
