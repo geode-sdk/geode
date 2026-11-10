@@ -12,7 +12,7 @@ bool DevListPopup::init(ModSource meta) {
     this->setTitle(fmt::format("Developers for {}", m_source.getMetadata().getName()));
     m_title->setLimitLabelWidth(m_mainLayer->getContentWidth() - 50.0f, 0.7f, 0.1f);
 
-    ModDeveloperList* list = ModDeveloperList::create(this, m_source, {210.f, 150.f});
+    ModDeveloperList* list = ModDeveloperList::create(this, m_source, {210.0f, 150.0f});
     m_mainLayer->addChildAtPosition(
         list,
         Anchor::Center,

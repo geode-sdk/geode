@@ -26,7 +26,7 @@ bool SortPopup::init(ModListSource* src) {
         });
         toggle->setTag(sort);
         if (src->getSort() == sort) {
-            toggle->toggle(true);
+            toggle->setToggled(true);
             m_selected = sort;
         }
         node->addChildAtPosition(toggle, Anchor::Left, {15.0f, 0.0f});
@@ -48,7 +48,7 @@ bool SortPopup::init(ModListSource* src) {
 void SortPopup::onSelect(CCObject* sender) {
     m_selected = sender->getTag();
     for (auto option : m_options) {
-        option->toggle(m_selected == option->getTag());
+        option->setToggled(m_selected == option->getTag());
     }
 }
 
