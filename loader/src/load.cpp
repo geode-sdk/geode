@@ -146,7 +146,7 @@ int geodeEntry(void* platformData) {
 
     tryLogForwardCompat();
 
-    auto begin = std::chrono::high_resolution_clock::now();
+    auto begin = asp::Instant::now();
 
     // set up internal mod, settings and data
     log::info("Setting up internal mod");
@@ -228,9 +228,7 @@ int geodeEntry(void* platformData) {
         log::info("Skipped loader update check");
     }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-    log::info("Entry took {}s", static_cast<float>(time) / 1000.f);
+    log::info("Entry took {}", begin.elapsed());
 
     // also log after entry so that users are more likely to notice
     tryLogForwardCompat();

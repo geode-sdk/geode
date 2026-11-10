@@ -9,15 +9,15 @@ namespace geode::node_ids {
 
     template <class T = CCNode>
         requires std::is_base_of_v<CCNode, T>
-    T* setIDSafe(CCNode* node, int index, char const* id) {
+    T* setIDSafe(CCNode* node, int index, std::string id) {
         if constexpr (std::is_same_v<CCNode, T>) {
             if (auto child = node->getChildByIndex(index)) {
-                child->setID(id);
+                child->setID(std::move(id));
                 return child;
             }
         } else {
             if (auto child = node->getChildByType<T>(index)) {
-                child->setID(id);
+                child->setID(std::move(id));
                 return child;
             }
         }

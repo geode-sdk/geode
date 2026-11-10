@@ -96,7 +96,7 @@ namespace {
     }
 
     // jni breaks over multithreading, so the value is stored to avoid more jni calls
-    std::string s_savedBaseDir = "";
+    std::string s_savedBaseDir;
 
     asp::fs::Path getBaseDir() {
         std::string path = "/storage/emulated/0/Android/data/com.geode.launcher/files";
@@ -385,7 +385,7 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
             clearJNIException();
 
             // only normal restart is supported on older launchers
-            restart();            
+            restart();
         }
     };
     // Not implemented
