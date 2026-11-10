@@ -1,15 +1,5 @@
 # syntax=docker/dockerfile:1.6
 
-FROM ubuntu:26.10 AS clone-bindings
-ARG BINDINGS
-
-RUN apt-get update; \
-    apt-get install -y --no-install-recommends \
-        ca-certificates curl jq git; \
-    rm -rf /var/lib/apt/lists/*
-RUN git clone https://github.com/geode-sdk/bindings.git --depth 1 "/bindings"
-
-
 FROM ghcr.io/geode-sdk/tools:android-latest AS build-android32
 
 WORKDIR /workspace
@@ -17,10 +7,9 @@ COPY . .
 
 RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads/main/docker/CMakePresets.json -o CMakePresets.json
 
-COPY --from=clone-bindings /bindings /bindings
-
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android32 \
+    --mount=type=bind,from=bindings,target=/bindings \
     cmake --preset android32-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset android32-cache && \
     ls /workspace/bin/nightly
@@ -39,10 +28,9 @@ COPY . .
 
 RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads/main/docker/CMakePresets.json -o CMakePresets.json
 
-COPY --from=clone-bindings /bindings /bindings
-
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android64 \
+    --mount=type=bind,from=bindings,target=/bindings \
     cmake --preset android64-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset android64-cache && \
     ls /workspace/bin/nightly
@@ -61,10 +49,9 @@ COPY . .
 
 RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads/main/docker/CMakePresets.json -o CMakePresets.json
 
-COPY --from=clone-bindings /bindings /bindings
-
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-ios \
+    --mount=type=bind,from=bindings,target=/bindings \
     cmake --preset ios-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset ios-cache && \
     ls /workspace/bin/nightly
@@ -83,10 +70,9 @@ COPY . .
 
 RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads/main/docker/CMakePresets.json -o CMakePresets.json
 
-COPY --from=clone-bindings /bindings /bindings
-
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-mac \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-mac \
+    --mount=type=bind,from=bindings,target=/bindings \
     cmake --preset mac-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset mac-cache && \
     ls /workspace/bin/nightly
@@ -105,10 +91,9 @@ COPY . .
 
 RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads/main/docker/CMakePresets.json -o CMakePresets.json
 
-COPY --from=clone-bindings /bindings /bindings
-
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-macm1 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-macm1 \
+    --mount=type=bind,from=bindings,target=/bindings \
     cmake --preset macm1-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset macm1-cache && \
     ls /workspace/bin/nightly
@@ -127,10 +112,9 @@ COPY . .
 
 RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads/main/docker/CMakePresets.json -o CMakePresets.json
 
-COPY --from=clone-bindings /bindings /bindings
-
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-macintel \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-macintel \
+    --mount=type=bind,from=bindings,target=/bindings \
     cmake --preset macintel-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset macintel-cache && \
     ls /workspace/bin/nightly
@@ -149,10 +133,9 @@ COPY . .
 
 RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads/main/docker/CMakePresets.json -o CMakePresets.json
 
-COPY --from=clone-bindings /bindings /bindings
-
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-win \
+    --mount=type=bind,from=bindings,target=/bindings \
     cmake --preset win-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On \
     && cmake --build --preset win-cache && \
     ls /workspace/bin/nightly
