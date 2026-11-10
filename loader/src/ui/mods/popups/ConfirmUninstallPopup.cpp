@@ -14,7 +14,7 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
     auto text = Label::createRich(fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()), "chatFont.fnt");
     text->setMaxWidth(m_mainLayer->getContentWidth() - 35.0f);
     text->setAlignment(Label::Alignment::Center);
-    m_mainLayer->addChildAtPosition(text, Anchor::Center, {0.0f, 20.00f});
+    m_mainLayer->addChildAtPosition(text, Anchor::Center, {0.0f, 20.0f});
 
     auto deleteDataLabel = Label::create("Delete the Mod's save data", "bigFont.fnt");
     deleteDataLabel->setScale(0.35f);
