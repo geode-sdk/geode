@@ -62,7 +62,6 @@ Result<int> api::addNumbers(int a, int b) {
 // once this is set in stone we should not change it ever
 #define GEODE_EVENT_EXPORT_ID_FOR(fnPtrStr, callArgsStr) \
     (std::string(MY_MOD_ID "/") + (fnPtrStr[0] == '&' ? &fnPtrStr[1] : fnPtrStr))
-#define GEODE_EVENT_EXPORT_UNIQUE(prefix, counter) GEODE_CONCAT(prefix, counter)
 
 namespace geode::geode_internal {
     template <class Fn>
@@ -127,9 +126,12 @@ namespace geode::geode_internal {
 #define GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, uniq_name) \
     ::geode::geode_internal::MemFnPtrT<Class, GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, uniq_name)>
 
+#define GEODE_EVENT_EXPORT_UNIQ_NAME(sfx) \
+    GEODE_CONCAT(GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, sfx), __COUNTER__), __LINE__)
+
 #define GEODE_EVENT_EXPORT_CALL(ret, name, params, args, eventID)                                       \
     static ret (name) params {                                                                          \
-        using FnType = GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__)); \
+        using FnType = GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_EVENT_EXPORT_UNIQ_NAME(name)); \
         static auto storage = geode::geode_internal::callEventExportListener<FnType>(eventID);          \
         if (!storage) return geode::geode_internal::getValueOnFailed<ret>();                            \
         return storage args;                                                                            \
@@ -137,7 +139,7 @@ namespace geode::geode_internal {
 
 #define GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, eventID)                                \
     GEODE_INTERNAL_LINKAGE inline ret (name) params {                                                          \
-        using FnType = GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__)); \
+        using FnType = GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, GEODE_EVENT_EXPORT_UNIQ_NAME(name)); \
         static auto storage = geode::geode_internal::callEventExportListener<FnType>(eventID);                  \
         if (!storage) return geode::geode_internal::getValueOnFailed<ret>();                                   \
         return storage args;                                                                                   \
@@ -145,30 +147,30 @@ namespace geode::geode_internal {
 
 #define GEODE_EVENT_EXPORT_DEFINE(ret, name, params, args, eventID)                                \
     ret name params;                                                                               \
-    static bool GEODE_EVENT_EXPORT_UNIQUE(_geode_event_export_reg_, __COUNTER__)                   \
+    static bool GEODE_EVENT_EXPORT_UNIQ_NAME(_geode_event_export_reg_)                   \
     = geode::geode_internal::getEventExportListener(                                               \
-        static_cast<GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__))>(&name), \
+        static_cast<GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_EVENT_EXPORT_UNIQ_NAME(name))>(&name), \
         eventID                                                                                    \
     );
 
 #define GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, eventID)                               \
     ret name params;                                                                                            \
-    static inline bool GEODE_EVENT_EXPORT_UNIQUE(_geode_event_export_reg_, __COUNTER__)                         \
+    static inline bool GEODE_EVENT_EXPORT_UNIQ_NAME(_geode_event_export_reg_)                         \
     = geode::geode_internal::getEventExportListener(static_cast<                                                \
-        GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__)) \
+        GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, GEODE_EVENT_EXPORT_UNIQ_NAME(name)) \
     >(&Class::name), eventID);
 
 #define GEODE_EVENT_EXPORT_DEFINE_MEMBER_STATIC(ret, name, params, args, eventID) \
     static ret name params;                                                                             \
-    static inline bool GEODE_EVENT_EXPORT_UNIQUE(_geode_event_export_reg_, __COUNTER__)                 \
+    static inline bool GEODE_EVENT_EXPORT_UNIQ_NAME(_geode_event_export_reg_)                 \
     = geode::geode_internal::getEventExportListener(                                                    \
-        static_cast<GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__))>(&name), \
+        static_cast<GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_EVENT_EXPORT_UNIQ_NAME(name))>(&name), \
         eventID \
     );
 
 #define GEODE_EVENT_EXPORT_CALL_MEMBER_STATIC(ret, name, params, args, eventID) \
     GEODE_INTERNAL_LINKAGE static ret (name) params { \
-        using FnType = GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, name), __COUNTER__)); \
+        using FnType = GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, GEODE_EVENT_EXPORT_UNIQ_NAME(name)); \
         static auto storage = geode::geode_internal::callEventExportListener<FnType>(eventID);            \
         if (!storage) return geode::geode_internal::getValueOnFailed<ret>(); \
         return storage args; \
