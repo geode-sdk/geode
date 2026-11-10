@@ -32,10 +32,6 @@ namespace geode {
         }
         BasicZStringView(std::basic_string<C> const& str) : m_str(str.c_str()), m_length(str.size()) {}
 
-#ifdef GEODE_IS_ANDROID
-        BasicZStringView(std::string const& str) requires std::same_as<C, char> : m_str(str.c_str()), m_length(str.size()) {}
-#endif
-
         BasicZStringView(BasicZStringView const& other) = default;
         BasicZStringView& operator=(BasicZStringView const& other) = default;
 
@@ -50,12 +46,6 @@ namespace geode {
         operator std::basic_string<C>() const {
             return std::basic_string<C>(m_str, _size());
         }
-
-#ifdef GEODE_IS_ANDROID
-        operator std::string() const requires std::same_as<C, char> {
-            return std::string(m_str, _size());
-        }
-#endif
 
         operator asp::fs::Path() const {
             return asp::fs::Path(this->view());

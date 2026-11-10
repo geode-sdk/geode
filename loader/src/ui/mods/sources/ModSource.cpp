@@ -140,7 +140,7 @@ server::ServerFuture<server::ServerModMetadata> ModSource::fetchServerInfo() con
 }
 
 server::ServerFuture<std::vector<server::ServerTag>> ModSource::fetchValidTags() const {
-    std::unordered_set<std::string> modTags;
+    StringSet modTags;
     std::visit(makeVisitor {
         [&](Mod* mod) {
             modTags = mod->getMetadata().getTags();

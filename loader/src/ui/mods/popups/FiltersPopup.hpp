@@ -14,7 +14,7 @@ class FiltersPopup : public GeodePopup {
 protected:
     ModListSource* m_source;
     CCNode* m_tagsMenu;
-    std::unordered_set<std::string> m_selectedTags;
+    StringSet m_selectedTags;
     ListenerHandle m_tagsHandle;
     async::TaskHolder<server::ServerResult<std::vector<server::ServerTag>>> m_tagsListener;
     Toggler* m_enabledModsOnly = nullptr;
