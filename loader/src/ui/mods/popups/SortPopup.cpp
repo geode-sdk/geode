@@ -4,9 +4,9 @@
 
 bool SortPopup::init(ModListSource* src) {
     auto opts = src->getSortingOptions();
-    auto height = opts.size() * 25.f;
-    if (!GeodePopup::init(230.f, 50 + height))
-        return false;
+    auto height = opts.size() * 25.0f;
+
+    if (!GeodePopup::init(230.0f, 50.0f + height)) return false;
 
     m_noElasticity = true;
     m_source = src;
@@ -14,33 +14,33 @@ bool SortPopup::init(ModListSource* src) {
     this->setTitle("Search Sorting");
 
     auto container = CCNode::create();
-    container->setContentSize({ 200, height });
+    container->setContentSize({ 200.0f, height });
 
-    for (auto const& [sort, name] : opts) {
-        auto node = CCMenu::create();
-        node->setContentSize({ container->getContentWidth(), 22 });
+    for (auto& [sort, name] : opts) {
+        auto node = CCNode::create();
+        node->setContentSize({ container->getContentWidth(), 22.0f });
 
-        auto toggle = CCMenuItemToggler::createWithStandardSprites(
-            this, menu_selector(SortPopup::onSelect), .6f
-        );
-        toggle->m_notClickable = true;
+        auto toggle = Toggler::createWithStandardSprites(0.6f, [this](Toggler* sender, bool toggled) {
+            sender->setToggled(!toggled);
+            this->onSelect(sender);
+        });
         toggle->setTag(sort);
         if (src->getSort() == sort) {
             toggle->toggle(true);
             m_selected = sort;
         }
-        node->addChildAtPosition(toggle, Anchor::Left, ccp(15, 0));
+        node->addChildAtPosition(toggle, Anchor::Left, {15.0f, 0.0f});
         m_options.push_back(toggle);
 
         auto label = Label::create(std::move(name), "bigFont.fnt");
         label->setScale(.5f);
-        node->addChildAtPosition(label, Anchor::Left, ccp(30, 0), ccp(0, .5f));
+        node->addChildAtPosition(label, Anchor::Left, {30.0f, 0.0f}, {0.0f, 0.5f});
 
         container->addChild(node);
     }
 
     container->setLayout(ColumnLayout::create()->setAxisReverse(true));
-    m_mainLayer->addChildAtPosition(container, Anchor::Center, ccp(0, -10), ccp(.5f, .5f));
+    m_mainLayer->addChildAtPosition(container, Anchor::Center, {0.0f, -10.0f}, {0.5f, 0.5f});
 
     return true;
 }
