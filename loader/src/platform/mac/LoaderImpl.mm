@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include <iostream>
 #include <loader/LoaderImpl.hpp>
 #include <loader/console.hpp>
@@ -221,7 +222,7 @@ const auto& uuidToVersionMap() {
     // we only need to define versions that are ambiguous
     // so for now, 2.207
     // you can get these hashes from otool, just look for the LC_UUID load command!
-    static std::unordered_map<std::string, std::string> uuidToVersionName{
+    static StringMap<std::string> uuidToVersionName{
 #if defined(GEODE_IS_ARM_MAC)
         {"620B0C9B-8F75-3043-BD34-3BB9DD201C3A", "2.206"},
         {"48C25B63-0D7C-3F67-B831-DF935524C043", "2.2070"},

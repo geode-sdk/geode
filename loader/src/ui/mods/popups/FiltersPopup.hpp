@@ -13,7 +13,7 @@ class FiltersPopup : public GeodePopup {
 protected:
     ModListSource* m_source;
     CCMenu* m_tagsMenu;
-    std::unordered_set<std::string> m_selectedTags;
+    StringSet m_selectedTags;
     ListenerHandle m_tagsHandle;
     async::TaskHolder<server::ServerResult<std::vector<server::ServerTag>>> m_tagsListener;
     CCMenuItemToggler* m_enabledModsOnly = nullptr;

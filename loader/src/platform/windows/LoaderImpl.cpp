@@ -22,7 +22,7 @@ std::string Loader::Impl::getGameVersion() {
 }
 
 bool Loader::Impl::userTriedToLoadDLLs() const {
-    static std::unordered_set<std::string> KNOWN_MOD_DLLS {
+    static StringSet KNOWN_MOD_DLLS {
         "betteredit-v4.0.5.dll",
         "betteredit-v4.0.5-min.dll",
         "betteredit-v4.0.3.dll",

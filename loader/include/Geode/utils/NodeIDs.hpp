@@ -41,14 +41,13 @@ namespace geode::node_ids {
         }
     }
 
-    static void switchToMenu(CCNode* node, CCNode* menu) {
+    static void switchToMenu(Ref<CCNode> node, CCNode* menu) {
         if (!node || !menu) return;
 
         auto worldPos = node->getParent() ?
             node->getParent()->convertToWorldSpace(node->getPosition()) :
             node->getPosition();
 
-        node->retain();
         node->removeFromParent();
         node->setZOrder(0);
 
@@ -71,6 +70,8 @@ namespace geode::node_ids {
     static N* detachAndCreateNode(
         CCNode* parent, char const* menuID, Layout* layout, T first, Args... args
     ) {
+        auto firstRef = Ref(first);
+
         if (!first) {
             auto menu = N::create();
             menu->setID(menuID);
@@ -81,7 +82,6 @@ namespace geode::node_ids {
 
         auto oldMenu = first->getParent();
 
-        first->retain();
         first->removeFromParent();
 
         auto newMenu = N::create();
@@ -93,7 +93,6 @@ namespace geode::node_ids {
         first->setPosition(0, 0);
         first->setZOrder(0);
         newMenu->addChild(first);
-        first->release();
 
         (switchToMenu(args, newMenu), ...);
 
