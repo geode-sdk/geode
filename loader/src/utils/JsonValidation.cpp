@@ -1,6 +1,6 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <unordered_set>
+#include <Geode/utils/StringMap.hpp>
 
 using namespace geode::prelude;
 
@@ -25,7 +25,7 @@ public:
     matjson::Value& scope;
     std::string scopeName;
     std::string key;
-    std::unordered_set<std::string> knownKeys;
+    StringSet knownKeys;
 
     Impl()
       : shared(nullptr),
