@@ -206,7 +206,7 @@ ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, Op
     else {
         auto clonedFilter = Impl::KeyType(filter->clone());
         if (!clonedFilter) return ListenerHandle();
-        auto filter2 = clonedFilter.get();
+        // auto filter2 = clonedFilter.get();
         // geode::console::log(fmt::format("Cloned filter for adding receiver {}, {}", (void*)filter2, cast::getRuntimeTypeName(filter2)), Severity::Debug);
 
         auto opaquePort = std::make_unique<OpaquePort>();
