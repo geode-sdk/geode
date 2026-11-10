@@ -1,25 +1,24 @@
 #include "ConfirmUninstallPopup.hpp"
+#include "../UpdateModListState.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/TextArea.hpp>
 #include <Geode/ui/Label.hpp>
 
-using namespace geode::prelude;
-
 bool ConfirmUninstallPopup::init(Mod* mod) {
-    if (!Popup::init(300.f, 150.f, "square01_001.png")) return false;
+    if (!Popup::init(300.0f, 150.0f, "square01_001.png")) return false;
 
     m_mod = mod;
 
     this->setTitle(fmt::format("Uninstall {}", mod->getName()));
 
     auto text = Label::createRich(fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()), "chatFont.fnt");
-    text->setMaxWidth(m_size.width - 35.f);
+    text->setMaxWidth(m_mainLayer->getContentWidth() - 35.0f);
     text->setAlignment(Label::Alignment::Center);
-    m_mainLayer->addChildAtPosition(text, Anchor::Center, {.0f, 20.f});
+    m_mainLayer->addChildAtPosition(text, Anchor::Center, {0.0f, 20.00f});
 
     auto deleteDataLabel = Label::create("Delete the Mod's save data", "bigFont.fnt");
-    deleteDataLabel->setScale(.35f);
-    m_mainLayer->addChildAtPosition(deleteDataLabel, Anchor::Center, {-70.f, -15.f}, {.0f, .5f});
+    deleteDataLabel->setScale(0.35f);
+    m_mainLayer->addChildAtPosition(deleteDataLabel, Anchor::Center, {-70.0f, -15.0f}, {0.0f, 0.5f});
 
     if (mod->isInternal()) {
         deleteDataLabel->setText("Delete ALL mods and their save data");
@@ -27,20 +26,21 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
     }
 
     m_deleteDataToggle = Toggler::createWithStandardSprites(nullptr);
-    m_deleteDataToggle->setScale(.6f);
-    m_mainLayer->addChildAtPosition(m_deleteDataToggle, Anchor::Center, {-88.f, -15.f});
+    m_deleteDataToggle->setScale(0.6f);
+    m_mainLayer->addChildAtPosition(m_deleteDataToggle, Anchor::Center, {-88.0f, -15.0f});
 
     auto cancelBtn = Button::createWithNode(
-        ButtonSprite::create("Cancel", "goldFont.fnt", "GJ_button_01.png", .8f), [this](auto) {
-            this->onClose(nullptr);
+        ButtonSprite::create("Cancel", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+        [this](Button* sender) {
+            this->onClose(sender);
         }
     );
-    cancelBtn->setScale(.85f);
+    cancelBtn->setScale(0.85f);
     cancelBtn->setScaleMultiplier(1.125f);
-    m_mainLayer->addChildAtPosition(cancelBtn, Anchor::Bottom, {-52.f, 28.f});
+    m_mainLayer->addChildAtPosition(cancelBtn, Anchor::Bottom, {-52.0f, 28.0f});
 
     auto uninstallBtn = Button::createWithNode(
-        ButtonSprite::create("Uninstall", "goldFont.fnt", "GJ_button_01.png", .8f),
+        ButtonSprite::create("Uninstall", "goldFont.fnt", "GJ_button_01.png", 0.8f),
         [this](auto) {
             auto res = m_mod->uninstall(m_deleteDataToggle->isToggled());
 
@@ -64,9 +64,9 @@ bool ConfirmUninstallPopup::init(Mod* mod) {
             this->onClose(nullptr);
         }
     );
-    uninstallBtn->setScale(.85f);
+    uninstallBtn->setScale(0.85f);
     uninstallBtn->setScaleMultiplier(1.125f);
-    m_mainLayer->addChildAtPosition(uninstallBtn, Anchor::Bottom, {42.f, 28.f});
+    m_mainLayer->addChildAtPosition(uninstallBtn, Anchor::Bottom, {42.0f, 28.0f});
 
     return true;
 }

@@ -2,7 +2,9 @@
 
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/Toggler.hpp>
-#include "../UpdateModListState.hpp"
+#include <Geode/loader/Mod.hpp>
+
+using namespace geode::prelude;
 
 class ConfirmUninstallPopup : public Popup {
 protected:

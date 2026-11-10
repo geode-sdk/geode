@@ -29,11 +29,11 @@ void askConfirmModInstalls() {
                 toConfirm.dependencies.insert(download.getID());
 
                 if (!toConfirm.modsToInstall.contains(dep.value().first)) {
-                    toConfirm.modsToInstall.insert(dep.value().first);
+                    toConfirm.modsToInstall.insert(std::move(*dep).first);
                 }
             }
             else {
-                toConfirm.modCount += 1;
+                toConfirm.modCount++;
                 if (download.getReplacesMod()) {
                     toConfirm.replacements.insert(download.getID());
                 }
@@ -67,6 +67,7 @@ void askConfirmModInstalls() {
                 // If some newly downloaded mods are incompatible with this one, disable them
                 for (auto const& download : ModDownloadManager::get()->getDownloads()) {
                     auto status = download.getStatus();
+
                     if (auto done = std::get_if<DownloadStatusDone>(&status)) {
                         for (auto const& inc : done->version.metadata.getIncompatibilities()) {
                             if (conf->version.metadata.getID() == inc.getID() && inc.getVersion().compare(done->version.metadata.getVersion())) {
