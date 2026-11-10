@@ -81,7 +81,7 @@ namespace geode {
          * The minimum log level for this mod
          */
         Severity m_logLevel = Severity::Trace;
-        std::unordered_map<std::string, char const*> m_expandedSprites;
+        StringMap<char const*> m_expandedSprites;
         bool m_isCurrentlyLoading = false;
         ModRequestedAction m_requestedAction = ModRequestedAction::None;
         std::optional<LoadProblem> m_problem;

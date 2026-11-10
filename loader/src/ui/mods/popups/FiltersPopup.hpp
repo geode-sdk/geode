@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
+#include <Geode/ui/Toggler.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include "../sources/ModListSource.hpp"
 #include "../GeodeStyle.hpp"
@@ -12,21 +13,19 @@ using namespace geode::prelude;
 class FiltersPopup : public GeodePopup {
 protected:
     ModListSource* m_source;
-    CCMenu* m_tagsMenu;
-    std::unordered_set<std::string> m_selectedTags;
+    CCNode* m_tagsMenu;
+    StringSet m_selectedTags;
     ListenerHandle m_tagsHandle;
     async::TaskHolder<server::ServerResult<std::vector<server::ServerTag>>> m_tagsListener;
-    CCMenuItemToggler* m_enabledModsOnly = nullptr;
-    CCMenuItemToggler* m_enabledModsFirst = nullptr;
+    Toggler* m_enabledModsOnly = nullptr;
+    Toggler* m_enabledModsFirst = nullptr;
     TextInput* m_developerNameInput = nullptr;
 
     bool init(ModListSource* src);
     void updateTags();
     
     void onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result);
-    void onResetTags(CCObject*);
-    void onResetDevName(CCObject*);
-    void onSelectTag(CCObject* sender);
+    void onSelectTag(ZStringView tag);
     void onClose(CCObject* sender) override;
 
 public:

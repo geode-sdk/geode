@@ -204,8 +204,8 @@ struct MultipartFile {
 
 class MultipartForm::Impl {
 public:
-    std::unordered_map<std::string, std::string> m_params;
-    std::unordered_map<std::string, MultipartFile> m_files;
+    StringMap<std::string> m_params;
+    StringMap<MultipartFile> m_files;
     mutable std::string m_boundary;
 
     bool isBuilt() const {

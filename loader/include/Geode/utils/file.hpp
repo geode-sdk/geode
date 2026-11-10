@@ -267,7 +267,7 @@ namespace geode::utils::file {
             // Name of the filter
             std::string description;
             // Extensions (*.txt, *.doc, *.mp3, etc.)
-            std::unordered_set<std::string> files;
+            StringSet files;
         };
 
         /**
