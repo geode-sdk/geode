@@ -87,7 +87,7 @@ bool FiltersPopup::init(ModListSource* src) {
         );
 
         m_enabledModsOnly = Toggler::createWithStandardSprites(0.6f);
-        m_enabledModsOnly->toggle(src->getQuery().enabledOnly.value_or(false));
+        m_enabledModsOnly->setToggled(src->getQuery().enabledOnly.value_or(false));
         optionsMenu->addChild(m_enabledModsOnly);
 
         auto enabledOnlyLabel = Label::create("Enabled Only", "bigFont.fnt");
@@ -95,7 +95,7 @@ bool FiltersPopup::init(ModListSource* src) {
         optionsMenu->addChild(enabledOnlyLabel);
 
         m_enabledModsFirst = Toggler::createWithStandardSprites(0.6f);
-        m_enabledModsFirst->toggle(src->getQuery().enabledFirst.value_or(false));
+        m_enabledModsFirst->setToggled(src->getQuery().enabledFirst.value_or(false));
         m_enabledModsFirst->setLayoutOptions(AxisLayoutOptions::create()->setPrevGap(10.0f));
         optionsMenu->addChild(m_enabledModsFirst);
 
@@ -189,7 +189,7 @@ void FiltersPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag
             auto onSpr = createGeodeTagLabel(tag);
             auto btn = Toggler::create(
                 offSpr, onSpr,
-                [this, name = std::move(tag.name)](Toggler* sender, bool toggled) {
+                [this, name = tag.name](Toggler* sender, bool toggled) {
                     sender->setToggled(!toggled);
                     this->onSelectTag(name);
                 }
@@ -213,7 +213,7 @@ void FiltersPopup::updateTags() {
     for (auto node : CCArrayExt<CCNode*>(m_tagsMenu->getChildren())) {
         if (auto toggle = typeinfo_cast<Toggler*>(node)) {
             auto tag = static_cast<CCString*>(toggle->getUserObject("tag"))->getCString();
-            toggle->toggle(m_selectedTags.contains(tag));
+            toggle->setToggled(m_selectedTags.contains(tag));
         }
     }
 }
