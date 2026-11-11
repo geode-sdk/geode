@@ -392,7 +392,7 @@ struct EmojiRegistry::Impl {
 
         for (auto& item : entries) {
             m_keys.push_back(std::get<0>(item));
-            m_entries.push_back(std::move(std::get<1>(item)));
+            m_entries.push_back(std::get<1>(item));
         }
 
         std::vector<size_t> indices(m_keys.size());
