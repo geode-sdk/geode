@@ -110,7 +110,7 @@ bool ModPopup::init(ModSource&& src) {
     mainContainer->setContentSize(m_mainLayer->getContentSize() - CCSize{20.0f, 20.0f});
     mainContainer->setLayout(
         RowLayout::create()
-            ->setGap(70.5f)
+            ->setGap(7.5f)
             ->setCrossAxisLineAlignment(AxisAlignment::Start)
     );
 
