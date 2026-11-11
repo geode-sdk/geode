@@ -39,7 +39,6 @@ protected:
     Label* m_enabledStatusLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
-    CCNode* m_tabsMenu = nullptr;
     CCNode* m_modtoberBanner = nullptr;
     CCNode* m_titleContainer = nullptr;
     std::unordered_map<Tab, std::pair<Ref<GeodeTabSprite>, Ref<CCNode>>> m_tabs;

@@ -769,15 +769,15 @@ bool ModPopup::init(ModSource&& src) {
 }
 
 void ModPopup::setupTabs() {
-    if (m_tabsMenu) m_tabsMenu->removeFromParent();
+    m_rightColumn->removeAllChildren();
     m_tabs.clear();
 
-    m_tabsMenu = CCNode::create();
-    m_tabsMenu->setID("tabs-menu");
-    m_tabsMenu->setScale(0.65f);
-    m_tabsMenu->ignoreAnchorPointForPosition(false);
-    m_tabsMenu->setContentWidth(m_rightColumn->getContentWidth() / m_tabsMenu->getScale());
-    m_tabsMenu->setAnchorPoint({0.5f, 1.0f});
+    auto tabsMenu = CCNode::create();
+    tabsMenu->setID("tabs-menu");
+    tabsMenu->setScale(0.65f);
+    tabsMenu->ignoreAnchorPointForPosition(false);
+    tabsMenu->setContentWidth(m_rightColumn->getContentWidth() / tabsMenu->getScale());
+    tabsMenu->setAnchorPoint({0.5f, 1.0f});
 
     struct ModTab {
         std::string_view id;
@@ -820,7 +820,8 @@ void ModPopup::setupTabs() {
             }
         );
         btn->setID(fmt::format("{}-button", tab.id));
-        m_tabsMenu->addChild(btn);
+        btn->setScaleMultiplier(1.125f);
+        tabsMenu->addChild(btn);
 
         auto page = FetchTextArea::create(std::move(tab.content), fmt::format("No {} provided", tab.id), mdSize / mdScale);
         page->setID(fmt::format("{}-container", tab.id));
@@ -832,8 +833,8 @@ void ModPopup::setupTabs() {
         m_tabs.insert({tab.tab, {spr, page}});
     }
 
-    m_tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
-    m_rightColumn->addChildAtPosition(m_tabsMenu, Anchor::Top);
+    tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
+    m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
 };
 
 CCNode* ModPopup::createContainer(CCSize const& size) {
@@ -1231,11 +1232,11 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             aboutBtn->setScale(0.35f);
             menu->addChildAtPosition(aboutBtn, Anchor::Right, {-25.0f, 0.0f});
 
-            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, { 0.0f, 0.0f }, {0.5f, 0.0f});
-
             m_modtoberBanner = menu;
 
             this->setupTabs();
+
+            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, {0.0f, 0.0f}, {0.5f, 0.0f});
 
             // This might cause a minor inconvenience to someone who opens the popup and
             // immediately switches to changelog but is then forced back into details
