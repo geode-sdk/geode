@@ -28,7 +28,7 @@ public:
 protected:
     ListenerHandle m_handle;
     async::TaskHolder<server::ServerResult<std::optional<std::string>>> m_listener;
-    MDTextArea* m_textarea = nullptr;
+    MDTextArea* m_textarea;
     CCNode* m_loading;
     std::string m_noneText;
 
@@ -579,7 +579,7 @@ bool ModPopup::init(ModSource&& src) {
         std::string id;
         ZStringView sprite;
         std::optional<std::string> url;
-        Button::ButtonCallback callback = nullptr;
+        Button::ButtonCallback callback;
     };
 
     auto linkButtons = std::array{
