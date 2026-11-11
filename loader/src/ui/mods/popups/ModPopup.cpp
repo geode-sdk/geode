@@ -579,7 +579,7 @@ bool ModPopup::init(ModSource&& src) {
         std::string id;
         ZStringView sprite;
         std::optional<std::string> url;
-        Button::ButtonCallback callback;
+        Button::ButtonCallback callback = nullptr;
     };
 
     auto linkButtons = std::array{
