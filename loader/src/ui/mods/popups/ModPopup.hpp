@@ -39,10 +39,10 @@ protected:
     Label* m_enabledStatusLabel;
     ButtonSprite* m_restartRequiredLabel;
     CCNode* m_rightColumn;
-    CCNode* m_currentTabPage = nullptr;
+    CCNode* m_tabsMenu = nullptr;
     CCNode* m_modtoberBanner = nullptr;
     CCNode* m_titleContainer = nullptr;
-    std::unordered_map<Tab, std::pair<GeodeTabSprite*, Ref<CCNode>>> m_tabs;
+    std::unordered_map<Tab, std::pair<Ref<GeodeTabSprite>, Ref<CCNode>>> m_tabs;
     ListenerHandle m_statsHandle;
     ListenerHandle m_tagsHandle;
     ListenerHandle m_checkUpdateHandle;
@@ -63,6 +63,8 @@ protected:
     };
 
     bool init(ModSource&& src);
+
+    void setupTabs();
     CCNode* createContainer(CCSize const& size);
     RepoPlatform getRepoPlatform(std::string_view url);
     ZStringView getPlatformSprite(std::optional<std::string> const& url);

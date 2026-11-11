@@ -28,7 +28,7 @@ public:
 protected:
     ListenerHandle m_handle;
     async::TaskHolder<server::ServerResult<std::optional<std::string>>> m_listener;
-    MDTextArea* m_textarea;
+    MDTextArea* m_textarea = nullptr;
     CCNode* m_loading;
     std::string m_noneText;
 
@@ -44,7 +44,7 @@ protected:
         m_textarea->setID("textarea");
         this->addChildAtPosition(m_textarea, Anchor::Center);
 
-        m_loading = createLoadingCircle(30);
+        m_loading = createLoadingCircle(30.0f);
         this->addChildAtPosition(m_loading, Anchor::Center);
 
         m_listener.spawn(
@@ -79,6 +79,10 @@ public:
         }
         delete ret;
         return nullptr;
+    }
+
+    void scrollToTop() {
+        static_cast<ScrollLayer*>(m_textarea->getScrollLayer())->scrollToTop();
     }
 };
 
@@ -119,7 +123,7 @@ bool ModPopup::init(ModSource&& src) {
 
     m_titleContainer = CCNode::create();
     m_titleContainer->setID("title-container");
-    m_titleContainer->setContentSize({leftColumn->getContentWidth(), 25});
+    m_titleContainer->setContentSize({leftColumn->getContentWidth(), 25.0f});
     m_titleContainer->setAnchorPoint({0.5f, 0.5f});
 
     auto getLogo = [this]() {
@@ -656,49 +660,7 @@ bool ModPopup::init(ModSource&& src) {
         }
     );
 
-    auto tabsMenu = CCNode::create();
-    tabsMenu->ignoreAnchorPointForPosition(false);
-    tabsMenu->setScale(0.65f);
-    tabsMenu->setContentWidth(m_rightColumn->getContentWidth() / tabsMenu->getScale());
-    tabsMenu->setAnchorPoint({0.5f, 1.0f});
-    tabsMenu->setID("tabs-menu");
-
-    struct ModTab {
-        ZStringView sprite;
-        ZStringView label;
-        std::string id;
-        Tab tab;
-    };
-
-    auto mdTabs = std::array{
-        ModTab{
-            "message.png"_spr,
-            "Description",
-            "description",
-            Tab::Details,
-        },
-        ModTab{
-            "changelog.png"_spr,
-            "Changelog",
-            "changelog",
-            Tab::Changelog,
-        },
-    };
-
-    for (auto& tab : mdTabs) {
-        auto spr = GeodeTabSprite::create(tab.sprite.c_str(), tab.label.c_str(), 140.0f, m_source.asServer());
-
-        auto btn = Button::createWithNode(
-            spr,
-            [this, t = tab.tab](auto) {
-                this->loadTab(t);
-            }
-        );
-        btn->setID(std::move(tab.id));
-        tabsMenu->addChild(btn);
-
-        m_tabs.insert({tab.tab, {spr, nullptr}});
-    }
+    this->setupTabs();
 
     // placeholder external link until versions tab is implemented
     auto modUrl = fmt::format("https://geode-sdk.org/mods/{}", m_source.getID());
@@ -716,9 +678,6 @@ bool ModPopup::init(ModSource&& src) {
     m_mainLayer->addChildAtPosition(externalLinkBtn, Anchor::TopRight, {-14.0f, -16.0f});
 
     if (isGeode) externalLinkBtn->setVisible(false);
-
-    tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
-    m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
 
     m_rightColumn->setID("right-column");
     mainContainer->addChildAtPosition(m_rightColumn, Anchor::Right, { -20.0f, 0.0f });
@@ -808,6 +767,74 @@ bool ModPopup::init(ModSource&& src) {
 
     return true;
 }
+
+void ModPopup::setupTabs() {
+    if (m_tabsMenu) m_tabsMenu->removeFromParent();
+    m_tabs.clear();
+
+    m_tabsMenu = CCNode::create();
+    m_tabsMenu->setID("tabs-menu");
+    m_tabsMenu->setScale(0.65f);
+    m_tabsMenu->ignoreAnchorPointForPosition(false);
+    m_tabsMenu->setContentWidth(m_rightColumn->getContentWidth() / m_tabsMenu->getScale());
+    m_tabsMenu->setAnchorPoint({0.5f, 1.0f});
+
+    struct ModTab {
+        std::string_view id;
+        ZStringView sprite;
+        ZStringView label;
+        Tab tab;
+        FetchTextArea::Request content;
+    };
+
+    auto mdTabs = std::array{
+        ModTab{
+            "description",
+            "message.png"_spr,
+            "Description",
+            Tab::Details,
+            m_source.fetchAbout(),
+        },
+        ModTab{
+            "changelog",
+            "changelog.png"_spr,
+            "Changelog",
+            Tab::Changelog,
+            m_source.fetchChangelog(),
+        },
+    };
+
+    float modtoberBannerHeight = 0.0f;
+    if (m_modtoberBanner) modtoberBannerHeight = 30.0f;
+
+    auto const mdSize = (m_rightColumn->getContentSize() - CCSize{0.0f, 30.0f + modtoberBannerHeight});
+    static constexpr auto mdScale = 0.85f;
+
+    for (auto& tab : mdTabs) {
+        auto spr = GeodeTabSprite::create(tab.sprite.c_str(), tab.label.c_str(), 140.0f, m_source.asServer());
+
+        auto btn = Button::createWithNode(
+            spr,
+            [this, t = tab.tab](auto) {
+                this->loadTab(t);
+            }
+        );
+        btn->setID(fmt::format("{}-button", tab.id));
+        m_tabsMenu->addChild(btn);
+
+        auto page = FetchTextArea::create(std::move(tab.content), fmt::format("No {} provided", tab.id), mdSize / mdScale);
+        page->setID(fmt::format("{}-container", tab.id));
+        page->setScale(mdScale);
+        page->setVisible(false);
+
+        m_rightColumn->addChildAtPosition(page, Anchor::Bottom, {0.0f, modtoberBannerHeight}, {0.5f, 0.0f});
+
+        m_tabs.insert({tab.tab, {spr, page}});
+    }
+
+    m_tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
+    m_rightColumn->addChildAtPosition(m_tabsMenu, Anchor::Top);
+};
 
 CCNode* ModPopup::createContainer(CCSize const& size) {
     auto container = CCNode::create();
@@ -1033,10 +1060,8 @@ void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> value) {
     valueLabel->setVisible(value.has_value());
     spinner->setVisible(!value.has_value());
 
-    // Update value
     if (value.has_value()) valueLabel->setText(std::move(*value));
 
-    // Update layout
     container->updateLayout();
 }
 
@@ -1054,16 +1079,16 @@ protected:
 
 void ModPopup::onLoadServerInfo(server::ServerResult<server::ServerModMetadata> result) {
     if (result.isOk()) {
-        auto data = std::move(result).unwrap();
-        auto timeToString = [](auto const& time) {
+        auto const data = std::move(result).unwrap();
+        auto timeToString = [](std::optional<server::ServerDateTime> const& time) {
             if (time.has_value()) return utils::timeToAgoString(time->value);
             return std::string("N/A");
         };
 
-        static std::locale commaLocale(std::locale(), new comma_numpunct());
+        static std::locale const commaLocale(std::locale(), new comma_numpunct());
 
         struct ModStats {
-            ZStringView id;
+            std::string_view id;
             std::string value;
         };
 
@@ -1098,7 +1123,7 @@ void ModPopup::onLoadServerInfo(server::ServerResult<server::ServerModMetadata> 
 
 void ModPopup::onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result) {
     if (result.isOk()) {
-        auto resolved = std::move(result).unwrap();
+        auto const resolved = std::move(result).unwrap();
         // Check if this has updates for an installed mod
         auto updatesStat = m_stats->getChildByID("update-check");
         if (resolved.update.has_value()) {
@@ -1130,7 +1155,7 @@ void ModPopup::onCheckUpdates(server::ServerResult<server::ServerModUpdateOneChe
 
 void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result) {
     if (result.isOk()) {
-        auto data = std::move(result).unwrap();
+        auto const data = std::move(result).unwrap();
         m_tags->removeAllChildren();
 
         for (auto const& tag : data) {
@@ -1160,7 +1185,7 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             auto menu = CCNode::create();
             menu->setID("modtober-banner");
             menu->ignoreAnchorPointForPosition(false);
-            menu->setContentSize({m_rightColumn->getContentWidth(), 25});
+            menu->setContentSize({m_rightColumn->getContentWidth(), 25.0f});
 
             auto banner = CCSprite::createWithSpriteFrameName(fmt::format("modtober{}-banner-2.png"_spr, year).c_str());
             limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.0f, 0.1f);
@@ -1170,50 +1195,47 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
             label->setScale(0.35f);
             menu->addChildAtPosition(label, Anchor::Left, {10.0f, 0.0f}, {0.0f, 0.5f});
 
-            // map year to theme name & color tag
-            static StringMap<std::pair<std::string_view, std::string_view>> const modtoberYears{
+            struct ModtoberStyle {
+                std::string_view name;
+                std::string_view colorTag;
+            };
+
+            static StringMap<ModtoberStyle> const modtoberYears{
                 {"24", {"The Sky's the Limit", "<cl>"}},
                 {"25", {"What The Heck!?", "<co>"}},
             };
 
-            auto aboutSpr = createGeodeButton("About", false, GeodeButtonSprite::Default, m_forceDisableTheme);
+            auto aboutBtn = Button::createWithNode(
+                createGeodeButton("About", false, GeodeButtonSprite::Default, m_forceDisableTheme),
+                [year](auto) {
+                    auto const it = modtoberYears.find(year);
+                    if (it != modtoberYears.end()) {
+                        auto const& style = it->second;
 
-            aboutSpr->setScale(0.35f);
-            auto aboutBtn = Button::createWithNode(aboutSpr, [year](auto) {
-                auto const it = modtoberYears.find(year);
-                if (it != modtoberYears.end()) {
-                    auto const& pair = it->second;
-
-                    createQuickPopup(
-                        fmt::format("Modtober 20{}", year),
-                        fmt::format(
-                            "This mod was an entry for {}Modtober 20{}</c>, a contest to create "
-                            "the best mod with the theme <cc>\"{}\"</c>",
-                            pair.second,
-                            year,
-                            pair.first
-                        ),
-                        "OK",
-                        nullptr,
-                        nullptr
-                    );
-                };
-            });
+                        createQuickPopup(
+                            fmt::format("Modtober 20{}", year),
+                            fmt::format(
+                                "This mod was an entry for {}Modtober 20{}</c>, a contest to "
+                                "create "
+                                "the best mod with the theme <cc>\"{}\"</c>",
+                                style.colorTag,
+                                year,
+                                style.name
+                            ),
+                            "OK"
+                        );
+                    };
+                }
+            );
+            aboutBtn->setID("about-modtober-button");
+            aboutBtn->setScale(0.35f);
             menu->addChildAtPosition(aboutBtn, Anchor::Right, {-25.0f, 0.0f});
 
             m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, { 0.0f, 0.0f }, {0.5f, 0.0f});
 
             m_modtoberBanner = menu;
 
-            // Force reload of all the tabs since otherwise their contents will overflow
-            for (auto& tab : m_tabs | std::views::values) {
-                if (tab.second && tab.second->getParent()) {
-                    tab.second->removeFromParent();
-                }
-                tab.second = nullptr;
-            }
-
-            m_currentTabPage = nullptr;
+            this->setupTabs();
 
             // This might cause a minor inconvenience to someone who opens the popup and
             // immediately switches to changelog but is then forced back into details
@@ -1238,47 +1260,14 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
 }
 
 void ModPopup::loadTab(Tab tab) {
-    // Remove current page
-    if (m_currentTabPage) m_currentTabPage->removeFromParent();
-
     // Highlight selected tab
-    for (auto [value, btn] : m_tabs) {
-        btn.first->select(value == tab);
-    }
+    for (auto const& [value, btn] : m_tabs) {
+        bool on = value == tab;
 
-    float modtoberBannerHeight = 0.0f;
-    if (m_modtoberBanner) modtoberBannerHeight = 30.0f;
+        btn.first->select(on);
+        btn.second->setVisible(on);
 
-    if (auto existing = m_tabs.at(tab).second) {
-        m_currentTabPage = existing;
-        m_rightColumn->addChildAtPosition(existing, Anchor::Bottom, {0.0f, modtoberBannerHeight});
-    }
-    else {
-        auto const size = (m_rightColumn->getContentSize() - CCSize{0.0f, 30.0f + modtoberBannerHeight});
-        float const mdScale = 0.85f;
-
-        switch (tab) {
-            case Tab::Details: {
-                m_currentTabPage = FetchTextArea::create(m_source.fetchAbout(), "No description provided", size / mdScale);
-                m_currentTabPage->setID("description-container");
-                m_currentTabPage->setScale(mdScale);
-            } break;
-
-            case Tab::Changelog: {
-                m_currentTabPage = FetchTextArea::create(m_source.fetchChangelog(), "No changelog provided", size / mdScale);
-                m_currentTabPage->setID("changelog-container");
-                m_currentTabPage->setScale(mdScale);
-            } break;
-
-            case Tab::Versions: {
-                m_currentTabPage = CCNode::create();
-                m_currentTabPage->setContentSize(size);
-                m_currentTabPage->setID("versions-container");
-            } break;
-        }
-
-        m_rightColumn->addChildAtPosition(m_currentTabPage, Anchor::Bottom, {0.0f, modtoberBannerHeight}, {0.5f, 0.0f});
-        m_tabs.at(tab).second = m_currentTabPage;
+        if (on) static_cast<FetchTextArea*>(btn.second.data())->scrollToTop();
     }
 }
 
