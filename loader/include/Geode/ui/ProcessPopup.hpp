@@ -14,7 +14,7 @@ namespace geode {
 
         void onClose(CCObject*) override;
 
-        bool init(std::string text, ZStringView font, ZStringView bg, CircleBaseColor btnColor, float width);
+        bool init(std::string text, ZStringView font, ZStringView bg, float width);
 
     public:
         enum class State : uint8_t {
@@ -37,7 +37,7 @@ namespace geode {
         /// @param bg Sprite name for the popup background
         /// @param btnColor The base color for the popup's close button's sprite
         /// @param width The width of the popup
-        static ProcessPopup* create(std::string text, ZStringView font, ZStringView bg, CircleBaseColor btnColor, float width = 200.f);
+        static ProcessPopup* create(std::string text, ZStringView font, ZStringView bg, float width = 200.f);
 
         /// Set the callback that will fire when the user attempts to close the popup
         /// @param cb The lambda which will take a `ProcessPopup*` param
@@ -46,6 +46,10 @@ namespace geode {
 
         /// Reset the callback that would've fired when the user attempted to close the popup
         void resetCloseCallback();
+
+        /// Set the color of the close button's background
+        /// @param color Enum of the new base color to set
+        void setCloseButtonColor(CircleBaseColor color);
 
         /// Update the message on the popup while the process continues
         /// @param text The message to show

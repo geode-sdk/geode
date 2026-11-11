@@ -6,11 +6,11 @@ using namespace geode::prelude;
 
 class BoxedLabel::Impl final {
 public:
-    float m_width = .0f;
-    float m_padding = 10.0f;
+    std::optional<float> m_width = std::nullopt;
+    float m_padding = 100.0f;
     bool m_lockBoxWidth = false;
 
-    Label* m_label = nullptr;
+    Label* m_label;
     NineSlice* m_bg = nullptr;
 
     void setupBg(ZStringView bg) {
@@ -26,12 +26,12 @@ public:
 BoxedLabel::BoxedLabel() : m_impl(std::make_unique<Impl>()) {}
 BoxedLabel::~BoxedLabel() {}
 
-bool BoxedLabel::init(std::string text, ZStringView font, ZStringView bg, float width) {
+bool BoxedLabel::init(std::string text, ZStringView font, ZStringView bg, std::optional<float> width) {
     if (!CCNode::init()) return false;
 
     m_impl->m_width = width;
 
-    this->setAnchorPoint({.5f, .5f});
+    this->setAnchorPoint({0.5f, 0.5f});
 
     m_impl->m_label = Label::createRich(std::move(text), font);
 
@@ -49,16 +49,17 @@ bool BoxedLabel::init(std::string text, ZStringView font, ZStringView bg, float 
 }
 
 void BoxedLabel::resize() {
-    if (m_impl->m_width > .0f) {
-        float pad = m_impl->m_lockBoxWidth ? m_impl->m_padding : .0f;
-        m_impl->m_label->setMaxWidth((m_impl->m_width - pad) / m_impl->m_label->getScale());
+    if (m_impl->m_width.has_value()) {
+        float pad = m_impl->m_lockBoxWidth ? m_impl->m_padding : 0.0f;
+        m_impl->m_label->setMaxWidth((*m_impl->m_width - pad) / m_impl->m_label->getScale());
     }
 
-    bool mustLockWidth = m_impl->m_lockBoxWidth && m_impl->m_width > .0f;
+    bool mustLockWidth = m_impl->m_width.has_value() && m_impl->m_lockBoxWidth && *m_impl->m_width > 0.0f;
 
     this->setContentSize({
-        mustLockWidth ? m_impl->m_width :
-                        (m_impl->m_label->getScaledContentWidth() + m_impl->m_padding),
+        mustLockWidth ? 
+            *m_impl->m_width : 
+            (m_impl->m_label->getScaledContentWidth() + m_impl->m_padding),
         m_impl->m_label->getScaledContentHeight() + m_impl->m_padding,
     });
 
@@ -86,7 +87,7 @@ void BoxedLabel::setTextAlignment(Label::Alignment alignment) {
     m_impl->m_label->setAlignment(alignment);
 }
 
-void BoxedLabel::setMaxLabelWidth(float width) {
+void BoxedLabel::setMaxLabelWidth(std::optional<float> width) {
     m_impl->m_width = width;
     this->resize();
 }
@@ -122,7 +123,7 @@ void BoxedLabel::lockBGWidth(bool lock) {
     this->resize();
 }
 
-float BoxedLabel::getMaxLabelWidth() const noexcept {
+std::optional<float> BoxedLabel::getMaxLabelWidth() const noexcept {
     return m_impl->m_width;
 }
 
@@ -142,15 +143,11 @@ NineSlice* BoxedLabel::getBGSprite() const noexcept {
     return m_impl->m_bg;
 }
 
-BoxedLabel* BoxedLabel::create(std::string text, ZStringView font) {
-    return create(std::move(text), font, "white-square.png"_spr, .0f);
-}
-
-BoxedLabel* BoxedLabel::create(std::string text, ZStringView font, float width) {
+BoxedLabel* BoxedLabel::create(std::string text, ZStringView font, std::optional<float> width) {
     return create(std::move(text), font, "white-square.png"_spr, width);
 }
 
-BoxedLabel* BoxedLabel::create(std::string text, ZStringView font, ZStringView bg, float width) {
+BoxedLabel* BoxedLabel::create(std::string text, ZStringView font, ZStringView bg, std::optional<float> width) {
     auto ret = new BoxedLabel();
     if (ret->init(std::move(text), font, bg, width)) {
         ret->autorelease();
