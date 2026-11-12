@@ -46,32 +46,38 @@ namespace geode {
         /// @param alignment Direction the label expands from
         void setTextAlignment(Label::Alignment alignment);
 
-        /// Set the maximum width of the label
-        void setMaxLabelWidth(std::optional<float> width);
+        /// Set the maximum width of the box
+        void setMaxWidth(float width);
 
         /// Change the padding between the edges of the box and the text label
         void setPadding(float padding);
 
         /// Change the sprite of the NineSlice surrounding the text label
-        void setBGSprite(ZStringView spriteName);
+        void setBoxSprite(ZStringView spriteName);
 
         /// Change the color of the NineSlice surrounding the text label
-        void setBGColor(cocos2d::ccColor3B const& color);
+        void setBoxColor(cocos2d::ccColor3B const& color);
 
         /// Change the opacity of the NineSlice surrounding the text label
-        void setBGOpacity(GLubyte opacity);
+        void setBoxOpacity(GLubyte opacity);
 
         /// Change the scale multiplier of the NineSlice surrounding the text label
-        void setBGScale(float scale);
+        void setBoxScale(float scale);
 
-        /// Lock the box at the maximum width if set, instead of dynamically expanding with the label
-        void lockBGWidth(bool lock);
+        /// Lock the box at the maximum width, instead of dynamically expanding with the label
+        void lockWidth(bool lock);
 
-        std::optional<float> getMaxLabelWidth() const noexcept;
+        /// Enforce the maximum label width or let it expand dynamically
+        /// @note If you wish to instead lock the width of the background around the label, use `BoxedLabel::lockWidth`
+        void lockLabelWidth(bool lock);
+
+        float getMaxWidth() const noexcept;
         float getPadding() const noexcept;
-        bool isBGWidthLocked() const noexcept;
+
+        bool isWidthLocked() const noexcept;
+        bool isLabelWidthLocked() const noexcept;
 
         Label* getLabelNode() const noexcept;
-        NineSlice* getBGSprite() const noexcept;
+        NineSlice* getBoxSprite() const noexcept;
     };
 };

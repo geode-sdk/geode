@@ -6,9 +6,12 @@ using namespace geode::prelude;
 
 class BoxedLabel::Impl final {
 public:
-    std::optional<float> m_width = std::nullopt;
-    float m_padding = 100.0f;
+    float m_boxWidth = 0.0f;
+
+    float m_padding = 10.0f;
+
     bool m_lockBoxWidth = false;
+    bool m_lockLabelWidth = false;
 
     Label* m_label;
     NineSlice* m_bg = nullptr;
@@ -29,7 +32,10 @@ BoxedLabel::~BoxedLabel() {}
 bool BoxedLabel::init(std::string text, ZStringView font, ZStringView bg, std::optional<float> width) {
     if (!CCNode::init()) return false;
 
-    m_impl->m_width = width;
+    if (width.has_value()) {
+        m_impl->m_boxWidth = *width;
+        m_impl->m_lockLabelWidth = true;
+    };
 
     this->setAnchorPoint({0.5f, 0.5f});
 
@@ -40,25 +46,24 @@ bool BoxedLabel::init(std::string text, ZStringView font, ZStringView bg, std::o
 
     m_impl->setupBg(bg);
 
-    this->resize();
-
     this->addChildAtPosition(m_impl->m_label, Anchor::Center);
     this->addChildAtPosition(m_impl->m_bg, Anchor::Center);
+
+    this->resize();
 
     return true;
 }
 
 void BoxedLabel::resize() {
-    if (m_impl->m_width.has_value()) {
-        float pad = m_impl->m_lockBoxWidth ? m_impl->m_padding : 0.0f;
-        m_impl->m_label->setMaxWidth((*m_impl->m_width - pad) / m_impl->m_label->getScale());
+    if (m_impl->m_lockLabelWidth) {
+        m_impl->m_label->setMaxWidth((m_impl->m_boxWidth - m_impl->m_padding) / m_impl->m_label->getScale());
+    } else {
+        m_impl->m_label->setMaxWidth(0.0f);
     }
 
-    bool mustLockWidth = m_impl->m_width.has_value() && m_impl->m_lockBoxWidth && *m_impl->m_width > 0.0f;
-
     this->setContentSize({
-        mustLockWidth ? 
-            *m_impl->m_width : 
+        m_impl->m_lockBoxWidth ? 
+            m_impl->m_boxWidth : 
             (m_impl->m_label->getScaledContentWidth() + m_impl->m_padding),
         m_impl->m_label->getScaledContentHeight() + m_impl->m_padding,
     });
@@ -87,17 +92,22 @@ void BoxedLabel::setTextAlignment(Label::Alignment alignment) {
     m_impl->m_label->setAlignment(alignment);
 }
 
-void BoxedLabel::setMaxLabelWidth(std::optional<float> width) {
-    m_impl->m_width = width;
+void BoxedLabel::setMaxWidth(float width) {
+    m_impl->m_boxWidth = width;
     this->resize();
 }
+
+void BoxedLabel::lockLabelWidth(bool lock) {
+    m_impl->m_lockLabelWidth = lock;
+    this->resize();
+};
 
 void BoxedLabel::setPadding(float padding) {
     m_impl->m_padding = padding;
     this->resize();
 }
 
-void BoxedLabel::setBGSprite(ZStringView spriteName) {
+void BoxedLabel::setBoxSprite(ZStringView spriteName) {
     m_impl->setupBg(spriteName);
     m_impl->m_bg->setContentSize(this->getScaledContentSize());
 
@@ -106,40 +116,44 @@ void BoxedLabel::setBGSprite(ZStringView spriteName) {
     this->resize();
 }
 
-void BoxedLabel::setBGColor(ccColor3B const& color) {
+void BoxedLabel::setBoxColor(ccColor3B const& color) {
     m_impl->m_bg->setColor(color);
 }
 
-void BoxedLabel::setBGOpacity(GLubyte opacity) {
+void BoxedLabel::setBoxOpacity(GLubyte opacity) {
     m_impl->m_bg->setOpacity(opacity);
 }
 
-void BoxedLabel::setBGScale(float scale) {
+void BoxedLabel::setBoxScale(float scale) {
     m_impl->m_bg->setScaleMultiplier(scale);
 }
 
-void BoxedLabel::lockBGWidth(bool lock) {
+void BoxedLabel::lockWidth(bool lock) {
     m_impl->m_lockBoxWidth = lock;
     this->resize();
 }
 
-std::optional<float> BoxedLabel::getMaxLabelWidth() const noexcept {
-    return m_impl->m_width;
+float BoxedLabel::getMaxWidth() const noexcept {
+    return m_impl->m_boxWidth;
 }
 
 float BoxedLabel::getPadding() const noexcept {
     return m_impl->m_padding;
 }
 
-bool BoxedLabel::isBGWidthLocked() const noexcept {
+bool BoxedLabel::isWidthLocked() const noexcept {
     return m_impl->m_lockBoxWidth;
+}
+
+bool BoxedLabel::isLabelWidthLocked() const noexcept {
+    return m_impl->m_lockLabelWidth;
 }
 
 Label* BoxedLabel::getLabelNode() const noexcept {
     return m_impl->m_label;
 }
 
-NineSlice* BoxedLabel::getBGSprite() const noexcept {
+NineSlice* BoxedLabel::getBoxSprite() const noexcept {
     return m_impl->m_bg;
 }
 

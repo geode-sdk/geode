@@ -35,7 +35,6 @@ namespace geode {
         /// @param text The label that will show first
         /// @param font Name of the label's font `.fnt` file
         /// @param bg Sprite name for the popup background
-        /// @param btnColor The base color for the popup's close button's sprite
         /// @param width The width of the popup
         static ProcessPopup* create(std::string text, ZStringView font, ZStringView bg, float width = 200.f);
 
