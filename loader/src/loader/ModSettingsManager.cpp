@@ -219,7 +219,7 @@ public:
             // value loaded from disk isn't overwritten
             matjson::Value value;
             if (sett.v3->save(value)) {
-                this->savedata[key] = value;
+                this->savedata[key] = std::move(value);
             }
             else {
                 log::error("Unable to save setting '{}' for mod {}", key, this->modID);

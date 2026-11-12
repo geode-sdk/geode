@@ -3,7 +3,6 @@
 #include "LogImpl.hpp"
 #include "ModImpl.hpp"
 #include "ModMetadataImpl.hpp"
-#include "console.hpp"
 
 #include <Geode/Enums.hpp>
 #include <Geode/cocos/platform/CCApplication.h>
@@ -30,7 +29,6 @@
 #include <crashlog.hpp>
 #include <fmt/format.h>
 #include <hash.hpp>
-#include <iostream>
 #include <iterator>
 #include <optional>
 #include <server/DownloadManager.hpp>
@@ -815,7 +813,7 @@ void Loader::Impl::refreshModGraph() {
         return;
     }
 
-    auto begin = std::chrono::high_resolution_clock::now();
+    auto begin = asp::Instant::now();
 
     m_problems.clear();
 
@@ -862,9 +860,7 @@ void Loader::Impl::refreshModGraph() {
         }
     }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-    log::debug("Took {}s. Continuing next frame...", static_cast<float>(time) / 1000.f);
+    log::debug("Took {} Continuing next frame...", begin.elapsed());
 
     m_loadingState = LoadingState::Mods;
 
@@ -923,16 +919,14 @@ void Loader::Impl::continueRefreshModGraph() {
         return;
     }
 
-    if  (m_lateRefreshedModCount > 0) {
-        auto end = std::chrono::high_resolution_clock::now();
-        auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_timerBegin).count();
-        log::debug("Took {}s", static_cast<float>(time) / 1000.f);
+    if (m_lateRefreshedModCount > 0) {
+        log::debug("Took {}", m_timerBegin.elapsed());
     }
 
     log::debug("Continuing mod graph refresh...");
     log::NestScope nest;
 
-    m_timerBegin = std::chrono::high_resolution_clock::now();
+    m_timerBegin = asp::Instant::now();
 
     switch (m_loadingState) {
         case LoadingState::Mods:
@@ -956,9 +950,7 @@ void Loader::Impl::continueRefreshModGraph() {
             }
             m_loadingState = LoadingState::Done;
             {
-                auto end = std::chrono::high_resolution_clock::now();
-                auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_timerBegin).count();
-                log::debug("Took {}s", static_cast<float>(time) / 1000.f);
+                log::debug("Took {}", m_timerBegin.elapsed());
             }
             break;
 
@@ -1223,7 +1215,7 @@ std::vector<std::string> Loader::Impl::getLaunchArgumentNames() const {
 }
 
 bool Loader::Impl::hasLaunchArgument(std::string_view name) const {
-    return m_launchArgs.find(name) != m_launchArgs.end();
+    return m_launchArgs.contains(name);
 }
 
 std::optional<std::string> Loader::Impl::getLaunchArgument(std::string_view name) const {
