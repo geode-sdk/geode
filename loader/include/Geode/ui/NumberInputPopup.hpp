@@ -65,7 +65,7 @@ namespace geode {
 
         /// Set the color of the close button's background
         /// @param color Enum of the new base color to set
-        void setCloseBtnColor(CircleBaseColor color);
+        void setCloseButtonColor(CircleBaseColor color);
 
         /// Show or hide the reset button
         /// @param show Whether to show the reset button or not

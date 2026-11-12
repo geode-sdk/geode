@@ -52,11 +52,11 @@ bool NumberInputPopup::init(double current, std::string title, ZStringView bg, s
 
     m_impl->m_current = current;
 
-    if (min.has_value()) m_impl->m_min = std::move(*min);
-    if (max.has_value()) m_impl->m_max = std::move(*max);
+    if (min.has_value()) m_impl->m_min = *min;
+    if (max.has_value()) m_impl->m_max = *max;
 
     this->setTitle(std::move(title));
-    this->setCloseBtnColor(CircleBaseColor::Green);
+    this->setCloseButtonColor(CircleBaseColor::Green);
 
     m_title->setLimitLabelWidth(m_mainLayer->getScaledContentWidth() - 62.5f, 0.7f);
 
@@ -158,7 +158,7 @@ void NumberInputPopup::setInputWidth(float width) {
     m_impl->m_inputContainer->updateLayout();
 }
 
-void NumberInputPopup::setCloseBtnColor(CircleBaseColor color) {
+void NumberInputPopup::setCloseButtonColor(CircleBaseColor color) {
     this->setCloseButtonSpr(CircleButtonSprite::createWithSpriteFrameName("close.png"_spr, 0.875f, color), 0.825f);
 }
 
@@ -199,12 +199,12 @@ TextInput* NumberInputPopup::getInputNode() const noexcept {
 }
 
 NumberInputPopup* NumberInputPopup::create(double current, std::string title, std::optional<double> min, std::optional<double> max) {
-    return create(current, std::move(title), "GJ_square02.png", std::move(min), std::move(max));
+    return create(current, std::move(title), "GJ_square02.png", min, max);
 }
 
 NumberInputPopup* NumberInputPopup::create(double current, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max) {
     auto ret = new NumberInputPopup();
-    if (ret->init(current, std::move(title), bg, std::move(min), std::move(max))) {
+    if (ret->init(current, std::move(title), bg, min, max)) {
         ret->autorelease();
         return ret;
     }
