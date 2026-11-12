@@ -67,15 +67,9 @@ namespace geode {
         /// Lock the box at the maximum width, instead of dynamically expanding with the label
         void lockWidth(bool lock);
 
-        /// Enforce the maximum text label width or let it expand dynamically
-        /// @note If you wish to instead lock the width of the background around the label, use `BoxedLabel::lockWidth`
-        void lockTextWidth(bool lock);
-
         float getMaxWidth() const noexcept;
         float getPadding() const noexcept;
-
         bool isWidthLocked() const noexcept;
-        bool isTextWidthLocked() const noexcept;
 
         Label* getLabelNode() const noexcept;
         NineSlice* getBoxSprite() const noexcept;

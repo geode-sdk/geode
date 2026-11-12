@@ -11,7 +11,6 @@ public:
     float m_padding = 10.0f;
 
     bool m_lockBoxWidth = false;
-    bool m_lockLabelWidth = false;
 
     Label* m_label;
     NineSlice* m_bg = nullptr;
@@ -34,7 +33,7 @@ bool BoxedLabel::init(std::string text, ZStringView font, ZStringView bg, std::o
 
     if (width.has_value()) {
         m_impl->m_boxWidth = *width;
-        m_impl->m_lockLabelWidth = true;
+        m_impl->m_lockBoxWidth = true;
     };
 
     this->setAnchorPoint({0.5f, 0.5f});
@@ -55,7 +54,7 @@ bool BoxedLabel::init(std::string text, ZStringView font, ZStringView bg, std::o
 }
 
 void BoxedLabel::resize() {
-    if (m_impl->m_lockLabelWidth) {
+    if (m_impl->m_lockBoxWidth) {
         m_impl->m_label->setMaxWidth((m_impl->m_boxWidth - m_impl->m_padding) / m_impl->m_label->getScale());
     } else {
         m_impl->m_label->setMaxWidth(0.0f);
@@ -96,11 +95,6 @@ void BoxedLabel::setMaxWidth(float width) {
     m_impl->m_boxWidth = width;
     this->resize();
 }
-
-void BoxedLabel::lockTextWidth(bool lock) {
-    m_impl->m_lockLabelWidth = lock;
-    this->resize();
-};
 
 void BoxedLabel::setPadding(float padding) {
     m_impl->m_padding = padding;
@@ -143,10 +137,6 @@ float BoxedLabel::getPadding() const noexcept {
 
 bool BoxedLabel::isWidthLocked() const noexcept {
     return m_impl->m_lockBoxWidth;
-}
-
-bool BoxedLabel::isTextWidthLocked() const noexcept {
-    return m_impl->m_lockLabelWidth;
 }
 
 Label* BoxedLabel::getLabelNode() const noexcept {
