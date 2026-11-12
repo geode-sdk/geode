@@ -5,15 +5,14 @@
 #include "ui/mods/sources/ModSource.hpp"
 
 bool DevListPopup::init(ModSource meta) {
-    if (!GeodePopup::init(250.f, 210.f))
-        return false;
+    if (!GeodePopup::init(250.f, 210.f)) return false;
 
     m_source = std::move(meta);
 
     this->setTitle(fmt::format("Developers for {}", m_source.getMetadata().getName()));
-    m_title->setLimitLabelWidth(m_size.width - 50, .7f, .1f);
+    m_title->setLimitLabelWidth(m_mainLayer->getContentWidth() - 50.0f, 0.7f, 0.1f);
 
-    ModDeveloperList* list = ModDeveloperList::create(this, m_source, {210.f, 150.f});
+    ModDeveloperList* list = ModDeveloperList::create(this, m_source, {210.0f, 150.0f});
     m_mainLayer->addChildAtPosition(
         list,
         Anchor::Center,
@@ -21,18 +20,6 @@ bool DevListPopup::init(ModSource meta) {
     );
 
     return true;
-}
-
-void DevListPopup::onClose(cocos2d::CCObject*){
-    this->setKeypadEnabled(false);
-    this->setTouchEnabled(false);
-    this->removeFromParentAndCleanup(true);
-}
-
-void DevListPopup::onMoreByThisDev(CCObject* sender) {
-    auto str = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject());
-    UpdateModListStateEvent().send(UpdateWholeState(str->getCString()));
-    this->onClose(nullptr);
 }
 
 DevListPopup* DevListPopup::create(ModSource meta) {
