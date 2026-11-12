@@ -23,11 +23,11 @@ public:
         m_label->setRichText(std::move(msg));
 
         m_processSpinner->setVisible(false);
-    };
+    }
 };
 
 ProcessPopup::ProcessPopup() : m_impl(std::make_unique<Impl>()) {}
-ProcessPopup::~ProcessPopup() {}
+ProcessPopup::~ProcessPopup() = default;
 
 bool ProcessPopup::init(std::string text, ZStringView font, ZStringView bg, float width) {
     if (!Popup::init({width, 105.0f}, bg)) return false;

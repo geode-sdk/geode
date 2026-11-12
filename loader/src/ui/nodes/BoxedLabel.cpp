@@ -26,7 +26,7 @@ public:
 };
 
 BoxedLabel::BoxedLabel() : m_impl(std::make_unique<Impl>()) {}
-BoxedLabel::~BoxedLabel() {}
+BoxedLabel::~BoxedLabel() = default;
 
 bool BoxedLabel::init(std::string text, ZStringView font, ZStringView bg, std::optional<float> width) {
     if (!CCNode::init()) return false;
