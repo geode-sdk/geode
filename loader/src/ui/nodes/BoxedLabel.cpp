@@ -97,7 +97,7 @@ void BoxedLabel::setMaxWidth(float width) {
     this->resize();
 }
 
-void BoxedLabel::lockLabelWidth(bool lock) {
+void BoxedLabel::lockTextWidth(bool lock) {
     m_impl->m_lockLabelWidth = lock;
     this->resize();
 };
@@ -145,7 +145,7 @@ bool BoxedLabel::isWidthLocked() const noexcept {
     return m_impl->m_lockBoxWidth;
 }
 
-bool BoxedLabel::isLabelWidthLocked() const noexcept {
+bool BoxedLabel::isTextWidthLocked() const noexcept {
     return m_impl->m_lockLabelWidth;
 }
 
