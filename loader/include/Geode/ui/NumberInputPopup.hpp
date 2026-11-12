@@ -15,25 +15,25 @@ namespace geode {
         NumberInputPopup();
         ~NumberInputPopup();
 
-        bool init(double current, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max);
+        bool init(double defValue, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max);
 
     public:
         using SubmitCallback = Function<void(NumberInputPopup*, double)>;
 
         /// Create a generic number input popup
-        /// @param current Default number to appear first on the input
+        /// @param defValue Default number to appear first on the input
         /// @param title Title to show on the popup
         /// @param min Lowest allowed number
         /// @param max Highest allowed number
-        static NumberInputPopup* create(double current, std::string title, std::optional<double> min = std::nullopt, std::optional<double> max = std::nullopt);
+        static NumberInputPopup* create(double defValue, std::string title, std::optional<double> min = std::nullopt, std::optional<double> max = std::nullopt);
 
         /// Create a generic number input popup with distinct theming
-        /// @param current Default number to appear first on the input
+        /// @param defValue Default number to appear first on the input
         /// @param title Title to show on the popup
         /// @param bg Sprite name for the popup background
         /// @param min Lowest allowed number
         /// @param max Highest allowed number
-        static NumberInputPopup* create(double current, std::string title, ZStringView bg, std::optional<double> min = std::nullopt, std::optional<double> max = std::nullopt);
+        static NumberInputPopup* create(double defValue, std::string title, ZStringView bg, std::optional<double> min = std::nullopt, std::optional<double> max = std::nullopt);
 
         /// Set up the sprite for the submit button
         /// @param text The new text to set
@@ -67,8 +67,7 @@ namespace geode {
         /// @param color Enum of the new base color to set
         void setCloseButtonColor(CircleBaseColor color);
 
-        /// Show or hide the reset button
-        /// @param show Whether to show the reset button or not
+        /// Show or hide the reset button, which sets the input to the default value provided on creation
         void showResetButton(bool show);
 
         /// Reset the callback that would've been called when the user submitted a number
@@ -78,6 +77,7 @@ namespace geode {
         double getMin() const noexcept;
         double getMax() const noexcept;
 
+        // TODO: (textinput rewrite) switch to `std::string const&`
         ZStringView getValueString() const;
 
         double getArrowStep() const noexcept;

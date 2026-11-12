@@ -27,30 +27,19 @@ public:
 
     size_t m_precision = 0;
 
-    std::string stepNumStr(double step = 0.0) {
-        auto to = m_current + step;
-
-        m_current = std::clamp(to, m_min, m_max);
-
-        return formatNum(m_current);
-    }
-
     void updateInput(double step = 0.0) {
-        m_input->setString(stepNumStr(step));
-    }
-
-    std::string formatNum(double num) const {
-        return fmt::format("{:.{}f}", num, m_precision);
+        m_current = std::clamp(m_current + step, m_min, m_max);
+        m_input->setString(fmt::format("{:.{}f}", m_current, m_precision));
     }
 };
 
 NumberInputPopup::NumberInputPopup() : m_impl(std::make_unique<Impl>()) {}
 NumberInputPopup::~NumberInputPopup() = default;
 
-bool NumberInputPopup::init(double current, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max) {
-    if (!Popup::init({210.0f, 125.0f}, bg)) return false;
+bool NumberInputPopup::init(double defValue, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max) {
+    if (!Popup::init({225.0f, 125.0f}, bg)) return false;
 
-    m_impl->m_current = current;
+    m_impl->m_current = defValue;
 
     if (min.has_value()) m_impl->m_min = *min;
     if (max.has_value()) m_impl->m_max = *max;
@@ -58,7 +47,7 @@ bool NumberInputPopup::init(double current, std::string title, ZStringView bg, s
     this->setTitle(std::move(title));
     this->setCloseButtonColor(CircleBaseColor::Green);
 
-    m_title->setLimitLabelWidth(m_mainLayer->getScaledContentWidth() - 62.5f, 0.7f);
+    m_title->setLimitLabelWidth(m_mainLayer->getContentWidth() - 65.0f, 0.7f);
 
     m_impl->m_inputContainer = CCNode::create();
     m_impl->m_inputContainer->setID("input-container");
@@ -76,9 +65,8 @@ bool NumberInputPopup::init(double current, std::string title, ZStringView bg, s
     m_impl->m_input->setID("page-input");
     m_impl->m_input->setCommonFilter(CommonFilter::Float);
 
-    m_impl->m_input->setCallback([this](std::string const& str) {
-        auto res = numFromString<double>(str);
-        if (res.isOk()) m_impl->m_current = std::move(res).unwrap();
+    m_impl->m_input->setCallback([this, defValue](std::string const& str) {
+        m_impl->m_current = numFromString<double>(str).unwrapOr(defValue);
     });
 
     auto prev = Button::createWithSpriteFrameName(
@@ -107,8 +95,8 @@ bool NumberInputPopup::init(double current, std::string title, ZStringView bg, s
 
     m_impl->m_resetBtn = Button::createWithSpriteFrameName(
         "GJ_resetBtn_001.png",
-        [this, current](auto) {
-            this->setValue(current);
+        [this, defValue](auto) {
+            this->setValue(defValue);
         }
     );
     m_impl->m_resetBtn->setScale(0.875f);
@@ -154,7 +142,7 @@ void NumberInputPopup::setPrecision(size_t precision) {
 }
 
 void NumberInputPopup::setInputWidth(float width) {
-    m_impl->m_input->setWidth(std::clamp(width, 50.0f, m_mainLayer->getScaledContentWidth() - 62.5f));
+    m_impl->m_input->setWidth(std::clamp(width, 50.0f, m_mainLayer->getContentWidth() - 65.0f));
     m_impl->m_inputContainer->updateLayout();
 }
 
@@ -164,6 +152,7 @@ void NumberInputPopup::setCloseButtonColor(CircleBaseColor color) {
 
 void NumberInputPopup::showResetButton(bool show) {
     m_impl->m_resetBtn->setVisible(show);
+    m_title->setLimitLabelWidth(m_mainLayer->getContentWidth() - (show ? 65.0f : 20.0f), 0.7f);
 }
 
 void NumberInputPopup::resetSubmitCallback() {
@@ -182,6 +171,7 @@ double NumberInputPopup::getMax() const noexcept {
     return m_impl->m_max;
 }
 
+// TODO: (textinput rewrite) switch to `std::string const&`
 ZStringView NumberInputPopup::getValueString() const {
     return m_impl->m_input->getString();
 }
@@ -198,13 +188,13 @@ TextInput* NumberInputPopup::getInputNode() const noexcept {
     return m_impl->m_input;
 }
 
-NumberInputPopup* NumberInputPopup::create(double current, std::string title, std::optional<double> min, std::optional<double> max) {
-    return create(current, std::move(title), "GJ_square02.png", min, max);
+NumberInputPopup* NumberInputPopup::create(double defValue, std::string title, std::optional<double> min, std::optional<double> max) {
+    return create(defValue, std::move(title), "GJ_square02.png", min, max);
 }
 
-NumberInputPopup* NumberInputPopup::create(double current, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max) {
+NumberInputPopup* NumberInputPopup::create(double defValue, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max) {
     auto ret = new NumberInputPopup();
-    if (ret->init(current, std::move(title), bg, min, max)) {
+    if (ret->init(defValue, std::move(title), bg, min, max)) {
         ret->autorelease();
         return ret;
     }
