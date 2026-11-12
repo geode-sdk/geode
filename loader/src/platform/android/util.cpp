@@ -415,8 +415,9 @@ static const char* permissionToName(Permission permission) {
 #define PERM(x) "android.permission." x
 #define INTERNAL_PERM(x) "geode.permission_internal." x
     switch (permission) {
-    case Permission::RecordAudio: return PERM("RECORD_AUDIO");
-    case Permission::ReadAllFiles: return INTERNAL_PERM("MANAGE_ALL_FILES");
+        case Permission::RecordAudio: return PERM("RECORD_AUDIO");
+        case Permission::ReadAllFiles: return INTERNAL_PERM("MANAGE_ALL_FILES");
+        case Permission::AccessLocalNetwork: return PERM("ACCESS_LOCAL_NETWORK");
     }
 #undef PERM
 #undef INTERNAL_PERM
