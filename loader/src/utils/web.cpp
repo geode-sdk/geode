@@ -3,15 +3,14 @@
 #include <Geode/utils/general.hpp>
 #include <asp/fs/Path.hpp>
 #include <fmt/format.h>
-#include <fstream>
 #include <matjson.hpp>
-#include <system_error>
 #define CURL_STATICLIB
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/StringBuffer.hpp>
 #include <Geode/utils/file.hpp>
 #include <Geode/utils/map.hpp>
 #include <Geode/utils/string.hpp>
+#include <Geode/utils/random.hpp>
 #include <Geode/utils/terminate.hpp>
 #include <Geode/utils/web.hpp>
 #include <arc/future/Select.hpp>
@@ -26,7 +25,6 @@
 #include <asp/iter.hpp>
 #include <ca_bundle.h>
 #include <curl/curl.h>
-#include <sstream>
 
 #ifdef GEODE_IS_ANDROID
 # include <ares.h>
@@ -204,8 +202,8 @@ struct MultipartFile {
 
 class MultipartForm::Impl {
 public:
-    std::unordered_map<std::string, std::string> m_params;
-    std::unordered_map<std::string, MultipartFile> m_files;
+    StringMap<std::string> m_params;
+    StringMap<MultipartFile> m_files;
     mutable std::string m_boundary;
 
     bool isBuilt() const {
@@ -239,10 +237,7 @@ public:
             return;
         }
 
-        auto timestamp = std::chrono::system_clock::now().time_since_epoch().count();
-        do {
-            m_boundary = fmt::format("----GeodeWebBoundary{}", timestamp++);
-        } while (!isBoundaryUnique(m_boundary));
+        m_boundary = fmt::format("----GeodeWebBoundary{}", random::generateUUID());
     }
 
     ByteVector getBody() const {
@@ -960,7 +955,7 @@ WebRequest& WebRequest::header(std::string name, std::string value) {
                 timeoutValue = res.unwrap();
             }
 
-            timeout(std::chrono::seconds(timeoutValue));
+            timeout(asp::Duration::fromSecs(timeoutValue));
 
             return *this;
         }
@@ -1013,8 +1008,8 @@ WebRequest& WebRequest::userAgent(std::string name) {
     return *this;
 }
 
-WebRequest& WebRequest::timeout(std::chrono::seconds time) {
-    m_impl->m_timeout = asp::Duration::fromSecs(time.count());
+WebRequest& WebRequest::timeout(asp::Duration time) {
+    m_impl->m_timeout = time;
     return *this;
 }
 
@@ -1027,6 +1022,7 @@ WebRequest& WebRequest::certVerification(bool enabled) {
     m_impl->m_certVerification = enabled;
     return *this;
 }
+
 WebRequest& WebRequest::transferBody(bool enabled) {
     m_impl->m_transferBody = enabled;
     return *this;
@@ -1119,11 +1115,8 @@ std::optional<ByteVector> WebRequest::getBody() const {
     return m_impl->m_body;
 }
 
-std::optional<std::chrono::seconds> WebRequest::getTimeout() const {
-    if (m_impl->m_timeout) {
-        return std::chrono::seconds(m_impl->m_timeout->seconds());
-    }
-    return std::nullopt;
+std::optional<asp::Duration> WebRequest::getTimeout() const {
+    return m_impl->m_timeout;
 }
 
 HttpVersion WebRequest::getHttpVersion() const {
@@ -1801,7 +1794,7 @@ arc::Future<> WebRequestsManager::Impl::dnsProbe() {
     auto custom = Mod::get()->getSettingValue<std::string_view>("curl-custom-dns3");
     if (!custom.empty()) {
         auto ips = asp::iter::split(custom, ',').filterMap([&](std::string_view s) {
-            return qsox::IpAddress::parse(std::string{s}).ok();
+            return qsox::IpAddress::parse(s).ok();
         }).collect();
 
         if (!ips.empty()) {

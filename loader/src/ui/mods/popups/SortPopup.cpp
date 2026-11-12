@@ -16,7 +16,7 @@ bool SortPopup::init(ModListSource* src) {
     auto container = CCNode::create();
     container->setContentSize({ 200, height });
 
-    for (auto const& [sort, name] : opts) {
+    for (auto& [sort, name] : opts) {
         auto node = CCMenu::create();
         node->setContentSize({ container->getContentWidth(), 22 });
 

@@ -47,7 +47,7 @@ Mod::Impl* ModImpl::getImpl(Mod* mod)  {
     return mod->m_impl.get();
 }
 
-Mod::Impl::Impl(Mod* self, ModMetadata const& metadata) : m_self(self), m_metadata(metadata) {
+Mod::Impl::Impl(Mod* self, ModMetadata metadata) : m_self(self), m_metadata(std::move(metadata)) {
 }
 
 Mod::Impl::~Impl() = default;
@@ -703,7 +703,7 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     obj["temp-dir"] = this->getTempDir();
     obj["save-dir"] = this->getSaveDir();
     obj["config-dir"] = this->getConfigDir(false);
-    json["runtime"] = obj;
+    json["runtime"] = std::move(obj);
 
     return json;
 }

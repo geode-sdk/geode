@@ -1,3 +1,5 @@
+#include <Geode/platform/cplatform.h>
+
 #ifndef GEODE_IS_IOS
 
 #include "LoaderImpl.hpp"
@@ -176,7 +178,7 @@ class $modify(GJKeybindManager) {
 };
 
 static std::unordered_map<int, float> s_scrollFromTop;
-static std::unordered_set<std::string> s_collapsedMods;
+static StringSet s_collapsedMods;
 
 static int makeKey(bool isLevel, int tab) {
     return (isLevel ? 1000 : 0) + tab;
