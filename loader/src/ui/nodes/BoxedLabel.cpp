@@ -34,7 +34,7 @@ bool BoxedLabel::init(std::string text, ZStringView font, ZStringView bg, std::o
     if (width.has_value()) {
         m_impl->m_boxWidth = *width;
         m_impl->m_lockBoxWidth = true;
-    };
+    }
 
     this->setAnchorPoint({0.5f, 0.5f});
 

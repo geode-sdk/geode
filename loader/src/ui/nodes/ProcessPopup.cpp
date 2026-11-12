@@ -72,7 +72,7 @@ void ProcessPopup::resetCloseCallback() {
 
 void ProcessPopup::setCloseButtonColor(CircleBaseColor color) {
     this->setCloseButtonSpr(CircleButtonSprite::createWithSpriteFrameName("close.png"_spr, 0.875f, color), 0.825f);
-};
+}
 
 void ProcessPopup::updateMessage(std::string text) {
     if (m_impl->m_state == State::Ongoing) m_impl->m_label->setRichText(std::move(text));
