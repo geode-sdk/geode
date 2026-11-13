@@ -10,7 +10,6 @@
 #include <asp/time/Duration.hpp>
 #include <matjson.hpp>
 #include <Geode/Result.hpp>
-#include <chrono>
 #include <optional>
 #include <string_view>
 #include <span>
@@ -333,7 +332,7 @@ namespace geode::utils::web {
          * @param time
          * @return WebRequest&
          */
-        WebRequest& timeout(std::chrono::seconds time);
+        WebRequest& timeout(asp::Duration time);
 
         /**
          * Sets the target byte range to request.
@@ -476,14 +475,14 @@ namespace geode::utils::web {
         /**
          * Gets the request headers
          *
-         * @return std::unordered_map<std::string, std::vector<std::string>>
+         * @return geode::utils::StringMap<std::vector<std::string>>
          */
         utils::StringMap<std::vector<std::string>> const& getHeaders() const;
 
         /**
          * Gets the parameters inside the URL
          *
-         * @return std::unordered_map<std::string, std::string>
+         * @return geode::utils::StringMap<std::string>
          */
         utils::StringMap<std::string> const& getUrlParams() const;
 
@@ -504,9 +503,9 @@ namespace geode::utils::web {
         /**
          * Gets the request timeout in seconds
          *
-         * @return std::optional<std::chrono::seconds>
+         * @return std::optional<asp::Duration>
          */
-        std::optional<std::chrono::seconds> getTimeout() const;
+        std::optional<asp::Duration> getTimeout() const;
 
         /**
          * Gets HTTP versions applied to the request

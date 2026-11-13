@@ -96,7 +96,7 @@ namespace {
     }
 
     // jni breaks over multithreading, so the value is stored to avoid more jni calls
-    std::string s_savedBaseDir = "";
+    std::string s_savedBaseDir;
 
     asp::fs::Path getBaseDir() {
         std::string path = "/storage/emulated/0/Android/data/com.geode.launcher/files";
@@ -128,7 +128,7 @@ asp::fs::Path dirs::getSaveDir() {
     return getBaseDir() / "save";
 }
 
-asp::fs::Path dirs::getModRuntimeDir() {
+asp::fs::Path dirs::getGeodeInternalDir() {
     static std::string cachedResult = [] {
         // incase the jni fails, default to this
         std::string path = "/data/user/0/com.geode.launcher/files/";
@@ -145,7 +145,7 @@ asp::fs::Path dirs::getModRuntimeDir() {
 
         return path;
     }();
-    return asp::fs::Path(cachedResult) / "geode" / "unzipped";
+    return asp::fs::Path(cachedResult) / "geode";
 }
 
 asp::fs::Path dirs::getResourcesDir() {
@@ -385,7 +385,7 @@ void geode::utils::game::restart(bool saveData, bool safeMode) {
             clearJNIException();
 
             // only normal restart is supported on older launchers
-            restart();            
+            restart();
         }
     };
     // Not implemented
@@ -415,8 +415,9 @@ static const char* permissionToName(Permission permission) {
 #define PERM(x) "android.permission." x
 #define INTERNAL_PERM(x) "geode.permission_internal." x
     switch (permission) {
-    case Permission::RecordAudio: return PERM("RECORD_AUDIO");
-    case Permission::ReadAllFiles: return INTERNAL_PERM("MANAGE_ALL_FILES");
+        case Permission::RecordAudio: return PERM("RECORD_AUDIO");
+        case Permission::ReadAllFiles: return INTERNAL_PERM("MANAGE_ALL_FILES");
+        case Permission::AccessLocalNetwork: return PERM("ACCESS_LOCAL_NETWORK");
     }
 #undef PERM
 #undef INTERNAL_PERM

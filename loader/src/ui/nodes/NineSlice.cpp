@@ -138,22 +138,11 @@ void NineSlice::createSprite(CCSprite*& spr, ZStringView id) {
     m_impl->m_batchNode->addChild(spr);
 }
 
-void NineSlice::setSpriteRect(CCSprite* spr, CCRect rect, CCAffineTransform transform) {
-    auto originalOrigin = rect.origin;
-    rect = CCRectApplyAffineTransform(rect, transform);
-    if (m_impl->m_rectRotated) {
-        rect.origin = originalOrigin;
-    }
-
-    spr->setTextureRect(rect, m_impl->m_rectRotated, rect.size);
-}
-
 void NineSlice::updateSprites() {
     auto multiplier = m_impl->m_scaleMultiplier > 0 ? m_impl->m_scaleMultiplier : 1.f;
 
     auto size = CCSize{std::abs(getContentWidth()), std::abs(getContentHeight())} / multiplier;
     auto texRect = m_impl->m_spriteRect;
-    bool rotated = m_impl->m_rectRotated;
 
     m_impl->m_batchNode->setVisible(m_impl->m_scaleMultiplier > 0);
 
@@ -176,44 +165,57 @@ void NineSlice::updateSprites() {
     float topInset = m_impl->m_insets.top * factorY;
     float bottomInset = m_impl->m_insets.bottom * factorY;
 
-    float texLeft = rotated ? bottomInset : leftInset;
-    float texRight = rotated ? topInset : rightInset;
-    float texTop = rotated ? leftInset : topInset;
-    float texBottom = rotated ? rightInset : bottomInset;
+    float texCenterW = std::max(0.f, texRect.size.width - leftInset - rightInset);
+    float texCenterH = std::max(0.f, texRect.size.height - topInset - bottomInset);
 
-    float texCenterW = std::max(0.f, texRect.size.width  - texLeft - texRight);
-    float texCenterH = std::max(0.f, texRect.size.height - texTop  - texBottom);
+    CCRect topLeftRect;
+    CCRect topCenterRect;
+    CCRect topRightRect;
 
-    CCRect topLeftRect = {texRect.origin.x + 0, texRect.origin.y + 0, texLeft, texTop};
-    CCRect topCenterRect = {texRect.origin.x + texLeft, texRect.origin.y + 0, texCenterW, texTop};
-    CCRect topRightRect = {texRect.origin.x + texRect.size.width - texRight, texRect.origin.y + 0, texRight, texTop};
+    CCRect leftCenterRect;
+    CCRect centerRect;
+    CCRect rightCenterRect;
 
-    CCRect leftCenterRect = {texRect.origin.x + 0, texRect.origin.y + texTop, texLeft, texCenterH};
-    CCRect centerRect  = {texRect.origin.x + texLeft, texRect.origin.y + texTop, texCenterW, texCenterH};
-    CCRect rightCenterRect = {texRect.origin.x + texRect.size.width - texRight, texRect.origin.y + texTop, texRight, texCenterH};
+    CCRect bottomLeftRect;
+    CCRect bottomCenterRect;
+    CCRect bottomRightRect;
 
-    CCRect bottomLeftRect = {texRect.origin.x + 0, texRect.origin.y + texRect.size.height - texBottom, texLeft, texBottom};
-    CCRect bottomCenterRect = {texRect.origin.x + texLeft, texRect.origin.y + texRect.size.height - texBottom, texCenterW, texBottom};
-    CCRect bottomRightRect = {texRect.origin.x + texRect.size.width - texRight, texRect.origin.y + texRect.size.height - texBottom, texRight, texBottom};
+    if (m_impl->m_rectRotated) {
+        topLeftRect = {texRect.origin.x + bottomInset + texCenterH, texRect.origin.y, leftInset, topInset};
+        topCenterRect = {texRect.origin.x + bottomInset + texCenterH, texRect.origin.y + leftInset, texCenterW, topInset};
+        topRightRect = {texRect.origin.x + bottomInset + texCenterH, texRect.origin.y + leftInset + texCenterW, rightInset, topInset};
 
-    CCAffineTransform t = CCAffineTransformMakeIdentity();
-    if (!rotated) {
-        t = CCAffineTransformTranslate(t, 0, 0);
+        leftCenterRect = {texRect.origin.x + bottomInset, texRect.origin.y, leftInset, texCenterH};
+        centerRect = {texRect.origin.x + bottomInset, texRect.origin.y + leftInset, texCenterW, texCenterH};
+        rightCenterRect = {texRect.origin.x + bottomInset, texRect.origin.y + leftInset + texCenterW, rightInset, texCenterH};
+
+        bottomLeftRect = {texRect.origin.x, texRect.origin.y, leftInset, bottomInset};
+        bottomCenterRect = {texRect.origin.x, texRect.origin.y + leftInset, texCenterW, bottomInset};
+        bottomRightRect = {texRect.origin.x, texRect.origin.y + leftInset + texCenterW, rightInset, bottomInset};
     }
     else {
-        t = CCAffineTransformTranslate(t, texRect.size.height, 0);
-        t = CCAffineTransformRotate(t, M_PI / 2.f);
+        topLeftRect = {texRect.origin.x, texRect.origin.y, leftInset, topInset};
+        topCenterRect = {texRect.origin.x + leftInset, texRect.origin.y, texCenterW, topInset};
+        topRightRect = {texRect.origin.x + texCenterW + leftInset, texRect.origin.y, rightInset, topInset};
+
+        leftCenterRect = {texRect.origin.x, texRect.origin.y + topInset, leftInset, texCenterH};
+        centerRect = {texRect.origin.x + leftInset, texRect.origin.y + topInset, texCenterW, texCenterH};
+        rightCenterRect = {texRect.origin.x + texCenterW + leftInset, texRect.origin.y + topInset, rightInset, texCenterH};
+
+        bottomLeftRect = {texRect.origin.x, texRect.origin.y + texCenterH + topInset, leftInset, bottomInset};
+        bottomCenterRect = {texRect.origin.x + leftInset, texRect.origin.y + texCenterH + topInset, texCenterW, bottomInset};
+        bottomRightRect = {texRect.origin.x + texCenterW + leftInset, texRect.origin.y + texCenterH + topInset, rightInset, bottomInset};
     }
 
-    setSpriteRect(m_impl->m_topLeft, topLeftRect, t);
-    setSpriteRect(m_impl->m_top, topCenterRect, t);
-    setSpriteRect(m_impl->m_topRight, topRightRect, t);
-    setSpriteRect(m_impl->m_left, leftCenterRect, t);
-    setSpriteRect(m_impl->m_center, centerRect, t);
-    setSpriteRect(m_impl->m_right, rightCenterRect, t);
-    setSpriteRect(m_impl->m_bottomLeft, bottomLeftRect, t);
-    setSpriteRect(m_impl->m_bottom, bottomCenterRect, t);
-    setSpriteRect(m_impl->m_bottomRight, bottomRightRect, t);
+    m_impl->m_topLeft->setTextureRect(topLeftRect, m_impl->m_rectRotated, topLeftRect.size);
+    m_impl->m_top->setTextureRect(topCenterRect, m_impl->m_rectRotated, topCenterRect.size);
+    m_impl->m_topRight->setTextureRect(topRightRect, m_impl->m_rectRotated, topRightRect.size);
+    m_impl->m_left->setTextureRect(leftCenterRect, m_impl->m_rectRotated, leftCenterRect.size);
+    m_impl->m_center->setTextureRect(centerRect, m_impl->m_rectRotated, centerRect.size);
+    m_impl->m_right->setTextureRect(rightCenterRect, m_impl->m_rectRotated, rightCenterRect.size);
+    m_impl->m_bottomLeft->setTextureRect(bottomLeftRect, m_impl->m_rectRotated, bottomLeftRect.size);
+    m_impl->m_bottom->setTextureRect(bottomCenterRect, m_impl->m_rectRotated, bottomCenterRect.size);
+    m_impl->m_bottomRight->setTextureRect(bottomRightRect, m_impl->m_rectRotated, bottomRightRect.size);
 
     m_impl->m_top->setPosition({leftInset, bottomInset + centerHeight});
     m_impl->m_bottom->setPosition({leftInset, 0});
@@ -252,7 +254,7 @@ void NineSlice::createRepeatingSprites(CCSprite* spr, int horizontalAmount, int 
     bool rotated = spr->isTextureRectRotated();
 
     float tileW = rotated ? rect.size.height : rect.size.width;
-    float tileH = rotated ? rect.size.width  : rect.size.height;
+    float tileH = rotated ? rect.size.width : rect.size.height;
 
     // we want the original sprite to be invisible so we can scale the new children accordingly for repeat ones
     spr->setTextureRect({});
@@ -265,8 +267,8 @@ void NineSlice::createRepeatingSprites(CCSprite* spr, int horizontalAmount, int 
             if (y == verticalAmount && lastVerticalFactor == 0) continue;
 
             CCSprite* newSpr = CCSprite::createWithTexture(spr->getTexture());
-            newSpr->setAnchorPoint(ccp(0, 0));
-            newSpr->setPosition(ccp(tileW * x, tileH * y));
+            newSpr->setAnchorPoint({0.f, 0.f});
+            newSpr->setPosition({tileW * x, tileH * y});
             newSpr->setOpacity(spr->getOpacity());
             newSpr->setColor(spr->getColor());
 

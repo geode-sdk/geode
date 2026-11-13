@@ -53,7 +53,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     searchContainer->setContentSize({ m_listSize.width, 30 });
 
     m_searchInput = TextInput::create((m_listSize.width - 15) / .7f - 40, "Search settings...");
-    m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setAlignment(Label::Alignment::Left);
     m_searchInput->setScale(.7f);
     m_searchInput->setCallback([this](auto const&) {
         this->updateState();
@@ -76,13 +76,14 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(0.f));
     m_list->setTouchEnabled(true);
     m_list->moveToTop();
+    m_list->setAnchorPoint(ccp(0.5f, 0));
 
     const int buttonPriority = m_list->getTouchPriority() - 1;
 
     m_buttonMenu->setTouchPriority(buttonPriority);
     searchContainer->setTouchPriority(buttonPriority);
 
-    layerBG->addChildAtPosition(m_list, Anchor::BottomLeft);
+    layerBG->addChildAtPosition(m_list, Anchor::Bottom);
 
     // layer borders
 

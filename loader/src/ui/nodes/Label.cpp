@@ -392,7 +392,7 @@ struct EmojiRegistry::Impl {
 
         for (auto& item : entries) {
             m_keys.push_back(std::get<0>(item));
-            m_entries.push_back(std::move(std::get<1>(item)));
+            m_entries.push_back(std::get<1>(item));
         }
 
         std::vector<size_t> indices(m_keys.size());
@@ -2682,6 +2682,7 @@ void Label::setLimitLabelWidth(float width, float maxScale, float minScale) noex
     m_impl->m_minScale = minScale;
     m_impl->m_limitChanged = true;
     m_impl->m_fitLabelSize = false;
+    m_impl->m_sizeDirty = true;
 }
 
 void Label::setLimitLabelHeight(float height, float maxScale, float minScale) noexcept {
@@ -2690,6 +2691,7 @@ void Label::setLimitLabelHeight(float height, float maxScale, float minScale) no
     m_impl->m_minScale = minScale;
     m_impl->m_limitChanged = true;
     m_impl->m_fitLabelSize = false;
+    m_impl->m_sizeDirty = true;
 }
 
 void Label::setLimitLabelSize(CCSize size, float maxScale, float minScale) noexcept {
@@ -2698,6 +2700,7 @@ void Label::setLimitLabelSize(CCSize size, float maxScale, float minScale) noexc
     m_impl->m_minScale = minScale;
     m_impl->m_limitChanged = true;
     m_impl->m_fitLabelSize = false;
+    m_impl->m_sizeDirty = true;
 }
 
 void Label::removeLabelSizeLimit() noexcept {
@@ -2856,6 +2859,10 @@ EmojiRegistry Label::getEmojiRegistry() {
         return EmojiRegistry();
     }
     return EmojiRegistry(m_impl->m_emojiRegistry);
+}
+
+void Label::disableEmojis() {
+    this->setEmojiRegistry(EmojiRegistry());
 }
 
 void Label::setColor(ccColor3B const& color) {

@@ -284,6 +284,9 @@ const char* server::sortToString(ModsSort sorting) {
         case ModsSort::Downloads: return "downloads";
         case ModsSort::RecentlyUpdated: return "recently_updated";
         case ModsSort::RecentlyPublished: return "recently_published";
+        case ModsSort::Oldest: return "oldest";
+        case ModsSort::Name: return "name";
+        case ModsSort::NameReverse: return "name_reverse";
     }
 }
 
@@ -711,7 +714,7 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
         req.param("jitless", "true");
 
     if (query.platforms.size()) {
-        std::string plats = "";
+        std::string plats;
         bool first = true;
         for (auto plat : query.platforms) {
             if (!first) plats += ",";

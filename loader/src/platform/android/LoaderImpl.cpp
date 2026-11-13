@@ -59,7 +59,7 @@ bool Loader::Impl::supportsLaunchArguments() const {
 }
 
 std::string Loader::Impl::getLaunchCommand() const {
-    std::string launchArgs = "";
+    std::string launchArgs;
 
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getLaunchArguments", "()Ljava/lang/String;")) {

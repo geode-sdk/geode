@@ -1,5 +1,38 @@
 # Geode Changelog
 
+## v6.0.0-alpha.1
+ * Geometry Dash 2.209x support
+ * Rework our own keybind system to integrate with robtop's (#2280, #2278)
+ * Add z-order based touch priority (#2291)
+ * Add overload support for event export macro and fix ODR issues (#2247)
+ * Add more sorting options for index mods (#2213)
+ * Readd Keybind Modifier Fallthrough (#2000) (9fd954cde)
+ * Switch to using `asp::fs` instead of `std::filesystem` (#2243)
+ * Change minimum CLI version to 4.0.0 and add support for cmake scripts in deps (#2279, 0e390ab9f)
+ * Add `geode::Toggler` (#2275)
+ * Add `geode::BoxedLabel` (#2269)
+ * Add `geode::ProcessPopup` (#2283)
+ * Add `CCNode::addChildren` helper (#2256)
+ * Add `WindowResizeEvent` (#2272)
+ * Add mouse x/y to scroll events (eac8033bc)
+ * Add replace arg to `geode::cocos::switchToScene` (83fed2aef)
+ * `geode::Label` improvements, vanilla emojis support (f60683189)
+ * Change `MDTextArea` to use `geode::Label` (#2184)
+ * Change most `CCLabelBMFont` usage within geode to `geode::Label` (#2185)
+ * Change `Popup::onClose` method to be public (e4a9613ee)
+ * Completely remove old `Task.hpp` (#2168)
+ * Remove `gd::string` and others as they're no longer needed (48f3db31a)
+ * Fix `geode::Button` with new clippers and scroll layers (eb5123600, be8feb303)
+ * Fix and improve `geode::ProgressBar` (#2271)
+ * Implement restart in safe mode for iOS and Android (b1e159a4b, 114660851)
+ * Improve base circle textures (098906d0d, c156a1c5b)
+ * Improve compile times a bit (#2241, #2248)
+ * Make `CCArrayExt` more STL compliant (#2310) (a0442470e)
+ * Move `TexturesUnloaded` event to `reloadAllStep2` (33185268c)
+ * Add `GEODE_NO_ENTRY` CMake option (#2270)
+ * Refactor events/ports internals (#2240)
+ * Update arc, asp, result and matjson
+
 ## v5.11.2
  * Fix 2.209 crashes (note that this release is still primarily for 2.2081)
  * Fix text inputs in forward compat mode on 2.209

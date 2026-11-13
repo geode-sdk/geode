@@ -101,6 +101,21 @@ Result<> utils::file::createDirectoryAll(PathView path) {
     return asp::fs::createDirAll(path);
 }
 
+Result<> utils::file::moveDirectoryContents(PathView source, PathView target) {
+    if(!source.exists() || !source.isDir() || !target.exists() || !target.isDir()) {
+        return Err("Source and target must be existing directories");
+    }
+
+    for (auto result : GEODE_UNWRAP(asp::fs::iterDir(source))) {
+        auto path = GEODE_UNWRAP(result).path;
+        if(auto filename = path.filename()) {
+            GEODE_UNWRAP(asp::fs::move(path, target / path.filename().value()));
+        }
+    }
+
+    return Ok();
+}
+
 Result<std::vector<Path>> utils::file::readDirectory(
     PathView path, bool recursive
 ) {
@@ -355,7 +370,7 @@ public:
     }
 
     Result<ByteVector> extract(PathView name) {
-        if (!m_entries.count(name)) {
+        if (!m_entries.contains(name)) {
             return Err("Entry not found");
         }
 

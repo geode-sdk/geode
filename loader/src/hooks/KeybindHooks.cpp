@@ -1,7 +1,9 @@
+#include <Geode/platform/cplatform.h>
+
 #ifndef GEODE_IS_IOS
 
 #include "LoaderImpl.hpp"
-#include "ui/mods/GeodeStyle.hpp"
+#include "ui/GeodeStyle.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/GJKeybindManager.hpp>
@@ -176,7 +178,7 @@ class $modify(GJKeybindManager) {
 };
 
 static std::unordered_map<int, float> s_scrollFromTop;
-static std::unordered_set<std::string> s_collapsedMods;
+static StringSet s_collapsedMods;
 
 static int makeKey(bool isLevel, int tab) {
     return (isLevel ? 1000 : 0) + tab;
@@ -453,7 +455,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         list->setID("keybinds-list");
         list->m_contentLayer->setLayout(listColumnLayout(list::ROW_GAP, false));
         m_mainLayer->addChildAtPosition(
-            list, Anchor::Center, {-list->getContentWidth() / 2, -list->getContentHeight() / 2 + offsetY}
+            list, Anchor::Center, {0, offsetY}
         );
         m_fields->list = list;
 

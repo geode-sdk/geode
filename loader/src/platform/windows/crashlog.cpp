@@ -29,7 +29,7 @@ static bool g_lastLaunchCrashed = false;
 static bool g_symbolsInitialized = false;
 static std::wstring g_unzippedSearchPaths;
 static crashlog::CrashContext g_context;
-static LPEXCEPTION_POINTERS g_excPtr;
+static thread_local LPEXCEPTION_POINTERS g_excPtr;
 
 PVOID GeodeFunctionTableAccess64(HANDLE hProcess, DWORD64 AddrBase);
 
@@ -607,8 +607,43 @@ static LONG WINAPI exceptionHandler(LPEXCEPTION_POINTERS info) {
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+static void abortHandler(int sig) {
+    CONTEXT ctx{};
+    RtlCaptureContext(&ctx);
+
+    EXCEPTION_RECORD rec{};
+    rec.ExceptionCode = GEODE_ABORTED_EXCEPTION_CODE;
+    rec.ExceptionAddress = reinterpret_cast<void*>(ctx.Rip);
+    rec.NumberParameters = 2;
+    rec.ExceptionInformation[0] = reinterpret_cast<ULONG_PTR>("Program has been aborted, due to a call to abort(), assertion failure, or other fatal error.");
+    rec.ExceptionInformation[1] = 0; // Mod*, but we do not have one here
+
+    EXCEPTION_POINTERS ptrs{};
+    ptrs.ContextRecord = &ctx;
+    ptrs.ExceptionRecord = &rec;
+
+    handleException(&ptrs);
+
+    TerminateProcess(GetCurrentProcess(), 1);
+}
+
 bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
+
+    // some behavior ends up either abort()ing or fastfail()ing, which does not go through seh
+    // install manual handlers for it
+    _set_invalid_parameter_handler([](const wchar_t*, const wchar_t*, const wchar_t*, unsigned int, uintptr_t) {
+        abortHandler(SIGABRT);
+    });
+
+    _set_purecall_handler([] {
+        abortHandler(SIGABRT);
+    });
+
+    signal(SIGABRT, abortHandler);
+
+    // suppress WER and debug msg my masking out both flags
+    _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
 
     auto lastCrashedFile = crashlog::getCrashLogDirectory() / "last-crashed";
     if (lastCrashedFile.exists()) {

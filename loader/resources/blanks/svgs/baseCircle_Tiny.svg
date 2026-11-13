@@ -1,7 +1,6 @@
 <svg width="106" height="116" viewBox="0 0 106 116" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g filter="url(#filter0_d_911_217)">
+<ellipse cx="56.7393" cy="64.7456" rx="48.4141" ry="48.1565" fill="black" fill-opacity="0.4"/>
 <ellipse cx="52.7393" cy="57.7456" rx="48.4141" ry="48.1565" fill="white"/>
-</g>
 <circle cx="52.7395" cy="57.7456" r="44.2937" fill="black"/>
 <circle cx="52.7393" cy="57.7456" r="39.5" fill="url(#paint0_linear_911_217)"/>
 <path d="M52.7393 97.2456C74.5545 97.2456 92.2393 79.5609 92.2393 57.7456H13.2393C13.2393 79.5609 30.924 97.2456 52.7393 97.2456Z" fill="url(#paint1_linear_911_217)"/>

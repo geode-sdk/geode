@@ -92,7 +92,7 @@ namespace server {
         size_t downloadCount;
         std::vector<ServerDeveloper> developers;
         std::vector<ServerModVersion> versions;
-        std::unordered_set<std::string> tags;
+        StringSet tags;
         std::optional<std::string> about;
         std::optional<std::string> changelog;
         std::optional<std::string> repository;
@@ -135,6 +135,9 @@ namespace server {
         Downloads,
         RecentlyUpdated,
         RecentlyPublished,
+        Oldest,
+        Name,
+        NameReverse,
     };
 
     static const char* sortToString(ModsSort sorting);
@@ -142,7 +145,7 @@ namespace server {
     struct ModsQuery final {
         std::optional<std::string> query;
         std::unordered_set<PlatformID> platforms = { GEODE_PLATFORM_TARGET };
-        std::unordered_set<std::string> tags;
+        StringSet tags;
         std::optional<bool> featured;
         ModsSort sorting = ModsSort::Downloads;
         std::optional<std::string> developer;

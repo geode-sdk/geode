@@ -24,7 +24,7 @@
 *.out
 *.app
 
-# Macos be like
+# MacOS Cache data
 **/.DS_Store
 
 # Cache files for Sublime Text

@@ -11,7 +11,7 @@
 #include "../popups/ModtoberPopup.hpp"
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
 #include "ModListItem.hpp"
 #include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
@@ -51,7 +51,10 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     }
 
     m_list = ScrollLayer::create(size);
-    this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
+    // scroll clipping doesn't make sense when its the main (and only) scroll layer onscreen
+    m_list->enableScrollClipping(false);
+    m_list->setAnchorPoint(ccp(0.5f, 0));
+    this->addChildAtPosition(m_list, Anchor::Bottom);
 
     m_topContainer = CCNode::create();
     m_topContainer->setID("top-container");
@@ -222,7 +225,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_searchInput->setID("search-input");
     m_searchInput->setScale(.75f);
     m_searchInput->setAnchorPoint({ 0, .5f });
-    m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setAlignment(Label::Alignment::Left);
     m_searchInput->setCommonFilter(CommonFilter::Any);
     m_searchInput->setCallback([this](auto const&) {
         float bufferTime = 0.4f;
@@ -457,7 +460,7 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
     }
     else {
         auto error = std::move(result).unwrapErr();
-        this->showStatus(ModListErrorStatus(), std::move(error.message), std::move(error.details));
+        this->showStatus(ModListErrorStatus(), error.message, std::move(error.details));
         this->updateState();
     }
 }
@@ -469,7 +472,6 @@ void ModList::setIsExiting(bool exiting) {
 void ModList::onPage(CCObject* sender) {
     // If no page count has been loaded yet, we can't do anything
     if (!m_source->getPageCount()) return;
-    auto pageCount = m_source->getPageCount().value();
 
     // Make sure you can't go beyond the limits
     if (sender->getTag() < 0 && m_page >= -sender->getTag()) {
@@ -804,4 +806,3 @@ ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingD
     delete ret;
     return nullptr;
 }
-

@@ -47,7 +47,7 @@ Mod::Impl* ModImpl::getImpl(Mod* mod)  {
     return mod->m_impl.get();
 }
 
-Mod::Impl::Impl(Mod* self, ModMetadata const& metadata) : m_self(self), m_metadata(metadata) {
+Mod::Impl::Impl(Mod* self, ModMetadata metadata) : m_self(self), m_metadata(std::move(metadata)) {
 }
 
 Mod::Impl::~Impl() = default;
@@ -71,16 +71,7 @@ Result<> Mod::Impl::setup() {
     if (!loadRes) {
         log::warn("Unable to load data for \"{}\": {}", m_metadata.getID(), loadRes.unwrapErr());
     }
-    if (!m_resourcesLoaded && !this->isInternal()) {
-        auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-
-        // Hi, linux bros!
-        Loader::get()->queueInMainThread([searchPathRoot]() {
-            CCFileUtils::get()->addSearchPath(searchPathRoot.c_str());
-        });
-
-        m_resourcesLoaded = true;
-    }
+    m_resourcesLoaded = true;
 
     return Ok();
 }
@@ -703,7 +694,7 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     obj["temp-dir"] = this->getTempDir();
     obj["save-dir"] = this->getSaveDir();
     obj["config-dir"] = this->getConfigDir(false);
-    json["runtime"] = obj;
+    json["runtime"] = std::move(obj);
 
     return json;
 }
@@ -745,12 +736,10 @@ void Mod::Impl::setPinned(bool pinned) {
 }
 
 void Mod::Impl::loadNativeModBinaries() {
-    auto searchPathRoot = dirs::getModRuntimeDir() / m_metadata.getID() / "resources";
-
     // binaries on macos are merged, so make the platform binaries merged as well
     auto const binaryPlatformId = PlatformID::toShortString(GEODE_PLATFORM_TARGET GEODE_MACOS(, true));
 
-    auto const binariesDir = searchPathRoot / m_metadata.getID() / "binaries" / binaryPlatformId;
+    auto const binariesDir = dirs::getModRuntimeDir() / m_metadata.getID() / "binaries" / binaryPlatformId;
 
     if (binariesDir.exists()) {
         geode::log::info("Loaded binaries from path {}", binariesDir);
