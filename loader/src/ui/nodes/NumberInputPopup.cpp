@@ -2,7 +2,6 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/Button.hpp>
-#include <Geode/ui/Notification.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/loader/Mod.hpp>
@@ -19,6 +18,7 @@ public:
     Button* m_resetBtn;
 
     double m_current = 0.0;
+    double m_default = 0.0;
 
     double m_max = std::numeric_limits<double>::max();
     double m_min = std::numeric_limits<double>::lowest();
@@ -31,6 +31,11 @@ public:
         m_current = std::clamp(m_current + step, m_min, m_max);
         m_input->setString(fmt::format("{:.{}f}", m_current, m_precision));
     }
+
+    void validateString(std::string const& str) {
+        m_current = numFromString<double>(str).unwrapOr(m_default);
+        this->updateInput();
+    }
 };
 
 NumberInputPopup::NumberInputPopup() : m_impl(std::make_unique<Impl>()) {}
@@ -40,6 +45,7 @@ bool NumberInputPopup::init(double defValue, std::string title, ZStringView bg, 
     if (!Popup::init({225.0f, 125.0f}, bg)) return false;
 
     m_impl->m_current = defValue;
+    m_impl->m_default = defValue;
 
     if (min.has_value()) m_impl->m_min = *min;
     if (max.has_value()) m_impl->m_max = *max;
@@ -65,8 +71,17 @@ bool NumberInputPopup::init(double defValue, std::string title, ZStringView bg, 
     m_impl->m_input->setID("page-input");
     m_impl->m_input->setCommonFilter(CommonFilter::Float);
 
-    m_impl->m_input->setCallback([this, defValue](std::string const& str) {
-        m_impl->m_current = numFromString<double>(str).unwrapOr(defValue);
+    m_impl->m_input->setCallback([this](std::string const& str) {
+        m_impl->validateString(str);
+    });
+
+    m_impl->m_input->setFocusCallback([this](TextInput::FocusState state) {
+        if (state == TextInput::FocusState::Unfocused) m_impl->validateString(m_impl->m_input->getString());
+    });
+
+    m_impl->m_input->setEnterCallback([this](std::string const& str) {
+        m_impl->validateString(str);
+        this->submit();
     });
 
     auto prev = Button::createWithSpriteFrameName(
@@ -95,8 +110,8 @@ bool NumberInputPopup::init(double defValue, std::string title, ZStringView bg, 
 
     m_impl->m_resetBtn = Button::createWithSpriteFrameName(
         "GJ_resetBtn_001.png",
-        [this, defValue](auto) {
-            this->setValue(defValue);
+        [this](auto) {
+            this->setValue(m_impl->m_default);
         }
     );
     m_impl->m_resetBtn->setScale(0.875f);
@@ -109,13 +124,18 @@ bool NumberInputPopup::init(double defValue, std::string title, ZStringView bg, 
     return true;
 }
 
+void NumberInputPopup::submit() {
+    double num = std::clamp(this->getValue(), this->getMin(), this->getMax());
+    m_impl->m_callback ? m_impl->m_callback(this, num) : this->onClose(nullptr);
+}
+
 void NumberInputPopup::setupSubmitBtn(ZStringView text, ZStringView bg) {
     if (m_impl->m_submitBtn) m_impl->m_submitBtn->removeFromParent();
 
     m_impl->m_submitBtn = Button::createWithNode(
-        ButtonSprite::create(text.c_str(), "goldFont.fnt", bg.c_str(), 0.8f), [this](auto) {
-            double num = std::clamp(this->getValue(), this->getMin(), this->getMax());
-            m_impl->m_callback ? m_impl->m_callback(this, num) : this->onClose(nullptr);
+        ButtonSprite::create(text.c_str(), "goldFont.fnt", bg.c_str(), 0.8f),
+        [this](auto) {
+            this->submit();
         }
     );
     m_impl->m_submitBtn->setID("submit-button");
