@@ -9,32 +9,35 @@ NS_CC_BEGIN
 // @note RobTop Addition
 class CC_DLL CCMouseDispatcher : public CCObject
 {
-	GEODE_FRIEND_MODIFY
+    GEODE_FRIEND_MODIFY
 public:
-	GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMouseDispatcher, CCObject)
-	CCMouseDispatcher();
-	virtual ~CCMouseDispatcher();
+    GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCMouseDispatcher, CCObject)
+    CCMouseDispatcher();
 
-	void addDelegate(CCMouseDelegate* pDelegate);
+    static GEODE_DLL CCMouseDispatcher* get();
 
-	void removeDelegate(CCMouseDelegate* pDelegate);
+    virtual ~CCMouseDispatcher();
 
-	void forceAddDelegate(CCMouseDelegate* pDelegate);
+    void addDelegate(CCMouseDelegate* pDelegate);
 
-	void forceRemoveDelegate(CCMouseDelegate* pDelegate);
+    void removeDelegate(CCMouseDelegate* pDelegate);
 
-	bool dispatchScrollMSG(float y, float x);
+    void forceAddDelegate(CCMouseDelegate* pDelegate);
 
-	bool dispatchRightClick(float, float);
-	void flushPendingDelegates();
+    void forceRemoveDelegate(CCMouseDelegate* pDelegate);
+
+    bool dispatchScrollMSG(float y, float x);
+
+    bool dispatchRightClick(float, float);
+    void flushPendingDelegates();
 
 public:
-	CCArray* m_pMouseHandlers;
-	bool m_bLocked;
-	bool m_bToAdd;
-	bool m_bToRemove;
-	ccCArray* m_pHandlersToAdd;
-	ccCArray* m_pHandlersToRemove;
+    CCArray* m_pMouseHandlers;
+    bool m_bLocked;
+    bool m_bToAdd;
+    bool m_bToRemove;
+    ccCArray* m_pHandlersToAdd;
+    ccCArray* m_pHandlersToRemove;
 };
 
 NS_CC_END

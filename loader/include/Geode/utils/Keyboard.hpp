@@ -133,7 +133,7 @@ namespace geode {
         using Event::Event;
     };
 
-    struct ScrollWheelEvent final : Event<MouseMoveEvent, bool(double, double)> {
+    struct ScrollWheelEvent final : Event<ScrollWheelEvent, bool(double, double)> {
         using Event::Event;
     };
 

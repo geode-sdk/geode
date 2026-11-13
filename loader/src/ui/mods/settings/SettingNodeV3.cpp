@@ -515,8 +515,7 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
     if (setting->getEnumOptions()) {
         m_input->getBGSprite()->setVisible(false);
         m_input->setEnabled(false);
-        m_input->getInputNode()->m_textLabel->setOpacity(255);
-        m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
+        m_input->setTextColor({255, 255, 255, 255});
 
         m_arrowLeftSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
         m_arrowLeftSpr->setFlipX(true);

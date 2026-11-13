@@ -11,7 +11,7 @@
 #include "../popups/ModtoberPopup.hpp"
 #include "../popups/FiltersPopup.hpp"
 #include "../popups/SortPopup.hpp"
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 #include "../ModsLayer.hpp"
 #include "ModListItem.hpp"
 #include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
@@ -225,7 +225,7 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     m_searchInput->setID("search-input");
     m_searchInput->setScale(.75f);
     m_searchInput->setAnchorPoint({ 0, .5f });
-    m_searchInput->setTextAlign(TextInputAlign::Left);
+    m_searchInput->setAlignment(Label::Alignment::Left);
     m_searchInput->setCommonFilter(CommonFilter::Any);
     m_searchInput->setCallback([this](auto const&) {
         float bufferTime = 0.4f;
@@ -806,4 +806,3 @@ ModList* ModList::create(ModListSource* src, CCSize const& size, bool searchingD
     delete ret;
     return nullptr;
 }
-
