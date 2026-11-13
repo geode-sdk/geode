@@ -659,7 +659,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     // Default tags
     this->addRichTag(
         "font",
-        [](std::string const& arg) {
+        [](ZStringView arg) {
             auto font = BitmapFont::load(arg.c_str());
             return font != nullptr;
         },
@@ -673,8 +673,8 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
     this->addRichTag(
         "link",
-        [](std::string const& arg) {
-            if (arg.contains("#:")) {
+        [](ZStringView arg) {
+            if (string::contains(arg, "#:")) {
                 return false;
             }
             auto lower = string::toLower(std::string(arg));
@@ -692,7 +692,7 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
     this->addRichTag(
         "date",
-        [](std::string const& arg) {
+        [](ZStringView arg) {
             auto t = utils::numFromString<time_t>(arg);
             return t.isOk();
         },

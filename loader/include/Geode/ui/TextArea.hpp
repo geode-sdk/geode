@@ -82,9 +82,9 @@ namespace geode {
      */
     class GEODE_DLL RichTextArea : public SimpleTextArea {
     public:
-        using ValidateArgs = geode::Function<bool(std::string const&)>;
+        using ValidateArgs = geode::Function<bool(geode::ZStringView)>;
         using CreateCallback = geode::Function<cocos2d::CCNode*(std::string, std::string)>;
-        using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, std::string const&, int)>;
+        using CharIterator = geode::Function<void(cocos2d::CCFontSprite*, geode::ZStringView, int)>;
         using TextAddition = geode::Function<std::string(std::string)>;
 
         static RichTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.f);
