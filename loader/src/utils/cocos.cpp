@@ -349,10 +349,29 @@ bool geode::cocos::isSpriteFrameName(CCNode* node, const char* name) {
     return false;
 }
 
-CCNode* geode::cocos::getChildBySpriteFrameName(CCNode* parent, const char* name) {
-    for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
-        if (::isSpriteFrameName(static_cast<CCNode*>(child), name)) {
-            return child;
+CCNode* geode::cocos::getChildBySpriteFrameName(CCNode* parent, const char* name, int index) {
+    size_t indexCounter = 0;
+    if (parent->getChildrenCount() == 0) return nullptr;
+    if (index < 0) {
+        index = -index - 1;
+        for (size_t i = parent->getChildrenCount() - 1;; i--) {
+            auto obj = geode::cast::typeinfo_cast<CCNode*>(parent->getChildren()->objectAtIndex(i));
+            if (obj != nullptr && isSpriteFrameName(obj, name)) {
+                if (indexCounter == index) {
+                    return obj;
+                }
+                ++indexCounter;
+            }
+            if (i == 0) break;
+        }
+    } else {
+        for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
+            if (isSpriteFrameName(child, name)) {
+                if (indexCounter == index) {
+                    return child;
+                }
+                ++indexCounter;
+            }
         }
     }
     return nullptr;
@@ -380,10 +399,29 @@ bool geode::cocos::isSpriteName(CCNode* node, const char* name) {
     return false;
 }
 
-CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name) {
-    for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
-        if (::isSpriteName(static_cast<CCNode*>(child), name)) {
-            return child;
+CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name, int index) {
+    size_t indexCounter = 0;
+    if (parent->getChildrenCount() == 0) return nullptr;
+    if (index < 0) {
+        index = -index - 1;
+        for (size_t i = parent->getChildrenCount() - 1;; i--) {
+            auto obj = geode::cast::typeinfo_cast<CCNode*>(parent->getChildren()->objectAtIndex(i));
+            if (obj != nullptr && isSpriteName(obj, name)) {
+                if (indexCounter == index) {
+                    return obj;
+                }
+                ++indexCounter;
+            }
+            if (i == 0) break;
+        }
+    } else {
+        for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
+            if (isSpriteName(child, name)) {
+                if (indexCounter == index) {
+                    return child;
+                }
+                ++indexCounter;
+            }
         }
     }
     return nullptr;
