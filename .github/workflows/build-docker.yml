@@ -1,0 +1,375 @@
+name: Build Binaries
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - '**'
+      - '!no-build-**'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android32
+            target: export-android32
+          - platform: android64
+            target: export-android64
+          - platform: ios
+            target: export-ios
+          - platform: macm1
+            target: export-macm1
+          - platform: macintel
+            target: export-macintel
+          - platform: win
+            target: export-win
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Extract commit hash
+        id: commit
+        run: echo "hash=$(git describe --always --dirty)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: setup-buildx
+
+      - name: Cache
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: cache-mount
+          key: cache-mount-${{ matrix.platform }}-${{ github.sha }}
+          restore-keys: |
+            cache-mount-${{ matrix.platform }}-
+
+      - name: Restore Docker cache mounts
+        uses: reproducible-containers/buildkit-cache-dance@v3
+        with:
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          cache-map: |
+            {
+              "cache-mount/cpm-${{ matrix.platform }}": {
+                "id":"cpm-${{ matrix.platform }}",
+                "target":"/var/cache-target"
+              },
+              "cache-mount/sccache-${{ matrix.platform }}": {
+                "id":"sccache-${{ matrix.platform }}",
+                "target":"/var/cache-target"
+              }
+            }
+          dockerfile: Dockerfile
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+
+      - name: Build platform
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          target: ${{ matrix.target }}
+          outputs: type=local,dest=./out/${{ matrix.platform }}
+          cache-from: type=gha,scope=geode-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=geode-${{ matrix.platform }}
+          build-contexts: |
+            bindings=https://github.com/geode-sdk/bindings.git#main
+          # keeps bindings's .git/ folder so loader can embed the commit hash
+          build-args: |
+            BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
+            GEODE_COMMIT_HASH=${{ steps.commit.outputs.hash }}
+          provenance: false
+
+      - name: Verify expected output
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ matrix.platform }}" in
+            android32)
+              test -f out/android32/Geode.android32.so
+              ;;
+            android64)
+              test -f out/android64/Geode.android64.so
+              ;;
+            ios)
+              test -f out/ios/Geode.ios.dylib
+              ;;
+            macm1)
+              test -f out/macm1/Geode.dylib
+              test -f out/macm1/GeodeBootstrapper.dylib
+              test -f out/macm1/libfmod.dylib
+              ;;
+            macintel)
+              test -f out/macintel/Geode.dylib
+              test -f out/macintel/GeodeBootstrapper.dylib
+              test -f out/macintel/libfmod.dylib
+              ;;
+            win)
+              test -f out/win/Geode.dll
+              test -f out/win/GeodeUpdater.exe
+              ;;
+          esac
+
+      - name: Upload platform artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: geode-${{ matrix.platform }}
+          path: out/${{ matrix.platform }}/
+          if-no-files-found: error
+          retention-days: 7
+
+  merge-macos:
+    name: Merge macOS binaries
+    runs-on: ubuntu-24.04
+    needs: build
+
+    steps:
+      - name: Install LLVM
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm
+
+      - name: Download macOS binaries (M1)
+        uses: actions/download-artifact@v4
+        with:
+          name: geode-macm1
+          path: bin/m1
+
+      - name: Download macOS binaries (Intel)
+        uses: actions/download-artifact@v4
+        with:
+          name: geode-macintel
+          path: bin/intel
+
+      - name: Merge platform binaries
+        run: |
+          set -euo pipefail
+          LIPO=$(compgen -c | grep -E '^llvm-lipo-[0-9]+$' | sort -V | tail -n 1)
+
+          mkdir -p bin/nightly
+          "$LIPO" -create bin/intel/Geode.dylib bin/m1/Geode.dylib -output bin/nightly/Geode.dylib
+          "$LIPO" -create bin/intel/GeodeBootstrapper.dylib bin/m1/GeodeBootstrapper.dylib -output bin/nightly/GeodeBootstrapper.dylib
+          cp bin/m1/libfmod.dylib bin/nightly/libfmod.dylib
+          cp -r bin/m1/resources bin/nightly/resources
+
+      - name: Upload universal macOS binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: geode-mac
+          path: bin/nightly/
+          if-no-files-found: error
+          retention-days: 7
+
+  installers:
+    name: Build ${{ matrix.installer }} installer
+    needs: [build, merge-macos]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - installer: win
+            runner: ubuntu-24.04
+          - installer: mac
+            runner: macos-latest
+          - installer: linux
+            runner: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download Windows binaries
+        if: matrix.installer == 'win' || matrix.installer == 'linux'
+        uses: actions/download-artifact@v4
+        with:
+          name: geode-win
+          path: bin/nightly
+
+      - name: Build Windows installer
+        if: matrix.installer == 'win'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends nsis
+          makensis -WX -V3 ./installer/windows/installer.nsi
+
+      - name: Upload Windows installer
+        if: matrix.installer == 'win'
+        uses: actions/upload-artifact@v4
+        with:
+          name: geode-installer-win
+          path: installer/windows/geode-installer-win.exe
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Download macOS binaries
+        if: matrix.installer == 'mac'
+        uses: actions/download-artifact@v4
+        with:
+          name: geode-mac
+          path: bin/nightly
+
+      - name: Build macOS installer
+        if: matrix.installer == 'mac'
+        run: |
+          ./installer/mac/package.sh \
+            ./bin/nightly \
+            ./installer/mac/geode-installer-mac.pkg
+
+      - name: Upload macOS installer
+        if: matrix.installer == 'mac'
+        uses: actions/upload-artifact@v4
+        with:
+          name: geode-installer-mac
+          path: installer/mac/geode-installer-mac.pkg
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Build Linux Installer
+        if: matrix.installer == 'linux'
+        run: |
+          # same files that go on the geode-win zip
+          mkdir -p dist
+          zip -j tmp.zip ./bin/nightly/{XInput1_4.dll,Geode.dll,GeodeUpdater.exe,Geode.pdb}
+          cat ./installer/linux/install-offline.sh tmp.zip > ./dist/geode-installer-linux.sh
+          chmod +x ./dist/geode-installer-linux.sh
+          zip -A ./dist/geode-installer-linux.sh
+
+      - name: Upload Linux installer
+        if: matrix.installer == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: geode-installer-linux
+          path: dist/geode-installer-linux.sh
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish nightly
+    runs-on: ubuntu-latest
+    needs: [build, installers]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Declare version variables
+        id: ref
+        run: |
+          echo "version=$(cat VERSION | xargs)" >> "$GITHUB_OUTPUT"
+          echo "hash=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-mac
+          path: artifacts/geode-mac
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-win
+          path: artifacts/geode-win
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-android32
+          path: artifacts/geode-android32
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-android64
+          path: artifacts/geode-android64
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-ios
+          path: artifacts/geode-ios
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-installer-win
+          path: artifacts/geode-installer-win
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-installer-mac
+          path: artifacts/geode-installer-mac
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: geode-installer-linux
+          path: artifacts/geode-installer-linux
+
+      - name: Prepare installer filenames
+        run: |
+          mv artifacts/geode-installer-win/geode-installer-win.exe \
+            "geode-installer-${{ steps.ref.outputs.hash }}-win.exe"
+          mv artifacts/geode-installer-mac/geode-installer-mac.pkg \
+            "geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg"
+          mv artifacts/geode-installer-linux/geode-installer-linux.sh \
+            "geode-installer-${{ steps.ref.outputs.hash }}-linux.sh"
+
+      - name: Zip macOS artifacts
+        run: |
+          cd artifacts/geode-mac
+          zip -j "../../geode-${{ steps.ref.outputs.hash }}-mac.zip" \
+            Geode.dylib GeodeBootstrapper.dylib libfmod.dylib
+
+      - name: Zip Windows artifacts
+        run: |
+          cd artifacts/geode-win
+          zip -j "../../geode-${{ steps.ref.outputs.hash }}-win.zip" \
+            XInput1_4.dll Geode.dll GeodeUpdater.exe Geode.lib Geode.pdb
+
+      - name: Zip Android 32-bit artifacts
+        run: |
+          cd artifacts/geode-android32
+          zip -j "../../geode-${{ steps.ref.outputs.hash }}-android32.zip" \
+            Geode.android32.so
+
+      - name: Zip Android 64-bit artifacts
+        run: |
+          cd artifacts/geode-android64
+          zip -j "../../geode-${{ steps.ref.outputs.hash }}-android64.zip" \
+            Geode.android64.so
+
+      - name: Zip iOS artifacts
+        run: |
+          cd artifacts/geode-ios
+          zip -j "../../geode-${{ steps.ref.outputs.hash }}-ios.zip" \
+            Geode.ios.dylib
+
+      - name: Zip resources
+        run: |
+          cd artifacts/geode-android64
+          zip -r "../../resources.zip" resources
+
+      - name: Update development release
+        uses: andelf/nightly-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly
+          name: Development Release
+          body: |
+            Geode development release for commit ${{ github.sha }}.
+            Since this is not a regular release, Geode will not install the resources automatically, so you should use the installer if you want them.
+          files: |
+            ./geode-installer-${{ steps.ref.outputs.hash }}-win.exe
+            ./geode-installer-${{ steps.ref.outputs.hash }}-mac.pkg
+            ./geode-installer-${{ steps.ref.outputs.hash }}-linux.sh
+            ./geode-${{ steps.ref.outputs.hash }}-win.zip
+            ./geode-${{ steps.ref.outputs.hash }}-mac.zip
+            ./geode-${{ steps.ref.outputs.hash }}-android32.zip
+            ./geode-${{ steps.ref.outputs.hash }}-android64.zip
+            ./geode-${{ steps.ref.outputs.hash }}-ios.zip
+            ./resources.zip

@@ -1,7 +1,7 @@
 #include <Geode/Loader.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #define GEODE_DEFINE_EVENT_EXPORTS
-#include <Geode/loader/Dispatch.hpp>
+#include <Geode/loader/EventExport.hpp>
 #include <Geode/Bindings.hpp>
 #include "main.hpp"
 
@@ -207,6 +207,14 @@ float api::addNumbers(float a, float b) {
 
 Result<int> api::Test::addNumbers(int a, int b) {
     return Ok(a + b);
+}
+
+int api::Test::withDefaultArgs(int a, int b) {
+    return a + b;
+}
+
+int api::Test::asStatic(int a, int b) {
+    return a + b;
 }
 
 int api::randomNumber() {

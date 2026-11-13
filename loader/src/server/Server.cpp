@@ -714,7 +714,7 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
         req.param("jitless", "true");
 
     if (query.platforms.size()) {
-        std::string plats = "";
+        std::string plats;
         bool first = true;
         for (auto plat : query.platforms) {
             if (!first) plats += ",";

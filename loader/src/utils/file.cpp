@@ -355,7 +355,7 @@ public:
     }
 
     Result<ByteVector> extract(PathView name) {
-        if (!m_entries.count(name)) {
+        if (!m_entries.contains(name)) {
             return Err("Entry not found");
         }
 

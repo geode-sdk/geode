@@ -51,7 +51,10 @@ bool ModList::init(ModListSource* src, CCSize const& size, bool searchingDev) {
     }
 
     m_list = ScrollLayer::create(size);
-    this->addChildAtPosition(m_list, Anchor::Bottom, ccp(-m_list->getScaledContentWidth() / 2, 0));
+    // scroll clipping doesn't make sense when its the main (and only) scroll layer onscreen
+    m_list->enableScrollClipping(false);
+    m_list->setAnchorPoint(ccp(0.5f, 0));
+    this->addChildAtPosition(m_list, Anchor::Bottom);
 
     m_topContainer = CCNode::create();
     m_topContainer->setID("top-container");
@@ -457,7 +460,7 @@ void ModList::onPromise(ModListSource::PageLoadResult result) {
     }
     else {
         auto error = std::move(result).unwrapErr();
-        this->showStatus(ModListErrorStatus(), std::move(error.message), std::move(error.details));
+        this->showStatus(ModListErrorStatus(), error.message, std::move(error.details));
         this->updateState();
     }
 }
@@ -469,7 +472,6 @@ void ModList::setIsExiting(bool exiting) {
 void ModList::onPage(CCObject* sender) {
     // If no page count has been loaded yet, we can't do anything
     if (!m_source->getPageCount()) return;
-    auto pageCount = m_source->getPageCount().value();
 
     // Make sure you can't go beyond the limits
     if (sender->getTag() < 0 && m_page >= -sender->getTag()) {

@@ -29,7 +29,7 @@ bool KeybindEditPopup::init(
         m_mainLayer->addChildAtPosition(fromModLabel, Anchor::Top, ccp(0, -40));
     }
 
-    m_setting = setting;
+    m_setting = std::move(setting);
     m_callback = std::move(callback);
     m_currentKeybind = keybind;
     auto bottomMenu = CCMenu::create();
@@ -193,7 +193,7 @@ bool KeybindListPopup::init(
     m_noElasticity = true;
 
     m_callback = std::move(callback);
-    m_setting = setting;
+    m_setting = std::move(setting);
     m_currentKeybinds = keybinds;
     m_hasChanged = false;
 
