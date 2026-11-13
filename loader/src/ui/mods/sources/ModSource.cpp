@@ -6,8 +6,8 @@
 #include <Geode/ui/GeodeUI.hpp>
 #include <server/DownloadManager.hpp>
 #include <Geode/binding/GameObject.hpp>
-#include <unordered_set>
 #include <Geode/cocos/particle_nodes/CCParticleSystem.h>
+#include <Geode/ui/MDPopup.hpp>
 
 ModSource::ModSource(Mod* mod, ModListSource* listSource)
   : m_value(mod), m_listSource(listSource) {}
