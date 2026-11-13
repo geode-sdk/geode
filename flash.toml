@@ -14,6 +14,7 @@ dir = "docs"
 assets = [
     "docs/assets/*.png",
     "docs/assets/settings/*.png",
+    "docs/assets/emojis/*.png",
     "docs/assets/handbook/vol1/*.png",
     "docs/assets/handbook/vol2/*.png",
 ]
