@@ -142,7 +142,7 @@ void NumberInputPopup::setPrecision(size_t precision) {
 }
 
 void NumberInputPopup::setInputWidth(float width) {
-    m_impl->m_input->setWidth(std::clamp(width, 50.0f, m_mainLayer->getContentWidth() - 65.0f));
+    m_impl->m_input->setContentWidth(std::clamp(width, 50.0f, m_mainLayer->getContentWidth() - 65.0f));
     m_impl->m_inputContainer->updateLayout();
 }
 
@@ -171,8 +171,7 @@ double NumberInputPopup::getMax() const noexcept {
     return m_impl->m_max;
 }
 
-// TODO: (textinput rewrite) switch to `std::string const&`
-ZStringView NumberInputPopup::getValueString() const {
+std::string const& NumberInputPopup::getValueString() const noexcept {
     return m_impl->m_input->getString();
 }
 

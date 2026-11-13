@@ -15,7 +15,10 @@ namespace geode {
         NumberInputPopup();
         ~NumberInputPopup();
 
-        bool init(double defValue, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max);
+        bool init(
+            double defValue, std::string title, ZStringView bg, std::optional<double> min,
+            std::optional<double> max
+        );
 
     public:
         using SubmitCallback = Function<void(NumberInputPopup*, double)>;
@@ -25,7 +28,10 @@ namespace geode {
         /// @param title Title to show on the popup
         /// @param min Lowest allowed number
         /// @param max Highest allowed number
-        static NumberInputPopup* create(double defValue, std::string title, std::optional<double> min = std::nullopt, std::optional<double> max = std::nullopt);
+        static NumberInputPopup* create(
+            double defValue, std::string title, std::optional<double> min = std::nullopt,
+            std::optional<double> max = std::nullopt
+        );
 
         /// Create a generic number input popup with distinct theming
         /// @param defValue Default number to appear first on the input
@@ -33,7 +39,10 @@ namespace geode {
         /// @param bg Sprite name for the popup background
         /// @param min Lowest allowed number
         /// @param max Highest allowed number
-        static NumberInputPopup* create(double defValue, std::string title, ZStringView bg, std::optional<double> min = std::nullopt, std::optional<double> max = std::nullopt);
+        static NumberInputPopup* create(
+            double defValue, std::string title, ZStringView bg,
+            std::optional<double> min = std::nullopt, std::optional<double> max = std::nullopt
+        );
 
         /// Set up the sprite for the submit button
         /// @param text The new text to set
@@ -77,8 +86,7 @@ namespace geode {
         double getMin() const noexcept;
         double getMax() const noexcept;
 
-        // TODO: (textinput rewrite) switch to `std::string const&`
-        ZStringView getValueString() const;
+        std::string const& getValueString() const noexcept;
 
         double getArrowStep() const noexcept;
 
