@@ -2861,7 +2861,7 @@ EmojiRegistry Label::getEmojiRegistry() {
     return EmojiRegistry(m_impl->m_emojiRegistry);
 }
 
-void Label::removeEmojis() {
+void Label::disableEmojis() {
     this->setEmojiRegistry(EmojiRegistry());
 }
 

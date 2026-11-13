@@ -1274,7 +1274,7 @@ void TextInput::setDisplayEmojis(bool allow) {
     if (allow) {
         m_impl->m_label->setEmojiRegistry(EmojiRegistry::vanillaEmojis());
     } else {
-        m_impl->m_label->removeEmojis();
+        m_impl->m_label->disableEmojis();
     }
 }
 
