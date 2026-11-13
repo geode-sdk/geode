@@ -10,14 +10,14 @@ using namespace geode::prelude;
 
 class BaseSettingsPopup : public geode::GeodePopup {
 protected:
-    ScrollLayer* m_list;
+    ScrollLayer* m_list = nullptr;
     std::vector<Ref<SettingNode>> m_settings;
-    CCMenu* m_applyMenu;
-    CCMenuItemSpriteExtra* m_applyBtn;
-    CCMenuItemSpriteExtra* m_restartBtn;
-    ButtonSprite* m_applyBtnSpr;
-    TextInput* m_searchInput;
-    CCMenuItemSpriteExtra* m_searchClearBtn;
+    CCNode* m_applyMenu = nullptr;
+    Button* m_applyBtn = nullptr;
+    Button* m_restartBtn = nullptr;
+    ButtonSprite* m_applyBtnSpr = nullptr;
+    TextInput* m_searchInput = nullptr;
+    Button* m_searchClearBtn = nullptr;
     ListenerHandle m_changeHandle;
     CCSize m_listSize;
 
@@ -27,8 +27,4 @@ protected:
 
     bool hasUncommitted() const;
     void onClose(CCObject*) override;
-    void onApply(CCObject*);
-    void onRestart(CCObject*);
-    void onResetAll(CCObject*);
-    void onClearSearch(CCObject*);
 };

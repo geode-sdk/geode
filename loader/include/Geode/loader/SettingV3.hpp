@@ -4,10 +4,10 @@
 #include <optional>
 #include <concepts>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/Button.hpp>
 #include <Geode/cocos/include/ccTypes.h>
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
-#include <Geode/cocos/menu_nodes/CCMenu.h>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include "../utils/file.hpp"
 // this unfortunately has to be included because of C++ templates
@@ -659,14 +659,11 @@ namespace geode {
         void setDefaultBGColor(cocos2d::ccColor4B color);
 
         geode::Label* getNameLabel() const;
-        CCMenuItemSpriteExtra* getDescriptionButton() const;
+        geode::Button* getDescriptionButton() const;
         geode::Label* getStatusLabel() const;
-        cocos2d::CCMenu* getNameMenu() const;
-        cocos2d::CCMenu* getButtonMenu() const;
+        cocos2d::CCNode* getNameMenu() const;
+        cocos2d::CCNode* getButtonMenu() const;
         cocos2d::CCLayerColor* getBG() const;
-
-        // Useful if you're programmatically creating setting nodes
-        void overrideDescription(std::optional<ZStringView> description);
 
         void setContentSize(cocos2d::CCSize const& size) override;
 
