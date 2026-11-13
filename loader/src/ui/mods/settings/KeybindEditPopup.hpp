@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 
 using namespace geode::prelude;
 
@@ -10,7 +10,7 @@ CCNode* createKeybindButton(Keybind const& keybind);
 // contain the KeybindSettingV3 directly and instead take a title, subtitle, 
 // etc.
 
-class KeybindEditPopup : public GeodePopup {
+class KeybindEditPopup : public geode::GeodePopup {
 protected:
     std::shared_ptr<KeybindSettingV3> m_setting;
     CCNode* m_keybindNode = nullptr;
@@ -41,7 +41,7 @@ public:
     );
 };
 
-class KeybindListPopup : public GeodePopup {
+class KeybindListPopup : public geode::GeodePopup {
 protected:
     std::shared_ptr<KeybindSettingV3> m_setting;
     std::vector<Keybind> m_currentKeybinds;

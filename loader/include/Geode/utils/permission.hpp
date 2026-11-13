@@ -6,8 +6,10 @@
 
 namespace geode::utils::permission {
     enum class Permission {
-        ReadAllFiles = 0x3, // maintain compatibility with some older mods
-        RecordAudio
+        ReadAllFiles,
+        RecordAudio,
+        /// Represents `ACCESS_LOCAL_NETWORK` aka "Nearby devices" on Android 16+
+        AccessLocalNetwork,
     };
 
     /**

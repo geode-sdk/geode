@@ -8,7 +8,7 @@
 #include <Geode/ui/Toggler.hpp>
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/Label.hpp>
-#include <ui/mods/GeodeStyle.hpp>
+#include <ui/GeodeStyle.hpp>
 
 using namespace geode::prelude;
 
@@ -133,6 +133,7 @@ protected:
         this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, {22.0f, 0.0f});
 
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40.0f, "Num");
+        m_input->setNumericMode(true);
         m_input->setScale(.7f);
         m_input->setCommonFilter(std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int);
         m_input->setCallback([this, setting](auto const& str) {
@@ -141,8 +142,7 @@ protected:
         if (!setting->isInputEnabled()) {
             m_input->getBGSprite()->setVisible(false);
             m_input->setEnabled(false);
-            m_input->getInputNode()->m_textLabel->setOpacity(255);
-            m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
+            m_input->setTextColor({255, 255, 255, 255});
         }
         this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Center);
 
@@ -219,7 +219,7 @@ protected:
             m_input->setEnabled(enable);
         }
 
-        if (invoker != m_input && (invoker != nullptr || !m_input->getInputNode()->m_selected)) {
+        if (invoker != m_input && (invoker != nullptr || !m_input->isFocused())) {
             // round to 5 decimal places to avoid floating point errors
             m_input->setString(numToString(round(this->getValue() * 100000.0) / 100000.0));
         }

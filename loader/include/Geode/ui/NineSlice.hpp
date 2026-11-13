@@ -82,7 +82,6 @@ namespace geode {
 
         void setup(Insets const& insets, cocos2d::CCRect const& rect = {});
 
-        void setSpriteRect(cocos2d::CCSprite* spr, cocos2d::CCRect rect, cocos2d::CCAffineTransform transform);
         void createRepeatingSprites(cocos2d::CCSprite* spr, int horizontalAmount, int verticalAmount, float lastHorizontalFactor, float lastVerticalFactor);
 
         void createSprites();

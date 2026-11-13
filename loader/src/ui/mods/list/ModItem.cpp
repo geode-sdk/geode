@@ -14,7 +14,7 @@
 #include <Geode/ui/MDPopup.hpp>
 #include <Geode/ui/Label.hpp>
 #include <server/DownloadManager.hpp>
-#include <ui/mods/GeodeStyle.hpp>
+#include <ui/GeodeStyle.hpp>
 #include <ui/mods/popups/ModPopup.hpp>
 #include <ui/mods/popups/DevPopup.hpp>
 #include <ui/mods/sources/ModSource.hpp>

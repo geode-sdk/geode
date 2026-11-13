@@ -53,15 +53,15 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     searchContainer->setID("search-menu");
     searchContainer->setContentSize({ m_listSize.width, 30.0f });
 
-    m_searchInput = TextInput::create((m_listSize.width - 15.0f) / .7f - 40.0f, "Search settings...");
-    m_searchInput->setTextAlign(TextInputAlign::Left);
-    m_searchInput->setScale(.7f);
+    m_searchInput = TextInput::create((m_listSize.width - 15.0f) / 0.7f - 40.0f, "Search settings...");
+    m_searchInput->setAlignment(Label::Alignment::Left);
+    m_searchInput->setScale(0.7f);
     m_searchInput->setCallback([this](auto const&) {
         this->updateState();
         m_list->moveToTop();
     });
     m_searchInput->setID("search-input");
-    searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, {7.5f, 0.0f}, {0.0f, .5f});
+    searchContainer->addChildAtPosition(m_searchInput, Anchor::Left, {7.5f, 0.0f}, {0.0f, 0.5f});
 
     m_searchClearBtn = Button::createWithNode(
         GeodeSquareSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png", nullptr, m_forceDisableTheme),

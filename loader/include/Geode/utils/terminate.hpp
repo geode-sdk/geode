@@ -14,13 +14,15 @@ namespace geode::utils {
 #ifdef GEODE_IS_WINDOWS
     static constexpr size_t GEODE_TERMINATE_EXCEPTION_CODE   = 0x4000;
     static constexpr size_t GEODE_UNREACHABLE_EXCEPTION_CODE = 0x4001;
+    static constexpr size_t GEODE_ABORTED_EXCEPTION_CODE = 0x4002;
 
     static constexpr bool isGeodeExceptionCode(size_t code) {
-        return GEODE_TERMINATE_EXCEPTION_CODE <= code && code <= GEODE_UNREACHABLE_EXCEPTION_CODE;
+        return GEODE_TERMINATE_EXCEPTION_CODE <= code && code <= GEODE_ABORTED_EXCEPTION_CODE;
     }
 #else
     static constexpr size_t GEODE_TERMINATE_EXCEPTION_CODE = 0;
     static constexpr size_t GEODE_UNREACHABLE_EXCEPTION_CODE = 0;
+    static constexpr size_t GEODE_ABORTED_EXCEPTION_CODE = 0;
 
     static constexpr bool isGeodeExceptionCode(size_t code) {
         return false;
