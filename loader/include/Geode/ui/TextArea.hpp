@@ -51,7 +51,7 @@ namespace geode {
         float getScale() override;
         void setLinePadding(float padding);
         float getLinePadding();
-        std::vector<geode::Label*> getLines();
+        std::vector<cocos2d::CCLabelBMFont*> getLines();
         float getHeight();
         float getLineHeight();
 
@@ -80,7 +80,7 @@ namespace geode {
         virtual bool isCancellation() const = 0;
         virtual std::string runStrAddition() = 0;
         virtual bool isButton() const = 0;
-        virtual void callButton(bool keyDown, cocos2d::CCFontSprite* spr, std::set<cocos2d::CCFontSprite*> const& word) = 0;
+        virtual void callButton(int keyState, bool hoverClickOn, cocos2d::CCFontSprite* spr, std::set<cocos2d::CCFontSprite*> const& word) = 0;
     };
 
     template <class T>
@@ -116,9 +116,9 @@ namespace geode {
             return m_key->m_buttonFunctionallity != NULL;
         }
 
-        void callButton(bool keyDown, cocos2d::CCFontSprite* spr, std::set<cocos2d::CCFontSprite*> const& word){
+        void callButton(int keyState, bool hoverClickOn, cocos2d::CCFontSprite* spr, std::set<cocos2d::CCFontSprite*> const& word) override {
             if (m_key->m_buttonFunctionallity != NULL)
-                m_key->m_buttonFunctionallity(m_value, keyDown, spr, word);
+                m_key->m_buttonFunctionallity(m_value, keyState, hoverClickOn, spr, word);
         }
     };
 
@@ -127,62 +127,175 @@ namespace geode {
         virtual ~RichTextKeyBase() = default;
         virtual Result<std::shared_ptr<RichTextKeyInstanceBase>> createInstance(std::string const& value, bool cancellation) = 0;
         virtual std::string getKey() const = 0;
+        virtual std::set<std::string> getSpecialExits() const = 0;
     };
 
     template <class T>
     class RichTextKey final : public RichTextKeyBase {
     public:
+        using ValidationCheck = geode::Function<Result<T>(std::string const& value)>;
+        using ApplyToSprite = geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex)>;
+        using StringAddition = geode::Function<std::string(T const& value)>;
+        using ButtonFunctionallity = geode::Function<void(
+                T const& value,
+                int keyState,
+                bool hoverClickOn,
+                cocos2d::CCFontSprite* specificSpriteClicked,
+                std::set<cocos2d::CCFontSprite*> const& wordClicked)>;
+
+        ValidationCheck m_validCheck = NULL;
+        ApplyToSprite m_applyToSprite = NULL;
+        StringAddition m_stringAddition = NULL;
+        ButtonFunctionallity m_buttonFunctionallity = NULL;
+
         /**
-            @param key The identifier name for this rich text key
-            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
-            @param applyToSprite Function to apply the parsed value to a font sprite (optional)
+            @param key The identifier name for this rich text key.
+            @param validCheck Function used to validate and parse the value string into type `T`.
+            @param buttonFunctionallity Function called when the tagged text is clicked.
+
+            validCheck Parameters:
+
+                - `value`: Raw string value from the rich text tag.
+
+            validCheck Returns:
+
+                - `Result<T>` containing the parsed value.
+                - If an error is returned, the key will not be processed.
+
+            buttonFunctionallity Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+
+                - `keyState`:
+                Current state of the button
+                    1 = pressed
+                    2 = pressed and held
+                    3 = released
+
+                - `specificSpriteClicked`:
+                The exact `CCFontSprite` that was clicked.
+
+                - `wordClicked`:
+                All sprites belonging to the clicked segment.
         */
         RichTextKey(
             std::string key,
-            geode::Function<Result<T>(std::string const& value)> validCheck,
-            geode::Function<void(
-                T const& value,
-                bool keyDown,
-                cocos2d::CCFontSprite* specificSpriteClicked,
-                std::set<cocos2d::CCFontSprite*> const& wordClicked)> buttonFunctionallity
+            ValidationCheck validCheck,
+            ButtonFunctionallity buttonFunctionallity
         ) : m_key(std::move(key)),
             m_validCheck(std::move(validCheck)),
             m_buttonFunctionallity(std::move(buttonFunctionallity)) {}
+        
         /**
-            @param key The identifier name for this rich text key
-            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
-            @param applyToSprite Function to apply the parsed value to a font sprite (optional)
+            @param key The identifier name for this rich text key.
+            @param validCheck Function used to validate and parse the value string into type `T`.
+            @param applyToSprite Function to apply the parsed value to a font sprite. this function gets called for each letter in the range.
+
+            validCheck Parameters:
+
+                - `value`: Raw string value from the rich text tag.
+
+            validCheck Returns:
+
+                - `Result<T>` containing the parsed value.
+                - If an error is returned, the key will not be processed.
+
+            applyToSprite Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+
+                - `sprite`:
+                The current sprite of the current letter we iterate over
+
+                - `localIndex`:
+                The index of the current letter within the range of the key
+
+                - `charIndex`:
+                The index of the current letter within the entire text area
         */
         RichTextKey(
             std::string key,
-            geode::Function<Result<T>(std::string const& value)> validCheck,
-            geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex)> applyToSprite
+            ValidationCheck validCheck,
+            ApplyToSprite applyToSprite
         ) : m_key(std::move(key)),
             m_validCheck(std::move(validCheck)),
             m_applyToSprite(std::move(applyToSprite)) {}
+        
         /**
-            @param key The identifier name for this rich text key
-            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
-            @param stringAddition Function to add a new string at the point where the key is (optional)
+            @param key The identifier name for this rich text key.
+            @param validCheck Function used to validate and parse the value string into type `T`.
+            @param applyToSprite Function to apply the parsed value to a font sprite. this function gets called for each letter in the range.
+            @param stringAddition Function to add a new string at the point where the key is.
+
+            validCheck Parameters:
+
+                - `value`: Raw string value from the rich text tag.
+
+            validCheck Returns:
+
+                - `Result<T>` containing the parsed value.
+                - If an error is returned, the key will not be processed.
+
+            stringAddition Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+            
+            stringAddition Returns:
+
+                - `std::string` the string to add at the point of the key.
         */
         RichTextKey(
             std::string key,
-            geode::Function<Result<T>(std::string const& value)> validCheck,
-            geode::Function<std::string(T const& value)> stringAddition
+            ValidationCheck validCheck,
+            StringAddition stringAddition
         ) : m_key(std::move(key)),
             m_validCheck(std::move(validCheck)),
             m_stringAddition(std::move(stringAddition)) {}
         /**
-            @param key The identifier name for this rich text key
-            @param validCheck Function to validate and parse the value string into type T (if an error is returned the key will not be processed)
-            @param applyToSprite Function to apply the parsed value to a font sprite (optional)
-            @param stringAddition Function to add a new string at the point where the key is (optional)
+            @param key The identifier name for this rich text key.
+            @param validCheck Function used to validate and parse the value string into type `T`.
+            @param stringAddition Function to add a new string at the point where the key is.
+
+            validCheck Parameters:
+
+                - `value`: Raw string value from the rich text tag.
+
+            validCheck Returns:
+
+                - `Result<T>` containing the parsed value.
+                - If an error is returned, the key will not be processed.
+
+            applyToSprite Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+
+                - `sprite`:
+                The current sprite of the current letter we iterate over
+
+                - `localIndex`:
+                The index of the current letter within the range of the key
+
+                - `charIndex`:
+                The index of the current letter within the entire text area
+
+            stringAddition Parameters:
+
+                - `value`:
+                Parsed value returned from `validCheck`.
+            
+            stringAddition Returns:
+
+                - `std::string` the string to add at the point of the key.
         */
         RichTextKey(
             std::string key,
-            geode::Function<Result<T>(std::string const& value)> validCheck,
-            geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex)> applyToSprite,
-            geode::Function<std::string(T const& value)> stringAddition
+            ValidationCheck validCheck,
+            ApplyToSprite applyToSprite,
+            StringAddition stringAddition
         ) : m_key(std::move(key)),
             m_validCheck(std::move(validCheck)),
             m_applyToSprite(std::move(applyToSprite)),
@@ -211,18 +324,17 @@ namespace geode {
             return m_key;
         }
 
+        std::set<std::string> getSpecialExits() const override {
+            return m_specialExits;
+        }
+
+        void setSpecialExits(std::set<std::string> specialExists) {
+            m_specialExits = std::move(specialExists);
+        }
+
     private:
         std::string m_key;
-
-    public:
-        geode::Function<Result<T>(std::string const& value)> m_validCheck = NULL;
-        geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex)> m_applyToSprite = NULL;
-        geode::Function<std::string(T const& value)> m_stringAddition = NULL;
-        geode::Function<void(
-                T const& value,
-                bool keyDown,
-                cocos2d::CCFontSprite* specificSpriteClicked,
-                std::set<cocos2d::CCFontSprite*> const& wordClicked)> m_buttonFunctionallity = NULL;
+        std::set<std::string> m_specialExits{};
     };
 
 
@@ -233,7 +345,12 @@ namespace geode {
 
         std::string getRawText();
 
+        void updateContent();
+
+        std::vector<std::shared_ptr<RichTextKeyBase>> getTextKeys();
+
         void registerRichTextKey(std::shared_ptr<RichTextKeyBase> key);
+        void unregisterRichTextKey(std::string const& keyName);
     protected:
         RichTextArea();
         ~RichTextArea();
@@ -247,7 +364,7 @@ namespace geode {
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
 
         bool ccTouchBegan(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
-
+        void ccTouchMoved(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
         void ccTouchEnded(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
         void ccTouchCancelled(cocos2d::CCTouch *pTouch, cocos2d::CCEvent *pEvent) override;
 
