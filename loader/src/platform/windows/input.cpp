@@ -549,6 +549,14 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         keyCode = data.key;
 
         if (result == ListenerResult::Propagate && keyCode != KEY_Unknown) {
+            auto* keyboardDispatcher = CCKeyboardDispatcher::get();
+            keyboardDispatcher->updateModifierKeys(
+                evt.mods & KeyboardModifier::Shift,
+                evt.mods & KeyboardModifier::Control,
+                evt.mods & KeyboardModifier::Alt,
+                evt.mods & KeyboardModifier::Super
+            );
+
             auto* ime = CCIMEDispatcher::sharedDispatcher();
             if (isDown) {
                 switch (keyCode) {
@@ -571,15 +579,6 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                         break;
                 }
             }
-
-            auto* keyboardDispatcher = CCKeyboardDispatcher::get();
-
-            keyboardDispatcher->updateModifierKeys(
-                evt.mods & KeyboardModifier::Shift,
-                evt.mods & KeyboardModifier::Control,
-                evt.mods & KeyboardModifier::Alt,
-                evt.mods & KeyboardModifier::Super
-            );
 
             if (!ime->hasDelegate() || keyCode == KEY_Escape || keyCode == KEY_Enter) {
                 keyboardDispatcher->dispatchKeyboardMSG(
@@ -777,6 +776,15 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
         // clearQueuedInput should've released all keys already
         RawInputQueue::get().clear();
         KeyStateTracker::get().clear();
+    }
+
+    void onGLFWMouseScrollCallback(GLFWwindow* window, double x, double y) {
+        constexpr double SPEED = 12;
+        // fixes robtop's hardcoded check that breaks horizontal scrolling
+        CCMouseDispatcher::get()->dispatchScrollMSG(
+            static_cast<float>(y * -SPEED),
+            static_cast<float>(x * SPEED)
+        );
     }
 };
 
