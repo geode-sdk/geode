@@ -1,5 +1,6 @@
 #include <Geode/ui/TextArea.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/Button.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
