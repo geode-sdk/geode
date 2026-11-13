@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #include <Geode/loader/IPC.hpp>
 #include <Geode/loader/Log.hpp>
-#include <geode/utils/StringMap.hpp>
+#include <Geode/utils/StringMap.hpp>
 #include <iostream>
 #include <loader/LoaderImpl.hpp>
 #include <loader/console.hpp>

@@ -86,6 +86,7 @@ namespace geode::utils::file {
 
     GEODE_DLL Result<> createDirectory(asp::fs::PathView path);
     GEODE_DLL Result<> createDirectoryAll(asp::fs::PathView path);
+    GEODE_DLL Result<> moveDirectoryContents(asp::fs::PathView source, asp::fs::PathView target);
     GEODE_DLL Result<std::vector<asp::fs::Path>> readDirectory(
         asp::fs::PathView path, bool recursive = false
     );
