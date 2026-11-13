@@ -484,7 +484,7 @@ void RichTextArea::RichImpl::parseRichText() {
             }
 
             auto it = std::ranges::find(m_tags, id, &RichTag::id);
-            if (it == std::ranges::end(m_tags)) {
+            if (it == m_tags.end()) {
                 newText += c;
                 continue;
             }
