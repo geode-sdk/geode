@@ -396,6 +396,7 @@ public:
     };
 
     void parseRichText();
+    bool tryParseRichTag(size_t& idx, std::deque<TagInstance>& stack, std::string& newString, std::string& tagText);
     void registerTag(std::string const& str, TagInstance const& instance);
     Label* getErrorText();
 
@@ -425,95 +426,19 @@ void RichTextArea::RichImpl::parseRichText() {
     std::deque<TagInstance> stack;
     std::string tagText;
 
-    auto replaceTag = [&](TagInstance const& instance) {
-        auto repl = instance.makeReplacement(tagText);
-        newText += repl;
-        this->registerTag(repl, instance);
-        tagText.clear();
-    };
-
     for (size_t i = 0; i < m_text.size(); i++) {
         char c = m_text[i];
         if (c == '<') {
-            auto closing = m_text.find('>', i);
-            if (closing == std::string::npos) {
+            if (!this->tryParseRichTag(i, stack, newText, tagText)) {
                 newText += c;
-                continue;
             }
-
-            auto tag = m_text.substr(i + 1, closing - i - 1);
-            if (tag.empty()) {
-                newText += c;
-                continue;
-            }
-
-            if (tag[0] == '/') {
-                if (stack.empty()) {
-                    newText += c;
-                    continue;
-                }
-                auto t = std::ranges::find(stack, tag.substr(1), &TagInstance::id);
-                if (t == stack.end()) {
-                    newText += c;
-                    continue;
-                }
-
-                if (t->tag->addText) {
-                    newText += c;
-                    continue;
-                }
-
-                replaceTag(*t);
-                i += closing - i;
-                stack.pop_front();
-                continue;
-            }
-            if (string::endsWith(tag, "/")) {
-                tag = tag.substr(0, tag.size() - 1);
-                string::trimRightIP(tag);
-            }
-
-            std::string id;
-            std::string arg;
-            size_t sep = tag.find_first_of("-=");
-            if (sep != std::string::npos) {
-                arg = tag.substr(sep + 1);
-                id = tag.substr(0, sep);
-            } else {
-                id = tag;
-            }
-
-            auto it = std::ranges::find(m_tags, id, &RichTag::id);
-            if (it == m_tags.end()) {
-                newText += c;
-                continue;
-            }
-            auto instance = TagInstance{
-                .tag = &*it,
-                .id = std::move(id),
-                .arg = std::move(arg),
-                .idx = static_cast<int>(i)
-            };
-
-            if (!instance.verifyArgs()) {
-                newText += c;
-                continue;
-            }
-
-            if (!stack.empty()) {
-                replaceTag(stack.at(0));
-            }
-
-            if (instance.tag->addText) {
-                replaceTag(instance);
-            } else {
-                stack.push_front(std::move(instance));
-            }
-
-            i += closing - i;
         } else if (c == '\n') {
             if (!stack.empty()) {
-                replaceTag(stack.at(0));
+                TagInstance const& instance = stack.at(0);
+                auto repl = instance.makeReplacement(tagText);
+                newText += repl;
+                this->registerTag(repl, instance);
+                tagText.clear();
             }
             newText += c;
         } else {
@@ -526,10 +451,85 @@ void RichTextArea::RichImpl::parseRichText() {
     }
 
     if (!stack.empty()) {
-        replaceTag(stack.at(0));
+        TagInstance const& instance = stack.at(0);
+        auto repl = instance.makeReplacement(tagText);
+        newText += repl;
+        this->registerTag(repl, instance);
+        tagText.clear();
     }
 
     m_text = newText;
+}
+
+bool RichTextArea::RichImpl::tryParseRichTag(
+    size_t& idx,
+    std::deque<TagInstance>& stack,
+    std::string& newString,
+    std::string& tagText
+) {
+    auto replaceTag = [&](TagInstance const& instance) {
+        auto repl = instance.makeReplacement(tagText);
+        newString += repl;
+        this->registerTag(repl, instance);
+        tagText.clear();
+    };
+
+    auto closing = m_text.find(">", idx);
+    if (closing == std::string::npos) return false;
+
+    auto tag = m_text.substr(idx + 1, closing - idx - 1);
+    if (tag.empty()) return false;
+
+    if (tag[0] == '/') {
+        if (stack.empty()) return false;
+        auto t = std::ranges::find(stack, tag.substr(1), &TagInstance::id);
+        if (t == stack.end()) return false;
+
+        if (t->tag->addText) return false;
+
+        replaceTag(*t);
+        idx += closing - idx;
+        stack.pop_front();
+    }
+
+    if (string::endsWith(tag, "/")) {
+        tag = tag.substr(0, tag.size() - 1);
+        string::trimRightIP(tag);
+    }
+
+    std::string id;
+    std::string arg;
+    size_t sep = tag.find_first_of("-=");
+    if (sep != std::string::npos) {
+        arg = tag.substr(sep + 1);
+        id = tag.substr(0, sep);
+    } else {
+        id = tag;
+    }
+
+    auto it = std::ranges::find(m_tags, id, &RichTag::id);
+    if (it == m_tags.end()) return false;
+
+    auto instance = TagInstance{
+        .tag = &*it,
+        .id = std::move(id),
+        .arg = std::move(arg),
+        .idx = static_cast<int>(idx)
+    };
+    if (!instance.verifyArgs()) return false;
+
+    if (!stack.empty()) {
+        replaceTag(stack.at(0));
+    }
+
+    if (instance.tag->addText) {
+        replaceTag(instance);
+    } else {
+        stack.push_front(std::move(instance));
+    }
+
+    idx += closing - idx;
+    return true;
 }
 
 void RichTextArea::RichImpl::registerTag(std::string const& str, TagInstance const& instance) {
