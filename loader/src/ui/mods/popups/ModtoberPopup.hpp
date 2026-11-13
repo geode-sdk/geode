@@ -1,11 +1,12 @@
 #pragma once
 
+#include "../../GeodeStyle.hpp"
+
 #include <Geode/ui/Popup.hpp>
-#include "../GeodeStyle.hpp"
 
 using namespace geode::prelude;
 
-class ModtoberPopup : public GeodePopup {
+class ModtoberPopup : public geode::GeodePopup {
 protected:
     bool init() override;
 
