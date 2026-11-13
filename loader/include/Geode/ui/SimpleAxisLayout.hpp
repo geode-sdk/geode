@@ -212,7 +212,7 @@ public:
     std::optional<float> getMinRelativeScale() const;
     std::optional<float> getMaxRelativeScale() const;
     Padding getPadding() const;
-    bool usesBoundingBox() const;
+    bool isUsingBoundingBox() const;
 };
 
 class GEODE_DLL SimpleRowLayout final : public SimpleAxisLayout {

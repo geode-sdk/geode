@@ -273,7 +273,7 @@ public:
     float getDefaultMinScale() const;
     float getDefaultMaxScale() const;
     Padding getPadding() const;
-    bool usesBoundingBox() const;
+    bool isUsingBoundingBox() const;
 
     AxisLayout* setAxis(Axis axis);
     /**

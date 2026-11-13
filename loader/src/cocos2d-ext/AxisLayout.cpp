@@ -944,7 +944,7 @@ Padding AxisLayout::getPadding() const {
     return m_impl->m_padding;
 }
 
-bool AxisLayout::usesBoundingBox() const {
+bool AxisLayout::isUsingBoundingBox() const {
     return m_impl->m_useBoundingBox;
 }
 
