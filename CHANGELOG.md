@@ -16,6 +16,8 @@
  * Use Geode's nodes in `geode::Popup` (#2302)
  * Handle SIGABRT for windows crashlogs (d22af24)
  * Add char overloads for split and splitView (#2192)
+ * Add `NumParseError`, `ModifyError`, `HookError`, `FileError` with appropriate `Result<>` returns changed to use the error values (#2374)
+ * Update result and Tuliphook (#2374)
 
 ## v6.0.0-alpha.1
  * Geometry Dash 2.209x support
