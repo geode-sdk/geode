@@ -214,14 +214,13 @@ namespace geode {
 
             decltype(Unknown) m_value = Unknown;
 
-            constexpr ~NumParseError() = default;
             constexpr NumParseError() = default;
             constexpr NumParseError(decltype(Unknown) value) : m_value(value) {}
             constexpr NumParseError& operator=(decltype(Unknown) value) {
                 m_value = value;
                 return *this;
             }
-            constexpr decltype(Unknown) value() const{
+            constexpr decltype(Unknown) value() const {
                 return m_value;
             }
 

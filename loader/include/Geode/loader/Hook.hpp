@@ -25,7 +25,6 @@ namespace geode {
         tulip::hook::Error m_error;
         Patch* m_other = nullptr;
 
-        constexpr ~HookError() = default;
         constexpr HookError() = default;
         constexpr HookError(decltype(Unknown) value) : m_value(value) {}
         constexpr HookError(tulip::hook::Error error) : m_value(TulipHook), m_error(std::move(error)) {}
@@ -34,7 +33,7 @@ namespace geode {
             m_value = value;
             return *this;
         }
-        constexpr decltype(Unknown) value() const{
+        constexpr decltype(Unknown) value() const {
             return m_value;
         }
 

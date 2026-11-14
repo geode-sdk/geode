@@ -124,18 +124,13 @@ namespace geode::modifier {
 
         decltype(Unknown) m_value;
 
-        constexpr ~ModifyError() = default;
         constexpr ModifyError() = default;
-        constexpr ModifyError(ModifyError const&) = default;
-        constexpr ModifyError(ModifyError&&) = default;
         constexpr ModifyError(decltype(Unknown) value) : m_value(value) {}
-        constexpr ModifyError& operator=(ModifyError const&) = default;
-        constexpr ModifyError& operator=(ModifyError&&) = default;
         constexpr ModifyError& operator=(decltype(Unknown) value) {
             m_value = value;
             return *this;
         }
-        constexpr decltype(Unknown) value() const{
+        constexpr decltype(Unknown) value() const {
             return m_value;
         }
 
