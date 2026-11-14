@@ -280,9 +280,10 @@ if (ANDROID)
 	endif()
 endif()
 
-set(MAT_JSON_AS_INTERFACE ON)
 CPMAddPackage("gh:geode-sdk/result#1668d22")
-CPMAddPackage("gh:geode-sdk/json@4.0.1")
+set(MAT_JSON_AS_INTERFACE ON)
+set(MAT_JSON_BUILD_IMPL ${PROJECT_IS_TOP_LEVEL})
+CPMAddPackage("gh:geode-sdk/json@4.1.0")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
 CPMAddPackage("gh:fmtlib/fmt#12.2.0")
 
