@@ -98,8 +98,16 @@ struct AxisPosition {
     float crossAnchor;
 };
 
-static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale) {
-    auto scaledSize = node->getScaledContentSize() * scale;
+static AxisPosition nodeAxis(CCNode* node, Axis axis, float scale, bool useBoundingBox) {
+    CCSize scaledSize;
+    if (useBoundingBox) {
+        auto baseSize = CCSize{node->boundingBox().size.width / node->getScaleX(), node->boundingBox().size.height / node->getScaleY()};
+        scaledSize = baseSize * scale;
+    }
+    else {
+        scaledSize = node->getScaledContentSize() * scale;
+    }
+
     std::optional<float> axisLength = std::nullopt;
     if (auto opts = axisOpts(node)) {
         axisLength = opts->getLength();
@@ -137,6 +145,7 @@ public:
     bool m_crossReverse = false;
     bool m_allowCrossAxisOverflow = true;
     bool m_growCrossAxis = false;
+    bool m_useBoundingBox = false;
     std::optional<float> m_autoGrowAxisMinLength;
     std::pair<float, float> m_defaultScaleLimits = { AXISLAYOUT_DEFAULT_MIN_SCALE, 1 };
     Padding m_padding = { 0.f, 0.f, 0.f, 0.f };
@@ -158,7 +167,7 @@ public:
     }
 
     AxisPosition availableForLayout(CCNode* on) const {
-        auto available = nodeAxis(on, m_axis, 1.f / on->getScale());
+        auto available = nodeAxis(on, m_axis, 1.f / on->getScale(), m_useBoundingBox);
         available.axisLength = available.axisLength - this->axisPadding();
         available.crossLength = available.crossLength - this->crossPadding();
         return available;
@@ -353,8 +362,8 @@ public:
                     node->setScale(1.f);
                 }
                 auto nodeScale = scaleByOpts(opts, scale, prio, false, m_defaultScaleLimits.first, m_defaultScaleLimits.second);
-                auto pos = nodeAxis(node, m_axis, nodeScale * squish);
-                auto squishPos = nodeAxis(node, m_axis, scaleByOpts(opts, scale, prio, true, m_defaultScaleLimits.first, m_defaultScaleLimits.second));
+                auto pos = nodeAxis(node, m_axis, nodeScale * squish, m_useBoundingBox);
+                auto squishPos = nodeAxis(node, m_axis, scaleByOpts(opts, scale, prio, true, m_defaultScaleLimits.first, m_defaultScaleLimits.second), m_useBoundingBox);
                 if (prio == optsScalePrio(opts)) {
                     nextAxisScalableLength += pos.axisLength;
                 }
@@ -440,10 +449,22 @@ public:
         if (res->count()) {
             auto first = static_cast<CCNode*>(res->firstObject());
             auto last = static_cast<CCNode*>(res->lastObject());
+            float firstWidth;
+            float lastWidth;
+
+            if (m_useBoundingBox) {
+                firstWidth = first->boundingBox().size.width;
+                lastWidth = last->boundingBox().size.width;
+            }
+            else {
+                firstWidth = first->getScaledContentSize().width;
+                lastWidth = last->getScaledContentSize().width;
+            }
+
             axisEndsLength = (
-                first->getScaledContentSize().width *
+                firstWidth *
                     scaleByOpts(axisOpts(first), scale, prio, false, m_defaultScaleLimits.first, m_defaultScaleLimits.second) / 2 +
-                last->getScaledContentSize().width *
+                lastWidth *
                     scaleByOpts(axisOpts(last), scale, prio, false, m_defaultScaleLimits.first, m_defaultScaleLimits.second) / 2
             );
         }
@@ -685,7 +706,7 @@ public:
                     }
                     node->setScale(nodeScale);
                 }
-                auto pos = nodeAxis(node, m_axis, row->squish);
+                auto pos = nodeAxis(node, m_axis, row->squish, m_useBoundingBox);
                 rowLengthTotal += pos.axisLength;
             }
             float evenSpace = available.axisLength / row->nodes->count();
@@ -698,7 +719,7 @@ public:
                 if (ix == 0) {
                     rowAxisPos += row->axisEndsLength * row->scale / 2 * (1.f - row->squish);
                 }
-                auto pos = nodeAxis(node, m_axis, row->squish);
+                auto pos = nodeAxis(node, m_axis, row->squish, m_useBoundingBox);
                 float axisPos;
                 if (m_axisAlignment == AxisAlignment::Even) {
                     axisPos = rowAxisPos + evenSpace / 2 - pos.axisLength * (.5f - pos.axisAnchor);
@@ -813,7 +834,7 @@ void AxisLayout::apply(CCNode* on) {
             }
         }
         if (m_impl->m_autoGrowAxisMinLength.has_value()) {
-            totalLength += nodeAxis(node, m_impl->m_axis, 1.f).axisLength + m_impl->nextGap(prev, opts, ix);
+            totalLength += nodeAxis(node, m_impl->m_axis, 1.f, m_impl->m_useBoundingBox).axisLength + m_impl->nextGap(prev, opts, ix);
             prev = opts;
         }
         ix++;
@@ -846,14 +867,14 @@ CCSize AxisLayout::getSizeHint(CCNode* on) const {
     float innerLength = 0.f;
     float innerCross = 0.f;
     for (auto& node : CCArrayExt<CCNode*>(nodes)) {
-        auto axis = nodeAxis(node, m_impl->m_axis, 1.f);
+        auto axis = nodeAxis(node, m_impl->m_axis, 1.f, m_impl->m_useBoundingBox);
         innerLength += axis.axisLength;
         if (axis.crossLength > innerCross) {
             axis.crossLength = innerCross;
         }
     }
 
-    auto available = nodeAxis(on, m_impl->m_axis, 1.f);
+    auto available = nodeAxis(on, m_impl->m_axis, 1.f, m_impl->m_useBoundingBox);
     auto axisPadding = m_impl->axisPadding();
     auto crossPadding = m_impl->crossPadding();
     auto availableInnerAxis = available.axisLength - axisPadding;
@@ -923,6 +944,10 @@ Padding AxisLayout::getPadding() const {
     return m_impl->m_padding;
 }
 
+bool AxisLayout::isUsingBoundingBox() const {
+    return m_impl->m_useBoundingBox;
+}
+
 AxisLayout* AxisLayout::setAxis(Axis axis) {
     m_impl->m_axis = axis;
     return this;
@@ -982,6 +1007,11 @@ bool AxisLayout::isIgnoreInvisibleChildren() const {
 
 AxisLayout* AxisLayout::setPadding(Padding const& padding) {
     m_impl->m_padding = padding;
+    return this;
+}
+
+AxisLayout* AxisLayout::useBoundingBox(bool use) {
+    m_impl->m_useBoundingBox = use;
     return this;
 }
 
