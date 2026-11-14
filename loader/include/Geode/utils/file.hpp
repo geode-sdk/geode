@@ -28,9 +28,9 @@ struct matjson::Serialize<asp::fs::Path> {
 };
 
 namespace geode::utils::file {
-    GEODE_DLL Result<std::string> readString(asp::fs::PathView path);
+    GEODE_DLL asp::fs::Result<std::string> readString(asp::fs::PathView path);
     GEODE_DLL Result<matjson::Value> readJson(asp::fs::PathView path);
-    GEODE_DLL Result<ByteVector> readBinary(asp::fs::PathView path);
+    GEODE_DLL asp::fs::Result<ByteVector> readBinary(asp::fs::PathView path);
 
     template <class T>
     Result<T> readFromJson(asp::fs::PathView file) {
@@ -45,7 +45,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeString(asp::fs::PathView path, std::string_view data);
+    GEODE_DLL asp::fs::Result<> writeString(asp::fs::PathView path, std::string_view data);
 
     /**
      * Write a string to a file. Unlike the regular writeString, it first writes to a temporary file
@@ -56,7 +56,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeStringSafe(asp::fs::PathView path, std::string_view data);
+    GEODE_DLL asp::fs::Result<> writeStringSafe(asp::fs::PathView path, std::string_view data);
 
     /**
      * Write binary data to a file
@@ -65,7 +65,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeBinary(asp::fs::PathView path, ByteSpan data);
+    GEODE_DLL asp::fs::Result<> writeBinary(asp::fs::PathView path, ByteSpan data);
 
     /**
      * Write binary data to a file. Unlike the regular writeBinary, it first writes to a temporary file
@@ -76,18 +76,18 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeBinarySafe(asp::fs::PathView path, ByteSpan data);
+    GEODE_DLL asp::fs::Result<> writeBinarySafe(asp::fs::PathView path, ByteSpan data);
 
     template <class T>
-    Result<> writeToJson(asp::fs::PathView path, T const& data) {
+    asp::fs::Result<> writeToJson(asp::fs::PathView path, T const& data) {
         GEODE_UNWRAP(writeString(path, matjson::Value(data).dump()));
         return Ok();
     }
 
-    GEODE_DLL Result<> createDirectory(asp::fs::PathView path);
-    GEODE_DLL Result<> createDirectoryAll(asp::fs::PathView path);
-    GEODE_DLL Result<> moveDirectoryContents(asp::fs::PathView source, asp::fs::PathView target);
-    GEODE_DLL Result<std::vector<asp::fs::Path>> readDirectory(
+    GEODE_DLL asp::fs::Result<> createDirectory(asp::fs::PathView path);
+    GEODE_DLL asp::fs::Result<> createDirectoryAll(asp::fs::PathView path);
+    GEODE_DLL asp::fs::Result<> moveDirectoryContents(asp::fs::PathView source, asp::fs::PathView target);
+    GEODE_DLL asp::fs::Result<std::vector<asp::fs::Path>> readDirectory(
         asp::fs::PathView path, bool recursive = false
     );
 

@@ -24,7 +24,7 @@ using namespace geode::utils::file;
 using asp::fs::Path;
 using asp::fs::PathView;
 
-Result<std::string> utils::file::readString(PathView path) {
+asp::fs::Result<std::string> utils::file::readString(PathView path) {
     return asp::fs::readToString(path);
 }
 
@@ -35,15 +35,15 @@ Result<matjson::Value> utils::file::readJson(PathView path) {
     });
 }
 
-Result<ByteVector> utils::file::readBinary(PathView path) {
+asp::fs::Result<ByteVector> utils::file::readBinary(PathView path) {
     return asp::fs::read(path);
 }
 
-Result<> utils::file::writeString(PathView path, std::string_view data) {
+asp::fs::Result<> utils::file::writeString(PathView path, std::string_view data) {
     return asp::fs::write(path, data);
 }
 
-Result<> utils::file::writeStringSafe(PathView path, std::string_view data) {
+asp::fs::Result<> utils::file::writeStringSafe(PathView path, std::string_view data) {
     GEODE_ANDROID(
         return utils::file::writeString(path, data); // safe approach causes significant performance issues on Android
     )
@@ -58,19 +58,16 @@ Result<> utils::file::writeStringSafe(PathView path, std::string_view data) {
         return res;
     }
 
-    res = asp::fs::rename(tmpPath, path);
-    if (!res) {
-        return Err("Unable to rename temporary file: {}", res.unwrapErr());
-    }
+    GEODE_UNWRAP(asp::fs::rename(tmpPath, path));
 
     return Ok();
 }
 
-Result<> utils::file::writeBinary(PathView path, ByteSpan data) {
+asp::fs::Result<> utils::file::writeBinary(PathView path, ByteSpan data) {
     return asp::fs::write(path, data);
 }
 
-Result<> utils::file::writeBinarySafe(PathView path, ByteSpan data) {
+asp::fs::Result<> utils::file::writeBinarySafe(PathView path, ByteSpan data) {
     GEODE_ANDROID(
         return utils::file::writeBinary(path, data); // safe approach causes significant performance issues on Android
     )
@@ -85,25 +82,22 @@ Result<> utils::file::writeBinarySafe(PathView path, ByteSpan data) {
         return res;
     }
 
-    res = asp::fs::rename(tmpPath, path);
-    if (!res) {
-        return Err("Unable to rename temporary file: {}", res.unwrapErr());
-    }
+    GEODE_UNWRAP(asp::fs::rename(tmpPath, path));
 
     return Ok();
 }
 
-Result<> utils::file::createDirectory(PathView path) {
+asp::fs::Result<> utils::file::createDirectory(PathView path) {
     return asp::fs::createDir(path);
 }
 
-Result<> utils::file::createDirectoryAll(PathView path) {
+asp::fs::Result<> utils::file::createDirectoryAll(PathView path) {
     return asp::fs::createDirAll(path);
 }
 
-Result<> utils::file::moveDirectoryContents(PathView source, PathView target) {
+asp::fs::Result<> utils::file::moveDirectoryContents(PathView source, PathView target) {
     if(!source.exists() || !source.isDir() || !target.exists() || !target.isDir()) {
-        return Err("Source and target must be existing directories");
+        if (!source.isDir() || !target.isDir()) return Err(asp::fs::ErrorKind::NotADirectory);
     }
 
     for (auto result : GEODE_UNWRAP(asp::fs::iterDir(source))) {
@@ -116,7 +110,7 @@ Result<> utils::file::moveDirectoryContents(PathView source, PathView target) {
     return Ok();
 }
 
-Result<std::vector<Path>> utils::file::readDirectory(
+asp::fs::Result<std::vector<asp::fs::Path>> utils::file::readDirectory(
     PathView path, bool recursive
 ) {
     if (recursive) {
@@ -124,13 +118,13 @@ Result<std::vector<Path>> utils::file::readDirectory(
             .map([](auto const& entry) {
                 return entry.map([](auto e) { return e.path; });
             })
-            .collect<Result<std::vector<Path>>>();
+            .collect<asp::fs::Result<std::vector<Path>>>();
     } else {
         return GEODE_UNWRAP(asp::fs::iterDir(path))
             .map([](auto const& entry) {
                 return entry.map([](auto e) { return e.path; });
             })
-            .collect<Result<std::vector<Path>>>();
+            .collect<asp::fs::Result<std::vector<Path>>>();
     }
 }
 

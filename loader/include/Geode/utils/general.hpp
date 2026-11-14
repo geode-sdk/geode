@@ -204,19 +204,54 @@ namespace geode {
             return numToString(num);
         }
 
-        namespace _detail {
-            GEODE_DLL Result<long double> longDoubleFromString(std::string_view str);
-            GEODE_DLL Result<double> doubleFromString(std::string_view str);
-            GEODE_DLL Result<float> floatFromString(std::string_view str);
+        struct NumParseError {
+            enum {
+                Unknown = -1,
+                TrailingData = 0,
+                NotANumber,
+                OutOfRange,
+            };
 
-            GEODE_DLL Result<uint64_t> uint64FromString(std::string_view str, int base = 10);
-            GEODE_DLL Result<int64_t> int64FromString(std::string_view str, int base = 10);
+            decltype(Unknown) m_value = Unknown;
+
+            constexpr ~NumParseError() = default;
+            constexpr NumParseError() = default;
+            constexpr NumParseError(decltype(Unknown) value) : m_value(value) {}
+            constexpr NumParseError& operator=(decltype(Unknown) value) {
+                m_value = value;
+                return *this;
+            }
+            constexpr decltype(Unknown) value() const{
+                return m_value;
+            }
+
+            GEODE_DLL std::string toString() const;
+            operator std::string() const {
+                return this->toString();
+            }
+        };
+
+        inline std::string format_as(NumParseError const& err) {
+            return err.toString();
+        }
+
+        inline std::ostream& operator<<(std::ostream& os, NumParseError const& err) {
+            return os << err.toString();
+        }
+
+        namespace _detail {
+            GEODE_DLL Result<long double, NumParseError> longDoubleFromString(std::string_view str);
+            GEODE_DLL Result<double, NumParseError> doubleFromString(std::string_view str);
+            GEODE_DLL Result<float, NumParseError> floatFromString(std::string_view str);
+
+            GEODE_DLL Result<uint64_t, NumParseError> uint64FromString(std::string_view str, int base = 10);
+            GEODE_DLL Result<int64_t, NumParseError> int64FromString(std::string_view str, int base = 10);
 
             template <typename T, typename Y>
-            Result<T> narrow(Y num) {
+            Result<T, NumParseError> narrow(Y num) {
                 if (num < static_cast<Y>(std::numeric_limits<T>::min()) ||
                     num > static_cast<Y>(std::numeric_limits<T>::max())) {
-                    return Err("Number is out of range for target type");
+                    return Err(NumParseError::OutOfRange);
                 }
                 return Ok(static_cast<T>(num));
             }
@@ -229,7 +264,7 @@ namespace geode {
          * @returns String as number, or Err if the string couldn't be converted
          */
         template <class Num>
-        Result<Num> numFromString(std::string_view str, int base = 10) {
+        Result<Num, NumParseError> numFromString(std::string_view str, int base = 10) {
             if constexpr (std::is_same_v<Num, float>) {
                 return _detail::floatFromString(str);
             } else if constexpr (std::is_same_v<Num, double>) {

@@ -115,6 +115,47 @@ namespace geode::modifier {
     template <class Derived, class Base>
     class ModifyDerive;
 
+    struct ModifyError {
+        enum {
+            Unknown = -1,
+            HookNotFound = 0,
+            ModNotFound,
+        };
+
+        decltype(Unknown) m_value;
+
+        constexpr ~ModifyError() = default;
+        constexpr ModifyError() = default;
+        constexpr ModifyError(ModifyError const&) = default;
+        constexpr ModifyError(ModifyError&&) = default;
+        constexpr ModifyError(decltype(Unknown) value) : m_value(value) {}
+        constexpr ModifyError& operator=(ModifyError const&) = default;
+        constexpr ModifyError& operator=(ModifyError&&) = default;
+        constexpr ModifyError& operator=(decltype(Unknown) value) {
+            m_value = value;
+            return *this;
+        }
+        constexpr decltype(Unknown) value() const{
+            return m_value;
+        }
+
+        GEODE_DLL std::string toString() const;
+        operator std::string() const {
+            return this->toString();
+        }
+    };
+
+    inline std::string format_as(ModifyError const& err) {
+        return err.toString();
+    }
+
+    inline std::ostream& operator<<(std::ostream& os, ModifyError const& err) {
+        return os << err.toString();
+    }
+
+    template <class OkType = void>
+    using ModifyResult = Result<OkType, ModifyError>;
+
     template <class ModifyDerived>
     class ModifyBase {
     public:
@@ -123,10 +164,10 @@ namespace geode::modifier {
         /// @brief Get a hook by name
         /// @param name The name of the hook to get
         /// @returns Ok if the hook was found, Err if the hook was not found
-        Result<Hook*> getHook(std::string_view name) {
+        ModifyResult<Hook*> getHook(std::string_view name) {
             auto it = m_hooks.find(name);
             if (it == m_hooks.end()) {
-                return Err("Hook not in this modify");
+                return Err(ModifyError::HookNotFound);
             }
             return Ok(it->second.get());
         }
@@ -145,7 +186,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param priority The priority to set the hook to
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriority(std::string_view name, int32_t priority = Priority::Normal) {
+        ModifyResult<> setHookPriority(std::string_view name, int32_t priority = Priority::Normal) {
             GEODE_UNWRAP_INTO(auto hook, this->getHook(name));
             hook->setPriority(priority);
             return Ok();
@@ -155,7 +196,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param priority The priority to set the hook to
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityPre(std::string_view name, int32_t priority = Priority::Normal) {
+        ModifyResult<> setHookPriorityPre(std::string_view name, int32_t priority = Priority::Normal) {
             return this->setHookPriority(name, priority);
         }
 
@@ -163,7 +204,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param priority The priority to set the hook to
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityPost(std::string_view name, int32_t priority = Priority::Normal) {
+        ModifyResult<> setHookPriorityPost(std::string_view name, int32_t priority = Priority::Normal) {
             return this->setHookPriority(name, -priority);
         }
 
@@ -171,7 +212,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param mod The mod to set the priority after
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityAfter(std::string_view name, Mod* mod) {
+        ModifyResult<> setHookPriorityAfter(std::string_view name, Mod* mod) {
             GEODE_UNWRAP_INTO(auto hook, this->getHook(name));
             this->setHookPriorityAfter(hook, mod);
             return Ok();
@@ -204,9 +245,9 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param after The mod id of the mod to set the priority after
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityAfter(std::string_view name, std::string_view after) {
+        ModifyResult<> setHookPriorityAfter(std::string_view name, std::string_view after) {
             auto mod = Loader::get()->getInstalledMod(after);
-            if (!mod) return Err("Mod not found");
+            if (!mod) return Err(ModifyError::ModNotFound);
             return this->setHookPriorityAfter(name, mod);
         }
 
@@ -214,9 +255,9 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param after The mod id of the mod to set the priority after
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        static Result<> setHookPriorityAfter(Hook* hook, std::string_view after) {
+        static ModifyResult<> setHookPriorityAfter(Hook* hook, std::string_view after) {
             auto mod = Loader::get()->getInstalledMod(after);
-            if (!mod) return Err("Mod not found");
+            if (!mod) return Err(ModifyError::ModNotFound);
             setHookPriorityAfter(hook, mod);
             return Ok();
         }
@@ -225,7 +266,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param mod The mod to set the priority before
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityBefore(std::string_view name, Mod* mod) {
+        ModifyResult<> setHookPriorityBefore(std::string_view name, Mod* mod) {
             GEODE_UNWRAP_INTO(auto hook, this->getHook(name));
             this->setHookPriorityBefore(hook, mod);
             return Ok();
@@ -258,9 +299,9 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityBefore(std::string_view name, std::string_view before) {
+        ModifyResult<> setHookPriorityBefore(std::string_view name, std::string_view before) {
             auto mod = Loader::get()->getInstalledMod(before);
-            if (!mod) return Err("Mod not found");
+            if (!mod) return Err(ModifyError::ModNotFound);
             return this->setHookPriorityBefore(name, mod);
         }
 
@@ -268,9 +309,9 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        static Result<> setHookPriorityBefore(Hook* hook, std::string_view before) {
+        static ModifyResult<> setHookPriorityBefore(Hook* hook, std::string_view before) {
             auto mod = Loader::get()->getInstalledMod(before);
-            if (!mod) return Err("Mod not found");
+            if (!mod) return Err(ModifyError::ModNotFound);
             setHookPriorityBefore(hook, mod);
             return Ok();
         }
@@ -279,7 +320,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param after The mod id of the mod to set the priority after
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityAfterPre(std::string_view name, std::string_view after) {
+        ModifyResult<> setHookPriorityAfterPre(std::string_view name, std::string_view after) {
             return this->setHookPriorityAfter(name, after);
         }
 
@@ -287,7 +328,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param mod The mod to set the priority after
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityAfterPre(std::string_view name, Mod* mod) {
+        ModifyResult<> setHookPriorityAfterPre(std::string_view name, Mod* mod) {
             return this->setHookPriorityAfter(name, mod);
         }
 
@@ -295,7 +336,7 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param after The mod id of the mod to set the priority after
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        static Result<> setHookPriorityAfterPre(Hook* hook, std::string_view after) {
+        static ModifyResult<> setHookPriorityAfterPre(Hook* hook, std::string_view after) {
             return setHookPriorityAfter(hook, after);
         }
 
@@ -310,7 +351,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityBeforePre(std::string_view name, std::string_view before) {
+        ModifyResult<> setHookPriorityBeforePre(std::string_view name, std::string_view before) {
             return this->setHookPriorityBefore(name, before);
         }
 
@@ -318,7 +359,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param mod The mod to set the priority before
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityBeforePre(std::string_view name, Mod* mod) {
+        ModifyResult<> setHookPriorityBeforePre(std::string_view name, Mod* mod) {
             return this->setHookPriorityBefore(name, mod);
         }
 
@@ -326,7 +367,7 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        static Result<> setHookPriorityBeforePre(Hook* hook, std::string_view before) {
+        static ModifyResult<> setHookPriorityBeforePre(Hook* hook, std::string_view before) {
             return setHookPriorityBefore(hook, before);
         }
 
@@ -341,7 +382,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param after The mod id of the mod to set the priority after
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityAfterPost(std::string_view name, std::string_view after) {
+        ModifyResult<> setHookPriorityAfterPost(std::string_view name, std::string_view after) {
             return this->setHookPriorityBefore(name, after);
         }
 
@@ -349,7 +390,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param mod The mod to set the priority after
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityAfterPost(std::string_view name, Mod* mod) {
+        ModifyResult<> setHookPriorityAfterPost(std::string_view name, Mod* mod) {
             return this->setHookPriorityBefore(name, mod);
         }
 
@@ -357,7 +398,7 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param after The mod id of the mod to set the priority after
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        static Result<> setHookPriorityAfterPost(Hook* hook, std::string_view after) {
+        static ModifyResult<> setHookPriorityAfterPost(Hook* hook, std::string_view after) {
             return setHookPriorityBefore(hook, after);
         }
 
@@ -372,7 +413,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityBeforePost(std::string_view name, std::string_view before) {
+        ModifyResult<> setHookPriorityBeforePost(std::string_view name, std::string_view before) {
             return this->setHookPriorityAfter(name, before);
         }
 
@@ -380,7 +421,7 @@ namespace geode::modifier {
         /// @param name The name of the hook to set the priority of
         /// @param mod The mod to set the priority before
         /// @returns Ok if the hook was found and the priority was set, Err if the hook was not found
-        Result<> setHookPriorityBeforePost(std::string_view name, Mod* mod) {
+        ModifyResult<> setHookPriorityBeforePost(std::string_view name, Mod* mod) {
             return this->setHookPriorityAfter(name, mod);
         }
 
@@ -388,7 +429,7 @@ namespace geode::modifier {
         /// @param hook The hook to set the priority of
         /// @param before The mod id of the mod to set the priority before
         /// @returns Ok if the mod was found and the priority was set, Err if the mod was not found
-        static Result<> setHookPriorityBeforePost(Hook* hook, std::string_view before) {
+        static ModifyResult<> setHookPriorityBeforePost(Hook* hook, std::string_view before) {
             return setHookPriorityAfter(hook, before);
         }
 
@@ -399,7 +440,6 @@ namespace geode::modifier {
             setHookPriorityAfter(hook, mod);
         }
 
-        // unordered_map<handles> idea
         ModifyBase() {
             struct EboCheck : ModifyDerived::Base {
                 alignas(typename ModifyDerived::Base) std::array<std::byte, alignof(typename ModifyDerived::Base)> m_padding;
@@ -416,7 +456,6 @@ namespace geode::modifier {
                 "\n---"
             );
 
-            // i really dont want to recompile codegen
             auto test = static_cast<ModifyDerived*>(this);
             test->ModifyDerived::apply();
             ModifyDerived::Derived::onModify(*this);
