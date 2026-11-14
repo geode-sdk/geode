@@ -273,6 +273,7 @@ public:
     float getDefaultMinScale() const;
     float getDefaultMaxScale() const;
     Padding getPadding() const;
+    bool isUsingBoundingBox() const;
 
     AxisLayout* setAxis(Axis axis);
     /**
@@ -340,6 +341,12 @@ public:
      * layout's border and its children. The default is set to 0 on all sides
      */
     AxisLayout* setPadding(Padding const& padding);
+
+    /**
+     * If true, the layout will use the bounding box of the node's children instead of the
+     * content size. 
+     */
+    AxisLayout* useBoundingBox(bool use);
 };
 
 /**
