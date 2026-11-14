@@ -1,5 +1,22 @@
 # Geode Changelog
 
+## v6.0.0-alpha.2
+ * `geode::TextInput` rewrite (#2331)
+ * `geode::MDTextArea` rewrite (#2370)
+ * Remove regular callbacks for `geode::Button`, `geode::SliderNode` and `geode::Toggler` in favor of events (#2287)
+ * Add `useBoundingBox` to `AxisLayout` and `SimpleAxisLayout` (#2373)
+ * Use single search path for mod resources (#2260)
+ * Remove broken `Signal.hpp` api
+ * Add self extracting linux installer (#2360)
+ * Expose Geode UI Style header publicly (#2273)
+ * Make mod icons slightly larger (#2339)
+ * Improve `geode::ScrollLayer` (#2300)
+ * Better warning when disabling a mod with dependencies (#2288)
+ * Fix `geode::NineSlice` breaking with rotated sprites in a spritesheet (#2332)
+ * Use Geode's nodes in `geode::Popup` (#2302)
+ * Handle SIGABRT for windows crashlogs (d22af24)
+ * Add char overloads for split and splitView (#2192)
+
 ## v6.0.0-alpha.1
  * Geometry Dash 2.209x support
  * Rework our own keybind system to integrate with robtop's (#2280, #2278)
