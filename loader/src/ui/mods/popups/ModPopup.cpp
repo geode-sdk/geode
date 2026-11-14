@@ -3,6 +3,7 @@
 #include "../../../internal/about.hpp"
 #include "../settings/ModSettingsPopup.hpp"
 #include "ConfirmUninstallPopup.hpp"
+#include "DevPopup.hpp"
 #include "server/DownloadManager.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
@@ -12,11 +13,13 @@
 #include <Geode/loader/ModSettingsManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/Notification.hpp>
 #include <Geode/ui/MDTextArea.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/web.hpp>
 #include <optional>
+#include <ranges>
 
 class FetchTextArea : public CCNode {
 public:
@@ -30,10 +33,9 @@ protected:
     std::string m_noneText;
 
     bool init(Request&& req, std::string noneText, CCSize const& size) {
-        if (!CCNode::init())
-            return false;
+        if (!CCNode::init()) return false;
 
-        this->setAnchorPoint({ .5f, .5f });
+        this->setAnchorPoint({0.5f, 0.5f});
         this->setContentSize(size);
 
         m_noneText = std::move(noneText);
@@ -42,7 +44,7 @@ protected:
         m_textarea->setID("textarea");
         this->addChildAtPosition(m_textarea, Anchor::Center);
 
-        m_loading = createLoadingCircle(30);
+        m_loading = createLoadingCircle(30.0f);
         this->addChildAtPosition(m_loading, Anchor::Center);
 
         m_listener.spawn(
@@ -59,7 +61,7 @@ protected:
         m_loading->removeFromParent();
         if (result && result.isOk()) {
             auto value = std::move(result).unwrap();
-            if (value) {
+            if (value.has_value()) {
                 std::string str = std::move(value).value();
                 m_textarea->setString(str.c_str());
                 return;
@@ -78,18 +80,22 @@ public:
         delete ret;
         return nullptr;
     }
+
+    void scrollToTop() {
+        static_cast<ScrollLayer*>(m_textarea->getScrollLayer())->scrollToTop();
+    }
 };
 
 bool ModPopup::init(ModSource&& src) {
     auto style = src.asServer() ? GeodePopupStyle::Alt : GeodePopupStyle::Default;
 
-    if (!GeodePopup::init(440.f, 280.f, style))
-        return false;
+    if (!GeodePopup::init(440.0f, 280.0f, style)) return false;
 
     m_source = std::move(src);
     m_noElasticity = true;
 
     this->setID(Mod::get()->expandSpriteName(fmt::format("popup-{}", m_source.getID())));
+    this->setUserObject("mod", CCString::create(m_source.getID()));
 
     auto isGeode = m_source.asMod() == Mod::get();
     if (isGeode) {
@@ -98,15 +104,14 @@ bool ModPopup::init(ModSource&& src) {
         auto bindingsHash = about::getBindingsCommitHash();
 
         auto hashLabel = Label::create(fmt::format("Loader: {}, Bindings: {}", loaderHash, bindingsHash), "chatFont.fnt");
-        hashLabel->setAnchorPoint({ .5f, 1.f });
         hashLabel->setOpacity(51);
-        hashLabel->setScale(.7f);
-        m_mainLayer->addChildAtPosition(hashLabel, Anchor::Bottom, ccp(0, -5));
+        hashLabel->setScale(0.7f);
+        m_mainLayer->addChildAtPosition(hashLabel, Anchor::Bottom, {0.0f, -5.0f}, {0.5f, 1.0f});
     }
 
     auto mainContainer = CCNode::create();
-    mainContainer->setContentSize(m_mainLayer->getContentSize() - ccp(20, 20));
-    mainContainer->setAnchorPoint({ .5f, .5f });
+    mainContainer->setID("main-container");
+    mainContainer->setContentSize(m_mainLayer->getContentSize() - CCSize{20.0f, 20.0f});
     mainContainer->setLayout(
         RowLayout::create()
             ->setGap(7.5f)
@@ -114,64 +119,79 @@ bool ModPopup::init(ModSource&& src) {
     );
 
     auto leftColumn = CCNode::create();
-    leftColumn->setContentSize({ 145, mainContainer->getContentHeight() });
+    leftColumn->setContentSize({145.0f, mainContainer->getContentHeight()});
 
-    m_titleContainer = CCMenu::create();
-    m_titleContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
-    m_titleContainer->setAnchorPoint({ .5f, .5f });
+    m_titleContainer = CCNode::create();
+    m_titleContainer->setID("title-container");
+    m_titleContainer->setContentSize({leftColumn->getContentWidth(), 25.0f});
+    m_titleContainer->setAnchorPoint({0.5f, 0.5f});
 
     auto getLogo = [this]() {
         auto logo = m_source.createModLogo();
         logo->setID("mod-logo");
         limitNodeSize(
             logo,
-            ccp(m_titleContainer->getContentHeight(), m_titleContainer->getContentHeight()),
-            5.f, .1f
+            {m_titleContainer->getContentHeight(), m_titleContainer->getContentHeight()},
+            5.0f, 0.1f
         );
         return logo;
-    };
+    }();
 
     if (isGeode) {
         auto counter = Mod::get()->getSavedValue("alternate-geode-style", false) ? 3 : 0;
-        auto* logoButton = CCMenuItemExt::createSpriteExtra(getLogo(), [this, counter, getLogo](auto* item) mutable {
-            counter++;
-            if (counter % 6 == 3) {
-                Mod::get()->setSavedValue("alternate-geode-style", true);
-            }
-            else if (counter % 6 == 0) {
-                Mod::get()->getSaveContainer().erase("alternate-geode-style");
-            }
-        });
+        auto* logoButton = Button::createWithNode(
+            getLogo,
+            [this, counter](auto* item) mutable {
+                counter++;
+                if (counter % 6 == 3) {
+                    Mod::get()->setSavedValue("alternate-geode-style", true);
+                }
+                else if (counter % 6 == 0) {
+                    Mod::get()->getSaveContainer().erase("alternate-geode-style");
+                }
+            });
         m_titleContainer->addChildAtPosition(
-            logoButton, Anchor::Left, ccp(m_titleContainer->getContentHeight() / 2, 0)
+            logoButton, Anchor::Left, {m_titleContainer->getContentHeight() / 2.0f, 0.0f}
         );
     }
     else {
         m_titleContainer->addChildAtPosition(
-            getLogo(), Anchor::Left, ccp(m_titleContainer->getContentHeight() / 2, 0)
+            getLogo, Anchor::Left, {m_titleContainer->getContentHeight() / 2.0f, 0.0f}
         );
     }
 
     // Lil padding
-    auto devAndTitlePos = m_titleContainer->getContentHeight() + 5;
+    auto devAndTitlePos = m_titleContainer->getContentHeight() + 5.0f;
 
     StringBuffer title;
     title.append("{:.40}", m_source.getMetadata().getName());
+
     if (m_source.getMetadata().getName().size() > 40) {
         title.append("...");
     }
 
     auto titleLabel = Label::create(title.str(), "bigFont.fnt");
-    titleLabel->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .45f, .1f);
-    titleLabel->setAnchorPoint({ .0f, .5f });
+    titleLabel->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, 0.45f, 0.1f);
     titleLabel->setID("mod-name-label");
-    m_titleContainer->addChildAtPosition(titleLabel, Anchor::TopLeft, ccp(devAndTitlePos, -m_titleContainer->getContentHeight() * .25f));
+    m_titleContainer->addChildAtPosition(
+        titleLabel,
+        Anchor::TopLeft,
+        {devAndTitlePos, -m_titleContainer->getContentHeight() * 0.25f},
+        {0.0f, 0.5f}
+    );
 
     auto dev = Label::create(fmt::format("By {}", m_source.formatDevelopers()), "goldFont.fnt");
-    dev->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, .35f, .05f);
-    dev->setAnchorPoint({ .0f, .5f });
-    dev->setID("mod-developer-label");
-    m_titleContainer->addChildAtPosition(dev, Anchor::BottomLeft, ccp(devAndTitlePos, m_titleContainer->getContentHeight() * .25f));
+    dev->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, 0.35f, 0.05f);
+
+    auto devBtn = Button::createWithNode(
+        dev,
+        [this](auto) {
+            DevListPopup::create(m_source)->show();
+        }
+    );
+    devBtn->setID("mod-developer-label");
+    devBtn->setScaleMultiplier(1.05f);
+    m_titleContainer->addChildAtPosition(devBtn, Anchor::BottomLeft, {devAndTitlePos + (devBtn->getScaledContentWidth() / 2.0f), m_titleContainer->getContentHeight() * 0.25f});
 
     // Suggestions
     // todo: bring this back once we add "suggestions" in mod.json
@@ -191,7 +211,7 @@ bool ModPopup::init(ModSource&& src) {
 
     //         auto recommendedBy = CCNode::create();
     //         recommendedBy->setContentWidth(m_titleContainer->getContentWidth() - devAndTitlePos);
-    //         recommendedBy->setAnchorPoint({ .0f, .5f });
+    //         recommendedBy->setAnchorPoint({ 0.0f, 0.5f });
 
     //         auto byLabel = Label::create("Recommended by ", "bigFont.fnt");
     //         byLabel->setColor("mod-list-recommended-by"_cc3b);
@@ -210,7 +230,7 @@ bool ModPopup::init(ModSource&& src) {
 
     //         recommendedBy->setLayout(
     //             RowLayout::create()
-    //                 ->setDefaultScaleLimits(.1f, 1.f)
+    //                 ->setDefaultScaleLimits(0.1f, 1.0f)
     //                 ->setAxisAlignment(AxisAlignment::Start)
     //         );
     //         m_titleContainer->addChildAtPosition(recommendedBy, Anchor::BottomLeft, ccp(devAndTitlePos, 4));
@@ -220,51 +240,94 @@ bool ModPopup::init(ModSource&& src) {
     leftColumn->addChild(m_titleContainer);
 
     auto idLabel = Label::create(fmt::format("(ID: {})", m_source.getMetadata().getID()), "bigFont.fnt");
-    idLabel->setLimitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
-    idLabel->setColor({ 150, 150, 150 });
+    idLabel->setLimitLabelWidth(leftColumn->getContentWidth(), 0.25f, 0.05f);
+    idLabel->setColor({150, 150, 150});
     idLabel->setOpacity(140);
-    idLabel->setID("mod-id-label");
-    leftColumn->addChild(idLabel);
+
+    auto idBtn = Button::createWithNode(
+        idLabel,
+        [this](auto) {
+            clipboard::write(m_source.getID());
+            Notification::create("Copied to clipboard", NotificationIcon::Success)->show();
+        }
+    );
+    idBtn->setID("mod-id-label");
+    idBtn->setScaleMultiplier(1.075f);
+    leftColumn->addChild(idBtn);
 
     auto statsContainer = CCNode::create();
-    statsContainer->setContentSize({ leftColumn->getContentWidth(), 80 });
-    statsContainer->setAnchorPoint({ .5f, .5f });
+    statsContainer->setContentSize({leftColumn->getContentWidth(), 80.0f});
+    statsContainer->setAnchorPoint({0.5f, 0.5f});
 
     auto statsBG = NineSlice::create("square02b_001.png");
-    statsBG->setColor({ 0, 0, 0 });
+    statsBG->setColor({0, 0, 0});
     statsBG->setOpacity(75);
-    statsBG->setScale(.3f);
-    statsBG->setContentSize(statsContainer->getContentSize() / statsBG->getScale());
+    statsBG->setScaleMultiplier(0.3f);
+    statsBG->setContentSize(statsContainer->getContentSize());
     statsContainer->addChildAtPosition(statsBG, Anchor::Center);
 
     m_stats = CCNode::create();
-    m_stats->setContentSize(statsContainer->getContentSize() - ccp(10, 10));
-    m_stats->setAnchorPoint({ .5f, .5f });
     m_stats->setID("mod-stats-container");
+    m_stats->setContentSize(statsContainer->getContentSize() - CCSize{10.0f, 10.0f});
 
-    for (auto stat : std::initializer_list<std::tuple<
-        const char*, const char*, const char*, std::optional<std::string>, const char*
-    >> {
-        { "GJ_downloadsIcon_001.png", "Downloads", "downloads", std::nullopt, "stats" },
-        { "GJ_timeIcon_001.png", "Released", "release-date", std::nullopt, "stats" },
-        { "GJ_timeIcon_001.png", "Updated", "update-date", std::nullopt, "stats" },
-        { "version.png"_spr, "Version", "version", m_source.getMetadata().getVersion().toVString(), "client" },
-        { nullptr, "Checking for updates", "update-check", std::nullopt, "updates" },
-    }) {
+    struct ModStatsLabel {
+        std::optional<ZStringView> sprite;
+        std::string label;
+        std::string id;
+        std::optional<std::string> value;
+        std::string stat;
+    };
+
+    auto stats = std::array{
+        ModStatsLabel{
+            "GJ_downloadsIcon_001.png",
+            "Downloads",
+            "downloads",
+            std::nullopt,
+            "stats",
+        },
+        ModStatsLabel{
+            "GJ_timeIcon_001.png",
+            "Released",
+            "release-date",
+            std::nullopt,
+            "stats",
+        },
+        ModStatsLabel{
+            "GJ_timeIcon_001.png",
+            "Updated",
+            "update-date",
+            std::nullopt,
+            "stats",
+        },
+        ModStatsLabel{
+            "version.png"_spr,
+            "Version",
+            "version",
+            m_source.getMetadata().getVersion().toVString(),
+            "client",
+        },
+        ModStatsLabel{
+            std::nullopt,
+            "Checking for updates",
+            "update-check",
+            std::nullopt,
+            "updates",
+        },
+    };
+
+    for (auto& stat : stats) {
         auto container = CCNode::create();
-        container->setContentSize({ m_stats->getContentWidth(), 10 });
-        container->setID(std::get<2>(stat));
-        container->setUserObject(std::get<4>(stat), CCBool::create(true));
+        container->setID(std::move(stat.id));
+        container->setContentSize({m_stats->getContentWidth(), 10.0f});
+        container->setUserObject(std::move(stat.stat), CCBool::create(true));
 
         auto labelContainer = CCNode::create();
         labelContainer->setID("labels");
         labelContainer->setLayout(RowLayout::create());
-        labelContainer->setAnchorPoint({ 1.f, .5f });
-        labelContainer->setScale(.3f);
-        labelContainer->setContentWidth(
-            (container->getContentWidth() - container->getContentHeight() - 5) /
-                labelContainer->getScale()
-        );
+        labelContainer->setAnchorPoint({1.0f, 0.5f});
+        labelContainer->setScale(0.3f);
+        labelContainer->setContentWidth((container->getContentWidth() - container->getContentHeight() - 5.0f) / labelContainer->getScale());
         container->addChildAtPosition(labelContainer, Anchor::Right);
 
         auto label = Label::create("", "bigFont.fnt");
@@ -279,9 +342,10 @@ bool ModPopup::init(ModSource&& src) {
 
         labelContainer->addChild(createLoadingCircle(container->getContentHeight() / labelContainer->getScale()));
 
-        this->setStatIcon(container, std::get<0>(stat));
-        this->setStatLabel(container, std::get<1>(stat));
-        this->setStatValue(container, std::get<3>(stat));
+        if (stat.sprite.has_value()) this->setStatIcon(container, stat.sprite.value());
+
+        this->setStatLabel(container, std::move(stat.label));
+        this->setStatValue(container, std::move(stat.value));
 
         m_stats->addChild(container);
     }
@@ -289,43 +353,34 @@ bool ModPopup::init(ModSource&& src) {
     m_stats->setLayout(
         ColumnLayout::create()
             ->setAxisReverse(true)
-            ->setDefaultScaleLimits(.1f, 1)
+            ->setDefaultScaleLimits(0.1f, 1.0f)
             ->setAxisAlignment(AxisAlignment::Even)
     );
-    statsContainer->addChildAtPosition(m_stats, Anchor::Center);
+    statsContainer->addChildAtPosition(m_stats, Anchor::Center, { 0.0f, 0.0f }, {0.5f, 0.5f});
 
     leftColumn->addChild(statsContainer);
 
     // Tags
 
     auto tagsTitle = Label::create("Tags", "bigFont.fnt");
-    tagsTitle->setLimitLabelWidth(leftColumn->getContentWidth(), .25f, .05f);
+    tagsTitle->setLimitLabelWidth(leftColumn->getContentWidth(), 0.25f, 0.05f);
     tagsTitle->setOpacity(195);
     tagsTitle->setID("tags-title");
     leftColumn->addChild(tagsTitle);
 
-    auto tagsContainer = CCNode::create();
-    tagsContainer->setContentSize({ leftColumn->getContentWidth(), 35 });
-    tagsContainer->setAnchorPoint({ .5f, .5f });
-
-    auto tagsBG = NineSlice::create("square02b_001.png");
-    tagsBG->setColor({ 0, 0, 0 });
-    tagsBG->setOpacity(75);
-    tagsBG->setScale(.3f);
-    tagsBG->setContentSize(tagsContainer->getContentSize() / tagsBG->getScale());
-    tagsContainer->addChildAtPosition(tagsBG, Anchor::Center);
+    auto tagsContainer = this->createContainer({leftColumn->getContentWidth(), 35.0f});
 
     m_tags = CCNode::create();
     m_tags->ignoreAnchorPointForPosition(false);
-    m_tags->setContentSize(tagsContainer->getContentSize() - ccp(10, 10));
-    m_tags->setAnchorPoint({ .5f, .5f });
+    m_tags->setContentSize(tagsContainer->getContentSize() - CCSize{10.0f, 10.0f});
+    m_tags->setAnchorPoint({0.5f, 0.5f});
     m_tags->setID("tags-container");
 
-    m_tags->addChild(createLoadingCircle(50));
+    m_tags->addChild(createLoadingCircle(50.0f));
 
     m_tags->setLayout(
         RowLayout::create()
-            ->setDefaultScaleLimits(.1f, .3f)
+            ->setDefaultScaleLimits(0.1f,0.3f)
             ->setGrowCrossAxis(true)
             ->setCrossAxisOverflow(false)
             ->setAxisAlignment(AxisAlignment::Start)
@@ -338,57 +393,53 @@ bool ModPopup::init(ModSource&& src) {
     // Installing
 
     auto manageContainer = CCNode::create();
-    manageContainer->setContentSize({ leftColumn->getContentWidth(), 10 });
+    manageContainer->setContentSize({leftColumn->getContentWidth(), 10.0f});
 
     auto manageTitle = Label::create("Manage", "bigFont.fnt");
-    manageTitle->setScale(.25f);
-    manageTitle->setOpacity(195);
     manageTitle->setID("manage-title");
-    manageContainer->addChildAtPosition(manageTitle, Anchor::Left, ccp(0, 0), ccp(0, .5f));
+    manageTitle->setScale(0.25f);
+    manageTitle->setOpacity(195);
+    manageContainer->addChildAtPosition(manageTitle, Anchor::Left, { 0.0f, 0.0f }, { 0.0f, 0.5f });
 
     m_restartRequiredLabel = createTagLabel(
         "Restart Required",
         {
             to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)),
-            to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr))
+            to3B(ColorProvider::get()->color("mod-list-restart-required-label-bg"_spr)),
         }
     );
-    m_restartRequiredLabel->setScale(.3f);
-    manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, ccp(0, 0), ccp(1, .5f));
+    m_restartRequiredLabel->setScale(0.3f);
+    manageContainer->addChildAtPosition(m_restartRequiredLabel, Anchor::Right, { 0.0f, 0.0f }, { 1.0f, 0.5f });
 
     m_enabledStatusLabel = Label::create("", "bigFont.fnt");
-    m_enabledStatusLabel->setScale(.25f);
-    m_enabledStatusLabel->setOpacity(140);
     m_enabledStatusLabel->setID("enabled-status");
-    manageContainer->addChildAtPosition(m_enabledStatusLabel, Anchor::Right, ccp(0, 0), ccp(1, .5f));
+    m_enabledStatusLabel->setScale(0.25f);
+    m_enabledStatusLabel->setOpacity(140);
+    manageContainer->addChildAtPosition(m_enabledStatusLabel, Anchor::Right, { 0.0f, 0.0f }, {1.0f, 0.5f});
 
     leftColumn->addChild(manageContainer);
 
-    auto installContainer = CCNode::create();
-    installContainer->setContentSize({ leftColumn->getContentWidth(), 25 });
-    installContainer->setAnchorPoint({ .5f, .5f });
+    auto installContainer = this->createContainer({leftColumn->getContentWidth(), 25.0f});
+    m_installBG = installContainer->getChildByType<NineSlice>(0);
 
-    m_installBG = NineSlice::create("square02b_001.png");
-    m_installBG->setScale(.3f);
-    m_installBG->setContentSize(installContainer->getContentSize() / m_installBG->getScale());
-    installContainer->addChildAtPosition(m_installBG, Anchor::Center);
-
-    m_installMenu = CCMenu::create();
+    m_installMenu = CCNode::create();
     m_installMenu->ignoreAnchorPointForPosition(false);
-    m_installMenu->setContentSize(installContainer->getContentSize() - ccp(10, 10));
-    m_installMenu->setAnchorPoint({ .5f, .5f });
+    m_installMenu->setContentSize(installContainer->getContentSize() - CCSize{10.0f, 10.0f});
+    m_installMenu->setAnchorPoint({0.5f, 0.5f});
 
-    auto updateModSpr = createGeodeButton(
-        CCSprite::createWithSpriteFrameName("update.png"_spr),
-        "Update",
-        GeodeButtonSprite::Install,
-        m_forceDisableTheme
-    );
-    updateModSpr->setScale(.5f);
-    m_updateBtn = CCMenuItemSpriteExtra::create(
-        updateModSpr, this, menu_selector(ModPopup::onInstall)
+    m_updateBtn = Button::createWithNode(
+        createGeodeButton(
+            CCSprite::createWithSpriteFrameName("update.png"_spr),
+            "Update",
+            GeodeButtonSprite::Install,
+            m_forceDisableTheme
+        ),
+        [this](auto) {
+            this->onInstall();
+        }
     );
     m_updateBtn->setID("update-button");
+    m_updateBtn->setScale(0.5f);
     m_installMenu->addChild(m_updateBtn);
 
     auto enableModOffSpr = createGeodeButton(
@@ -397,20 +448,22 @@ bool ModPopup::init(ModSource&& src) {
         GeodeButtonSprite::Enable,
         m_forceDisableTheme
     );
-    enableModOffSpr->setScale(.5f);
     auto enableModOnSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"),
         "Disable",
         GeodeButtonSprite::Delete,
         m_forceDisableTheme
     );
-    enableModOnSpr->setScale(.5f);
-    m_enableBtn = CCMenuItemToggler::create(
+
+    m_enableBtn = Toggler::create(
         enableModOffSpr, enableModOnSpr,
-        this, menu_selector(ModPopup::onEnable)
+        [this](auto, bool toggled) {
+            m_enableBtn->setToggled(!toggled);
+            m_source.requestEnable();
+        }
     );
-    m_enableBtn->m_notClickable = true;
     m_enableBtn->setID("enable-button");
+    m_enableBtn->setScale(0.5f);
     m_installMenu->addChild(m_enableBtn);
 
     auto reenableModOffSpr = createGeodeButton(
@@ -419,60 +472,73 @@ bool ModPopup::init(ModSource&& src) {
         GeodeButtonSprite::Default,
         m_forceDisableTheme
     );
-    reenableModOffSpr->setScale(.5f);
     auto reenableModOnSpr = createGeodeButton(
         CCSprite::createWithSpriteFrameName("reset.png"_spr),
         "Re-Disable",
         GeodeButtonSprite::Default
     );
-    reenableModOnSpr->setScale(.5f);
-    m_reenableBtn = CCMenuItemToggler::create(
+
+    m_reenableBtn = Toggler::create(
         reenableModOffSpr, reenableModOnSpr,
-        this, menu_selector(ModPopup::onEnable)
+        [this](auto, auto) {
+            m_source.requestEnable();
+        }
     );
-    m_reenableBtn->m_notClickable = true;
     m_reenableBtn->setID("reenable-button");
+    m_reenableBtn->setScale(0.5f);
     m_installMenu->addChild(m_reenableBtn);
 
-    auto unavailableSpr = createGeodeButton(
-        CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
-        "Unavailable",
-        GeodeButtonSprite::Gray,
-        m_forceDisableTheme
-    );
-    unavailableSpr->setColor({ 155, 155, 155 });
-    unavailableSpr->setScale(.5f);
-    m_unavailableBtn = CCMenuItemSpriteExtra::create(
-        unavailableSpr, this, nullptr
+    m_unavailableBtn = Button::createWithNode(
+        createGeodeButton(
+            CCSprite::createWithSpriteFrameName("exclamation.png"_spr),
+            "Unavailable",
+            GeodeButtonSprite::Gray,
+            m_forceDisableTheme
+        )
     );
     m_unavailableBtn->setID("unavailable-button");
+    m_unavailableBtn->setScale(0.5f);
+    m_unavailableBtn->setColor({155, 155, 155});
     m_unavailableBtn->setEnabled(false);
     m_installMenu->addChild(m_unavailableBtn);
 
-    auto installModSpr = createGeodeButton(
-        CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png"),
-        "Install",
-        GeodeButtonSprite::Install,
-        m_forceDisableTheme
-    );
-    installModSpr->setScale(.5f);
-    m_installBtn = CCMenuItemSpriteExtra::create(
-        installModSpr, this, menu_selector(ModPopup::onInstall)
+    m_installBtn = Button::createWithNode(
+        createGeodeButton(
+            CCSprite::createWithSpriteFrameName("GJ_downloadsIcon_001.png"),
+            "Install",
+            GeodeButtonSprite::Install,
+            m_forceDisableTheme
+        ),
+        [this](auto) {
+            this->onInstall();
+        }
     );
     m_installBtn->setID("install-button");
+    m_installBtn->setScale(0.5f);
     m_installMenu->addChild(m_installBtn);
 
-    auto uninstallModSpr = createGeodeButton(
-        CCSprite::createWithSpriteFrameName("delete-white.png"_spr),
-        "Uninstall",
-        GeodeButtonSprite::Default,
-        m_forceDisableTheme
-    );
-    uninstallModSpr->setScale(.5f);
-    m_uninstallBtn = CCMenuItemSpriteExtra::create(
-        uninstallModSpr, this, menu_selector(ModPopup::onUninstall)
+    m_uninstallBtn = Button::createWithNode(
+        createGeodeButton(
+            CCSprite::createWithSpriteFrameName("delete-white.png"_spr),
+            "Uninstall",
+            GeodeButtonSprite::Default,
+            m_forceDisableTheme
+        ),
+        [this](auto) {
+            if (auto mod = m_source.asMod()) {
+                ConfirmUninstallPopup::create(mod)->show();
+            }
+            else {
+                FLAlertLayer::create(
+                    "Error Uninstalling Mod",
+                    "This mod can not be uninstalled! (It is not installed at all)",
+                    "OK"
+                )->show();
+            }
+        }
     );
     m_uninstallBtn->setID("uninstall-button");
+    m_uninstallBtn->setScale(0.5f);
     m_installMenu->addChild(m_uninstallBtn);
 
     auto cancelDownloadSpr = createGeodeButton(
@@ -481,9 +547,13 @@ bool ModPopup::init(ModSource&& src) {
         GeodeButtonSprite::Default,
         m_forceDisableTheme
     );
-    cancelDownloadSpr->setScale(.5f);
-    m_cancelBtn = CCMenuItemSpriteExtra::create(
-        cancelDownloadSpr, this, menu_selector(ModPopup::onCancelDownload)
+    cancelDownloadSpr->setScale(0.5f);
+    m_cancelBtn = Button::createWithNode(
+        cancelDownloadSpr,
+        [this](auto) {
+            auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
+            if (download.has_value()) download->cancel();
+        }
     );
     m_cancelBtn->setID("cancel-button");
     m_installMenu->addChild(m_cancelBtn);
@@ -493,97 +563,82 @@ bool ModPopup::init(ModSource&& src) {
     m_installStatusLabel->setVisible(false);
     m_installMenu->addChild(m_installStatusLabel);
 
-    m_installMenu->setLayout(
-        RowLayout::create()
-            ->setDefaultScaleLimits(.1f, 1)
-            ->setAxisAlignment(AxisAlignment::Center)
-    );
+    m_installMenu->setLayout(RowLayout::create()->setAutoScale(false));
     installContainer->addChildAtPosition(m_installMenu, Anchor::Center);
 
     leftColumn->addChild(installContainer);
 
     // Links
 
-    auto linksContainer = CCNode::create();
-    linksContainer->setContentSize({ leftColumn->getContentWidth() - 40, 30 });
-    linksContainer->setAnchorPoint({ .5f, .5f });
-    linksContainer->setLayoutOptions(
-        AxisLayoutOptions::create()
-            ->setCrossAxisAlignment(AxisAlignment::End)
-    );
+    auto linksContainer = this->createContainer({leftColumn->getContentWidth() - 40, 30});
 
-    auto linksBG = NineSlice::create("square02b_001.png");
-    linksBG->setColor({ 0, 0, 0 });
-    linksBG->setOpacity(75);
-    linksBG->setScale(.3f);
-    linksBG->setContentSize(linksContainer->getContentSize() / linksBG->getScale());
-    linksContainer->addChildAtPosition(linksBG, Anchor::Center);
-
-    auto linksMenu = CCMenu::create();
-    linksMenu->ignoreAnchorPointForPosition(false);
-    linksMenu->setContentSize(linksContainer->getContentSize() - ccp(10, 10));
-    linksMenu->setAnchorPoint({ .5f, .5f });
+    auto linksMenu = CCNode::create();
     linksMenu->setID("links-container");
+    linksMenu->ignoreAnchorPointForPosition(false);
+    linksMenu->setContentSize(linksContainer->getContentSize() - CCSize{10.0f, 10.0f});
+    linksMenu->setAnchorPoint({0.5f, 0.5f});
 
-    auto useGithubIcon = m_source.getMetadata().getLinks().getSourceURL()
-        .transform([](auto const& url) {
-            // bad logic
-            auto hostBegin = url.find_first_of("://");
-            if (hostBegin == std::string::npos) {
-                return false;
-            }
+    struct ModLinkButton {
+        std::string id;
+        ZStringView sprite;
+        std::optional<std::string> url;
+        Button::ButtonCallback callback = nullptr;
+    };
 
-            hostBegin += 3;
+    auto linkButtons = std::array{
+        ModLinkButton{
+            "homepage",
+            "homepage.png"_spr,
+            m_source.getMetadata().getLinks().getHomepageURL(),
+        },
+        ModLinkButton{
+            "github",
+            getPlatformSprite(m_source.getMetadata().getLinks().getSourceURL()),
+            m_source.getMetadata().getLinks().getSourceURL(),
+        },
+        ModLinkButton{
+            "discord",
+            "gj_discordIcon_001.png",
+            m_source.getMetadata().getLinks().getCommunityURL(),
+        },
+        ModLinkButton{
+            "support",
+            "gift.png"_spr,
+            m_source.getMetadata().getSupportInfo(),
+            [this](Button* sender) {
+                openSupportPopup(m_source.getMetadata());
+            },
+        },
+    };
 
-            auto hostEnd = url.find_first_of('/', hostBegin);
-            if (hostEnd == std::string::npos) {
-                hostEnd = url.size();
-            }
-
-            auto hostname = url.substr(hostBegin, hostEnd - hostBegin);
-            utils::string::toLowerIP(hostname);
-
-            // if you add a port or username to your source url, it's your fault and you have to fix the parsing
-
-            // accept www.github.com and github.com
-            return hostname == "github.com" || hostname == "www.github.com";
-        }).value_or(false);
-
-    for (auto stat : std::initializer_list<std::tuple<
-        const char*, const char*, std::optional<std::string>, SEL_MenuHandler
-    >> {
-        { "homepage", "homepage.png"_spr, m_source.getMetadata().getLinks().getHomepageURL(), nullptr },
-        { "github", useGithubIcon ? "github.png"_spr : "source_generic.png"_spr, m_source.getMetadata().getLinks().getSourceURL(), nullptr },
-        { "discord", "gj_discordIcon_001.png", m_source.getMetadata().getLinks().getCommunityURL(), nullptr },
-        { "support", "gift.png"_spr, m_source.getMetadata().getSupportInfo(), menu_selector(ModPopup::onSupport) },
-    }) {
-        auto spr = CCSprite::createWithSpriteFrameName(std::get<1>(stat));
-        spr->setScale(.75f);
-        if (!std::get<2>(stat).has_value()) {
-            spr->setColor({ 155, 155, 155 });
-            spr->setOpacity(155);
-        }
-
-        SEL_MenuHandler handler = std::get<2>(stat).has_value() ?
-            (std::get<3>(stat) ? std::get<3>(stat) : menu_selector(ModPopup::onLink)) :
+    for (auto& btn : linkButtons) {
+        Button::ButtonCallback handler = btn.url.has_value() ?
+            (btn.callback ? std::move(btn.callback) :
+                            [url = *btn.url](auto) {
+                                web::openLinkInBrowser(url);
+                            }) :
             nullptr;
 
-        auto btn = CCMenuItemSpriteExtra::create(
-            spr, this, handler
-        );
+        auto button = Button::createWithSpriteFrameName(btn.sprite, std::move(handler));
+        button->setScale(0.75f);
+        button->setEnabled(btn.url.has_value());
 
-        btn->setEnabled(handler != nullptr);
-
-        btn->setID(std::get<0>(stat));
-        if (!std::get<3>(stat) && std::get<2>(stat)) {
-            btn->setUserObject("url", CCString::create(*std::get<2>(stat)));
+        if (!btn.url.has_value()) {
+            button->setColor({155, 155, 155});
+            button->setOpacity(155);
         }
-        linksMenu->addChild(btn);
+
+        if (btn.url.has_value()) {
+            button->setUserObject("url", CCString::create(*btn.url));
+        }
+
+        button->setID(std::move(btn.id));
+        linksMenu->addChild(button);
     }
 
     linksMenu->setLayout(
         RowLayout::create()
-            ->setDefaultScaleLimits(.1f, 1)
+            ->setDefaultScaleLimits(0.1f, 1.0f)
             ->setAxisAlignment(AxisAlignment::Center)
     );
     linksContainer->addChildAtPosition(linksMenu, Anchor::Center);
@@ -603,77 +658,65 @@ bool ModPopup::init(ModSource&& src) {
     mainContainer->addChild(leftColumn);
 
     m_rightColumn = CCNode::create();
-    m_rightColumn->setContentSize({
-        // The -5 is to give a little bit of padding
-        mainContainer->getContentWidth() - leftColumn->getContentWidth() -
-            static_cast<AxisLayout*>(mainContainer->getLayout())->getGap(),
-        mainContainer->getContentHeight()
-    });
+    m_rightColumn->setContentSize(
+        {// The -5 is to give a little bit of padding
+         mainContainer->getContentWidth() - leftColumn->getContentWidth() - static_cast<AxisLayout*>(mainContainer->getLayout())->getGap(),
+         mainContainer->getContentHeight(),
+        }
+    );
 
-    auto tabsMenu = CCMenu::create();
-    tabsMenu->ignoreAnchorPointForPosition(false);
-    tabsMenu->setScale(.65f);
-    tabsMenu->setContentWidth(m_rightColumn->getContentWidth() / tabsMenu->getScale());
-    tabsMenu->setAnchorPoint({ .5f, 1.f });
-    tabsMenu->setID("tabs-menu");
-
-    for (auto mdTab : std::initializer_list<std::tuple<const char*, const char*, const char*, Tab>> {
-        { "message.png"_spr,   "Description", "description", Tab::Details },
-        { "changelog.png"_spr, "Changelog",   "changelog",   Tab::Changelog }
-    }) {
-        auto spr = GeodeTabSprite::create(std::get<0>(mdTab), std::get<1>(mdTab), 140, m_source.asServer());
-        auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ModPopup::onTab));
-        btn->setTag(static_cast<int>(std::get<3>(mdTab)));
-        btn->setID(std::get<2>(mdTab));
-        tabsMenu->addChild(btn);
-        m_tabs.insert({ std::get<3>(mdTab), { spr, nullptr } });
-    }
+    this->setupTabs();
 
     // placeholder external link until versions tab is implemented
     auto modUrl = fmt::format("https://geode-sdk.org/mods/{}", m_source.getID());
-    auto externalLinkSpr = CCSprite::createWithSpriteFrameName("external-link.png"_spr);
 
-    externalLinkSpr->setScale(0.35f);
-    externalLinkSpr->setOpacity(127);
-
-    auto externalLinkBtn = CCMenuItemSpriteExtra::create(externalLinkSpr, this, menu_selector(ModPopup::onLink));
-    externalLinkBtn->setUserObject("url", CCString::create(modUrl));
+    auto externalLinkBtn = Button::createWithSpriteFrameName(
+        "external-link.png"_spr,
+        [modUrl](auto) {
+            web::openLinkInBrowser(modUrl);
+        }
+    );
     externalLinkBtn->setID("mod-online-page-button");
-    m_buttonMenu->addChildAtPosition(externalLinkBtn, Anchor::TopRight, ccp(-14, -16));
+    externalLinkBtn->setOpacity(127);
+    externalLinkBtn->setScale(0.35f);
+    externalLinkBtn->setUserObject("url", CCString::create(modUrl));
+    m_mainLayer->addChildAtPosition(externalLinkBtn, Anchor::TopRight, {-14.0f, -16.0f});
 
-    if (isGeode) {
-        externalLinkBtn->setVisible(false);
-    }
-
-    tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
-    m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
+    if (isGeode) externalLinkBtn->setVisible(false);
 
     m_rightColumn->setID("right-column");
-    mainContainer->addChildAtPosition(m_rightColumn, Anchor::Right, ccp(-20, 0));
+    mainContainer->addChildAtPosition(m_rightColumn, Anchor::Right, { -20.0f, 0.0f });
 
     mainContainer->updateLayout();
-    m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center);
+    m_mainLayer->addChildAtPosition(mainContainer, Anchor::Center, { 0.0f, 0.0f }, { 0.5f, 0.5f });
 
     m_settingsBG = NineSlice::create("square02b_001.png");
-    m_settingsBG->setColor({ 0, 0, 0 });
+    m_settingsBG->setColor({0, 0, 0});
     m_settingsBG->setOpacity(75);
-    m_settingsBG->setScale(.3f);
-    m_settingsBG->setContentSize(ccp(35, 30) / linksBG->getScale());
-    m_buttonMenu->addChildAtPosition(m_settingsBG, Anchor::BottomLeft, ccp(28, 25));
+    m_settingsBG->setScaleMultiplier(0.3f);
+    m_settingsBG->setContentSize({35.0f, 30.0f});
+    m_mainLayer->addChildAtPosition(m_settingsBG, Anchor::BottomLeft, {28.0f, 25.0f});
 
-    auto settingsSpr = createGeodeCircleButton(CCSprite::createWithSpriteFrameName("settings.png"_spr), 1.f, CircleBaseSize::Medium, false, m_forceDisableTheme);
-    settingsSpr->setScale(.6f);
-    auto settingsBtn = CCMenuItemSpriteExtra::create(
-        settingsSpr, this, menu_selector(ModPopup::onSettings)
+    auto settingsBtn = Button::createWithNode(
+        createGeodeCircleButton(
+            CCSprite::createWithSpriteFrameName("settings.png"_spr),
+            1.0f,
+            CircleBaseSize::Medium,
+            false,
+            m_forceDisableTheme
+        ),
+        [this](auto) {
+            if (auto mod = m_source.asMod()) ModSettingsPopup::create(mod)->show();
+        }
     );
     settingsBtn->setID("settings-button");
-    m_buttonMenu->addChildAtPosition(settingsBtn, Anchor::BottomLeft, ccp(28, 25));
+    settingsBtn->setScale(0.6f);
+    m_mainLayer->addChildAtPosition(settingsBtn, Anchor::BottomLeft, {28.0f, 25.0f});
 
     if (!m_source.asMod() || !m_source.asMod()->hasSettings()) {
-        settingsSpr->setOpacity(90);
-        static_cast<CCSprite*>(settingsSpr->getTopNode())->setOpacity(90);
-        settingsSpr->setColor(ccGRAY);
-        static_cast<CCSprite*>(settingsSpr->getTopNode())->setColor(ccGRAY);
+        settingsBtn->setOpacity(90);
+        settingsBtn->setColor(ccGRAY);
+
         settingsBtn->setEnabled(false);
     }
 
@@ -684,33 +727,23 @@ bool ModPopup::init(ModSource&& src) {
     this->updateState();
 
     // Load stats from server (or just from the source if it already has them)
-    m_statsListener.spawn(
-        "ModPopup stats listener",
-        m_source.fetchServerInfo(),
-        [this](auto res) {
-            this->onLoadServerInfo(std::move(res));
-        }
-    );
-    m_tagsListener.spawn(
-        "ModPopup tags listener",
-        m_source.fetchValidTags(),
-        [this](auto res) {
-            this->onLoadTags(std::move(res));
-        }
-    );
+    m_statsListener.spawn("ModPopup stats listener", m_source.fetchServerInfo(), [this](auto res) {
+        this->onLoadServerInfo(std::move(res));
+    });
+    m_tagsListener.spawn("ModPopup tags listener", m_source.fetchValidTags(), [this](auto res) {
+        this->onLoadTags(std::move(res));
+    });
 
     if (m_source.asMod()) {
         m_checkUpdateListener.spawn(
-            "ModPopup update checker",
-            m_source.checkUpdates(),
-            [this](auto res) {
+            "ModPopup update checker", m_source.checkUpdates(), [this](auto res) {
                 this->onCheckUpdates(std::move(res));
             }
         );
     }
     else {
         auto updatesStat = m_stats->getChildByID("update-check");
-        this->setStatLabel(updatesStat, "Not Installed", true, ccc3(125, 125, 125));
+        this->setStatLabel(updatesStat, "Not Installed", true, {125, 125, 125});
     }
 
     // Only listen for updates on this mod specifically
@@ -727,19 +760,143 @@ bool ModPopup::init(ModSource&& src) {
     m_source.visit(makeVisitor {
         [this](Mod* mod) {
             m_settingNodeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3*, bool isCommit) {
-                if (!isCommit) {
-                    return ListenerResult::Propagate;
-                }
+                if (!isCommit) return ListenerResult::Propagate;
+
                 this->updateState();
                 return ListenerResult::Propagate;
             });
         },
         [this](server::ServerModMetadata const& metadata) {
-
         }
     });
 
     return true;
+}
+
+void ModPopup::setupTabs() {
+    m_rightColumn->removeAllChildren();
+    m_tabs.clear();
+
+    auto tabsMenu = CCNode::create();
+    tabsMenu->setID("tabs-menu");
+    tabsMenu->setScale(0.65f);
+    tabsMenu->ignoreAnchorPointForPosition(false);
+    tabsMenu->setContentWidth(m_rightColumn->getContentWidth() / tabsMenu->getScale());
+    tabsMenu->setAnchorPoint({0.5f, 1.0f});
+
+    struct ModTab {
+        std::string_view id;
+        ZStringView sprite;
+        ZStringView label;
+        Tab tab;
+        FetchTextArea::Request content;
+    };
+
+    auto mdTabs = std::array{
+        ModTab{
+            "description",
+            "message.png"_spr,
+            "Description",
+            Tab::Details,
+            m_source.fetchAbout(),
+        },
+        ModTab{
+            "changelog",
+            "changelog.png"_spr,
+            "Changelog",
+            Tab::Changelog,
+            m_source.fetchChangelog(),
+        },
+    };
+
+    float modtoberBannerHeight = 0.0f;
+    if (m_modtoberBanner) modtoberBannerHeight = 30.0f;
+
+    auto const mdSize = (m_rightColumn->getContentSize() - CCSize{0.0f, 30.0f + modtoberBannerHeight});
+    static constexpr auto mdScale = 0.85f;
+
+    for (auto& tab : mdTabs) {
+        auto spr = GeodeTabSprite::create(tab.sprite.c_str(), tab.label.c_str(), 140.0f, m_source.asServer());
+
+        auto btn = Button::createWithNode(
+            spr,
+            [this, t = tab.tab](auto) {
+                this->loadTab(t);
+            }
+        );
+        btn->setID(fmt::format("{}-button", tab.id));
+        btn->setScaleMultiplier(1.125f);
+        tabsMenu->addChild(btn);
+
+        auto page = FetchTextArea::create(std::move(tab.content), fmt::format("No {} provided", tab.id), mdSize / mdScale);
+        page->setID(fmt::format("{}-container", tab.id));
+        page->setScale(mdScale);
+        page->setVisible(false);
+
+        m_rightColumn->addChildAtPosition(page, Anchor::Bottom, {0.0f, modtoberBannerHeight}, {0.5f, 0.0f});
+
+        m_tabs.insert({tab.tab, {spr, page}});
+    }
+
+    tabsMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start));
+    m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
+};
+
+CCNode* ModPopup::createContainer(CCSize const& size) {
+    auto container = CCNode::create();
+    container->setContentSize(size);
+    container->setAnchorPoint({0.5f, 0.5f});
+    container->setLayoutOptions(AxisLayoutOptions::create()->setCrossAxisAlignment(AxisAlignment::End));
+
+    auto bg = NineSlice::create("square02b_001.png");
+    bg->setColor({0, 0, 0});
+    bg->setOpacity(75);
+    bg->setScaleMultiplier(0.3f);
+    bg->setContentSize(container->getContentSize());
+    container->addChildAtPosition(bg, Anchor::Center);
+
+    return container;
+}
+
+ModPopup::RepoPlatform ModPopup::getRepoPlatform(std::string_view url) {
+    auto split = string::split(url, "://");
+    if (split.size() < 2) return RepoPlatform::Unknown;
+
+    auto& postURL = split[1];
+    static constexpr std::string_view prefixWWW = "www.";
+
+    if (postURL.starts_with(prefixWWW)) postURL.erase(0, prefixWWW.size());
+
+    auto splitSlash = string::split(postURL, "/");
+    if (splitSlash.size() < 2) return RepoPlatform::Unknown;
+
+    std::string_view platformURL = splitSlash[0];
+
+    static StringMap<RepoPlatform> const platforms{
+        {"github.com", RepoPlatform::GitHub},
+        {"gitlab.com", RepoPlatform::GitLab},
+        {"codeberg.org", RepoPlatform::Codeberg},
+        {"git.gay", RepoPlatform::GitGay},
+    };
+
+    auto const it = platforms.find(platformURL);
+    if (it != platforms.end()) return it->second;
+
+    return RepoPlatform::Unknown;
+}
+
+ZStringView ModPopup::getPlatformSprite(std::optional<std::string> const& url) {
+    if (!url.has_value()) return "source_generic.png"_spr;
+    auto platform = getRepoPlatform(url.value());
+
+    switch (platform) {
+        default: return "source_generic.png"_spr;
+
+        case RepoPlatform::GitHub: return "github.png"_spr;
+        case RepoPlatform::GitLab: return "gitlab.png"_spr;
+        case RepoPlatform::Codeberg: return "codeberg.png"_spr;
+        case RepoPlatform::GitGay: return "gitgay.png"_spr;
+    }
 }
 
 void ModPopup::updateState() {
@@ -747,14 +904,16 @@ void ModPopup::updateState() {
     auto wantsRestart = m_source.wantsRestart();
     auto wantsRestartBecauseOfSettings = asMod && ModSettingsManager::from(asMod)->restartRequired();
 
-    m_installBG->setColor((wantsRestart && !wantsRestartBecauseOfSettings) ?
-        to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) :
-        ccBLACK
+    m_installBG->setColor(
+        (wantsRestart && !wantsRestartBecauseOfSettings) ?
+            to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) :
+            ccBLACK
     );
     m_installBG->setOpacity((wantsRestart && !wantsRestartBecauseOfSettings) ? 40 : 75);
-    m_settingsBG->setColor(wantsRestartBecauseOfSettings ?
-        to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) :
-        ccBLACK
+    m_settingsBG->setColor(
+        wantsRestartBecauseOfSettings ?
+            to3B(ColorProvider::get()->color("mod-list-restart-required-label"_spr)) :
+            ccBLACK
     );
     m_settingsBG->setOpacity(wantsRestartBecauseOfSettings ? 40 : 75);
     m_settingsBG->setVisible(wantsRestartBecauseOfSettings);
@@ -777,14 +936,14 @@ void ModPopup::updateState() {
 
     m_cancelBtn->setVisible(false);
 
-    m_enableBtn->toggle(asMod && asMod->isOrWillBeEnabled());
+    m_enableBtn->setToggled(asMod && asMod->isOrWillBeEnabled());
     m_enableBtn->setVisible(
-        asMod &&
+        asMod && 
         asMod->getRequestedAction() == ModRequestedAction::None &&
         !asMod->targetsOutdatedVersion()
     );
 
-    m_reenableBtn->toggle(m_enableBtn->isToggled());
+    m_reenableBtn->setToggled(m_enableBtn->isToggled());
     m_reenableBtn->setVisible(asMod && modRequestedActionIsToggle(asMod->getRequestedAction()));
 
     m_updateBtn->setVisible(
@@ -804,31 +963,18 @@ void ModPopup::updateState() {
         m_installStatusLabel->setVisible(false);
     }
 
-    if (m_enableBtn->isVisible() && m_updateBtn->isVisible() && m_uninstallBtn->isVisible()) {
-        static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage())->setString("");
-        static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage())->setString("");
-        static_cast<IconButtonSprite*>(m_uninstallBtn->getNormalImage())->setString("");
-    }
-    else {
-        static_cast<IconButtonSprite*>(m_enableBtn->m_onButton->getNormalImage())->setString("Disable");
-        static_cast<IconButtonSprite*>(m_enableBtn->m_offButton->getNormalImage())->setString("Enable");
-        static_cast<IconButtonSprite*>(m_uninstallBtn->getNormalImage())->setString("Uninstall");
-    }
-    m_enableBtn->updateSprite();
-    m_uninstallBtn->updateSprite();
-
     if (asMod && asMod->isInternal()) {
         m_enableBtn->setVisible(false);
-        // you can uninstall loader ingame just fine on windows
-        #if !defined(GEODE_IS_WINDOWS)
+// you can uninstall loader ingame just fine on windows
+#if !defined(GEODE_IS_WINDOWS)
         m_uninstallBtn->setVisible(false);
         m_installStatusLabel->setText("N/A");
         m_installStatusLabel->setVisible(true);
-        #endif
+#endif
     }
 
     auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
-    if (download) {
+    if (download.has_value()) {
         if (download->isActive()) {
             m_enableBtn->setVisible(false);
             m_reenableBtn->setVisible(false);
@@ -882,26 +1028,24 @@ void ModPopup::updateState() {
     ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
 }
 
-void ModPopup::setStatIcon(CCNode* stat, const char* spr) {
+void ModPopup::setStatIcon(CCNode* stat, ZStringView spr) {
     // Remove old icon
     stat->removeChildByID("icon");
 
     // Create new icon
-    if (spr) {
-        auto iconSize = stat->getContentHeight();
-        auto icon = CCSprite::createWithSpriteFrameName(spr);
-        limitNodeSize(icon, { iconSize, iconSize }, 1.f, .1f);
-        icon->setID("icon");
-        stat->addChildAtPosition(icon, Anchor::Left, ccp(stat->getContentHeight() / 2, 0));
-    }
+    auto iconSize = stat->getContentHeight();
+    auto icon = CCSprite::createWithSpriteFrameName(spr.c_str());
+    icon->setID("icon");
+    limitNodeSize(icon, {iconSize, iconSize}, 1.0f, 0.1f);
+    stat->addChildAtPosition(icon, Anchor::Left, {stat->getContentHeight() / 2.0f, 0.0f});
 }
 
-void ModPopup::setStatLabel(CCNode* stat, ZStringView value, bool noValue, ccColor3B color) {
+void ModPopup::setStatLabel(CCNode* stat, std::string value, bool noValue, ccColor3B color) {
     auto container = stat->getChildByID("labels");
 
     // Update label
     auto label = static_cast<Label*>(container->getChildByID("label"));
-    label->setText(value);
+    label->setText(std::move(value));
     label->setColor(color);
 
     // Remove value if requested
@@ -913,7 +1057,7 @@ void ModPopup::setStatLabel(CCNode* stat, ZStringView value, bool noValue, ccCol
     container->updateLayout();
 }
 
-void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> const& value) {
+void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> value) {
     auto container = stat->getChildByID("labels");
     auto valueLabel = static_cast<Label*>(container->getChildByID("value-label"));
     auto spinner = container->getChildByID("loading-spinner");
@@ -922,58 +1066,62 @@ void ModPopup::setStatValue(CCNode* stat, std::optional<std::string> const& valu
     valueLabel->setVisible(value.has_value());
     spinner->setVisible(!value.has_value());
 
-    // Update value
-    if (value) {
-        valueLabel->setText(value.value());
-    }
+    if (value.has_value()) valueLabel->setText(std::move(*value));
 
-    // Update layout
     container->updateLayout();
 }
 
 // helper class for making an std::locale
 class comma_numpunct : public std::numpunct<char> {
 protected:
-    virtual char do_thousands_sep() const
-    {
+    virtual char do_thousands_sep() const {
         return ',';
     }
 
-    virtual std::string do_grouping() const
-    {
+    virtual std::string do_grouping() const {
         return "\03";
     }
 };
 
 void ModPopup::onLoadServerInfo(server::ServerResult<server::ServerModMetadata> result) {
     if (result.isOk()) {
-        auto data = std::move(result).unwrap();
-        auto timeToString = [](auto const& time) {
-            if (time.has_value()) {
-                return utils::timeToAgoString(time->value);
-            }
+        auto const data = std::move(result).unwrap();
+        auto timeToString = [](std::optional<server::ServerDateTime> const& time) {
+            if (time.has_value()) return utils::timeToAgoString(time->value);
             return std::string("N/A");
         };
 
-        static std::locale commaLocale(std::locale(), new comma_numpunct());
+        static std::locale const commaLocale(std::locale(), new comma_numpunct());
+
+        struct ModStats {
+            std::string_view id;
+            std::string value;
+        };
+
+        auto stats = std::array{
+            ModStats{
+                "downloads",
+                fmt::format(commaLocale, "{:L}", data.downloadCount),
+            },
+            ModStats{
+                "release-date",
+                timeToString(data.createdAt),
+            },
+            ModStats{
+                "update-date",
+                timeToString(data.updatedAt),
+            },
+        };
 
         // Update server stats
-        for (auto id : std::initializer_list<std::pair<const char*, std::string>> {
-            { "downloads", fmt::format(commaLocale, "{:L}", data.downloadCount) },
-            { "release-date", timeToString(data.createdAt) },
-            { "update-date", timeToString(data.updatedAt) },
-        }) {
-            if (auto stat = m_stats->getChildByID(id.first)) {
-                this->setStatValue(stat, id.second);
-            }
+        for (auto& s : stats) {
+            if (auto stat = m_stats->getChildByID(s.id)) this->setStatValue(stat, std::move(s.value));
         }
         ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
     }
     else {
         for (auto child : CCArrayExt<CCNode*>(m_stats->getChildren())) {
-            if (child->getUserObject("stats")) {
-                this->setStatValue(child, "N/A");
-            }
+            if (child->getUserObject("stats")) this->setStatValue(child, "N/A");
         }
         ModPopupUIEvent().send(this, m_source.getID(), std::nullopt);
     }
@@ -981,13 +1129,15 @@ void ModPopup::onLoadServerInfo(server::ServerResult<server::ServerModMetadata> 
 
 void ModPopup::onCheckUpdates(server::ServerResult<server::ServerModUpdateOneCheck> result) {
     if (result.isOk()) {
-        auto resolved = std::move(result).unwrap();
+        auto const resolved = std::move(result).unwrap();
         // Check if this has updates for an installed mod
         auto updatesStat = m_stats->getChildByID("update-check");
         if (resolved.update.has_value()) {
             this->setStatIcon(updatesStat, "updates-available.png"_spr);
             this->setStatLabel(
-                updatesStat, "Update Found", false,
+                updatesStat,
+                "Update Found",
+                false,
                 ColorProvider::get()->color3b("mod-list-version-label-updates-available"_spr)
             );
             this->setStatValue(updatesStat, resolved.update->version.toVString());
@@ -996,23 +1146,25 @@ void ModPopup::onCheckUpdates(server::ServerResult<server::ServerModUpdateOneChe
         else {
             this->setStatIcon(updatesStat, "GJ_completesIcon_001.png");
             this->setStatLabel(
-                updatesStat, "Up to Date!", true,
+                updatesStat,
+                "Up to Date!",
+                true,
                 ColorProvider::get()->color3b("mod-list-version-label"_spr)
             );
         }
     }
     else {
         auto updatesStat = m_stats->getChildByID("update-check");
-        this->setStatLabel(updatesStat, "No Updates Found", true, ccc3(125, 125, 125));
+        this->setStatLabel(updatesStat, "No Updates Found", true, {125, 125, 125});
     }
 }
 
 void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> result) {
     if (result.isOk()) {
-        auto data = std::move(result).unwrap();
+        auto const data = std::move(result).unwrap();
         m_tags->removeAllChildren();
 
-        for (auto& tag : data) {
+        for (auto const& tag : data) {
             m_tags->addChild(createGeodeTagLabel(tag));
         }
 
@@ -1026,41 +1178,70 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
         // If the build times from the cool popup become too long then we can
         // probably move that to a normal FLAlert that explains "Modtober was
         // this contest blah blah this mod was made for it"
-        else if (auto tag = ranges::find(data, [](auto const& tag) { return tag.name.starts_with("modtober"); }); tag.has_value()) {
+        else if (
+            auto tag = ranges::find(
+                data,
+                [](auto const& tag) {
+                    return tag.name.starts_with("modtober");
+                }
+            );
+            tag.has_value()
+        ) {
             auto year = tag->name.substr(tag->name.size() - 2);
-            auto menu = CCMenu::create();
+            auto menu = CCNode::create();
             menu->setID("modtober-banner");
             menu->ignoreAnchorPointForPosition(false);
-            menu->setContentSize({ m_rightColumn->getContentWidth(), 25 });
+            menu->setContentSize({m_rightColumn->getContentWidth(), 25.0f});
 
             auto banner = CCSprite::createWithSpriteFrameName(fmt::format("modtober{}-banner-2.png"_spr, year).c_str());
-            limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.f, .1f);
+            limitNodeWidth(banner, m_rightColumn->getContentWidth(), 1.0f, 0.1f);
             menu->addChildAtPosition(banner, Anchor::Center);
 
             auto label = Label::create(fmt::format("Entry for Modtober 20{}", year), "bigFont.fnt");
-            label->setScale(.35f);
-            menu->addChildAtPosition(label, Anchor::Left, ccp(10, 0), ccp(0, .5f));
+            label->setScale(0.35f);
+            menu->addChildAtPosition(label, Anchor::Left, {10.0f, 0.0f}, {0.0f, 0.5f});
 
-            auto aboutSpr = createGeodeButton("About", false, GeodeButtonSprite::Default, m_forceDisableTheme);
-            aboutSpr->setScale(.35f);
-            auto aboutBtn = CCMenuItemSpriteExtra::create(
-                aboutSpr, this, year == "24" ? menu_selector(ModPopup::onModtober24Info) : menu_selector(ModPopup::onModtober25Info)
+            struct ModtoberStyle {
+                std::string_view name;
+                std::string_view colorTag;
+            };
+
+            static StringMap<ModtoberStyle> const modtoberYears{
+                {"24", {"The Sky's the Limit", "<cl>"}},
+                {"25", {"What The Heck!?", "<co>"}},
+            };
+
+            auto aboutBtn = Button::createWithNode(
+                createGeodeButton("About", false, GeodeButtonSprite::Default, m_forceDisableTheme),
+                [year](auto) {
+                    auto const it = modtoberYears.find(year);
+                    if (it != modtoberYears.end()) {
+                        auto const& style = it->second;
+
+                        createQuickPopup(
+                            fmt::format("Modtober 20{}", year),
+                            fmt::format(
+                                "This mod was an entry for {}Modtober 20{}</c>, a contest to "
+                                "create "
+                                "the best mod with the theme <cc>\"{}\"</c>",
+                                style.colorTag,
+                                year,
+                                style.name
+                            ),
+                            "OK"
+                        );
+                    };
+                }
             );
-            menu->addChildAtPosition(aboutBtn, Anchor::Right, ccp(-25, 0));
-
-            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, ccp(0, 0), ccp(.5f, 0));
+            aboutBtn->setID("about-modtober-button");
+            aboutBtn->setScale(0.35f);
+            menu->addChildAtPosition(aboutBtn, Anchor::Right, {-25.0f, 0.0f});
 
             m_modtoberBanner = menu;
 
-            // Force reload of all the tabs since otherwise their contents will overflow
-            for (auto& [_, tab] : m_tabs) {
-                if (tab.second && tab.second->getParent()) {
-                    tab.second->removeFromParent();
-                }
-                tab.second = nullptr;
-            }
+            this->setupTabs();
 
-            m_currentTabPage = nullptr;
+            m_rightColumn->addChildAtPosition(menu, Anchor::Bottom, {0.0f, 0.0f}, {0.5f, 0.0f});
 
             // This might cause a minor inconvenience to someone who opens the popup and
             // immediately switches to changelog but is then forced back into details
@@ -1084,73 +1265,21 @@ void ModPopup::onLoadTags(server::ServerResult<std::vector<server::ServerTag>> r
     }
 }
 
-void ModPopup::loadTab(ModPopup::Tab tab) {
-    // Remove current page
-    if (m_currentTabPage) {
-        m_currentTabPage->removeFromParent();
-    }
-
+void ModPopup::loadTab(Tab tab) {
     // Highlight selected tab
-    for (auto [value, btn] : m_tabs) {
-        btn.first->select(value == tab);
-    }
+    for (auto const& [value, btn] : m_tabs) {
+        bool on = value == tab;
 
-    float modtoberBannerHeight = 0;
-    if (m_modtoberBanner) {
-        modtoberBannerHeight = 30;
-    }
+        btn.first->select(on);
+        btn.second->setVisible(on);
 
-    if (auto existing = m_tabs.at(tab).second) {
-        m_currentTabPage = existing;
-        m_rightColumn->addChildAtPosition(existing, Anchor::Bottom, ccp(0, modtoberBannerHeight));
-    }
-    else {
-        const auto size = (m_rightColumn->getContentSize() - ccp(0, 30 + modtoberBannerHeight));
-        const float mdScale = .85f;
-        switch (tab) {
-            case Tab::Details: {
-                m_currentTabPage = FetchTextArea::create(
-                    m_source.fetchAbout(),
-                    "No description provided",
-                    size / mdScale
-                );
-                m_currentTabPage->setID("description-container");
-                m_currentTabPage->setScale(mdScale);
-            } break;
-
-            case Tab::Changelog: {
-                m_currentTabPage = FetchTextArea::create(
-                    m_source.fetchChangelog(),
-                    "No changelog provided",
-                    size / mdScale
-                );
-                m_currentTabPage->setID("changelog-container");
-                m_currentTabPage->setScale(mdScale);
-            } break;
-
-            case Tab::Versions: {
-                m_currentTabPage = CCNode::create();
-                m_currentTabPage->setContentSize(size);
-                m_currentTabPage->setID("versions-container");
-            } break;
-        }
-        m_currentTabPage->setAnchorPoint({ .5f, .0f });
-        m_rightColumn->addChildAtPosition(m_currentTabPage, Anchor::Bottom, ccp(0, modtoberBannerHeight));
-        m_tabs.at(tab).second = m_currentTabPage;
+        if (on) static_cast<FetchTextArea*>(btn.second.data())->scrollToTop();
     }
 }
 
-void ModPopup::onTab(CCObject* sender) {
-    this->loadTab(static_cast<Tab>(sender->getTag()));
-}
-
-void ModPopup::onEnable(CCObject*) {
-    m_source.requestEnable();
-}
-
-void ModPopup::onInstall(CCObject*) {
-    // A futile attempt to try and prevent users from blindly installing
-    // everything on the index
+void ModPopup::onInstall() {
+    // A futile attempt to try and prevent users from
+    // blindly installing everything on the index
     if (m_source.asServer() && Loader::get()->getAllMods().size() > 10) {
         if (!Mod::get()->setSavedValue("shown-dont-install-everything-warning", true)) {
             FLAlertLayer::create(
@@ -1166,58 +1295,6 @@ void ModPopup::onInstall(CCObject*) {
     m_source.startInstall();
 
     this->onClose(nullptr);
-}
-
-void ModPopup::onUninstall(CCObject*) {
-    if (auto mod = m_source.asMod()) {
-        ConfirmUninstallPopup::create(mod)->show();
-    }
-    else {
-        FLAlertLayer::create(
-            "Error Uninstalling Mod",
-            "This mod can not be uninstalled! (It is not installed at all)",
-            "OK"
-        )->show();
-    }
-}
-
-void ModPopup::onCancelDownload(CCObject*) {
-    auto download = server::ModDownloadManager::get()->getDownload(m_source.getID());
-    if (download) {
-        download->cancel();
-    }
-}
-
-void ModPopup::onSettings(CCObject*) {
-    if (auto mod = m_source.asMod()) {
-        ModSettingsPopup::create(mod)->show();
-    }
-}
-
-void ModPopup::onLink(CCObject* sender) {
-    auto url = static_cast<CCString*>(static_cast<CCNode*>(sender)->getUserObject("url"));
-    web::openLinkInBrowser(url->getCString());
-}
-
-void ModPopup::onSupport(CCObject*) {
-    openSupportPopup(m_source.getMetadata());
-}
-void ModPopup::onModtober24Info(CCObject*) {
-    FLAlertLayer::create(
-        "Modtober 2024",
-        "This mod was an entry for <cj>Modtober 2024</c>, a contest to create "
-        "the best mod with the theme <cc>\"The Sky's the Limit\"</c>",
-        "OK"
-    )->show();
-}
-
-void ModPopup::onModtober25Info(CCObject*) {
-    FLAlertLayer::create(
-        "Modtober 2025",
-        "This mod was an entry for <co>Modtober 2025</c>, a contest to create "
-        "the best mod with the theme <cc>\"What The Heck!?\"</c>",
-        "OK"
-    )->show();
 }
 
 ModPopup* ModPopup::create(ModSource&& src) {
@@ -1237,11 +1314,11 @@ ModSource& ModPopup::getSource() & {
 bool ModPopup::availableForInstall() const {
     // Adapted from ModItem.cpp ModItem::onView
     if (auto serverSource = m_source.asServer()) {
-        auto& version = serverSource->latestVersion();
+        auto const& version = serverSource->latestVersion();
         auto gameVersion = version.getGameVersion();
 
-        return (!gameVersion || gameVersion == "*" || gameVersion == GEODE_STR(GEODE_GD_VERSION)) &&
-            Loader::get()->isModVersionSupported(version.getGeodeVersion());
+        return (!gameVersion.has_value() || *gameVersion == "*" || *gameVersion == GEODE_STR(GEODE_GD_VERSION)) && Loader::get()->isModVersionSupported(version.getGeodeVersion());
     }
+
     return false;
 }
