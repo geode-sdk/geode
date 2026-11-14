@@ -44,7 +44,7 @@ std::shared_ptr<Hook> Hook::Impl::create(
     });
 }
 
-Result<> Hook::Impl::enable() {
+Result<void, HookError> Hook::Impl::enable() {
     if (m_enabled) {
         return Ok();
     }
@@ -79,7 +79,7 @@ Result<> Hook::Impl::enable() {
     return Ok();
 }
 
-Result<> Hook::Impl::disable() {
+Result<void, HookError> Hook::Impl::disable() {
     if (!m_enabled)
         return Ok();
     GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getAndDecreaseHandler(m_address));
@@ -97,11 +97,11 @@ Result<> Hook::Impl::disable() {
     return Ok();
 }
 
-Result<> Hook::Impl::toggle() {
+Result<void, HookError> Hook::Impl::toggle() {
     return this->toggle(!m_enabled);
 }
 
-Result<> Hook::Impl::toggle(bool enable) {
+Result<void, HookError> Hook::Impl::toggle(bool enable) {
     if (enable) {
         return this->enable();
     }
@@ -161,7 +161,7 @@ void Hook::Impl::setModifyClassName(std::string name) {
     m_modifyClassName = std::move(name);
 }
 
-Result<> Hook::Impl::updateHookMetadata() {
+Result<void, HookError> Hook::Impl::updateHookMetadata() {
     if (!m_enabled) return Ok();
     GEODE_UNWRAP_INTO(auto handler, LoaderImpl::get()->getHandler(m_address));
     tulip::hook::updateHookMetadata(handler, m_handle, m_hookMetadata);
