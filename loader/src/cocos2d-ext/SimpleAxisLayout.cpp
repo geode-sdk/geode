@@ -73,6 +73,7 @@ public:
     std::unordered_map<CCNode*, float> m_relativeScalesPerNode;
 
     Padding m_padding = { 0.f, 0.f, 0.f, 0.f };
+    bool m_useBoundingBox = false;
 
     Impl(Axis axis, SimpleAxisLayout* parent) : BaseAxisLayoutImpl(axis, 0.f), m_layout(parent) {
         switch (axis) {
@@ -97,19 +98,19 @@ public:
 
     float getContentWidth(CCNode* on) const {
         if (m_axis == Axis::Column) {
-            return on->getContentSize().width;
+            return m_useBoundingBox ? on->boundingBox().size.width / on->getScaleX() : on->getContentSize().width;
         }
         else {
-            return on->getContentSize().height;
+            return m_useBoundingBox ? on->boundingBox().size.height / on->getScaleY() : on->getContentSize().height;
         }
     }
 
     float getContentHeight(CCNode* on) const {
         if (m_axis == Axis::Column) {
-            return on->getContentSize().height;
+            return m_useBoundingBox ? on->boundingBox().size.height / on->getScaleY() : on->getContentSize().height;
         }
         else {
-            return on->getContentSize().width;
+            return m_useBoundingBox ? on->boundingBox().size.width / on->getScaleX() : on->getContentSize().width;
         }
     }
 
@@ -906,6 +907,11 @@ SimpleAxisLayout* SimpleAxisLayout::setPadding(Padding const& padding) {
     return this;
 }
 
+SimpleAxisLayout* SimpleAxisLayout::useBoundingBox(bool use) {
+    m_impl->m_useBoundingBox = use;
+    return this;
+}
+
 Axis SimpleAxisLayout::getAxis() const {
     return m_impl->m_axis;
 }
@@ -948,6 +954,10 @@ std::optional<float> SimpleAxisLayout::getMaxRelativeScale() const {
 
 Padding SimpleAxisLayout::getPadding() const {
     return m_impl->m_padding;
+}
+
+bool SimpleAxisLayout::isUsingBoundingBox() const {
+    return m_impl->m_useBoundingBox;
 }
 
 SimpleRowLayout::SimpleRowLayout() : SimpleAxisLayout(Axis::Row) {}
