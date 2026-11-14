@@ -165,7 +165,10 @@ bool ModPopup::init(ModSource&& src) {
 
     StringBuffer title;
     title.append("{:.40}", m_source.getMetadata().getName());
-    if (m_source.getMetadata().getName().size() > 40) title.append("...");
+
+    if (m_source.getMetadata().getName().size() > 40) {
+        title.append("...");
+    }
 
     auto titleLabel = Label::create(title.str(), "bigFont.fnt");
     titleLabel->setLimitLabelWidth(m_titleContainer->getContentWidth() - devAndTitlePos, 0.45f, 0.1f);
@@ -625,7 +628,9 @@ bool ModPopup::init(ModSource&& src) {
             button->setOpacity(155);
         }
 
-        if (btn.url.has_value()) button->setUserObject("url", CCString::create(*btn.url));
+        if (btn.url.has_value()) {
+            button->setUserObject("url", CCString::create(*btn.url));
+        }
 
         button->setID(std::move(btn.id));
         linksMenu->addChild(button);
