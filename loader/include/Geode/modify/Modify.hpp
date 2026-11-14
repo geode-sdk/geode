@@ -122,7 +122,7 @@ namespace geode::modifier {
             ModNotFound,
         };
 
-        decltype(Unknown) m_value;
+        decltype(Unknown) m_value = Unknown;
 
         constexpr ModifyError() = default;
         constexpr ModifyError(decltype(Unknown) value) : m_value(value) {}
