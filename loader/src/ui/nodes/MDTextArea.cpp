@@ -51,8 +51,8 @@ struct MDConfig::Impl {
     float tableCellPadding = 4.f;
     float tableBorderWidth = 1.f;
 
-    ccColor3B linkColor{140, 140, 237};
-    ccColor3B linkActiveColor{83, 83, 173};
+    ccColor3B linkColor{118, 163, 214};
+    ccColor3B linkActiveColor{25, 60, 99};
     ccColor3B codeBlockBgColor{0, 0, 0};
     ccColor3B codeSpanBgColor{0, 0, 0};
     ccColor3B blockQuoteRuleColor{200, 200, 200};
