@@ -187,6 +187,12 @@ namespace geode {
         /// Set a callback function that is called when text input is focused or unfocused.
         void setFocusCallback(Function<void(FocusState state)> onFocusChange);
 
+        /// Set a callback function that is called when text input may be covered by floating keyboard and get the offset.
+        void setKeyboardOffsetCallback(Function<void(float offset)> onKeyboardOffset);
+
+        /// Set a callback function that is called when the floating keyboard is hidden.
+        void setKeyboardHideCallback(Function<void()> onKeyboardHide);
+
         template <class Callback>
         void addTextChangedCallback(ZStringView id, Callback&& callback, int priority = 0) {
             this->addEventListener(id, TextChangedEvent(this), std::forward<Callback>(callback), priority);
@@ -234,10 +240,16 @@ namespace geode {
         void deleteForward() override;
         char const* getContentText() override;
 
+        void keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo& info) override;
+        void keyboardWillShow(cocos2d::CCIMEKeyboardNotificationInfo& info) override;
+
         bool initWithWidth(float width, std::string placeholder, ZStringView font);
         bool initWithSize(cocos2d::CCSize const& size, std::string placeholder, ZStringView font, bool multiline);
 
     private:
+        void applyKeyboardOffset(cocos2d::CCRect keyboardRect);
+        void returnKeyboardOffset();
+
         struct Impl;
         std::unique_ptr<Impl> m_impl;
     };
