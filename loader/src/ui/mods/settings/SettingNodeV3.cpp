@@ -160,7 +160,7 @@ void SettingNodeV3::commit() {
 }
 
 void SettingNodeV3::resetToDefault() {
-    if (!m_impl->setting || m_impl->setting->isDefaultValue()) return;
+    if (!m_impl->setting || !this->hasNonDefaultValue()) return;
     m_impl->setting->reset();
     m_impl->committed = true;
     this->onResetToDefault();
@@ -515,8 +515,7 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
     if (setting->getEnumOptions()) {
         m_input->getBGSprite()->setVisible(false);
         m_input->setEnabled(false);
-        m_input->getInputNode()->m_textLabel->setOpacity(255);
-        m_input->getInputNode()->m_textLabel->setColor(ccWHITE);
+        m_input->setTextColor({255, 255, 255, 255});
 
         m_arrowLeftSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
         m_arrowLeftSpr->setFlipX(true);
