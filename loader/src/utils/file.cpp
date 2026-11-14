@@ -96,8 +96,11 @@ asp::fs::Result<> utils::file::createDirectoryAll(PathView path) {
 }
 
 asp::fs::Result<> utils::file::moveDirectoryContents(PathView source, PathView target) {
-    if(!source.exists() || !source.isDir() || !target.exists() || !target.isDir()) {
-        if (!source.isDir() || !target.isDir()) return Err(asp::fs::ErrorKind::NotADirectory);
+    auto sourceMeta = GEODE_UNWRAP(source.metadata());
+    auto targetMeta = GEODE_UNWRAP(target.metadata());
+
+    if (!sourceMeta.isDir() || !targetMeta.isDir()) {
+        return Err(asp::fs::ErrorKind::NotADirectory);
     }
 
     for (auto result : GEODE_UNWRAP(asp::fs::iterDir(source))) {
