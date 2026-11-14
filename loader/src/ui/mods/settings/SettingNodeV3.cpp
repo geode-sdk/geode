@@ -160,7 +160,7 @@ void SettingNodeV3::commit() {
 }
 
 void SettingNodeV3::resetToDefault() {
-    if (!m_impl->setting || m_impl->setting->isDefaultValue()) return;
+    if (!m_impl->setting || !this->hasNonDefaultValue()) return;
     m_impl->setting->reset();
     m_impl->committed = true;
     this->onResetToDefault();
