@@ -7,8 +7,8 @@ std::string HookError::toString() const {
     switch (m_value) {
         case Unknown:
             return "Unknown error";
-        case TulipHook:
-            return "Tulip hook error: " + m_error.toString();
+        case TulipHookError:
+            return m_error.toString();
         case Overlaps:
             if (m_other) return fmt::format("Overlaps patch {} at {}", m_other->getAddress(), m_other->getOwner()->getID());
             return "Overlaps patch";

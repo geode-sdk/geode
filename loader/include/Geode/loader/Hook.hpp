@@ -16,7 +16,7 @@ namespace geode {
     struct HookError {
         enum {
             Unknown = -1,
-            TulipHook = 0,
+            TulipHookError = 0,
             Overlaps,
             AlreadyOwned,
         };
@@ -27,7 +27,7 @@ namespace geode {
 
         constexpr HookError() = default;
         constexpr HookError(decltype(Unknown) value) : m_value(value) {}
-        constexpr HookError(tulip::hook::Error error) : m_value(TulipHook), m_error(std::move(error)) {}
+        constexpr HookError(tulip::hook::Error error) : m_value(TulipHookError), m_error(std::move(error)) {}
         constexpr HookError(Patch* other) : m_value(Overlaps), m_other(other) {}
         constexpr HookError& operator=(decltype(Unknown) value) {
             m_value = value;
