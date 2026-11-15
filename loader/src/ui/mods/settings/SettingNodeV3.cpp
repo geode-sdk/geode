@@ -300,19 +300,17 @@ TitleSettingNodeV3* TitleSettingNodeV3::create(ZStringView title, std::optional<
 // InfoSettingNodeV3
 
 bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width) {
-    if (!SettingNodeV3::init(setting, width))
-        return false;
+    if (!SettingNodeV3::init(setting, width)) return false;
 
-    this->setContentHeight(22);
+    this->setContentHeight(22.0f);
     this->getNameLabel()->setVisible(false);
     this->getDescriptionButton()->setVisible(false);
 
-    auto label =
-        BoxedLabel::create(setting->getDescription().value_or(""), "chatFont.fnt", width - 25);
-    label->lockBGWidth(true);
-    label->setTextScale(.65f);
-    label->setBGOpacity(100);
-    label->setBGColor(setting->getColor().value_or(ccc3(255, 135, 88)));
+    auto label = BoxedLabel::create(setting->getDescription().value_or(""), "chatFont.fnt", width - 25.0f);
+    label->lockWidth(true);
+    label->setTextScale(0.65f);
+    label->setBoxOpacity(100);
+    label->setBoxColor(setting->getColor().value_or(ccColor3B{255, 135, 88}));
 
     this->addChildAtPosition(label, Anchor::Center);
 
