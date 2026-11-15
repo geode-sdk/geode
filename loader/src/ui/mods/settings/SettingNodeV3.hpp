@@ -116,7 +116,7 @@ protected:
                 this->onArrow(sender);
             }
         );
-        m_bigArrowLeftBtn->setScale(.3f);
+        m_bigArrowLeftBtn->setScale(0.3f);
         m_bigArrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getBigArrowStepSize()));
         m_bigArrowLeftBtn->setVisible(setting->isBigArrowsEnabled());
         this->getButtonMenu()->addChildAtPosition(m_bigArrowLeftBtn, Anchor::Left, {5.0f, 0.0f});
@@ -127,14 +127,14 @@ protected:
                 this->onArrow(sender);
             }
         );
-        m_arrowLeftBtn->setScale(.5f);
+        m_arrowLeftBtn->setScale(0.5f);
         m_arrowLeftBtn->setUserObject(ObjWrapper<ValueType>::create(-setting->getArrowStepSize()));
         m_arrowLeftBtn->setVisible(setting->isArrowsEnabled());
         this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, {22.0f, 0.0f});
 
         m_input = TextInput::create(this->getButtonMenu()->getContentWidth() - 40.0f, "Num");
         m_input->setNumericMode(true);
-        m_input->setScale(.7f);
+        m_input->setScale(0.7f);
         m_input->setCommonFilter(std::is_floating_point_v<typename S::ValueType> ? CommonFilter::Float : CommonFilter::Int);
         m_input->setCallback([this, setting](auto const& str) {
             this->setValue(numFromString<ValueType>(str).unwrapOr(setting->getDefaultValue()), m_input);
@@ -152,7 +152,7 @@ protected:
                 this->onArrow(sender);
             }
         );
-        m_arrowRightBtn->setScale(.5f);
+        m_arrowRightBtn->setScale(0.5f);
         m_arrowRightBtn->setUserObject(ObjWrapper<ValueType>::create(setting->getArrowStepSize()));
         m_arrowRightBtn->setVisible(setting->isArrowsEnabled());
         static_cast<CCSprite*>(m_arrowRightBtn->getDisplayNode())->setFlipX(true);
@@ -175,7 +175,7 @@ protected:
                 this->onArrow(sender);
             }
         );
-        m_bigArrowRightBtn->setScale(.3f);
+        m_bigArrowRightBtn->setScale(0.3f);
         m_bigArrowRightBtn->setUserObject(ObjWrapper<ValueType>::create(setting->getBigArrowStepSize()));
         m_bigArrowRightBtn->setVisible(setting->isBigArrowsEnabled());
         this->getButtonMenu()->addChildAtPosition(m_bigArrowRightBtn, Anchor::Right, {-5.0f, 0.0f});
@@ -191,7 +191,7 @@ protected:
                     this->setValue(value, m_slider);
                 }
             });
-            m_slider->setScale(.5f);
+            m_slider->setScale(0.5f);
             m_slider->setMin(setting->getMinValue().value_or(-100.0f));
             m_slider->setMax(setting->getMaxValue().value_or(+100.0f));
             m_slider->setSnapStep(setting->getSliderSnap());

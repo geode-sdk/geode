@@ -41,7 +41,7 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
 
     m_tabsMenu = CCNode::create();
     m_tabsMenu->setID("tabs-menu");
-    m_tabsMenu->setAnchorPoint({.5f, .5f});
+    m_tabsMenu->setAnchorPoint({0.5f, 0.5f});
     m_tabsMenu->setContentWidth(m_listSize.width);
 
     struct TabInfo {
@@ -89,7 +89,7 @@ bool KeybindsPopup::init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool for
 
             this->updateState(nullptr);
         });
-        tabBtn->setScale(.7f);
+        tabBtn->setScale(0.7f);
         tabBtn->setTag(static_cast<int>(tab.id));
         tabBtn->setEnabled(tab.id != m_tab);
         m_tabsMenu->addChild(tabBtn);

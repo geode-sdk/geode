@@ -23,7 +23,7 @@ bool KeybindEditPopup::init(
 
     if (auto mod = setting->getMod()) {
         auto fromModLabel = Label::create(mod->getName(), "bigFont.fnt");
-        fromModLabel->setScale(.4f);
+        fromModLabel->setScale(0.4f);
         fromModLabel->setColor({55, 155, 255});
         m_mainLayer->addChildAtPosition(fromModLabel, Anchor::Top, {0.0f, -40.0f});
     }
@@ -34,7 +34,7 @@ bool KeybindEditPopup::init(
 
     auto bottomMenu = CCNode::create();
     bottomMenu->setID("bottom-menu");
-    bottomMenu->setAnchorPoint({.5f, .5f});
+    bottomMenu->setAnchorPoint({0.5f, 0.5f});
     bottomMenu->setContentWidth(220.0f);
 
     if (keybind.key == KEY_None) {
@@ -98,9 +98,9 @@ void KeybindEditPopup::updateLabel() {
         if (*m_originalKeybind != m_currentKeybind) {
             m_originalKeybindContainer = CCNode::create();
             m_originalKeybindContainer->setID("original-keybind-container");
-            m_originalKeybindContainer->setScale(.4f);
+            m_originalKeybindContainer->setScale(0.4f);
             m_originalKeybindContainer->setContentWidth(200);
-            m_originalKeybindContainer->setAnchorPoint({.5f, .5f});
+            m_originalKeybindContainer->setAnchorPoint({0.5f, 0.5f});
 
             auto originalKeybindInfoStart = Label::create("(Previous: ", "bigFont.fnt");
             originalKeybindInfoStart->setColor({55, 255, 55});
@@ -124,17 +124,17 @@ void KeybindEditPopup::updateLabel() {
     if (m_currentKeybind.key == KEY_None && m_currentKeybind.modifiers == KeyboardModifier::None) {
         auto label = Label::create("Press a key...", "bigFont.fnt");
         label->setOpacity(150);
-        label->setScale(.75f);
+        label->setScale(0.75f);
         m_keybindNode = label;
     }
     else {
         m_keybindNode = m_currentKeybind.createNode();
         // It just looks better if controller binds are scale 1
         if (!typeinfo_cast<CCSprite*>(m_keybindNode)) {
-            limitNodeWidth(m_keybindNode, m_mainLayer->getContentWidth() - 10.0f, .75f, .1f);
+            limitNodeWidth(m_keybindNode, m_mainLayer->getContentWidth() - 10.0f, 0.75f, 0.1f);
         }
     }
-    float keybindOffset = m_originalKeybindContainer ? 10 : 0;
+    float keybindOffset = m_originalKeybindContainer ? 10.0f : 0.0f;
     m_mainLayer->addChildAtPosition(m_keybindNode, Anchor::Center, {0.0f, keybindOffset});
 }
 
@@ -142,6 +142,7 @@ void KeybindEditPopup::doSet() {
     if (m_currentKeybind.key == KEY_None || m_currentKeybind.key == KEY_Unknown) {
         return;
     }
+
     m_callback(m_currentKeybind);
     this->onClose(nullptr);
 }
@@ -221,7 +222,7 @@ bool KeybindListPopup::init(
 
     auto bottomMenu = CCNode::create();
     bottomMenu->setID("bottom-menu");
-    bottomMenu->setAnchorPoint({.5f, .5f});
+    bottomMenu->setAnchorPoint({0.5f, 0.5f});
     bottomMenu->setContentWidth(220.0f);
 
     auto addButton = Button::createWithNode(
@@ -277,7 +278,7 @@ void KeybindListPopup::updateKeybinds() {
         button->setTag(index);
 
         auto menu = CCNode::create();
-        menu->setAnchorPoint({.5f, .5f});
+        menu->setAnchorPoint({0.5f, 0.5f});
         menu->setContentSize({ 190.0f, button->getScaledContentHeight() });
         menu->addChild(button);
 

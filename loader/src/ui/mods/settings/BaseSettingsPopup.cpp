@@ -11,20 +11,20 @@
 static bool matchSearch(SettingNode* node, ZStringView query) {
     auto trimmedQuery = string::trim(query);
     bool addToList = false;
-    double weighted = .0;
+    double weighted = 0.0;
     if (auto setting = node->getSetting()) {
         if (auto name = setting->getName()) {
             addToList |= weightedFuzzyMatch(setting->getKey(), trimmedQuery, 0.5, weighted);
-            addToList |= weightedFuzzyMatch(*name, trimmedQuery, 1, weighted);
+            addToList |= weightedFuzzyMatch(*name, trimmedQuery, 1.0, weighted);
         }
         // If there's no name, give full weight to key
         else {
-            addToList |= weightedFuzzyMatch(setting->getKey(), trimmedQuery, 1, weighted);
+            addToList |= weightedFuzzyMatch(setting->getKey(), trimmedQuery, 1.0, weighted);
         }
     }
     // keybinds popup titles dont have a setting theyre labels are js set to mod names
     else if (auto asTitle = typeinfo_cast<TitleSettingNode*>(node); asTitle && asTitle->getNameLabel()) {
-        addToList |= weightedFuzzyMatch(asTitle->getNameLabel()->getString(), trimmedQuery, 1, weighted);
+        addToList |= weightedFuzzyMatch(asTitle->getNameLabel()->getString(), trimmedQuery, 1.0, weighted);
     }
     else {
         return false;
@@ -105,7 +105,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_applyMenu = CCNode::create();
     m_applyMenu->setID("apply-menu");
     m_applyMenu->setContentWidth(150.0f);
-    m_applyMenu->setAnchorPoint({.5f, .5f});
+    m_applyMenu->setAnchorPoint({0.5f, 0.5f});
     m_applyMenu->setLayout(RowLayout::create()->setDefaultScaleLimits(.1f, .6f));
 
     m_restartBtn = Button::createWithNode(

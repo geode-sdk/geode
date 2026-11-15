@@ -35,7 +35,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl->bg = CCLayerColor::create({ 0, 0, 0, 0 });
     m_impl->bg->setContentSize({ width, 0 });
     m_impl->bg->ignoreAnchorPointForPosition(false);
-    m_impl->bg->setAnchorPoint({.5f, .5f});
+    m_impl->bg->setAnchorPoint({0.5f, 0.5f});
     this->addChildAtPosition(m_impl->bg, Anchor::Center);
 
     m_impl->nameMenu = CCNode::create();
@@ -48,8 +48,8 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
     m_impl->nameMenu->addChild(m_impl->nameLabel);
 
     m_impl->statusLabel = Label::create("", "bigFont.fnt");
-    m_impl->statusLabel->setScale(.25f);
-    this->addChildAtPosition(m_impl->statusLabel, Anchor::Left, {10.0f, -10.0f}, {0.0f, .5f});
+    m_impl->statusLabel->setScale(0.25f);
+    this->addChildAtPosition(m_impl->statusLabel, Anchor::Left, {10.0f, -10.0f}, {0.0f, 0.5f});
 
     if (setting && setting->getDescription()) {
         m_impl->descButton = Button::createWithSpriteFrameName(
@@ -59,7 +59,7 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
             }
         );
         m_impl->descButton->setID("info-button");
-        m_impl->descButton->setScale(.5f);
+        m_impl->descButton->setScale(0.5f);
         m_impl->nameMenu->addChild(m_impl->descButton);
     }
 
@@ -70,19 +70,19 @@ bool SettingNodeV3::init(std::shared_ptr<SettingV3> setting, float width) {
         }
     );
     m_impl->resetButton->setID("reset-setting-button");
-    m_impl->resetButton->setScale(.5f);
+    m_impl->resetButton->setScale(0.5f);
     m_impl->nameMenu->addChild(m_impl->resetButton);
 
     m_impl->nameMenu->setLayout(RowLayout::create()->setAxisAlignment(AxisAlignment::Start)->setAutoScale(false));
-    this->addChildAtPosition(m_impl->nameMenu, Anchor::Left, {10.0f, 0.0f}, {0.0f, .5f});
+    this->addChildAtPosition(m_impl->nameMenu, Anchor::Left, {10.0f, 0.0f}, {0.0f, 0.5f});
 
     m_impl->buttonMenu = CCNode::create();
     m_impl->buttonMenu->setID("button-menu");
     m_impl->buttonMenu->setContentSize({ width / 2.0f - 55.0f, 30.0f });
     m_impl->buttonMenu->setLayout(AnchorLayout::create());
-    this->addChildAtPosition(m_impl->buttonMenu, Anchor::Right, {-10.0f, 0.0f}, {1.0f, .5f});
+    this->addChildAtPosition(m_impl->buttonMenu, Anchor::Right, {-10.0f, 0.0f}, {1.0f, 0.5f});
 
-    this->setAnchorPoint({ .5f, .5f });
+    this->setAnchorPoint({ 0.5f, 0.5f });
     this->setContentSize({ width, 30.0f });
 
     return true;
@@ -166,7 +166,7 @@ void SettingNodeV3::commit() {
 
 void SettingNodeV3::resetToDefault() {
     if (!m_impl->setting || !this->hasNonDefaultValue()) return;
-    m_impl->setting->reset();
+    (*m_impl->setting).reset();
     m_impl->committed = true;
     this->onResetToDefault();
     this->updateState(nullptr);
@@ -236,7 +236,7 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
         this->markChanged(sender);
     });
     m_collapseToggle->setID("collapse-toggler");
-    m_collapseToggle->setScale(.2f);
+    m_collapseToggle->setScale(0.2f);
     this->getButtonMenu()->setContentWidth(20.0f);
     this->getButtonMenu()->addChildAtPosition(m_collapseToggle, Anchor::Center);
 
@@ -305,7 +305,7 @@ bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width
     auto label = BoxedLabel::create(setting->getDescription().value_or(""), "chatFont.fnt", width - 25);
     label->setID("info-setting-label");
     label->lockBGWidth(true);
-    label->setTextScale(.65f);
+    label->setTextScale(0.65f);
     label->setBGOpacity(100);
     label->setBGColor(setting->getColor().value_or(ccColor3B{255, 135, 88}));
 
@@ -349,7 +349,7 @@ bool ButtonSettingNodeV3::init(std::shared_ptr<ButtonSettingV3> setting, float w
 
     for (const auto& [k, v] : setting->getButtons()) {
         auto spr = createGeodeButton(v);
-        spr->setScale(.5f);
+        spr->setScale(0.5f);
         spr->setCascadeColorEnabled(true);
         spr->setCascadeOpacityEnabled(true);
         auto button = Button::createWithNode(
@@ -364,8 +364,8 @@ bool ButtonSettingNodeV3::init(std::shared_ptr<ButtonSettingV3> setting, float w
         this->getButtonMenu()->addChild(button);
     }
 
-    this->getButtonMenu()->setAnchorPoint({ 0.0f, .5f });
-    this->getButtonMenu()->setContentWidth(setting->getDescription() ? width - 45 : width - 20);
+    this->getButtonMenu()->setAnchorPoint({ 0.0f, 0.5f });
+    this->getButtonMenu()->setContentWidth(setting->getDescription() ? width - 45.0f : width - 20.0f);
 
     auto buttonLayout = RowLayout::create();
     this->getButtonMenu()->setLayout(buttonLayout);
@@ -376,12 +376,12 @@ bool ButtonSettingNodeV3::init(std::shared_ptr<ButtonSettingV3> setting, float w
     }
 
     this->updateState(nullptr);
-    this->setContentHeight(this->getButtonMenu()->getContentHeight() + 20);
-    this->getButtonMenu()->setPosition({10, getContentHeight() / 2});
+    this->setContentHeight(this->getButtonMenu()->getContentHeight() + 20.0f);
+    this->getButtonMenu()->setPosition({10.0f, getContentHeight() / 2.0f});
 
-    this->getNameMenu()->setAnchorPoint({1.0f, .5f});
+    this->getNameMenu()->setAnchorPoint({1.0f, 0.5f});
     this->getNameMenu()->setContentHeight(getContentHeight());
-    this->getNameMenu()->setPositionX(width - 10);
+    this->getNameMenu()->setPositionX(width - 10.0f);
 
     auto nameLayout = static_cast<AxisLayout*>(this->getNameMenu()->getLayout());
     nameLayout->setAxisAlignment(AxisAlignment::Center);
@@ -449,7 +449,7 @@ bool BoolSettingNodeV3::init(std::shared_ptr<BoolSettingV3> setting, float width
         this->setValue(toggled, sender);
         this->markChanged(sender);
     });
-    m_toggle->setScale(.55f);
+    m_toggle->setScale(0.55f);
     m_toggle->setToggled(setting->getValue());
     this->getButtonMenu()->addChildAtPosition(m_toggle, Anchor::Right, {-10.0f, 0.0f});
 
@@ -492,7 +492,7 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
     m_input->setCallback([this](auto const& str) {
         this->setValue(str, m_input);
     });
-    m_input->setScale(.7f);
+    m_input->setScale(0.7f);
     m_input->setString(this->getSetting()->getValue());
     if (auto filter = this->getSetting()->getAllowedCharacters()) {
         m_input->setFilter(*filter);
@@ -511,7 +511,7 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
                 this->onArrow(sender, -1);
             }
         );
-        m_arrowLeftBtn->setScale(.4f);
+        m_arrowLeftBtn->setScale(0.4f);
         static_cast<CCSprite*>(m_arrowLeftBtn->getDisplayNode())->setFlipX(true);
         this->getButtonMenu()->addChildAtPosition(m_arrowLeftBtn, Anchor::Left, {5.0f, 0.0f});
 
@@ -521,7 +521,7 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
                 this->onArrow(sender, 1);
             }
         );
-        m_arrowRightBtn->setScale(.4f);
+        m_arrowRightBtn->setScale(0.4f);
         this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, {-5.0f, 0.0f});
         this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, {-5.0f, 0.0f});
     }
@@ -577,8 +577,8 @@ StringSettingNodeV3* StringSettingNodeV3::create(std::shared_ptr<StringSettingV3
 bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width) {
     if (!SettingValueNodeV3::init(setting, width)) return false;
 
-    auto labelBG = NineSlice::create("square02b_001.png", { 0, 0, 80, 80 });
-    labelBG->setScale(.25f);
+    auto labelBG = NineSlice::create("square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f });
+    labelBG->setScale(0.25f);
     labelBG->setColor({ 0, 0, 0 });
     labelBG->setOpacity(90);
     labelBG->setContentSize({ 420.0f, 80.0f });
@@ -589,7 +589,7 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
 
     m_nameLabel = Label::create("", "bigFont.fnt");
     m_nameLabel->setLimitLabelWidth(75.0f, .35f, .1f);
-    this->getButtonMenu()->addChildAtPosition(m_nameLabel, Anchor::Left, {13.0f, 0.0f}, {0.0f, .5f});
+    this->getButtonMenu()->addChildAtPosition(m_nameLabel, Anchor::Left, {13.0f, 0.0f}, {0.0f, 0.5f});
 
     m_selectBtn = Button::createWithSpriteFrameName(
         "GJ_plus2Btn_001.png",
@@ -597,7 +597,7 @@ bool FileSettingNodeV3::init(std::shared_ptr<FileSettingV3> setting, float width
             this->onPickFile(nullptr);
         }
     );
-    m_selectBtn->setScale(.7f);
+    m_selectBtn->setScale(0.7f);
     this->getButtonMenu()->addChildAtPosition(m_selectBtn, Anchor::Right, {-5.0f, 0.0f});
 
     this->updateState(nullptr);
@@ -623,7 +623,7 @@ void FileSettingNodeV3::updateState(CCNode* invoker) {
     m_fileIcon->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(
         this->getSetting()->isFolder() ? "folderIcon_001.png" : "file.png"_spr
     ));
-    limitNodeSize(m_fileIcon, {10.0f, 10.0f}, 1.0f, .1f);
+    limitNodeSize(m_fileIcon, {10.0f, 10.0f}, 1.0f, 0.1f);
     if (this->getValue().empty() || isTextualDefaultValue) {
         if (isTextualDefaultValue) {
             m_nameLabel->setText(this->getSetting()->getDefaultValue().string());
@@ -697,7 +697,7 @@ bool Color3BSettingNodeV3::init(std::shared_ptr<Color3BSettingV3> setting, float
             this->onSelectColor(nullptr);
         }
     );
-    m_colorBtn->setScale(.65f);
+    m_colorBtn->setScale(0.65f);
     this->getButtonMenu()->addChildAtPosition(m_colorBtn, Anchor::Right, {-10.0f, 0.0f});
 
     this->updateState(nullptr);
@@ -735,7 +735,7 @@ bool Color4BSettingNodeV3::init(std::shared_ptr<Color4BSettingV3> setting, float
     if (!SettingValueNodeV3::init(setting, width)) return false;
 
     auto colorSprite = ColorChannelSprite::create();
-    colorSprite->setScale(.65f);
+    colorSprite->setScale(0.65f);
 
     m_colorBtn = Button::createWithNode(
         colorSprite,
@@ -814,7 +814,7 @@ bool KeybindSettingNodeV3::init(std::shared_ptr<KeybindSettingV3> setting, float
             std::make_pair(ccWHITE, "keybinds-list-category-label"_cc3b)
         );
         categoryIcon->setID("category-icon");
-        categoryIcon->setScale(.375f);
+        categoryIcon->setScale(0.375f);
         this->getNameMenu()->addChild(categoryIcon);
     }
 
@@ -841,7 +841,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
                 this->onKeybind(index);
             }
         );
-        button->setScale(.6f);
+        button->setScale(0.6f);
         buttonMenu->addChild(button);
         index += 1;
     }
@@ -851,7 +851,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
             this->onKeybind();
         }
     );
-    plusButton->setScale(.6f);
+    plusButton->setScale(0.6f);
     buttonMenu->addChild(plusButton);
     buttonMenu->updateLayout();
 
@@ -867,7 +867,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
                 this->onExtra();
             }
         );
-        moreButton->setScale(.6f);
+        moreButton->setScale(0.6f);
         buttonMenu->addChild(moreButton);
 
         buttonMenu->updateLayout();
@@ -944,7 +944,7 @@ bool UnresolvedCustomSettingNodeV3::init(std::string_view key, Mod* mod, float w
     );
     label->setColor(mod && mod->isLoaded() ? "mod-list-errors-found-2"_cc3b : "mod-list-gray"_cc3b);
     label->setLimitLabelWidth(width - m_obContentSize.height, .3f, .1f);
-    this->addChildAtPosition(label, Anchor::Left, {m_obContentSize.height / 2.0f, 0.0f}, {0.0f, .5f});
+    this->addChildAtPosition(label, Anchor::Left, {m_obContentSize.height / 2.0f, 0.0f}, {0.0f, 0.5f});
 
     return true;
 }

@@ -23,7 +23,7 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
     foldersMenu->setAnchorPoint({1.0f, 0.0f});
     foldersMenu->setLayout(RowLayout::create()
         ->setGap(5.0f)
-        ->setDefaultScaleLimits(.1f, .6f)
+        ->setDefaultScaleLimits(0.1f, .6f)
         ->setAxisAlignment(AxisAlignment::End)
         ->setAxisReverse(true)
         ->setAutoGrowAxis(30.0f)
@@ -36,7 +36,7 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
         auto folderSprSub = CCSprite::createWithSpriteFrameName(subSprName.c_str());
         folderSprSub->setColor(ccBLACK);
         folderSprSub->setOpacity(155);
-        folderSprSub->setScale(.55f);
+        folderSprSub->setScale(0.55f);
         folderSpr->addChildAtPosition(folderSprSub, Anchor::Center, {0.0f, -3.0f});
 
         auto buttonSpr = createGeodeButton(folderSpr, "", GeodeButtonSprite::Default, m_forceDisableTheme);
