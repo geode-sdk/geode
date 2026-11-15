@@ -128,7 +128,7 @@ bool Button::init(ButtonCallback activateCallback) {
         if (m_impl->m_selectedCallback) m_impl->m_selectedCallback(this);
     });
 
-    m_impl->m_unselectedListener = Button::ClickedEvent(this, Button::ClickType::Selected).listen([this]  {
+    m_impl->m_unselectedListener = Button::ClickedEvent(this, Button::ClickType::Unselected).listen([this]  {
         if (m_impl->m_unselectedCallback) m_impl->m_unselectedCallback(this);
     });
 
