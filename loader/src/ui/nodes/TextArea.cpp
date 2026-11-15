@@ -29,7 +29,6 @@ struct SimpleTextArea::Impl {
     void updateLinesWordWrap(bool spaceWrap);
     void updateLinesCutoffWrap();
     void updateContainer();
-    void setTextImpl(std::string text);
 };
 
 Label* SimpleTextArea::Impl::createLabel(std::string text, float top) {
@@ -197,11 +196,6 @@ void SimpleTextArea::Impl::updateContainer() {
     }
 }
 
-void SimpleTextArea::Impl::setTextImpl(std::string text){
-    m_text = std::move(text);
-    updateContainer();
-}
-
 SimpleTextArea::SimpleTextArea() : m_impl(std::make_unique<Impl>(this)) {}
 SimpleTextArea::~SimpleTextArea() = default;
 
@@ -283,7 +277,8 @@ WrappingMode SimpleTextArea::getWrappingMode() {
 }
 
 void SimpleTextArea::setText(std::string text) {
-    m_impl->setTextImpl(std::move(text));
+    m_impl->m_text = std::move(text);
+    m_impl->updateContainer();
 }
 
 std::string SimpleTextArea::getText() {
