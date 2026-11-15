@@ -114,7 +114,7 @@ namespace geode {
                 default:
                 case Button::Left: return cocos2d::enumKeyCodes::KEY_None;
                 case Button::Right: return cocos2d::enumKeyCodes::KEY_None;
-                case Button::Middle: return cocos2d::enumKeyCodes::KEY_None;
+                case Button::Middle: return cocos2d::enumKeyCodes::MOUSE_MIDDLE;
 
                 case Button::Button4: return cocos2d::enumKeyCodes::MOUSE_4;
                 case Button::Button5: return cocos2d::enumKeyCodes::MOUSE_5;

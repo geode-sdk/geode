@@ -98,6 +98,8 @@ class $modify(CCKeyboardDispatcher) {
                 return "NumEnter";
             case KEY_World2:
                 return "INTL-2";
+            case MOUSE_MIDDLE:
+                return "Mouse Middle";
             case MOUSE_4:
                 return "Mouse 4";
             case MOUSE_5:

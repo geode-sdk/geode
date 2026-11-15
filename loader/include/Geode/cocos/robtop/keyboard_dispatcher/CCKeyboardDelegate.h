@@ -246,11 +246,12 @@ typedef enum
     KEY_World2 = 0x100B,
 
     // Mouse buttons (excluding clicks)
-    MOUSE_4 = 0x1100,
-    MOUSE_5 = 0x1101,
-    MOUSE_6 = 0x1102,
-    MOUSE_7 = 0x1103,
-    MOUSE_8 = 0x1104,
+    MOUSE_MIDDLE = 0x1100,
+    MOUSE_4 = 0x1101,
+    MOUSE_5 = 0x1102,
+    MOUSE_6 = 0x1103,
+    MOUSE_7 = 0x1104,
+    MOUSE_8 = 0x1105,
 
     // Extra controller keys
     CONTROLLER_L3 = 0x1201,

@@ -380,6 +380,7 @@ const char* CCKeyboardDispatcher::keyToString(enumKeyCodes key)
         case KEY_NumEnter: return "NumEnter";
         case KEY_World1: return "INTL-1";
         case KEY_World2: return "INTL-2";
+        case MOUSE_MIDDLE: return "Mouse Middle";
         case MOUSE_4: return "Mouse 4";
         case MOUSE_5: return "Mouse 5";
         case MOUSE_6: return "Mouse 6";

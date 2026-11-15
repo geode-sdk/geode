@@ -231,6 +231,7 @@ StringMap<enumKeyCodes> keyNameToCode = {
     { "NumEnter", KEY_NumEnter },
     { "INTL-1", KEY_World1 },
     { "INTL-2", KEY_World2 },
+    { "Mouse Middle", MOUSE_MIDDLE },
     { "Mouse 4", MOUSE_4 },
     { "Mouse 5", MOUSE_5 },
     { "Mouse 6", MOUSE_6 },
