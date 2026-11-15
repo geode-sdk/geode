@@ -202,7 +202,7 @@ SimpleTextArea::~SimpleTextArea() = default;
 SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float scale) {
     auto ret = new SimpleTextArea();
     if (ret->init(
-        std::move(font), std::move(text), scale,
+        std::move(text), std::move(font), scale,
         CCDirector::get()->getWinSize().width / 2,
         false
     )) {
@@ -215,7 +215,7 @@ SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float
 
 SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float scale, float width) {
     auto ret = new SimpleTextArea();
-    if (ret->init(std::move(font), std::move(text), scale, width, true)) {
+    if (ret->init(std::move(text), std::move(font), scale, width, true)) {
         ret->autorelease();
         return ret;
     }
@@ -223,7 +223,7 @@ SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float
     return nullptr;
 }
 
-bool SimpleTextArea::init(std::string font, std::string text, float scale, float width, bool artificialWidth) {
+bool SimpleTextArea::init(std::string text, std::string font, float scale, float width, bool artificialWidth) {
     m_impl->m_font = std::move(font);
     m_impl->m_text = std::move(text);
     m_impl->m_scale = scale;
