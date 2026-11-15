@@ -7,8 +7,6 @@
 #include <memory>
 
 namespace geode {
-    class SimpleTextAreaImpl;
-
     enum WrappingMode {
         NO_WRAP,
         WORD_WRAP,
@@ -54,13 +52,12 @@ namespace geode {
         std::vector<geode::Label*> getLines();
         float getHeight();
         float getLineHeight();
-
     protected:
         SimpleTextArea();
         ~SimpleTextArea() override;
 
-        virtual std::unique_ptr<SimpleTextAreaImpl> createImpl();
-        std::unique_ptr<SimpleTextAreaImpl> m_impl;
+        struct Impl;
+        std::unique_ptr<Impl> m_impl;
 
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
     private:
