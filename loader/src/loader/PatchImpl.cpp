@@ -3,6 +3,21 @@
 #include <utility>
 #include "LoaderImpl.hpp"
 
+std::string HookError::toString() const {
+    switch (m_value) {
+        case Unknown:
+            return "Unknown error";
+        case TulipHookError:
+            return m_error.toString();
+        case Overlaps:
+            if (m_other) return fmt::format("Overlaps patch {} at {}", m_other->getAddress(), m_other->getOwner()->getID());
+            return "Overlaps patch";
+        case AlreadyOwned:
+            return "The mod patch is already owned";
+    }
+    return "";
+}
+
 Patch::Impl::Impl(void* address, ByteSpan original, ByteSpan patch) :
     m_address(address),
     m_original(original.begin(), original.end()),
@@ -46,7 +61,7 @@ std::vector<Patch::Impl*>& Patch::Impl::allEnabled() {
     return vec;
 }
 
-Result<> Patch::Impl::enable() {
+Result<void, HookError> Patch::Impl::enable() {
     if (m_enabled) {
         return Ok();
     }
@@ -60,42 +75,35 @@ Result<> Patch::Impl::enable() {
         bool intersects = (thisMin >= otherMin && thisMin <= otherMax) || (thisMax >= otherMin && thisMax <= otherMax);
         if (!intersects)
             continue;
-        return Err(
-            "Failed to enable patch: overlaps patch at {} from {}",
-            other->m_address, other->getOwner()->getID()
-        );
+        return Err(other->m_self);
     }
-    auto res = tulip::hook::writeMemory(m_address, m_patch.data(), m_patch.size());
-    if (!res) return Err("Failed to enable patch: {}", res.unwrapErr());
+    GEODE_UNWRAP(tulip::hook::writeMemory(m_address, m_patch.data(), m_patch.size()));
     m_enabled = true;
     allEnabled().push_back(this);
     return Ok();
 }
 
-Result<> Patch::Impl::disable() {
+Result<void, HookError> Patch::Impl::disable() {
     if (!m_enabled) {
         return Ok();
     }
 
-    auto res = tulip::hook::writeMemory(m_address, m_original.data(), m_original.size());
-    if (!res) return Err("Failed to disable patch: {}", res.unwrapErr());
+    GEODE_UNWRAP(tulip::hook::writeMemory(m_address, m_original.data(), m_original.size()));
 
     m_enabled = false;
     auto it = std::find(allEnabled().begin(), allEnabled().end(), this);
 
-    if (it == allEnabled().end()) {
-        return Err("Failed to disable patch: patch is already disabled");
+    if (it != allEnabled().end()) {
+        allEnabled().erase(it);
     }
-
-    allEnabled().erase(it);
     return Ok();
 }
 
-Result<> Patch::Impl::toggle() {
+Result<void, HookError> Patch::Impl::toggle() {
     return this->toggle(!m_enabled);
 }
 
-Result<> Patch::Impl::toggle(bool enable) {
+Result<void, HookError> Patch::Impl::toggle(bool enable) {
     if (enable) {
         return this->enable();
     }
@@ -108,14 +116,12 @@ ByteVector const& Patch::Impl::getBytes() const {
     return m_patch;
 }
 
-Result<> Patch::Impl::updateBytes(ByteSpan bytes) {
+Result<void, HookError> Patch::Impl::updateBytes(ByteSpan bytes) {
     m_patch = {bytes.begin(), bytes.end()};
 
     if (m_enabled) {
-        auto res = this->disable();
-        if (!res) return Err("Failed to update patch: {}", res.unwrapErr());
-        auto res2 = this->enable();
-        if (!res2) return Err("Failed to update patch: {}", res2.unwrapErr());
+        GEODE_UNWRAP(this->disable());
+        GEODE_UNWRAP(this->enable());
     }
 
     return Ok();

@@ -48,10 +48,10 @@ public:
     tulip::hook::HookMetadata m_hookMetadata;
     tulip::hook::HookHandle m_handle = 0;
 
-    Result<> enable();
-    Result<> disable();
-    Result<> toggle();
-    Result<> toggle(bool enable);
+    Result<void, HookError> enable();
+    Result<void, HookError> disable();
+    Result<void, HookError> toggle();
+    Result<void, HookError> toggle(bool enable);
 
     uintptr_t getAddress() const;
     std::string_view getDisplayName() const;
@@ -64,7 +64,7 @@ public:
     std::optional<std::string_view> getModifyClassName() const;
     void setModifyClassName(std::string name);
 
-    Result<> updateHookMetadata();
+    Result<void, HookError> updateHookMetadata();
 
     friend class Hook;
     friend class Mod;

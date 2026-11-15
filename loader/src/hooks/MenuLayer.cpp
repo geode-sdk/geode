@@ -22,6 +22,17 @@ using namespace geode::prelude;
 
 #pragma warning(disable : 4217)
 
+std::string geode::modifier::ModifyError::toString() const {
+    switch (m_value) {
+        case Unknown:
+            return "Unknown error";
+        case HookNotFound:
+            return "Hook not found";
+        case ModNotFound:
+            return "Mod not found";
+    }
+}
+
 static size_t FOUND_MOD_UPDATES = 0;
 static size_t FOUND_MOD_DEPRECATIONS = 0;
 static size_t FOUND_MOD_ERRORS = 0;
