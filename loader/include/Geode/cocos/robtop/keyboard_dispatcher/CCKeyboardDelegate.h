@@ -247,6 +247,7 @@ typedef enum
 
     // Mouse buttons (excluding clicks)
     MOUSE_MIDDLE = 0x1100,
+    MOUSE_3 = 0x1100,
     MOUSE_4 = 0x1101,
     MOUSE_5 = 0x1102,
     MOUSE_6 = 0x1103,
