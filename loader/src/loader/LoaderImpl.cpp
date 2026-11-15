@@ -1038,6 +1038,10 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         return Err("Unable to delete temp dir: {} " GEODE_WINDOWS(" Try <cg>restarting your PC</c> to fix the issue."), e);
     }
 
+    if (auto e = asp::fs::removeDirAll(resourceDir, false).err()) {
+        return Err("Unable to delete resources dir: {} " GEODE_WINDOWS(" Try <cg>restarting your PC</c> to fix the issue."), e);
+    }
+
     (void)utils::file::createDirectoryAll(tempDir);
     (void)utils::file::createDirectoryAll(resourceDir);
 
