@@ -358,7 +358,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
 }
 
 
-constexpr auto g_scrollFactor = -13.0f;
+constexpr auto g_scrollFactor = -12.0f;
 
 extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_internalScrollEvent(
     JNIEnv* env, jobject, jlong timestamp, jint deviceId, jint eventSource, jfloat scrollX, jfloat scrollY, jfloat mouseX, jfloat mouseY
@@ -371,7 +371,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_inter
         return;
     }
 
-    // TODO in v6 (aka remind me in a week bc I don't want to impl windows/mac side of this): add new dispatchScrollMSG params
+    cocos2d::CCEGLView::sharedOpenGLView()->setMousePosition(mouseX, mouseY);
+
     cocos2d::CCDirector::sharedDirector()->getMouseDispatcher()->dispatchScrollMSG(
         scrollY * g_scrollFactor, scrollX * g_scrollFactor
     );
