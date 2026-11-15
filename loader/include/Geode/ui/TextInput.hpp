@@ -216,6 +216,18 @@ namespace geode {
         /// Get the current value of the input
         std::string const& getString() const;
 
+        /// Set the cursor position to index. Negative values are relative to the end of the string.
+        void setCursorPos(int pos);
+
+        /// Get current cursor position
+        int getCursorPos() const;
+
+        /// Get the selected text substring. Empty if no selection.
+        std::string_view getSelectedText() const;
+
+        /// Set the selection range. Negative values are relative to the end of the string.
+        void setSelection(int start, int end);
+
         /// Focus this input (activate the cursor)
         void focus();
 
