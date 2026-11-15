@@ -33,22 +33,36 @@ namespace geode {
 
         void setFont(std::string font);
         std::string getFont();
+
         void setColor(const cocos2d::ccColor4B& color);
         cocos2d::ccColor4B getColor();
+
         void setAlignment(cocos2d::CCTextAlignment alignment);
         cocos2d::CCTextAlignment getAlignment();
+
+        /// Set the text wrapping mode.
+        /// You can disable text wrapping with `setWrappingMode(NO_WRAP)`
         void setWrappingMode(WrappingMode mode);
         WrappingMode getWrappingMode();
+
         void setText(std::string text);
         std::string getText();
+
+        /// Set the max amount of lines to be displayed. Anything else with get cut off.
+        /// You can disable this feature by setting the value to '0'
         void setMaxLines(size_t maxLines);
         size_t getMaxLines();
+
         void setWidth(float width);
         float getWidth();
+
         void setScale(float scale) override;
         float getScale() override;
+
+        /// Sets extra padding in between each line
         void setLinePadding(float padding);
         float getLinePadding();
+
         std::vector<geode::Label*> getLines();
         float getHeight();
         float getLineHeight();
