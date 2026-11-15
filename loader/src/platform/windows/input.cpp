@@ -652,7 +652,7 @@ struct GeodeRawInput : Modify<GeodeRawInput, CCEGLView> {
                     }
                 } else if (data.button == Right && isDown && result == ListenerResult::Propagate) {
                     this->handleRightClick(m_fMouseX, m_fMouseY);
-                } else if ((data.button == Button4 || data.button == Button5) && result == ListenerResult::Propagate) {
+                } else if ((data.button == Middle || data.button == Button4 || data.button == Button5) && result == ListenerResult::Propagate) {
                     if (!isDown || !CCIMEDispatcher::sharedDispatcher()->hasDelegate()) {
                         auto* kbDispatcher = CCKeyboardDispatcher::get();
                         kbDispatcher->updateModifierKeys(
