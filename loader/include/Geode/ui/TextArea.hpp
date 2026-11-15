@@ -60,7 +60,5 @@ namespace geode {
         std::unique_ptr<Impl> m_impl;
 
         bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
-    private:
-        static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
     };
 }

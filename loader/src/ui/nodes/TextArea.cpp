@@ -200,22 +200,22 @@ SimpleTextArea::SimpleTextArea() : m_impl(std::make_unique<Impl>(this)) {}
 SimpleTextArea::~SimpleTextArea() = default;
 
 SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float scale) {
-    return SimpleTextArea::create(
+    auto ret = new SimpleTextArea();
+    if (ret->init(
         std::move(font), std::move(text), scale,
-        CCDirector::sharedDirector()->getWinSize().width / 2,
+        CCDirector::get()->getWinSize().width / 2,
         false
-    );
+    )) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
 }
 
 SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float scale, float width) {
-    return SimpleTextArea::create(
-        std::move(font), std::move(text), scale, width, true
-    );
-}
-
-SimpleTextArea* SimpleTextArea::create(std::string font, std::string text, float scale, float width, bool artificialWidth) {
     auto ret = new SimpleTextArea();
-    if (ret->init(std::move(font), std::move(text), scale, width, artificialWidth)) {
+    if (ret->init(std::move(font), std::move(text), scale, width, true)) {
         ret->autorelease();
         return ret;
     }
