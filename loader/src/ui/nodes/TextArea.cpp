@@ -245,7 +245,7 @@ void SimpleTextArea::setFont(std::string font) {
     m_impl->updateContainer();
 }
 
-std::string SimpleTextArea::getFont() {
+std::string SimpleTextArea::getFont() const {
     return m_impl->m_font;
 }
 
@@ -254,7 +254,7 @@ void SimpleTextArea::setColor(const ccColor4B& color) {
     m_impl->updateContainer();
 }
 
-ccColor4B SimpleTextArea::getColor() {
+ccColor4B SimpleTextArea::getColor() const {
     return m_impl->m_color;
 }
 
@@ -263,7 +263,7 @@ void SimpleTextArea::setAlignment(CCTextAlignment alignment) {
     m_impl->updateContainer();
 }
 
-CCTextAlignment SimpleTextArea::getAlignment() {
+CCTextAlignment SimpleTextArea::getAlignment() const {
     return m_impl->m_alignment;
 }
 
@@ -272,7 +272,7 @@ void SimpleTextArea::setWrappingMode(WrappingMode mode) {
     m_impl->updateContainer();
 }
 
-WrappingMode SimpleTextArea::getWrappingMode() {
+WrappingMode SimpleTextArea::getWrappingMode() const {
     return m_impl->m_wrappingMode;
 }
 
@@ -281,7 +281,7 @@ void SimpleTextArea::setText(std::string text) {
     m_impl->updateContainer();
 }
 
-std::string SimpleTextArea::getText() {
+std::string SimpleTextArea::getText() const {
     return m_impl->m_text;
 }
 
@@ -290,7 +290,7 @@ void SimpleTextArea::setMaxLines(size_t maxLines) {
     m_impl->updateContainer();
 }
 
-size_t SimpleTextArea::getMaxLines() {
+size_t SimpleTextArea::getMaxLines() const {
     return m_impl->m_maxLines;
 }
 
@@ -302,7 +302,7 @@ void SimpleTextArea::setWidth(float width) {
     m_impl->m_container->setContentSize(this->getContentSize());
 }
 
-float SimpleTextArea::getWidth() {
+float SimpleTextArea::getWidth() const {
     return m_impl->m_container->getContentSize().width;
 }
 
@@ -320,18 +320,18 @@ void SimpleTextArea::setLinePadding(float padding) {
     m_impl->updateContainer();
 }
 
-float SimpleTextArea::getLinePadding() {
+float SimpleTextArea::getLinePadding() const {
     return m_impl->m_linePadding;
 }
 
-std::vector<Label*> SimpleTextArea::getLines() {
+std::vector<Label*> SimpleTextArea::getLines() const {
     return m_impl->m_lines;
 }
 
-float SimpleTextArea::getHeight() {
+float SimpleTextArea::getHeight() const {
     return m_impl->m_container->getContentSize().height;
 }
 
-float SimpleTextArea::getLineHeight() {
+float SimpleTextArea::getLineHeight() const {
     return m_impl->m_lineHeight;
 }
