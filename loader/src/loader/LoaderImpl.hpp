@@ -88,10 +88,10 @@ namespace geode {
         bool m_isPatchless = false;
         std::optional<std::string> m_binaryPath;
 
-        Result<tulip::hook::HandlerHandle> getHandler(void* address);
-        Result<tulip::hook::HandlerHandle> getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
-        Result<tulip::hook::HandlerHandle> getAndDecreaseHandler(void* address);
-        Result<> removeHandlerIfNeeded(void* address);
+        tulip::hook::Result<tulip::hook::HandlerHandle> getHandler(void* address);
+        tulip::hook::Result<tulip::hook::HandlerHandle> getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata);
+        tulip::hook::Result<tulip::hook::HandlerHandle> getAndDecreaseHandler(void* address);
+        tulip::hook::Result<> removeHandlerIfNeeded(void* address);
 
         bool loadHooks();
 

@@ -231,6 +231,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 # set GEODE_MOD_ID for loader itself
 target_compile_definitions(${PROJECT_NAME} PRIVATE GEODE_MOD_ID="geode.loader")
 
+# fixes warnings about mismatch in visibility/dllimport
+target_compile_definitions(GeodeBindings PRIVATE GEODE_EXPORTING)
+
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
 	# Markdown support
@@ -352,9 +355,11 @@ elseif (WIN32)
 
 	target_compile_definitions(${PROJECT_NAME} PUBLIC ISOLATION_AWARE_ENABLED=1)
 
+	# disable "skipping imported DllMain symbol" warning for xinput
 	if (MSVC)
-		# disable warnings about CCNode::setID
-		target_link_options(${PROJECT_NAME} PUBLIC /ignore:4217)
+		target_link_options(${PROJECT_NAME} PUBLIC "/IGNORE:importeddllmain")
+	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		target_link_options(${PROJECT_NAME} PUBLIC "-Wl,/IGNORE:importeddllmain")
 	endif()
 
 	set(LAUNCHER_TARGET ProxyLoader Updater)

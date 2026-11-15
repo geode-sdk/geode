@@ -4,9 +4,9 @@ Mod* ModPatch::getOwner() const {
     return m_owner;
 }
 
-Result<> ModPatch::setOwner(geode::Mod* mod) {
+Result<void, HookError> ModPatch::setOwner(geode::Mod* mod) {
     if (mod && m_owner) {
-        return Err("Cannot directly replace owner of an already owned mod");
+        return Err(HookError::AlreadyOwned);
     }
     m_owner = mod;
     return Ok();

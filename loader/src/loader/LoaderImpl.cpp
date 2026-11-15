@@ -91,7 +91,7 @@ Result<> Loader::Impl::setup() {
             log::info("Disabling runtime intervening");
             auto res = tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
             if (res.isErr()) {
-                log::error("Failed to disable runtime intervening: {}", res.unwrapErr());
+                log::error("Failed to disable runtime intervening: {}", res.unwrapErr().toString());
             } else {
                 log::info("Runtime intervening disabled successfully");
                 m_isPatchless = true;
@@ -1038,6 +1038,10 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         return Err("Unable to delete temp dir: {} " GEODE_WINDOWS(" Try <cg>restarting your PC</c> to fix the issue."), e);
     }
 
+    if (auto e = asp::fs::removeDirAll(resourceDir, false).err()) {
+        return Err("Unable to delete resources dir: {} " GEODE_WINDOWS(" Try <cg>restarting your PC</c> to fix the issue."), e);
+    }
+
     (void)utils::file::createDirectoryAll(tempDir);
     (void)utils::file::createDirectoryAll(resourceDir);
 
@@ -1048,7 +1052,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
-    
+
     auto tempResDir = tempDir / "resources" / metadata.getID();
     if(tempResDir.exists() && tempResDir.isDir()) {
         GEODE_UNWRAP(utils::file::moveDirectoryContents(tempResDir, resourceDir));
@@ -1246,14 +1250,14 @@ bool Loader::Impl::getLaunchFlag(std::string_view name) const {
     return arg.has_value() && arg.value() == "true";
 }
 
-Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
+tulip::hook::Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
     if (!m_handlerHandles.contains(address)) {
-        return Err("Handler does not exist at address");
+        return Err(tulip::hook::Error::HandlerNotFound);
     }
     return Ok(m_handlerHandles[address].first);
 }
 
-Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
+tulip::hook::Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
     if (m_handlerHandles.contains(address) && m_handlerHandles[address].second > 0) {
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
@@ -1266,18 +1270,18 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
     return Ok(handle);
 }
 
-Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* address) {
+tulip::hook::Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* address) {
     if (!m_handlerHandles.contains(address)) {
-        return Err("Handler does not exist at address");
+        return Err(tulip::hook::Error::HandlerNotFound);
     }
     auto handle = m_handlerHandles[address].first;
     m_handlerHandles[address].second--;
     return Ok(handle);
 }
 
-Result<> Loader::Impl::removeHandlerIfNeeded(void* address) {
+tulip::hook::Result<> Loader::Impl::removeHandlerIfNeeded(void* address) {
     if (!m_handlerHandles.contains(address)) {
-        return Err("Handler does not exist at address");
+        return Err(tulip::hook::Error::HandlerNotFound);
     }
     auto handle = m_handlerHandles[address].first;
     if (m_handlerHandles[address].second == 0) {

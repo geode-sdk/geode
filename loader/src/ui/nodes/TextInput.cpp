@@ -126,6 +126,10 @@ struct TextInput::Impl {
     ListenerHandle m_focusedListener;
     ListenerHandle m_unfocusedListener;
 
+    Function<void(float)> m_onKeyboardOffset;
+    Function<void()> m_onKeyboardHide;
+    bool m_keyboardShowing = false;
+
     bool m_refocusOnEnter = false;
 
     OverflowMode m_overflow = OverflowMode::Scale;
@@ -1157,6 +1161,53 @@ bool TextInput::detachWithIME() {
     return true;
 }
 
+static bool s_keyboardVisible = false;
+static CCRect s_keyboardRect;
+
+void TextInput::applyKeyboardOffset(CCRect keyboardRect) {
+    auto size = this->getContentSize();
+    auto bl = this->convertToWorldSpace({0.f, 0.f});
+    auto tr = this->convertToWorldSpace({size.width, size.height});
+    CCRect rect{bl.x, bl.y, tr.x - bl.x, tr.y - bl.y};
+    rect.origin.y -= 4.f;
+
+    float offset = keyboardRect.getMaxY() - rect.getMinY();
+
+    auto test = rect;
+    if (offset < 0.f) test.origin.y += offset;
+    if (!test.intersectsRect(keyboardRect)) return;
+
+    m_impl->m_keyboardShowing = true;
+    if (m_impl->m_onKeyboardOffset) {
+        m_impl->m_onKeyboardOffset(offset);
+    }
+}
+
+void TextInput::returnKeyboardOffset() {
+    if (!m_impl->m_keyboardShowing) return;
+    m_impl->m_keyboardShowing = false;
+    if (m_impl->m_onKeyboardHide) {
+        m_impl->m_onKeyboardHide();
+    }
+}
+
+void TextInput::keyboardWillHide(CCIMEKeyboardNotificationInfo& info) {
+    s_keyboardVisible = false;
+    if (m_impl->m_hasFocus) {
+        this->detachWithIME();
+    }
+
+    this->returnKeyboardOffset();
+}
+
+void TextInput::keyboardWillShow(CCIMEKeyboardNotificationInfo& info) {
+    s_keyboardVisible = true;
+    s_keyboardRect = info.end;
+
+    if (!m_impl->m_hasFocus) return;
+    this->applyKeyboardOffset(info.end);
+}
+
 void TextInput::onEnter() {
     CCNode::onEnter();
     this->registerWithTouchDispatcher();
@@ -1303,6 +1354,14 @@ void TextInput::setFocusCallback(Function<void(FocusState state)> onFocusChange)
     });
 }
 
+void TextInput::setKeyboardOffsetCallback(Function<void(float offset)> onKeyboardOffset) {
+    m_impl->m_onKeyboardOffset = std::move(onKeyboardOffset);
+}
+
+void TextInput::setKeyboardHideCallback(Function<void()> onKeyboardHide) {
+    m_impl->m_onKeyboardHide = std::move(onKeyboardHide);
+}
+
 void TextInput::setString(std::string_view str, bool triggerCallback) {
     m_impl->setString(str, triggerCallback);
 }
@@ -1360,6 +1419,10 @@ void TextInput::didAttachWithIME() {
     m_impl->setupKeyboardListener();
 
     FocusEvent(this, FocusState::Focused).send();
+
+    if (s_keyboardVisible) {
+        this->applyKeyboardOffset(s_keyboardRect);
+    }
 }
 
 void TextInput::didDetachWithIME() {
@@ -1376,6 +1439,7 @@ void TextInput::didDetachWithIME() {
     m_impl->m_keyListener.destroy();
 
     FocusEvent(this, FocusState::Unfocused).send();
+    this->returnKeyboardOffset();
 }
 
 void TextInput::insertText(char const* text, int len, enumKeyCodes key) {

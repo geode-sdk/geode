@@ -21,13 +21,13 @@ public:
     ByteVector m_original;
     ByteVector m_patch;
 
-    Result<> enable();
-    Result<> disable();
-    Result<> toggle();
-    Result<> toggle(bool enable);
+    Result<void, HookError> enable();
+    Result<void, HookError> disable();
+    Result<void, HookError> toggle();
+    Result<void, HookError> toggle(bool enable);
 
     ByteVector const& getBytes() const;
-    Result<> updateBytes(ByteSpan bytes);
+    Result<void, HookError> updateBytes(ByteSpan bytes);
 
     uintptr_t getAddress() const;
     matjson::Value getRuntimeInfo() const;
