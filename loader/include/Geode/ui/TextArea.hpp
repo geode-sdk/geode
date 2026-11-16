@@ -73,6 +73,6 @@ namespace geode {
         struct Impl;
         std::unique_ptr<Impl> m_impl;
 
-        bool init(std::string font, std::string text, float scale, float width, bool artificialWidth);
+        bool init(std::string text, std::string font, float scale, float width, bool artificialWidth);
     };
 }
