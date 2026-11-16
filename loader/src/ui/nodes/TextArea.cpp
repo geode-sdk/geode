@@ -11,7 +11,7 @@ struct SimpleTextArea::Impl {
     bool m_shouldUpdate = false;
     bool m_artificialWidth = false;
     CCMenu* m_container = nullptr;
-    std::string m_font;
+    BitmapFont* m_font;
     std::string m_text;
     std::vector<Label*> m_lines;
     ccColor4B m_color = { 0xFF, 0xFF, 0xFF, 0xFF };
@@ -40,7 +40,7 @@ Label* SimpleTextArea::Impl::createLabel(std::string text, float top) {
 
         return nullptr;
     } else {
-        Label* label = Label::create(std::move(text), m_font.c_str());
+        Label* label = Label::create(std::move(text), m_font);
 
         label->setScale(m_scale);
         label->setPosition({ 0, top });
@@ -199,10 +199,22 @@ void SimpleTextArea::Impl::updateContainer() {
 SimpleTextArea::SimpleTextArea() : m_impl(std::make_unique<Impl>(this)) {}
 SimpleTextArea::~SimpleTextArea() = default;
 
-SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float scale) {
+SimpleTextArea* SimpleTextArea::create(std::string text, ZStringView font, float scale) {
+    auto f = BitmapFont::load(font);
+    if (!f) return nullptr;
+    return create(std::move(text), font, scale);
+}
+
+SimpleTextArea* SimpleTextArea::create(std::string text, ZStringView font, float scale, float width) {
+    auto f = BitmapFont::load(font);
+    if (!f) return nullptr;
+    return create(std::move(text), font, scale, width);
+}
+
+SimpleTextArea* SimpleTextArea::create(std::string text, BitmapFont* font, float scale) {
     auto ret = new SimpleTextArea();
     if (ret->init(
-        std::move(text), std::move(font), scale,
+        std::move(text), font, scale,
         CCDirector::get()->getWinSize().width / 2,
         false
     )) {
@@ -213,9 +225,9 @@ SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float
     return nullptr;
 }
 
-SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float scale, float width) {
+SimpleTextArea* SimpleTextArea::create(std::string text, BitmapFont* font, float scale, float width) {
     auto ret = new SimpleTextArea();
-    if (ret->init(std::move(text), std::move(font), scale, width, true)) {
+    if (ret->init(std::move(text), font, scale, width, true)) {
         ret->autorelease();
         return ret;
     }
@@ -223,8 +235,8 @@ SimpleTextArea* SimpleTextArea::create(std::string text, std::string font, float
     return nullptr;
 }
 
-bool SimpleTextArea::init(std::string text, std::string font, float scale, float width, bool artificialWidth) {
-    m_impl->m_font = std::move(font);
+bool SimpleTextArea::init(std::string text, BitmapFont* font, float scale, float width, bool artificialWidth) {
+    m_impl->m_font = font;
     m_impl->m_text = std::move(text);
     m_impl->m_scale = scale;
     m_impl->m_artificialWidth = artificialWidth;
@@ -240,12 +252,19 @@ bool SimpleTextArea::init(std::string text, std::string font, float scale, float
     return true;
 }
 
-void SimpleTextArea::setFont(std::string font) {
-    m_impl->m_font = std::move(font);
+void SimpleTextArea::setFont(ZStringView font) {
+    auto f = BitmapFont::load(font);
+    if (!f) return;
+    this->setFont(f);
+}
+
+void SimpleTextArea::setFont(geode::BitmapFont* font) {
+    if (!font) return;
+    m_impl->m_font = font;
     m_impl->updateContainer();
 }
 
-std::string SimpleTextArea::getFont() const {
+BitmapFont* SimpleTextArea::getFont() const {
     return m_impl->m_font;
 }
 

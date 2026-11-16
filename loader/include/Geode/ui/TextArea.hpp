@@ -28,11 +28,15 @@ namespace geode {
 
     class GEODE_DLL SimpleTextArea : public cocos2d::CCNode {
     public:
-        static SimpleTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.0f);
-        static SimpleTextArea* create(std::string text, std::string font, float scale, float width);
+        static SimpleTextArea* create(std::string text, ZStringView font = "chatFont.fnt", float scale = 1.0f);
+        static SimpleTextArea* create(std::string text, ZStringView font, float scale, float width);
 
-        void setFont(std::string font);
-        std::string getFont() const;
+        static SimpleTextArea* create(std::string text, BitmapFont* font, float scale = 1.0f);
+        static SimpleTextArea* create(std::string text, BitmapFont* font, float scale, float width);
+
+        void setFont(ZStringView font);
+        void setFont(BitmapFont* font);
+        BitmapFont* getFont() const;
 
         void setColor(const cocos2d::ccColor4B& color);
         cocos2d::ccColor4B getColor() const;
@@ -73,6 +77,6 @@ namespace geode {
         struct Impl;
         std::unique_ptr<Impl> m_impl;
 
-        bool init(std::string text, std::string font, float scale, float width, bool artificialWidth);
+        bool init(std::string text, BitmapFont* font, float scale, float width, bool artificialWidth);
     };
 }
