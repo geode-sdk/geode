@@ -273,6 +273,10 @@ void SimpleTextArea::setColor(const ccColor4B& color) {
     m_impl->updateContainer();
 }
 
+void SimpleTextArea::setColor(const ccColor3B& color) {
+    this->setColor(to4B(color, m_impl->m_color.a));
+}
+
 ccColor4B SimpleTextArea::getColor() const {
     return m_impl->m_color;
 }

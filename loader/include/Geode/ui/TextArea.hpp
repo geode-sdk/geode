@@ -38,6 +38,7 @@ namespace geode {
         BitmapFont* getFont() const;
 
         void setColor(const cocos2d::ccColor4B& color);
+        void setColor(const cocos2d::ccColor3B& color);
         cocos2d::ccColor4B getColor() const;
 
         void setAlignment(cocos2d::CCTextAlignment alignment);
