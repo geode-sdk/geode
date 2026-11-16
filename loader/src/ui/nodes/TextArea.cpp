@@ -40,7 +40,7 @@ Label* SimpleTextArea::Impl::createLabel(std::string text, float top) {
 
         return nullptr;
     } else {
-        Label* label = Label::create(std::move(text), m_font);
+        Label* label = Label::createRich(std::move(text), m_font);
 
         label->setScale(m_scale);
         label->setPosition({ 0, top });

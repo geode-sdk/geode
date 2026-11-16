@@ -21,10 +21,10 @@ namespace geode {
      * - Custom text alignment
      * - Configurable and automatic word wrapping
      * - Line padding
+     * - Color tags
      *
      * Contact me on Discord (\@smjs) if you have any questions, suggestions or bugs.
     */
-
     class GEODE_DLL SimpleTextArea : public cocos2d::CCNode {
     public:
         static SimpleTextArea* create(std::string text, ZStringView font = "chatFont.fnt", float scale = 1.0f);
