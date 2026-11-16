@@ -1,5 +1,5 @@
 #include <Geode/cocos/CCDirector.h>
-#include <Geode/cocos/platform/mac/CCEGLView.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 #include <Geode/cocos/platform/CCFileUtils.h>
 #include <Geode/cocos/textures/CCTextureCache.h>
@@ -265,9 +265,13 @@ std::string geode::cocos::cc4bToHexString(ccColor4B const& color) {
 }
 
 cocos2d::CCPoint geode::cocos::getMousePos() {
+#ifdef GEODE_IS_DESKTOP
     auto pos = CCEGLView::get()->getMousePosition();
     pos.y = CCDirector::get()->getWinSize().height - pos.y;
     return pos;
+#else
+    return CCPoint{0.f, 0.f};
+#endif
 }
 
 bool WeakRefController::isManaged() {
