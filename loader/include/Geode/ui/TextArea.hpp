@@ -67,7 +67,7 @@ namespace geode {
         void setLinePadding(float padding);
         float getLinePadding() const;
 
-        std::vector<geode::Label*> getLines() const;
+        std::vector<Label*> getLines() const;
         float getHeight() const;
         float getLineHeight() const;
     protected:
