@@ -97,7 +97,7 @@ Button* Button::createWithSprite(ZStringView fileName, ButtonCallback activateCa
 
 Button* Button::createWithSpriteFrameName(ZStringView frameName, ButtonCallback activateCallback) {
     auto ret = new Button();
-    if (ret->initWithSpriteFrameName(frameName,std::move(activateCallback))) {
+    if (ret->initWithSpriteFrameName(frameName, std::move(activateCallback))) {
         ret->autorelease();
         return ret;
     }
