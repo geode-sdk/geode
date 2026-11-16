@@ -44,7 +44,7 @@ Label* SimpleTextArea::Impl::createLabel(std::string text, float top) {
 
         label->setScale(m_scale);
         label->setPosition({ 0, top });
-        label->setColor({ m_color.r, m_color.g, m_color.b });
+        label->setColor(to3B(m_color));
         label->setOpacity(m_color.a);
 
         return label;
