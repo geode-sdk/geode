@@ -11,8 +11,8 @@ struct SimpleTextArea::Impl {
     bool m_shouldUpdate = false;
     bool m_artificialWidth = false;
     CCMenu* m_container = nullptr;
-    BitmapFont* m_font;
     std::string m_text;
+    BitmapFont* m_font;
     std::vector<Label*> m_lines;
     ccColor4B m_color = { 0xFF, 0xFF, 0xFF, 0xFF };
     CCTextAlignment m_alignment = kCCTextAlignmentLeft;
@@ -236,8 +236,8 @@ SimpleTextArea* SimpleTextArea::create(std::string text, BitmapFont* font, float
 }
 
 bool SimpleTextArea::init(std::string text, BitmapFont* font, float scale, float width, bool artificialWidth) {
-    m_impl->m_font = font;
     m_impl->m_text = std::move(text);
+    m_impl->m_font = font;
     m_impl->m_scale = scale;
     m_impl->m_artificialWidth = artificialWidth;
     m_impl->m_container = CCMenu::create();
