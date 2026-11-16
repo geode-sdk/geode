@@ -202,13 +202,13 @@ SimpleTextArea::~SimpleTextArea() = default;
 SimpleTextArea* SimpleTextArea::create(std::string text, ZStringView font, float scale) {
     auto f = BitmapFont::load(font);
     if (!f) return nullptr;
-    return create(std::move(text), font, scale);
+    return SimpleTextArea::create(std::move(text), f, scale);
 }
 
 SimpleTextArea* SimpleTextArea::create(std::string text, ZStringView font, float scale, float width) {
     auto f = BitmapFont::load(font);
     if (!f) return nullptr;
-    return create(std::move(text), font, scale, width);
+    return SimpleTextArea::create(std::move(text), f, scale, width);
 }
 
 SimpleTextArea* SimpleTextArea::create(std::string text, BitmapFont* font, float scale) {
