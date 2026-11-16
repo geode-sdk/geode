@@ -61,7 +61,7 @@ void SimpleTextArea::Impl::charIteration(FunctionRef<Label*(Label* line, char c,
     Label* line = createLabel("", top);
     m_lines = { line };
 
-    for (const char c : m_text) {
+    for (char const c : m_text) {
         if (c == '\n') {
             line = createLabel("", top -= calculateOffset(line));
 
@@ -106,7 +106,7 @@ void SimpleTextArea::Impl::updateLinesNoWrap() {
 
 void SimpleTextArea::Impl::updateLinesWordWrap(bool spaceWrap) {
     charIteration([this, spaceWrap](Label* line, char c, float top) {
-        const std::string_view delimiters(spaceWrap ? " " : " `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
+        std::string_view const delimiters(spaceWrap ? " " : " `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
 
         if (!delimiters.contains(c)) {
             const std::string& text = line->getString();
@@ -126,9 +126,9 @@ void SimpleTextArea::Impl::updateLinesWordWrap(bool spaceWrap) {
 
 void SimpleTextArea::Impl::updateLinesCutoffWrap() {
     charIteration([this](Label* line, char c, float top) {
-        const std::string& text = line->getString();
-        const char back = text.back();
-        const bool lastIsSpace = back == ' ';
+        std::string const& text = line->getString();
+        char const back = text.back();
+        bool const lastIsSpace = back == ' ';
         Label* newLine = createLabel(std::string(!lastIsSpace, back).append(std::string(c != ' ', c)), top);
 
         if (newLine == nullptr && !lastIsSpace) {
@@ -159,8 +159,8 @@ void SimpleTextArea::Impl::updateContainer() {
         } break;
     }
 
-    const size_t lineCount = m_lines.size();
-    const float width = m_self->getWidth();
+    size_t const lineCount = m_lines.size();
+    float const width = m_self->getWidth();
 
     if (lineCount > 0) {
         m_lineHeight = m_lines.back()->getContentSize().height * m_scale;
@@ -168,14 +168,14 @@ void SimpleTextArea::Impl::updateContainer() {
         m_lineHeight = 0;
     }
 
-    const float height = m_lineHeight * lineCount + m_linePadding * (lineCount - 1);
+    float const height = m_lineHeight * lineCount + m_linePadding * (lineCount - 1);
 
     m_self->setContentSize({ width, height });
     m_container->setContentSize(m_self->getContentSize());
     m_container->removeAllChildren();
 
     for (Label* line : m_lines) {
-        const float y = height + line->getPositionY();
+        float const y = height + line->getPositionY();
 
         switch (m_alignment) {
             case kCCTextAlignmentLeft: {
