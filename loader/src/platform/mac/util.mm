@@ -238,14 +238,6 @@ GEODE_DLL arc::Future<Result<std::vector<asp::fs::Path>>> file::pickMany(file::F
     co_return Ok(std::move(res).unwrap());
 }
 
-CCPoint cocos::getMousePos() {
-    auto windowFrame = NSApp.mainWindow.frame;
-    auto viewFrame = NSApp.mainWindow.contentView.frame;
-    auto scaleFactor = CCPoint(CCDirector::get()->getWinSize()) / ccp(viewFrame.size.width, viewFrame.size.height);
-    auto mouse = [NSEvent mouseLocation];
-    return ccp(mouse.x - windowFrame.origin.x, mouse.y - windowFrame.origin.y) * scaleFactor;
-}
-
 asp::fs::Path dirs::getGameDir() {
     static auto path = [] -> asp::fs::Path {
         std::array<char, PATH_MAX> gddir;

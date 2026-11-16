@@ -137,11 +137,6 @@ public:
 	static cocos2d::CCEGLView* createWithRect(std::string const&, cocos2d::CCRect, float);
 
     /**
-     * @note Geode addition
-     */
-    inline CCPoint getMousePosition() { return { m_fMouseX, m_fMouseY }; }
-
-    /**
      * @note RobTop addition
      */
     void toggleFullScreen(bool fullscreen, bool borderless, bool fix);

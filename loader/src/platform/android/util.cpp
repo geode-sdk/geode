@@ -79,10 +79,6 @@ std::string utils::clipboard::read() {
     return "";
 }
 
-CCPoint cocos::getMousePos() {
-    return CCPoint(0, 0);
-}
-
 namespace {
     void clearJNIException() {
         // this is a silly workaround to not crash when the method is not found.

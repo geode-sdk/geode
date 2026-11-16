@@ -1,3 +1,5 @@
+#include <Geode/cocos/CCDirector.h>
+#include <Geode/cocos/platform/mac/CCEGLView.h>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 #include <Geode/cocos/platform/CCFileUtils.h>
 #include <Geode/cocos/textures/CCTextureCache.h>
@@ -260,6 +262,12 @@ std::string geode::cocos::cc4bToHexString(ccColor4B const& color) {
     output += digits[color.a >> 4 & 0xF];
     output += digits[color.a & 0xF];
     return output;
+}
+
+cocos2d::CCPoint geode::cocos::getMousePos() {
+    auto pos = CCEGLView::get()->getMousePosition();
+    pos.y = CCDirector::get()->getWinSize().height - pos.y;
+    return pos;
 }
 
 bool WeakRefController::isManaged() {

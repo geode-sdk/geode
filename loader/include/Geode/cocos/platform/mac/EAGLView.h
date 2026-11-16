@@ -123,7 +123,12 @@ THE SOFTWARE.
 // @note RobTop Addition
 - (float)getBackingFactor;
 // @note RobTop Addition
-- (float)setBackingScaleFactor:(float)scaleFactor;
+- (void)setBackingScaleFactor:(float)scaleFactor;
+// @note RobTop Addition
+- (void)storeEventPoint:(NSEvent*)event key:(int)key;
+// @note RobTop Addition
+- (CGPoint)mousePositionInFrame;
+
 
 @end
 #endif // __EAGLVIEW_MAC_H__
