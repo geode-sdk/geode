@@ -1225,7 +1225,9 @@ void TextInput::onExit() {
     CCNode::onExit();
     this->detachWithIME();
     CCTouchDispatcher::get()->removeDelegate(this);
+    #ifndef GEODE_IS_IOS
     CCMouseDispatcher::get()->removeDelegate(this);
+    #endif
 }
 
 void TextInput::setContentSize(CCSize const& contentSize) {
@@ -1676,7 +1678,7 @@ void TextInput::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
     m_impl->m_isDragging = false;
     m_impl->m_clickMode = Impl::ClickMode::None;
 }
-
+#ifndef GEODE_IS_IOS
 bool TextInput::scrollWheel(float y, float x) {
     if (!m_impl->m_enabled) return false;
     if (!cocos::nodeIsVisible(this)) return false;
@@ -1808,11 +1810,14 @@ bool TextInput::rightClick(float x, float y) {
 
     return true;
 }
+#endif
 
 void TextInput::registerWithTouchDispatcher() {
     // rob uses -500 so i guess that's fine
     CCTouchDispatcher::get()->addTargetedDelegate(this, -500, true);
+    #ifndef GEODE_IS_IOS
     CCMouseDispatcher::get()->addDelegate(this);
+    #endif
 }
 
 void TextInput::setPlaceholder(std::string placeholder) {
