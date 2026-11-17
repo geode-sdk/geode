@@ -52,10 +52,8 @@ namespace geode {
     class GEODE_DLL TextInput :
         public cocos2d::CCNode,
         public cocos2d::CCIMEDelegate,
-        #ifndef GEODE_IS_IOS
-        public cocos2d::CCMouseDelegate,
-        #endif
-        public cocos2d::CCTouchDelegate {
+        public cocos2d::CCTouchDelegate,
+        public cocos2d::CCMouseDelegate {
     public:
         TextInput();
         ~TextInput() override;
@@ -94,10 +92,8 @@ namespace geode {
         void ccTouchMoved(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
         void ccTouchEnded(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
         void ccTouchCancelled(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
-        #ifndef GEODE_IS_IOS
         bool scrollWheel(float y, float x) override;
         bool rightClick(float x, float y) override;
-        #endif
 
         virtual void registerWithTouchDispatcher();
 
