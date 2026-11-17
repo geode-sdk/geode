@@ -265,6 +265,7 @@ void cocos::setMousePos(cocos2d::CCPoint const& pos) {
     const auto screenPos = [window convertPointToScreen:windowPos];
     const auto height = [[[NSScreen screens] firstObject] frame].size.height;
     CGWarpMouseCursorPosition(CGPointMake(screenPos.x, height - screenPos.y));
+    CGAssociateMouseAndMouseCursorPosition(true);
 
     //make sure mouse-pos cache isn't stale. y is flipped to match storeEventPoint's impl
     static auto ivarX = ivarOffset("EAGLView", "_mouseX");
