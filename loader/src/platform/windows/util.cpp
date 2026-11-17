@@ -182,7 +182,22 @@ arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options)
 }
 
 void cocos::setMousePos(cocos2d::CCPoint const& pos) {
-    //TODO - implement
+    auto view = CCEGLView::get();
+    auto winSize = CCDirector::get()->getWinSize();
+    HWND hwnd = *reinterpret_cast<HWND*>(reinterpret_cast<intptr_t>(view->m_pMainWindow) + 0x370); //nothing to see here
+    RECT rect;
+    if (!GetClientRect(hwnd, &rect)) return;
+
+    auto pt = POINT {
+        static_cast<LONG>(pos.x / winSize.width * (rect.right - rect.left)),
+        static_cast<LONG>((1.f - pos.y / winSize.height) * (rect.bottom - rect.top))
+    };
+
+    if (!ClientToScreen(hwnd, &pt) || !SetCursorPos(pt.x, pt.y)) return;
+
+    auto frame = view->getFrameSize();
+    view->m_fMouseX = pos.x / winSize.width * frame.width;
+    view->m_fMouseY = (1.f - pos.y / winSize.height) * frame.height;
 }
 
 arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {

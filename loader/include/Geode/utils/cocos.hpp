@@ -1025,7 +1025,8 @@ namespace geode::cocos {
 
     /**
      * Gets the mouse position in cocos2d coordinates.
-     * On mobile platforms this will return (0, 0)
+     * On mobile platforms this will return the top-left corner of the view, so
+     * (0, winSize.height)
      * @returns The mouse position
      */
     GEODE_DLL cocos2d::CCPoint getMousePos();
