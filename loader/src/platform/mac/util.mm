@@ -239,14 +239,6 @@ GEODE_DLL arc::Future<Result<std::vector<asp::fs::Path>>> file::pickMany(file::F
     co_return Ok(std::move(res).unwrap());
 }
 
-namespace {
-    std::optional<ptrdiff_t> ivarOffset(const char* cls, const char* name) {
-        Ivar ivar = class_getInstanceVariable(objc_getClass(cls), name);
-        if (!ivar) return std::nullopt;
-        return ivar_getOffset(ivar);
-    }
-}
-
 void cocos::setMousePos(cocos2d::CCPoint const& pos) {
     static Class eaglViewClass = objc_getClass("EAGLView");
 
@@ -268,12 +260,13 @@ void cocos::setMousePos(cocos2d::CCPoint const& pos) {
     CGAssociateMouseAndMouseCursorPosition(true);
 
     //make sure mouse-pos cache isn't stale. y is flipped to match storeEventPoint's impl
-    static auto ivarX = ivarOffset("EAGLView", "_mouseX");
-    static auto ivarY = ivarOffset("EAGLView", "_mouseY");
+    auto cls = object_getClass(glview);
+    auto ivarX = class_getInstanceVariable(cls, "_mouseX");
+    auto ivarY = class_getInstanceVariable(cls, "_mouseY");
     if (!ivarX || !ivarY) return;
 
-    *reinterpret_cast<float*>(reinterpret_cast<intptr_t>(glview) + *ivarX) = viewPos.x;
-    *reinterpret_cast<float*>(reinterpret_cast<intptr_t>(glview) + *ivarY) = [glview getHeight] - viewPos.y;
+    *reinterpret_cast<float*>(reinterpret_cast<intptr_t>(glview) + ivar_getOffset(ivarX)) = viewPos.x;
+    *reinterpret_cast<float*>(reinterpret_cast<intptr_t>(glview) + ivar_getOffset(ivarY)) = [glview getHeight] - viewPos.y;
 }
 
 asp::fs::Path dirs::getGameDir() {
