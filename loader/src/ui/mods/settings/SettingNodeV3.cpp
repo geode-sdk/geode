@@ -831,8 +831,10 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
     SettingNodeV3::updateState(invoker);
 
     auto buttonMenu = getButtonMenu();
+    static_cast<RowLayout*>(buttonMenu->getLayout())->setAutoGrowAxis(0.0f);
 
     buttonMenu->removeAllChildren();
+
     size_t index = 0;
     for (auto& keybind : m_currentValue) {
         auto button = Button::createWithNode(
@@ -841,7 +843,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
                 this->onKeybind(index);
             }
         );
-        button->setScale(0.6f);
+        button->setScale(0.55f);
         buttonMenu->addChild(button);
         index += 1;
     }
@@ -851,11 +853,11 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
             this->onKeybind();
         }
     );
-    plusButton->setScale(0.6f);
+    plusButton->setScale(0.55f);
     buttonMenu->addChild(plusButton);
     buttonMenu->updateLayout();
 
-    if (buttonMenu->getChildByIndex(0)->getScale() < 1.0f) {
+    if (buttonMenu->getContentWidth() > 120.0f) {
         auto children = buttonMenu->getChildrenExt();
         for (auto it = children.end() - 1; it != children.begin(); --it) {
             buttonMenu->removeChild(*it, false);
@@ -867,7 +869,7 @@ void KeybindSettingNodeV3::updateState(CCNode* invoker) {
                 this->onExtra();
             }
         );
-        moreButton->setScale(0.6f);
+        moreButton->setScale(0.55f);
         buttonMenu->addChild(moreButton);
 
         buttonMenu->updateLayout();
