@@ -144,7 +144,7 @@ void NineSlice::updateSprites() {
     auto size = CCSize{std::abs(getContentWidth()), std::abs(getContentHeight())} / multiplier;
     auto texRect = m_impl->m_spriteRect;
 
-    m_impl->m_batchNode->setVisible(m_impl->m_scaleMultiplier > 0);
+    m_impl->m_batchNode->setVisible(size.width != 0 && size.height != 0);
 
     m_impl->m_batchNode->setScaleX((getContentWidth() < 0 ? -1 : 1) * multiplier);
     m_impl->m_batchNode->setScaleY((getContentHeight() < 0 ? -1 : 1) * multiplier);
