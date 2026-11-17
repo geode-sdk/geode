@@ -378,8 +378,10 @@ void mouseDownExecHook(EAGLView* self, SEL sel, NSEvent* event) {
 }
 
 void mouseMovedExecHook(EAGLView* self, SEL sel, NSEvent* event) {
-    NSPoint pt = [self convertPoint:[event locationInWindow] fromView:nil];
+    //always update CCEGLView mouse pos to match windows behaviour
     [self storeEventPoint:event key:0];
+
+    NSPoint pt = [self convertPoint:[event locationInWindow] fromView:nil];
     if (MouseMoveEvent().send(pt.x, pt.y) != ListenerResult::Propagate) return;
 
     [self performSelector:sel withObject:event];
