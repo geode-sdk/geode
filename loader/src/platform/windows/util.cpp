@@ -181,6 +181,10 @@ arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options)
     co_return Ok(std::move(path));
 }
 
+void cocos::setMousePos(cocos2d::CCPoint const& pos) {
+    //TODO - implement
+}
+
 arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
     std::vector<asp::fs::Path> paths;
     bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, std::move(options), &paths));

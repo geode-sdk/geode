@@ -1025,10 +1025,17 @@ namespace geode::cocos {
 
     /**
      * Gets the mouse position in cocos2d coordinates.
-     * On mobile platforms this will probably return (0, 0)
+     * On mobile platforms this will return (0, 0)
      * @returns The mouse position
      */
     GEODE_DLL cocos2d::CCPoint getMousePos();
+
+    /**
+     * Sets the mouse position in cocos2d coordinates.
+     * On mobile platforms this does nothing
+     * @param pos mouse position
+     */
+    GEODE_DLL void setMousePos(cocos2d::CCPoint const& pos);
 
     /**
      * Create an ObjWrapper without having to specify the template argument

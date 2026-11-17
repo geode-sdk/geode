@@ -65,6 +65,8 @@ bool utils::clipboard::write(ZStringView data) {
     return false;
 }
 
+void cocos::setMousePos(cocos2d::CCPoint const& pos) {}
+
 std::string utils::clipboard::read() {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "readClipboard", "()Ljava/lang/String;")) {

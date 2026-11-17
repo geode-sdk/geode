@@ -370,6 +370,8 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on iOS");
 }
 
+void cocos::setMousePos(cocos2d::CCPoint const& pos) {}
+
 namespace {
     std::string s_savedBaseDir = "";
 
