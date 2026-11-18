@@ -12,10 +12,6 @@ protected:
 
     void updateState(SettingNode* invoker = nullptr) override;
 
-    void onOpenSaveDirectory(CCObject*);
-    void onOpenConfigDirectory(CCObject*);
-    void onOpenPersistentDirectory(CCObject*);
-
 public:
     static ModSettingsPopup* create(Mod* mod, bool forceDisableTheme = false);
 };
