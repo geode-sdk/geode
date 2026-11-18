@@ -83,16 +83,16 @@ if (GEODE_BINDINGS_REPO_PATH)
     set(GEODE_BINDINGS_REPO_PATH "")
   endif()
 
-  if (EXISTS "$GEODE_BINDINGS_REPO_PATH/.pull-latest-promise")
+  if (EXISTS "${GEODE_BINDINGS_REPO_PATH}/.pull-latest-promise")
     find_package(Git)
     if (Git_FOUND)
       message(DEBUG "Found pull promise, updating bindings to latest")
       execute_process(
         COMMAND ${GIT_EXECUTABLE} pull
-        WORKING_DIRECTORY "$GEODE_BINDINGS_REPO_PATH"
+        WORKING_DIRECTORY "${GEODE_BINDINGS_REPO_PATH}"
         ERROR_QUIET
       )
-      file(REMOVE "$GEODE_BINDINGS_REPO_PATH/.pull-latest-promise")
+      file(REMOVE "${GEODE_BINDINGS_REPO_PATH}/.pull-latest-promise")
     endif()
   endif()
 endif()
