@@ -303,7 +303,7 @@ Result<MultipartForm&> MultipartForm::file(std::string name, asp::fs::PathView p
     return Ok(*this);
 }
 
-MultipartForm& MultipartForm::file(std::string name, std::span<uint8_t const> data, std::string filename, std::string mime) {
+MultipartForm& MultipartForm::file(std::string name, ByteSpan data, std::string filename, std::string mime) {
     if (!m_impl->isBuilt()) {
         m_impl->m_files.insert_or_assign(std::move(name), MultipartFile{
             .data = ByteVector(data.begin(), data.end()),
@@ -1103,11 +1103,15 @@ utils::StringMap<std::vector<std::string>> const& WebRequest::getHeaders() const
     return m_impl->m_headers;
 }
 
+std::optional<ZStringView> WebRequest::getUserAgent() const {
+    return m_impl->m_userAgent;
+}
+
 utils::StringMap<std::string> const& WebRequest::getUrlParams() const {
     return m_impl->m_urlParameters;
 }
 
-std::optional<std::span<const uint8_t>> WebRequest::getBodyRef() const {
+std::optional<ByteSpan> WebRequest::getBodyRef() const {
     return m_impl->m_body;
 }
 
