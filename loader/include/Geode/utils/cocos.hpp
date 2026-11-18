@@ -1032,9 +1032,9 @@ namespace geode::cocos {
     GEODE_DLL cocos2d::CCPoint getMousePos();
 
     /**
-     * Sets the mouse position in cocos2d coordinates.
-     * On mobile platforms this does nothing
-     * @param pos mouse position
+     * Sets the mouse position in cocos2d coordinates. Bottom-left is (0, 0)
+     * and top-right winSize. This function does nothing on mobile platforms.
+     * @param pos The mouse position in cocos2d coordinates
      */
     GEODE_DLL void setMousePos(cocos2d::CCPoint const& pos);
 
