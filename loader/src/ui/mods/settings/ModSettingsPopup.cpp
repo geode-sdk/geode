@@ -22,7 +22,7 @@ bool ModSettingsPopup::init(Mod* mod, bool forceDisableTheme) {
     foldersMenu->setContentSize({ 0.0f, 30.0f });
     foldersMenu->setAnchorPoint({1.0f, 0.0f});
     foldersMenu->setLayout(RowLayout::create()
-        ->setGap(5.0f)
+        ->setGap(10.0f)
         ->setDefaultScaleLimits(0.1f, .6f)
         ->setAxisAlignment(AxisAlignment::End)
         ->setAxisReverse(true)
