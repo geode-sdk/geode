@@ -184,7 +184,7 @@ arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options)
 void cocos::setMousePos(cocos2d::CCPoint const& pos) {
     auto view = CCEGLView::get();
     auto winSize = CCDirector::get()->getWinSize();
-    HWND hwnd = *reinterpret_cast<HWND*>(reinterpret_cast<intptr_t>(view->m_pMainWindow) + 0x370); //nothing to see here
+    HWND hwnd = WindowFromDC(wglGetCurrentDC());
     RECT rect;
     if (!GetClientRect(hwnd, &rect)) return;
 
