@@ -4,10 +4,10 @@
 #include <optional>
 #include <concepts>
 #include <Geode/ui/Label.hpp>
+#include <Geode/ui/Button.hpp>
 #include <Geode/cocos/include/ccTypes.h>
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
-#include <Geode/cocos/menu_nodes/CCMenu.h>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include "../utils/file.hpp"
 // this unfortunately has to be included because of C++ templates
@@ -659,14 +659,11 @@ namespace geode {
         void setDefaultBGColor(cocos2d::ccColor4B color);
 
         geode::Label* getNameLabel() const;
-        CCMenuItemSpriteExtra* getDescriptionButton() const;
+        geode::Button* getDescriptionButton() const;
         geode::Label* getStatusLabel() const;
-        cocos2d::CCMenu* getNameMenu() const;
-        cocos2d::CCMenu* getButtonMenu() const;
+        cocos2d::CCNode* getNameMenu() const;
+        cocos2d::CCNode* getButtonMenu() const;
         cocos2d::CCLayerColor* getBG() const;
-
-        // Useful if you're programmatically creating setting nodes
-        void overrideDescription(std::optional<ZStringView> description);
 
         void setContentSize(cocos2d::CCSize const& size) override;
 
@@ -748,7 +745,7 @@ namespace geode {
         }
     };
 
-    class SettingChangedEventV3 final : public GlobalEvent<SettingChangedEventV3, bool(std::string_view, std::string_view, std::shared_ptr<SettingV3>), bool(std::shared_ptr<SettingV3>), std::string, std::string> {
+    class SettingChangedEventV3 final : public GlobalEvent<SettingChangedEventV3, bool(std::string_view modID, std::string_view settingKey, std::shared_ptr<SettingV3> setting), bool(std::shared_ptr<SettingV3> setting), void(std::string modID, std::string settingKey)> {
     public:
         // listener params setting
         // filter params modID, settingKey
@@ -756,7 +753,7 @@ namespace geode {
         GEODE_DLL SettingChangedEventV3(Mod* mod, std::string settingKey);
     };
 
-    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, bool(std::string_view, std::string_view, Keybind const&, bool, bool, double), bool(Keybind const&, bool, bool, double), std::string, std::string> {
+    class KeybindSettingPressedEventV3 final : public GlobalEvent<KeybindSettingPressedEventV3, bool(std::string_view modID, std::string_view settingKey, Keybind const& keybind, bool down, bool repeat, double timestamp), bool(Keybind const& keybind, bool down, bool repeat, double timestamp), void(std::string modID, std::string settingKey)> {
     public:
         // listener params keybind, down, repeat, timestamp
         // filter params modID, settingKey
@@ -764,15 +761,15 @@ namespace geode {
         GEODE_DLL KeybindSettingPressedEventV3(Mod* mod, std::string settingKey);
     };
 
-    class ButtonSettingPressedEventV3 final : public GlobalEvent<ButtonSettingPressedEventV3, bool(std::string_view, std::string_view, std::string_view), bool(std::string_view), std::string, std::string> {
+    class ButtonSettingPressedEventV3 final : public GlobalEvent<ButtonSettingPressedEventV3, bool(std::string_view modID, std::string_view settingKey, std::string_view buttonKey), bool(std::string_view buttonKey), void(std::string modID, std::string settingKey)> {
     public:
+        // listener params buttonKey
         // filter params modID, settingKey
-        // filter params buttonKey
         using GlobalEvent::GlobalEvent;
         GEODE_DLL ButtonSettingPressedEventV3(Mod* mod, std::string settingKey);
     };
 
-    class SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*), bool(SettingNodeV3*), std::string, std::string> {
+    class SettingNodeSizeChangeEventV3 final : public GlobalEvent<SettingNodeSizeChangeEventV3, bool(std::string_view modID, std::string_view settingKey, SettingNodeV3* node), bool(SettingNodeV3* node), void(std::string modID, std::string settingKey)> {
     public:
         // listener params node
         // filter params modID, settingKey
@@ -780,7 +777,7 @@ namespace geode {
         GEODE_DLL SettingNodeSizeChangeEventV3(Mod* mod, std::string settingKey);
     };
 
-    class SettingNodeValueChangeEventV3 final : public GlobalEvent<SettingNodeValueChangeEventV3, bool(std::string_view, std::string_view, SettingNodeV3*, bool), bool(SettingNodeV3*, bool), std::string, std::string> {
+    class SettingNodeValueChangeEventV3 final : public GlobalEvent<SettingNodeValueChangeEventV3, bool(std::string_view modID, std::string_view settingKey, SettingNodeV3* node, bool isCommit), bool(SettingNodeV3* node, bool isCommit), void(std::string modID, std::string settingKey)> {
     public:
         // listener params node, isCommit
         // filter params modID, settingKey

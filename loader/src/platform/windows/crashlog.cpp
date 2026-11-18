@@ -629,8 +629,6 @@ static void abortHandler(int sig) {
 
 static BOOL WINAPI ctrlHandler(DWORD type) {
     if (type == CTRL_C_EVENT || type == CTRL_BREAK_EVENT || type == CTRL_CLOSE_EVENT) {
-        log::warn("Received keyboard interrupt, terminating the game");
-        log::flush();
         TerminateProcess(GetCurrentProcess(), STATUS_CONTROL_C_EXIT);
     }
 

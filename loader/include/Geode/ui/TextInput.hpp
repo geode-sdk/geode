@@ -68,11 +68,11 @@ namespace geode {
             Scale, // Overflow is scaled down to fit
         };
 
-        struct FocusEvent : GlobalEvent<FocusEvent, bool(TextInput* sender, FocusState), bool(), TextInput*, FocusState> {
+        struct FocusEvent : GlobalEvent<FocusEvent, bool(), void(TextInput* sender, FocusState state)> {
             using GlobalEvent::GlobalEvent;
         };
 
-        struct TextChangedEvent : GlobalEvent<TextChangedEvent, bool(TextInput* sender, std::string const& value), bool(std::string const& value), TextInput*> {
+        struct TextChangedEvent : GlobalEvent<TextChangedEvent, bool(std::string const& value), void(TextInput* sender)> {
             using GlobalEvent::GlobalEvent;
         };
 
@@ -215,6 +215,18 @@ namespace geode {
 
         /// Get the current value of the input
         std::string const& getString() const;
+
+        /// Set the cursor position to index. Negative values are relative to the end of the string.
+        void setCursorPos(int pos);
+
+        /// Get current cursor position
+        int getCursorPos() const;
+
+        /// Get the selected text substring. Empty if no selection.
+        std::string_view getSelectedText() const;
+
+        /// Set the selection range. Negative values are relative to the end of the string.
+        void setSelection(int start, int end);
 
         /// Focus this input (activate the cursor)
         void focus();

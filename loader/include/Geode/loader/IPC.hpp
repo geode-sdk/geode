@@ -24,11 +24,11 @@ namespace geode::ipc {
     // messages the get by using the reply method on the event provided. For
     // example, an external application can query what mods are loaded in Geode
     // by sending the `list-mods` message to `geode.loader`.
-    class IPCEvent final : public ThreadSafeEvent<IPCEvent, bool(void*, matjson::Value, matjson::Value&), std::string, std::string> {
+    class IPCEvent final : public Event<IPCEvent, bool(void* rawHandle, matjson::Value messageData, matjson::Value& replyData), void(std::string targetModID, std::string messageID)> {
     public:
         // listener params rawHandle, messageData, replyData
         // filter params targetModID, messageID
-        using ThreadSafeEvent::ThreadSafeEvent;
+        using Event::Event;
     };
 
     template <class Callback>

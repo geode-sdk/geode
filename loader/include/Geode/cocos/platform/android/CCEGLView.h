@@ -46,6 +46,8 @@ public:
     void    swapBuffers();
     void    setIMEKeyboardState(bool bOpen);
 
+    void setMousePosition(float x, float y);
+
     // static function
     /**
     @brief    get the shared main open gl window
