@@ -544,7 +544,7 @@ namespace geode::utils::web {
      * WebRequestInterceptEvent(Mod::get()->getID()).listen([](auto& req) { return ListenerResult::Propagate; }, Priority::Normal);
      * WebRequestInterceptEvent().listen([](auto id, auto& req) { return ListenerResult::Stop; }, Priority::VeryEarly);
      */
-    struct WebRequestInterceptEvent : GlobalEvent<WebRequestInterceptEvent, bool(std::string_view, WebRequest&), bool(WebRequest&), std::string> {
+    struct WebRequestInterceptEvent : GlobalEvent<WebRequestInterceptEvent, bool(std::string_view modID, WebRequest& req), bool(WebRequest& req), void(std::string modID)> {
         using GlobalEvent::GlobalEvent;
     };
 
@@ -554,7 +554,7 @@ namespace geode::utils::web {
      * @example
      * IDBasedWebRequestInterceptEvent(req.getID()).listen([](auto& req) { return ListenerResult::Propagate; }, Priority::Normal);
      */
-    struct IDBasedWebRequestInterceptEvent : Event<IDBasedWebRequestInterceptEvent, bool(WebRequest&), size_t> {
+    struct IDBasedWebRequestInterceptEvent : Event<IDBasedWebRequestInterceptEvent, bool(WebRequest& req), void(size_t reqID)> {
         using Event::Event;
     };
 
@@ -565,7 +565,7 @@ namespace geode::utils::web {
      * WebResponseEvent(Mod::get()->getID()).listen([](auto const& res) { return ListenerResult::Propagate; }, Priority::Normal);
      * WebResponseEvent().listen([](auto id, auto const& res) { return ListenerResult::Stop; }, Priority::VeryEarly);
      */
-    struct WebResponseEvent : GlobalEvent<WebResponseEvent, bool(std::string_view, WebResponse const&), bool(WebResponse const&), std::string> {
+    struct WebResponseEvent : GlobalEvent<WebResponseEvent, bool(std::string_view modID, WebResponse const& res), bool(WebResponse const& res), void(std::string modID)> {
         using GlobalEvent::GlobalEvent;
     };
 
@@ -575,7 +575,7 @@ namespace geode::utils::web {
      * @example
      * IDBasedWebResponseEvent(req.getID()).listen([](auto const& res) { return ListenerResult::Propagate; }, Priority::Normal);
      */
-    struct IDBasedWebResponseEvent : Event<IDBasedWebResponseEvent, bool(WebResponse const&), size_t> {
+    struct IDBasedWebResponseEvent : Event<IDBasedWebResponseEvent, bool(WebResponse const& res), void(size_t reqID)> {
         using Event::Event;
     };
 }

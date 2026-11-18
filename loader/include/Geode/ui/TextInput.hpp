@@ -68,11 +68,11 @@ namespace geode {
             Scale, // Overflow is scaled down to fit
         };
 
-        struct FocusEvent : GlobalEvent<FocusEvent, bool(TextInput* sender, FocusState), bool(), TextInput*, FocusState> {
+        struct FocusEvent : GlobalEvent<FocusEvent, bool(), void(TextInput* sender, FocusState state)> {
             using GlobalEvent::GlobalEvent;
         };
 
-        struct TextChangedEvent : GlobalEvent<TextChangedEvent, bool(TextInput* sender, std::string const& value), bool(std::string const& value), TextInput*> {
+        struct TextChangedEvent : GlobalEvent<TextChangedEvent, bool(std::string const& value), void(TextInput* sender)> {
             using GlobalEvent::GlobalEvent;
         };
 

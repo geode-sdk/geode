@@ -12,10 +12,10 @@ namespace geode {
     concept InheritsCCNode = std::is_base_of_v<cocos2d::CCNode, T>;
 
     template <InheritsCCNode T>
-    class EnterLayerEvent final : public GlobalEvent<EnterLayerEvent<T>, bool(std::string_view, cocos2d::CCNode*), bool(cocos2d::CCNode*), std::string> {
+    class EnterLayerEvent final : public GlobalEvent<EnterLayerEvent<T>, bool(std::string_view targetID, cocos2d::CCNode* layer), bool(cocos2d::CCNode* layer), void(std::string targetID)> {
     public:
         // listener params layer
         // filter params targetID
-        using GlobalEvent<EnterLayerEvent<T>, bool(std::string_view, cocos2d::CCNode*), bool(cocos2d::CCNode*), std::string>::GlobalEvent;
+        using GlobalEvent<EnterLayerEvent<T>, bool(std::string_view, cocos2d::CCNode*), bool(cocos2d::CCNode*), void(std::string)>::GlobalEvent;
     };
 }

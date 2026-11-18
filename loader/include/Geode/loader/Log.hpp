@@ -149,7 +149,7 @@ namespace geode {
             void formatTo(utils::StringBuffer<N>& buf, bool millis = false) const;
         };
 
-        struct LogEvent final : Event<LogEvent, bool(BorrowedLog const&)> {
+        struct LogEvent final : Event<LogEvent, bool(BorrowedLog const& log)> {
             using Event::Event;
         };
     }

@@ -678,7 +678,7 @@ public:
      * @returns A pointer to the parnet node
      */
     virtual CCNode* getParent();
-    
+
     /**
      * Util function to add multiple children in one call
      * @note Geode addition
@@ -2051,7 +2051,7 @@ NS_CC_END
 
 #ifndef GEODE_IS_MEMBER_TEST
 namespace geode {
-    class UserObjectSetEvent final : public Event<UserObjectSetEvent, bool(cocos2d::CCNode*, cocos2d::CCObject*), std::string>  {
+    class UserObjectSetEvent final : public Event<UserObjectSetEvent, bool(cocos2d::CCNode* node, cocos2d::CCObject* value), void(std::string targetID)>  {
     public:
         // listener params node, value
         // filter params targetID

@@ -84,7 +84,7 @@ namespace geode {
             : native(native), timestamp(timestamp), key(key), action(action), modifiers(mods) {}
     };
 
-    struct KeyboardInputEvent final : GlobalEvent<KeyboardInputEvent, bool(KeyboardInputData&), cocos2d::enumKeyCodes> {
+    struct KeyboardInputEvent final : GlobalEvent<KeyboardInputEvent, bool(KeyboardInputData& data), void(cocos2d::enumKeyCodes key)> {
         using GlobalEvent::GlobalEvent;
     };
 
@@ -125,15 +125,15 @@ namespace geode {
             : timestamp(timestamp), button(button), action(action), modifiers(mods) {}
     };
 
-    struct MouseInputEvent final : Event<MouseInputEvent, bool(MouseInputData&)> {
+    struct MouseInputEvent final : Event<MouseInputEvent, bool(MouseInputData& data)> {
         using Event::Event;
     };
 
-    struct MouseMoveEvent final : Event<MouseMoveEvent, bool(int32_t, int32_t)> {
+    struct MouseMoveEvent final : Event<MouseMoveEvent, bool(int32_t x, int32_t y)> {
         using Event::Event;
     };
 
-    struct ScrollWheelEvent final : Event<ScrollWheelEvent, bool(double, double)> {
+    struct ScrollWheelEvent final : Event<ScrollWheelEvent, bool(double xoff, double yoff)> {
         using Event::Event;
     };
 
