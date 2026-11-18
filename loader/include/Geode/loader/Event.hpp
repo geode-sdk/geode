@@ -228,7 +228,29 @@ namespace geode::comm {
         friend class BasicEvent;
     };
 
+    namespace detail {
+        template <class... F>
+        struct BlockFnFArgs;
+
+        template <>
+        struct BlockFnFArgs<> : std::true_type {};
+
+        template <class... Args>
+        struct BlockFnFArgs<void(Args...)> : std::false_type {};
+
+        template <class A1, class... Rest>
+        requires (!std::is_function_v<A1>)
+        struct BlockFnFArgs<A1, Rest...> : std::true_type {};
+    }
+
+    // FArgs as a function type (so you can name things)
+    template <class Marker, class Func, class... FArgs>
+    class BasicEvent<Marker, Func, void(FArgs...)> : public BasicEvent<Marker, Func, FArgs...> {
+        using BasicEvent<Marker, Func, FArgs...>::BasicEvent;
+    };
+
     template<class Marker, class PReturn, class... PArgs, class... FArgs>
+    requires (::geode::comm::detail::BlockFnFArgs<FArgs...>::value)
     class BasicEvent<Marker, PReturn(PArgs...), FArgs...> : public BaseFilter {
     protected:
         using CallableType = geode::CopyableFunction<PReturn(PArgs...)>;
@@ -333,21 +355,25 @@ namespace geode::comm {
     };
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
+    requires (::geode::comm::detail::BlockFnFArgs<FArgs...>::value)
     bool BasicEvent<Marker, PReturn(PArgs...), FArgs...>::send(PArgs... args) {
         return EventCenterGlobal::get()->send(this, SendOp<CallableType, PArgs...>{std::tuple<PArgs&...>(args...)});
     }
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
+    requires (::geode::comm::detail::BlockFnFArgs<FArgs...>::value)
     ListenerHandle BasicEvent<Marker, PReturn(PArgs...), FArgs...>::addReceiver(CallableType receiver, int priority) const noexcept {
         return EventCenterGlobal::get()->addReceiver(this, new TypedCallable<CallableType>(std::move(receiver)), priority);
     }
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
+    requires (::geode::comm::detail::BlockFnFArgs<FArgs...>::value)
     size_t BasicEvent<Marker, PReturn(PArgs...), FArgs...>::getReceiverCount() const noexcept {
         return EventCenterGlobal::get()->getReceiverCount(this);
     }
 
     template <class Marker, class PReturn, class... PArgs, class... FArgs>
+    requires (::geode::comm::detail::BlockFnFArgs<FArgs...>::value)
     size_t BasicEvent<Marker, PReturn(PArgs...), FArgs...>::removeReceiver(ReceiverHandle handle) const noexcept {
         return EventCenterGlobal::get()->removeReceiver(this, handle);
     }
@@ -374,12 +400,29 @@ namespace comm {
 
     // I LOVE TEMPLATE ABUSE
     // here we misuse PFunc param as the FArg1, because every BasicGlobalEvent at least has one FArg anyway
+
+    // shorthand for no GFunc, it just appends FArgs at the beginning instead
     template<class Marker, class PReturn, class... PArgs, class FArg1, class... FArgs>
+    requires (::geode::comm::detail::BlockFnFArgs<FArg1>::value)
     struct BasicGlobalEvent<Marker, PReturn(PArgs...), FArg1, FArgs...> : public BasicGlobalEvent<Marker, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...> {
         using BasicGlobalEvent<Marker, PReturn(FArg1, FArgs..., PArgs...), PReturn(PArgs...), FArg1, FArgs...>::BasicGlobalEvent;
     };
 
+    // FArgs as a function type (so you can name things)
+    template <class Marker, class GFunc, class PFunc, class... FArgs>
+    struct BasicGlobalEvent<Marker, GFunc, PFunc, void(FArgs...)> : BasicGlobalEvent<Marker, GFunc, PFunc, FArgs...> {
+        using BasicGlobalEvent<Marker, GFunc, PFunc, FArgs...>::BasicGlobalEvent;
+    };
+
+    // shorthand for no GFunc, it just appends FArgs at the beginning instead
+    // FArgs as a function type (so you can name things)
+    template <class Marker, class PReturn, class... PArgs, class... FArgs>
+    struct BasicGlobalEvent<Marker, PReturn(PArgs...), void(FArgs...)> : BasicGlobalEvent<Marker, PReturn(FArgs..., PArgs...), PReturn(PArgs...), FArgs...> {
+        using BasicGlobalEvent<Marker, PReturn(FArgs..., PArgs...), PReturn(PArgs...), FArgs...>::BasicGlobalEvent;
+    };
+
     template<class Marker, class GReturn, class... GArgs, class PReturn, class... PArgs, class... FArgs>
+    requires (::geode::comm::detail::BlockFnFArgs<FArgs...>::value)
     struct BasicGlobalEvent<Marker, GReturn(GArgs...), PReturn(PArgs...), FArgs...> {
     private:
         using Event1Type = Event<Marker, PReturn(PArgs...), FArgs...>;
