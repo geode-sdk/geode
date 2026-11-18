@@ -12,7 +12,6 @@
 #include <Geode/Result.hpp>
 #include <optional>
 #include <string_view>
-#include <span>
 
 namespace geode::utils::web {
     /**
