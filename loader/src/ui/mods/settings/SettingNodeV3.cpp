@@ -237,6 +237,7 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
     });
     m_collapseToggle->setID("collapse-toggler");
     m_collapseToggle->setScale(0.2f);
+
     this->getButtonMenu()->setContentWidth(20.0f);
     this->getButtonMenu()->addChildAtPosition(m_collapseToggle, Anchor::Center);
 
@@ -246,9 +247,6 @@ bool TitleSettingNodeV3::init(std::shared_ptr<TitleSettingV3> setting, float wid
     this->updateState(nullptr);
 
     return true;
-}
-
-void TitleSettingNodeV3::onCollapse(CCObject* sender) {
 }
 
 void TitleSettingNodeV3::onCommit() {}
@@ -307,7 +305,7 @@ bool InfoSettingNodeV3::init(std::shared_ptr<InfoSettingV3> setting, float width
     label->lockWidth(true);
     label->setTextScale(0.65f);
     label->setBoxOpacity(100);
-    label->setBoxColor(setting->getColor().value_or(ccc3(255, 135, 88)));
+    label->setBoxColor(setting->getColor().value_or(ccColor3B{255, 135, 88}));
 
     this->addChildAtPosition(label, Anchor::Center);
 

@@ -72,7 +72,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
         }
     );
     m_searchClearBtn->setID("clear-search-button");
-    m_searchClearBtn->setScale(.45f);
+    m_searchClearBtn->setScale(0.45f);
     searchContainer->addChildAtPosition(m_searchClearBtn, Anchor::Right, {-20.0f, 0.0f});
 
     layerBG->addChildAtPosition(searchContainer, Anchor::Top, {0.0f, 0.0f}, {.5f, 1.0f});
@@ -106,7 +106,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
     m_applyMenu->setID("apply-menu");
     m_applyMenu->setContentWidth(150.0f);
     m_applyMenu->setAnchorPoint({0.5f, 0.5f});
-    m_applyMenu->setLayout(RowLayout::create()->setDefaultScaleLimits(.1f, .6f));
+    m_applyMenu->setLayout(RowLayout::create()->setDefaultScaleLimits(0.1f, 0.6f));
 
     m_restartBtn = Button::createWithNode(
         createGeodeButton("Restart Now", true, GeodeButtonSprite::Default, m_forceDisableTheme),
@@ -169,7 +169,7 @@ bool BaseSettingsPopup::init(bool forceDisableTheme, bool spacingForTabs) {
         }
     );
     resetBtn->setID("reset-settings-button");
-    resetBtn->setScale(.6f);
+    resetBtn->setScale(0.6f);
     m_mainLayer->addChildAtPosition(resetBtn, Anchor::BottomLeft, {45.0f, 20.0f});
 
     m_changeHandle = SettingNodeValueChangeEvent().listen([this](std::string_view modID, std::string_view key, SettingNodeV3* node, bool isCommit) {

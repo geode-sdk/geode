@@ -23,7 +23,6 @@ protected:
     bool init(std::shared_ptr<TitleSettingV3> setting, float width);
 
     void onCommit() override;
-    void onCollapse(CCObject*);
 
 public:
     // `setting` may be null here
