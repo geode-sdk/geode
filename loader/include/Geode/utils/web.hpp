@@ -544,8 +544,8 @@ namespace geode::utils::web {
      * WebRequestInterceptEvent(Mod::get()->getID()).listen([](auto& req) { return ListenerResult::Propagate; }, Priority::Normal);
      * WebRequestInterceptEvent().listen([](auto id, auto& req) { return ListenerResult::Stop; }, Priority::VeryEarly);
      */
-    struct WebRequestInterceptEvent : ThreadSafeGlobalEvent<WebRequestInterceptEvent, bool(std::string_view, WebRequest&), bool(WebRequest&), std::string> {
-        using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
+    struct WebRequestInterceptEvent : GlobalEvent<WebRequestInterceptEvent, bool(std::string_view, WebRequest&), bool(WebRequest&), std::string> {
+        using GlobalEvent::GlobalEvent;
     };
 
     /**
@@ -554,8 +554,8 @@ namespace geode::utils::web {
      * @example
      * IDBasedWebRequestInterceptEvent(req.getID()).listen([](auto& req) { return ListenerResult::Propagate; }, Priority::Normal);
      */
-    struct IDBasedWebRequestInterceptEvent : ThreadSafeEvent<IDBasedWebRequestInterceptEvent, bool(WebRequest&), size_t> {
-        using ThreadSafeEvent::ThreadSafeEvent;
+    struct IDBasedWebRequestInterceptEvent : Event<IDBasedWebRequestInterceptEvent, bool(WebRequest&), size_t> {
+        using Event::Event;
     };
 
     /**
@@ -565,8 +565,8 @@ namespace geode::utils::web {
      * WebResponseEvent(Mod::get()->getID()).listen([](auto const& res) { return ListenerResult::Propagate; }, Priority::Normal);
      * WebResponseEvent().listen([](auto id, auto const& res) { return ListenerResult::Stop; }, Priority::VeryEarly);
      */
-    struct WebResponseEvent : ThreadSafeGlobalEvent<WebResponseEvent, bool(std::string_view, WebResponse const&), bool(WebResponse const&), std::string> {
-        using ThreadSafeGlobalEvent::ThreadSafeGlobalEvent;
+    struct WebResponseEvent : GlobalEvent<WebResponseEvent, bool(std::string_view, WebResponse const&), bool(WebResponse const&), std::string> {
+        using GlobalEvent::GlobalEvent;
     };
 
     /**
@@ -575,7 +575,7 @@ namespace geode::utils::web {
      * @example
      * IDBasedWebResponseEvent(req.getID()).listen([](auto const& res) { return ListenerResult::Propagate; }, Priority::Normal);
      */
-    struct IDBasedWebResponseEvent : ThreadSafeEvent<IDBasedWebResponseEvent, bool(WebResponse const&), size_t> {
-        using ThreadSafeEvent::ThreadSafeEvent;
+    struct IDBasedWebResponseEvent : Event<IDBasedWebResponseEvent, bool(WebResponse const&), size_t> {
+        using Event::Event;
     };
 }

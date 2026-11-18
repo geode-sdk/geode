@@ -12,9 +12,9 @@
 
 namespace geode {
     template <class... Args>
-    class Dispatch : public ThreadSafeEvent<Dispatch<Args...>, bool(Args...), std::string> {
+    class Dispatch : public Event<Dispatch<Args...>, bool(Args...), std::string> {
     public:
-        using ThreadSafeEvent<Dispatch<Args...>, bool(Args...), std::string>::ThreadSafeEvent;
+        using Event<Dispatch<Args...>, bool(Args...), std::string>::Event;
     };
 
     template<class... Args>
