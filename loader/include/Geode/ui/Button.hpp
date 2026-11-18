@@ -69,7 +69,7 @@ namespace geode {
          * @param font The font of the label
          * @param activateCallback The callback for when the button is activated
          */
-        static Button* createWithLabel(geode::ZStringView text, geode::ZStringView font, ButtonCallback activateCallback = nullptr);
+        static Button* createWithLabel(std::string text, geode::ZStringView font, ButtonCallback activateCallback = nullptr);
 
         /**
          * Get the Display Node, which was created or passed in on button creation
@@ -232,7 +232,7 @@ namespace geode {
         bool initWithNode(cocos2d::CCNode* node, ButtonCallback activateCallback);
         bool initWithSprite(geode::ZStringView fileName, ButtonCallback activateCallback);
         bool initWithSpriteFrameName(geode::ZStringView frameName, ButtonCallback activateCallback);
-        bool initWithLabel(geode::ZStringView text, geode::ZStringView font, ButtonCallback activateCallback);
+        bool initWithLabel(std::string text, geode::ZStringView font, ButtonCallback activateCallback);
 
     private:
         class Impl;

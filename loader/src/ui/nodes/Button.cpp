@@ -87,7 +87,7 @@ Button* Button::createWithNode(CCNode* node, ButtonCallback activateCallback) {
 
 Button* Button::createWithSprite(ZStringView fileName, ButtonCallback activateCallback) {
     auto ret = new Button();
-    if (ret->initWithSprite(std::move(fileName), std::move(activateCallback))) {
+    if (ret->initWithSprite(fileName, std::move(activateCallback))) {
         ret->autorelease();
         return ret;
     }
@@ -97,7 +97,7 @@ Button* Button::createWithSprite(ZStringView fileName, ButtonCallback activateCa
 
 Button* Button::createWithSpriteFrameName(ZStringView frameName, ButtonCallback activateCallback) {
     auto ret = new Button();
-    if (ret->initWithSpriteFrameName(std::move(frameName),std::move(activateCallback))) {
+    if (ret->initWithSpriteFrameName(frameName, std::move(activateCallback))) {
         ret->autorelease();
         return ret;
     }
@@ -105,9 +105,9 @@ Button* Button::createWithSpriteFrameName(ZStringView frameName, ButtonCallback 
     return nullptr;
 }
 
-Button* Button::createWithLabel(ZStringView text, ZStringView font, ButtonCallback activateCallback) {
+Button* Button::createWithLabel(std::string text, ZStringView font, ButtonCallback activateCallback) {
     auto ret = new Button();
-    if (ret->initWithLabel(std::move(text), std::move(font), std::move(activateCallback))) {
+    if (ret->initWithLabel(std::move(text), font, std::move(activateCallback))) {
         ret->autorelease();
         return ret;
     }
@@ -177,10 +177,10 @@ bool Button::initWithSpriteFrameName(ZStringView frameName, ButtonCallback activ
     return true;
 }
 
-bool Button::initWithLabel(ZStringView text, ZStringView font, ButtonCallback activateCallback) {
+bool Button::initWithLabel(std::string text, ZStringView font, ButtonCallback activateCallback) {
     if (!Button::init(std::move(activateCallback))) return false;
 
-    m_impl->m_displayNode = Label::create(text, font);
+    m_impl->m_displayNode = Label::create(std::move(text), font);
     if (!m_impl->m_displayNode) return false;
 
     setContentSize(m_impl->m_displayNode->getScaledContentSize());
