@@ -34,13 +34,13 @@ public:
     unsigned char getDisplayedOpacity();
     void setOpacity(unsigned char);
     void updateDisplayedOpacity(unsigned char);
-    bool isCascadeColorEnabled();
+    bool isCascadeOpacityEnabled();
     void setCascadeOpacityEnabled(bool);
     ccColor3B const& getColor();
     ccColor3B const& getDisplayedColor();
     void setColor(ccColor3B const&);
     void updateDisplayedColor(ccColor3B const&);
-    bool isCascadeOpacityEnabled();
+    bool isCascadeColorEnabled();
     void setCascadeColorEnabled(bool);
 
 public:
