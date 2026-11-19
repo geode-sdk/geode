@@ -1056,8 +1056,8 @@ public:
      */
     template <class T = geode::Layout>
         requires std::derived_from<std::remove_pointer_t<T>, geode::Layout>
-    T* getLayoutExt() {
-        return geode::cast::typeinfo_cast<T*>(this->getLayout());
+    auto getLayoutExt() {
+        return geode::cast::typeinfo_cast<std::remove_pointer_t<T>*>(this->getLayout());
     }
     /**
      * Update the layout of this node using the current Layout. If no layout is
