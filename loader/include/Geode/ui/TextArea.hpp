@@ -1,14 +1,11 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include <Geode/cocos/robtop/sprite_nodes/CCFontSprite.h>
 #include <Geode/utils/function.hpp>
 #include <Geode/ui/Label.hpp>
 #include <memory>
 
 namespace geode {
-    class SimpleTextAreaImpl;
-
     enum WrappingMode {
         NO_WRAP,
         WORD_WRAP,
@@ -24,46 +21,62 @@ namespace geode {
      * - Custom text alignment
      * - Configurable and automatic word wrapping
      * - Line padding
+     * - Color tags
      *
      * Contact me on Discord (\@smjs) if you have any questions, suggestions or bugs.
     */
-
     class GEODE_DLL SimpleTextArea : public cocos2d::CCNode {
     public:
-        static SimpleTextArea* create(std::string text, std::string font = "chatFont.fnt", float scale = 1.0f);
-        static SimpleTextArea* create(std::string text, std::string font, float scale, float width);
+        static SimpleTextArea* create(std::string text, ZStringView font = "chatFont.fnt", float scale = 1.0f);
+        static SimpleTextArea* create(std::string text, ZStringView font, float scale, float width);
 
-        void setFont(std::string font);
-        std::string getFont();
+        static SimpleTextArea* create(std::string text, BitmapFont* font, float scale = 1.0f);
+        static SimpleTextArea* create(std::string text, BitmapFont* font, float scale, float width);
+
+        void setFont(ZStringView font);
+        void setFont(BitmapFont* font);
+        BitmapFont* getFont() const;
+
         void setColor(const cocos2d::ccColor4B& color);
-        cocos2d::ccColor4B getColor();
+        void setColor(const cocos2d::ccColor3B& color);
+        cocos2d::ccColor4B getColor() const;
+
         void setAlignment(cocos2d::CCTextAlignment alignment);
-        cocos2d::CCTextAlignment getAlignment();
+        cocos2d::CCTextAlignment getAlignment() const;
+
+        /// Set the text wrapping mode.
+        /// You can disable text wrapping with `setWrappingMode(NO_WRAP)`
         void setWrappingMode(WrappingMode mode);
-        WrappingMode getWrappingMode();
+        WrappingMode getWrappingMode() const;
+
         void setText(std::string text);
-        std::string getText();
+        std::string getText() const;
+
+        /// Set the max amount of lines to be displayed. Anything else with get cut off.
+        /// You can disable this feature by setting the value to '0'
         void setMaxLines(size_t maxLines);
-        size_t getMaxLines();
+        size_t getMaxLines() const;
+
         void setWidth(float width);
-        float getWidth();
+        float getWidth() const;
+
         void setScale(float scale) override;
         float getScale() override;
-        void setLinePadding(float padding);
-        float getLinePadding();
-        std::vector<geode::Label*> getLines();
-        float getHeight();
-        float getLineHeight();
 
+        /// Sets extra padding in between each line
+        void setLinePadding(float padding);
+        float getLinePadding() const;
+
+        std::vector<Label*> getLines() const;
+        float getHeight() const;
+        float getLineHeight() const;
     protected:
         SimpleTextArea();
         ~SimpleTextArea() override;
 
-        virtual std::unique_ptr<SimpleTextAreaImpl> createImpl();
-        std::unique_ptr<SimpleTextAreaImpl> m_impl;
+        struct Impl;
+        std::unique_ptr<Impl> m_impl;
 
-        bool init(std::string font, std::string text, float scale, float width, const bool artificialWidth);
-    private:
-        static SimpleTextArea* create(std::string font, std::string text, float scale, float width, const bool artificialWidth);
+        bool init(std::string text, BitmapFont* font, float scale, float width, bool artificialWidth);
     };
 }
