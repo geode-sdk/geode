@@ -1,5 +1,25 @@
 # Geode Changelog
 
+## v6.0.0-alpha.3
+ * Make `ZStringView` constexpr and thread safe, add more string_view functions (886595ba5)
+ * Add `geode::TextInput` cursor utils (c0ded9bea)
+ * Remove `geode::RichTextArea` (#2379)
+ * Add templated `CCNode::getLayout` (#2393)
+ * Add user agent getter in WebRequest (#2391)
+ * Remove ThreadSafe event classes (343c5d746)
+   * All events are thread-safe now
+ * Tweak API for BoxedLabel & ProcessPopup (#2369)
+ * Improve geode::Scrollbar (#2343)
+ * Fix NineSlice with content size 0 on either axis (#2382)
+ * Allow event filter args to be specified as a function type (5aa435283)
+ * Fix linker warnings for bindings (a18caf66c)
+ * Add an optional index parameter to `getChildBySpriteFrameName` (#2265)
+ * Migrate Settings UIs to use Geode's custom nodes (#2306)
+ * Fix `Button::createWithLabel` (#2387)
+ * SimpleTextArea Cleanup + Improvements (#2381)
+ * Close game properly on console interrupt (2e16dfccf)
+ * Fix filesystem issues with geode files (5b2caa663, 80becdfa5)
+
 ## v6.0.0-alpha.2
  * `geode::TextInput` rewrite (#2331)
  * `geode::MDTextArea` rewrite (#2370)
