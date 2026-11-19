@@ -132,7 +132,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-win \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-win \
     --mount=type=bind,from=bindings,target=/bindings \
-    cmake --preset win-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
+    cmake --preset win-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
     && cmake --build --preset win-cache && \
     ls /workspace/bin/nightly && sccache --show-stats
 
