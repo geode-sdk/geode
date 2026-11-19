@@ -1054,9 +1054,9 @@ public:
      * @returns The current layout, or nullptr if no layout is set or the template type doesn't match
      * @note Geode addition
      */
-    template <class T = geode::Layout>
+    template <class T>
         requires std::derived_from<std::remove_pointer_t<T>, geode::Layout>
-    auto getLayoutExt() {
+    auto getLayout() {
         return geode::cast::typeinfo_cast<std::remove_pointer_t<T>*>(this->getLayout());
     }
     /**
