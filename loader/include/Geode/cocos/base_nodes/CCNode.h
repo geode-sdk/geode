@@ -1049,6 +1049,17 @@ public:
      */
     GEODE_DLL geode::Layout* getLayout();
     /**
+     * Get the Layout for this node
+     * @tparam T `geode::Layout`-based class
+     * @returns The current layout, or nullptr if no layout is set or the template type doesn't match
+     * @note Geode addition
+     */
+    template <class T>
+        requires std::derived_from<std::remove_pointer_t<T>, geode::Layout>
+    auto getLayout() {
+        return geode::cast::typeinfo_cast<std::remove_pointer_t<T>*>(this->getLayout());
+    }
+    /**
      * Update the layout of this node using the current Layout. If no layout is
      * set, nothing happens
      * @note Geode addition
