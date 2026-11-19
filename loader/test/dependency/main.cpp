@@ -1,7 +1,7 @@
 #include <Geode/Loader.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 #define GEODE_DEFINE_EVENT_EXPORTS
-#include <Geode/loader/Dispatch.hpp>
+#include <Geode/loader/EventExport.hpp>
 #include <Geode/Bindings.hpp>
 #include "main.hpp"
 

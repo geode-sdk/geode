@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 #include "../sources/ModSource.hpp"
 #include <server/Server.hpp>
 
-class DevListPopup : public GeodePopup {
+class DevListPopup : public geode::GeodePopup {
 protected:
     void createList();
     bool init(ModSource source);

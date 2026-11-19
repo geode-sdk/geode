@@ -18,19 +18,19 @@ bool Patch::isEnabled() const {
     return m_impl->isEnabled();
 }
 
-Result<> Patch::enable() {
+Result<void, HookError> Patch::enable() {
     return m_impl->enable();
 }
 
-Result<> Patch::disable() {
+Result<void, HookError> Patch::disable() {
     return m_impl->disable();
 }
 
-Result<> Patch::toggle() {
+Result<void, HookError> Patch::toggle() {
     return m_impl->toggle();
 }
 
-Result<> Patch::toggle(bool enable) {
+Result<void, HookError> Patch::toggle(bool enable) {
     return m_impl->toggle(enable);
 }
 
@@ -46,7 +46,7 @@ ByteVector const& Patch::getBytes() const {
     return m_impl->getBytes();
 }
 
-Result<> Patch::updateBytes(ByteSpan bytes) {
+Result<void, HookError> Patch::updateBytes(ByteSpan bytes) {
     return m_impl->updateBytes(bytes);
 }
 

@@ -678,7 +678,7 @@ public:
      * @returns A pointer to the parnet node
      */
     virtual CCNode* getParent();
-    
+
     /**
      * Util function to add multiple children in one call
      * @note Geode addition
@@ -1232,7 +1232,7 @@ public:
         // start from end for negative index
         if (index < 0) {
             index = -index - 1;
-            for (size_t i = this->getChildrenCount() - 1; i >= 0; i--) {
+            for (size_t i = this->getChildrenCount() - 1;; i--) {
                 auto obj = geode::cast::typeinfo_cast<T*>(this->getChildren()->objectAtIndex(i));
                 if (obj != nullptr) {
                     if (indexCounter == index) {
@@ -2051,7 +2051,7 @@ NS_CC_END
 
 #ifndef GEODE_IS_MEMBER_TEST
 namespace geode {
-    class UserObjectSetEvent final : public Event<UserObjectSetEvent, bool(cocos2d::CCNode*, cocos2d::CCObject*), std::string>  {
+    class UserObjectSetEvent final : public Event<UserObjectSetEvent, bool(cocos2d::CCNode* node, cocos2d::CCObject* value), void(std::string targetID)>  {
     public:
         // listener params node, value
         // filter params targetID

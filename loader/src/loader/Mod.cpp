@@ -94,7 +94,7 @@ asp::fs::Path Mod::getBinaryPath() const {
 }
 
 asp::fs::Path Mod::getResourcesDir() const {
-    return dirs::getModRuntimeDir() / this->getID() / "resources" / this->getID();
+    return dirs::getGeodeResourcesDir() / this->getID();
 }
 
 matjson::Value Mod::getDependencySettingsFor(std::string_view id) const {

@@ -840,10 +840,11 @@ namespace geode::cocos {
      *
      * @param parent Parent node to search in
      * @param name Name of the sprite frame to search for
+     * @param index Index of the sprite to get.
      * @returns Child with the given sprite frame name, or
      * nullptr if there is none
      */
-    GEODE_DLL cocos2d::CCNode* getChildBySpriteFrameName(cocos2d::CCNode* parent, const char* name);
+    GEODE_DLL cocos2d::CCNode* getChildBySpriteFrameName(cocos2d::CCNode* parent, const char* name, int index = 0);
 
     /**
      * Checks if a node has the given sprite name either
@@ -862,10 +863,11 @@ namespace geode::cocos {
      *
      * @param parent Parent node to search in
      * @param name Name of the sprite to search for
+     * @param index Index of the sprite to get.
      * @returns Child with the given sprite name, or
      * nullptr if there is none
      */
-    GEODE_DLL cocos2d::CCNode* getChildBySpriteName(cocos2d::CCNode* parent, const char* name);
+    GEODE_DLL cocos2d::CCNode* getChildBySpriteName(cocos2d::CCNode* parent, const char* name, int index = 0);
 
     /**
      * Gets the demangled name of an object using RTTI. The returned name does not include 'struct' or 'class'

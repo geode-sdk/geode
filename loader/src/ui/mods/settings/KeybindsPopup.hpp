@@ -4,17 +4,17 @@
 
 using namespace geode::prelude;
 
-enum class KeybindsPopupTab {
+enum class KeybindsPopupTab : int8_t {
     All = -1,
-    Universal = static_cast<int>(KeybindCategory::Universal),
-    Gameplay = static_cast<int>(KeybindCategory::Gameplay),
-    Editor = static_cast<int>(KeybindCategory::Editor),
+    Universal = static_cast<int8_t>(KeybindCategory::Universal),
+    Gameplay = static_cast<int8_t>(KeybindCategory::Gameplay),
+    Editor = static_cast<int8_t>(KeybindCategory::Editor),
 };
 
 class KeybindsPopup : public BaseSettingsPopup {
 protected:
     KeybindsPopupTab m_tab = KeybindsPopupTab::All;
-    CCMenu* m_tabsMenu;
+    CCNode* m_tabsMenu = nullptr;
 
     bool init(std::optional<KeybindsPopupTab> tab, Mod* mod, bool forceDisableTheme);
     bool shouldShow(SettingNode* node) const override;

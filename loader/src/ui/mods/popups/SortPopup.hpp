@@ -2,12 +2,12 @@
 
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/Toggler.hpp>
+#include "../../GeodeStyle.hpp"
 #include "../sources/ModListSource.hpp"
-#include "../GeodeStyle.hpp"
 
 using namespace geode::prelude;
 
-class SortPopup : public GeodePopup {
+class SortPopup : public geode::GeodePopup {
 protected:
     ModListSource* m_source;
     std::vector<Toggler*> m_options;

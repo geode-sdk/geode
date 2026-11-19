@@ -24,7 +24,19 @@ using namespace geode::utils::file;
 using asp::fs::Path;
 using asp::fs::PathView;
 
-Result<std::string> utils::file::readString(PathView path) {
+std::string FileError::toString() const {
+    switch (m_value) {
+        case Unknown:
+            return "Unknown error";
+        case AspError:
+            return m_error.toString();
+        case TemporaryFileError:
+            return "Failed to handle temporary file: " + m_error.toString();
+    }
+    return "";
+}
+
+Result<std::string, FileError> utils::file::readString(PathView path) {
     return asp::fs::readToString(path);
 }
 
@@ -35,15 +47,15 @@ Result<matjson::Value> utils::file::readJson(PathView path) {
     });
 }
 
-Result<ByteVector> utils::file::readBinary(PathView path) {
+Result<ByteVector, FileError> utils::file::readBinary(PathView path) {
     return asp::fs::read(path);
 }
 
-Result<> utils::file::writeString(PathView path, std::string_view data) {
+Result<void, FileError> utils::file::writeString(PathView path, std::string_view data) {
     return asp::fs::write(path, data);
 }
 
-Result<> utils::file::writeStringSafe(PathView path, std::string_view data) {
+Result<void, FileError> utils::file::writeStringSafe(PathView path, std::string_view data) {
     GEODE_ANDROID(
         return utils::file::writeString(path, data); // safe approach causes significant performance issues on Android
     )
@@ -58,19 +70,19 @@ Result<> utils::file::writeStringSafe(PathView path, std::string_view data) {
         return res;
     }
 
-    res = asp::fs::rename(tmpPath, path);
-    if (!res) {
-        return Err("Unable to rename temporary file: {}", res.unwrapErr());
+    asp::fs::Error err = asp::fs::ErrorKind::Success;
+    if (GEODE_UNWRAP_INTO_IF_ERR(err, asp::fs::rename(tmpPath, path))) {
+        return Err(FileError{FileError::TemporaryFileError, err});
     }
 
     return Ok();
 }
 
-Result<> utils::file::writeBinary(PathView path, ByteSpan data) {
+Result<void, FileError> utils::file::writeBinary(PathView path, ByteSpan data) {
     return asp::fs::write(path, data);
 }
 
-Result<> utils::file::writeBinarySafe(PathView path, ByteSpan data) {
+Result<void, FileError> utils::file::writeBinarySafe(PathView path, ByteSpan data) {
     GEODE_ANDROID(
         return utils::file::writeBinary(path, data); // safe approach causes significant performance issues on Android
     )
@@ -85,23 +97,41 @@ Result<> utils::file::writeBinarySafe(PathView path, ByteSpan data) {
         return res;
     }
 
-    res = asp::fs::rename(tmpPath, path);
-    if (!res) {
-        return Err("Unable to rename temporary file: {}", res.unwrapErr());
+    asp::fs::Error err = asp::fs::ErrorKind::Success;
+    if (GEODE_UNWRAP_INTO_IF_ERR(err, asp::fs::rename(tmpPath, path))) {
+        return Err(FileError{FileError::TemporaryFileError, err});
     }
 
     return Ok();
 }
 
-Result<> utils::file::createDirectory(PathView path) {
+Result<void, FileError> utils::file::createDirectory(PathView path) {
     return asp::fs::createDir(path);
 }
 
-Result<> utils::file::createDirectoryAll(PathView path) {
+Result<void, FileError> utils::file::createDirectoryAll(PathView path) {
     return asp::fs::createDirAll(path);
 }
 
-Result<std::vector<Path>> utils::file::readDirectory(
+Result<void, FileError> utils::file::moveDirectoryContents(PathView source, PathView target) {
+    auto sourceMeta = GEODE_UNWRAP(source.metadata());
+    auto targetMeta = GEODE_UNWRAP(target.metadata());
+
+    if (!sourceMeta.isDir() || !targetMeta.isDir()) {
+        return Err(asp::fs::ErrorKind::NotADirectory);
+    }
+
+    for (auto result : GEODE_UNWRAP(asp::fs::iterDir(source))) {
+        auto path = GEODE_UNWRAP(result).path;
+        if(auto filename = path.filename()) {
+            GEODE_UNWRAP(asp::fs::move(path, target / path.filename().value()));
+        }
+    }
+
+    return Ok();
+}
+
+Result<std::vector<asp::fs::Path>, FileError> utils::file::readDirectory(
     PathView path, bool recursive
 ) {
     if (recursive) {
@@ -109,13 +139,13 @@ Result<std::vector<Path>> utils::file::readDirectory(
             .map([](auto const& entry) {
                 return entry.map([](auto e) { return e.path; });
             })
-            .collect<Result<std::vector<Path>>>();
+            .collect<Result<std::vector<Path>, FileError>>();
     } else {
         return GEODE_UNWRAP(asp::fs::iterDir(path))
             .map([](auto const& entry) {
                 return entry.map([](auto e) { return e.path; });
             })
-            .collect<Result<std::vector<Path>>>();
+            .collect<Result<std::vector<Path>, FileError>>();
     }
 }
 

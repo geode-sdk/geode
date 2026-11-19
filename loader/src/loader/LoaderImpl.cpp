@@ -51,6 +51,7 @@ Loader::Impl::~Impl() = default;
 
 void Loader::Impl::createDirectories() {
     log::debug("Creating necessary directories");
+
     (void) utils::file::createDirectoryAll(dirs::getSaveDir());
     (void) utils::file::createDirectoryAll(dirs::getGeodeResourcesDir());
     (void) utils::file::createDirectoryAll(dirs::getModConfigDir());
@@ -58,6 +59,11 @@ void Loader::Impl::createDirectories() {
     (void) utils::file::createDirectoryAll(dirs::getGeodeLogDir());
     (void) utils::file::createDirectoryAll(dirs::getTempDir());
     (void) utils::file::createDirectoryAll(dirs::getModRuntimeDir());
+
+#ifdef GEODE_IS_ANDROID
+    // fallback for users who need to install resources manually
+    (void) utils::file::moveDirectoryContents(dirs::getGeodeDir() / "resources", dirs::getGeodeResourcesDir());
+#endif
 
     if (!ranges::contains(m_modSearchDirectories, dirs::getModsDir())) {
         m_modSearchDirectories.push_back(dirs::getModsDir());
@@ -85,7 +91,7 @@ Result<> Loader::Impl::setup() {
             log::info("Disabling runtime intervening");
             auto res = tulip::hook::disableRuntimeIntervening((void*)(base::get() + offset.unwrap()));
             if (res.isErr()) {
-                log::error("Failed to disable runtime intervening: {}", res.unwrapErr());
+                log::error("Failed to disable runtime intervening: {}", res.unwrapErr().toString());
             } else {
                 log::info("Runtime intervening disabled successfully");
                 m_isPatchless = true;
@@ -258,12 +264,6 @@ Mod* Loader::Impl::getLoadedMod(std::string_view id) const {
 void Loader::Impl::updateModResources(Mod* mod) {
     // skip disabled mods
     if (!mod->isOrWillBeEnabled()) return;
-
-    if (!mod->isInternal()) {
-        // geode.loader resource is stored somewhere else, which is already added anyway
-        auto searchPathRoot = dirs::getModRuntimeDir() / mod->getID() / "resources";
-        CCFileUtils::get()->addSearchPath(searchPathRoot.c_str());
-    }
 
     // only thing needs previous setup is spritesheets
     auto& sheets = mod->getMetadata().getSpritesheets();
@@ -1009,9 +1009,13 @@ static bool isPlatformBinary(std::string_view modID, std::string_view filename) 
 Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     // Unzip .geode file into temp dir
     auto tempDir = dirs::getModRuntimeDir() / metadata.getID();
+    auto resourceDir = dirs::getGeodeResourcesDir() / metadata.getID();
 
     auto datePath = tempDir / "modified-at";
     std::string currentHash = file::readString(datePath).unwrapOr("");
+
+    auto resDatePath = resourceDir / "modified-at";
+    std::string dateHash = file::readString(resDatePath).unwrapOr("");
 
     auto result = asp::fs::metadata(metadata.getPath()).ok().and_then([](auto metadata) {
         return metadata.modifiedAt;
@@ -1024,7 +1028,7 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
     auto modifiedDate = *result;
     auto modifiedHash = std::to_string(modifiedDate.to_time_t());
     // With the id: non-early mods unzip in parallel, so these lines can end up anywhere
-    if (currentHash == modifiedHash) {
+    if (currentHash == modifiedHash && dateHash == modifiedHash) {
         log::debug("Same hash detected, skipping unzip of {}", metadata.getID());
         return Ok();
     }
@@ -1034,7 +1038,12 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         return Err("Unable to delete temp dir: {} " GEODE_WINDOWS(" Try <cg>restarting your PC</c> to fix the issue."), e);
     }
 
+    if (auto e = asp::fs::removeDirAll(resourceDir, false).err()) {
+        return Err("Unable to delete resources dir: {} " GEODE_WINDOWS(" Try <cg>restarting your PC</c> to fix the issue."), e);
+    }
+
     (void)utils::file::createDirectoryAll(tempDir);
+    (void)utils::file::createDirectoryAll(resourceDir);
 
     GEODE_UNWRAP_INTO(auto unzip, file::Unzip::create(metadata.getPath()));
     if (!unzip.hasEntry(metadata.getBinaryName().view())) {
@@ -1043,6 +1052,11 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         );
     }
     GEODE_UNWRAP(unzip.extractAllTo(tempDir));
+
+    auto tempResDir = tempDir / "resources" / metadata.getID();
+    if(tempResDir.exists() && tempResDir.isDir()) {
+        GEODE_UNWRAP(utils::file::moveDirectoryContents(tempResDir, resourceDir));
+    }
 
     // Delete binaries for other platforms since they're pointless
     // The if should never fail, but you never know
@@ -1077,9 +1091,14 @@ Result<> Loader::Impl::unzipGeodeFile(ModMetadata metadata) {
         }
     }
 
-    auto res = file::writeString(datePath, modifiedHash);
+    auto res = file::writeString(resDatePath, modifiedHash);
     if (!res) {
-        log::warn("Failed to write modified date of geode zip, will try to unzip next launch: {}", res.unwrapErr());
+        log::warn("Failed to write modified date of geode resources, will try to unzip next launch: {}", res.unwrapErr());
+    }
+
+    auto res2 = file::writeString(datePath, modifiedHash);
+    if (!res2) {
+        log::warn("Failed to write modified date of geode zip, will try to unzip next launch: {}", res2.unwrapErr());
     }
 
     return Ok();
@@ -1231,14 +1250,14 @@ bool Loader::Impl::getLaunchFlag(std::string_view name) const {
     return arg.has_value() && arg.value() == "true";
 }
 
-Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
+tulip::hook::Result<tulip::hook::HandlerHandle> Loader::Impl::getHandler(void* address) {
     if (!m_handlerHandles.contains(address)) {
-        return Err("Handler does not exist at address");
+        return Err(tulip::hook::Error::HandlerNotFound);
     }
     return Ok(m_handlerHandles[address].first);
 }
 
-Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
+tulip::hook::Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* address, tulip::hook::HandlerMetadata const& metadata) {
     if (m_handlerHandles.contains(address) && m_handlerHandles[address].second > 0) {
         m_handlerHandles[address].second++;
         return Ok(m_handlerHandles[address].first);
@@ -1251,18 +1270,18 @@ Result<tulip::hook::HandlerHandle> Loader::Impl::getOrCreateHandler(void* addres
     return Ok(handle);
 }
 
-Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* address) {
+tulip::hook::Result<tulip::hook::HandlerHandle> Loader::Impl::getAndDecreaseHandler(void* address) {
     if (!m_handlerHandles.contains(address)) {
-        return Err("Handler does not exist at address");
+        return Err(tulip::hook::Error::HandlerNotFound);
     }
     auto handle = m_handlerHandles[address].first;
     m_handlerHandles[address].second--;
     return Ok(handle);
 }
 
-Result<> Loader::Impl::removeHandlerIfNeeded(void* address) {
+tulip::hook::Result<> Loader::Impl::removeHandlerIfNeeded(void* address) {
     if (!m_handlerHandles.contains(address)) {
-        return Err("Handler does not exist at address");
+        return Err(tulip::hook::Error::HandlerNotFound);
     }
     auto handle = m_handlerHandles[address].first;
     if (m_handlerHandles[address].second == 0) {
@@ -1310,7 +1329,7 @@ void Loader::Impl::installModManuallyFromFile(asp::fs::PathView path, geode::Fun
         )->show();
     }
 
-    auto doInstallModFromFile = [this, path, meta, after = std::move(after)]() mutable {
+    auto doInstallModFromFile = [this, path = path.toPath(), meta, after = std::move(after)]() mutable {
         static size_t MAX_ATTEMPTS = 10;
 
         // Figure out a free path to install to
@@ -1401,7 +1420,7 @@ void Loader::Impl::installModManuallyFromFile(asp::fs::PathView path, geode::Fun
                 existing->getVersion()
             ),
             "Cancel", "Replace",
-            [doInstallModFromFile = std::move(doInstallModFromFile), path, existing, meta](auto, bool btn2) mutable {
+            [doInstallModFromFile = std::move(doInstallModFromFile), existing, meta](auto, bool btn2) mutable {
                 if (!btn2) return;
 
                 if (auto e = asp::fs::remove(existing->getPackagePath()).err()) {

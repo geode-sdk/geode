@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/loader/Event.hpp>
-#include <Geode/loader/Dispatch.hpp>
+#include <Geode/loader/EventExport.hpp>
 #include <Geode/binding/GJGarageLayer.hpp>
 
 using namespace geode::prelude;

@@ -273,12 +273,12 @@ asp::fs::Path dirs::getSaveDir() {
     return path;
 }
 
-asp::fs::Path dirs::getModRuntimeDir() {
-    return dirs::getGeodeDir() / "unzipped";
-}
-
 asp::fs::Path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
+}
+
+asp::fs::Path dirs::getGeodeInternalDir() {
+    return dirs::getGeodeDir();
 }
 
 void geode::utils::game::exit(bool save) {
