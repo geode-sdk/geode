@@ -12,6 +12,7 @@
  * Improve geode::Scrollbar (#2343)
  * Fix NineSlice with content size 0 on either axis (#2382)
  * Allow event filter args to be specified as a function type (5aa435283)
+ * Improve getMousePos() and add setMousePos() util (#2388)
  * Fix linker warnings for bindings (a18caf66c)
  * Add an optional index parameter to `getChildBySpriteFrameName` (#2265)
  * Migrate Settings UIs to use Geode's custom nodes (#2306)
