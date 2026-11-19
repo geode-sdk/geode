@@ -1024,16 +1024,33 @@ namespace geode::cocos {
     GEODE_DLL std::string cc4bToHexString(cocos2d::ccColor4B const& color);
 
     /**
-     * Gets the mouse position in cocos2d coordinates.
-     * On mobile platforms this will return the top-left corner of the view, so
-     * (0, winSize.height)
+     * Gets the mouse position in cocos2d coordinates. Bottom-left is (0, 0)
+     * and top-right winSize.
+     *
+     * @note Platform specifics:
+     * - Windows / macOS: gets the position of the OS cursor.
+     * - Android: a mouse position exists internally to handle scrolling. Returns
+     *   the coordinate of the most recent scroll, or the last value passed to
+     *   `setMousePos()`.
+     * - iOS: will always return the top-left coordinate (0, winSize.height).
+     *
+     * @see setMousePos(cocos2d::CCPoint const&)
+     *
      * @returns The mouse position
      */
     GEODE_DLL cocos2d::CCPoint getMousePos();
 
     /**
      * Sets the mouse position in cocos2d coordinates. Bottom-left is (0, 0)
-     * and top-right winSize. This function does nothing on mobile platforms.
+     * and top-right winSize.
+     *
+     * @note Platform specifics:
+     * - Windows / macOS: sets the position of the OS cursor.
+     * - Android: sets the mouse position reflected in `getMousePos()`.
+     * - iOS: no effect on this platform.
+     *
+     * @see getMousePos()
+     *
      * @param pos The mouse position in cocos2d coordinates
      */
     GEODE_DLL void setMousePos(cocos2d::CCPoint const& pos);

@@ -46,6 +46,7 @@ public:
     void    swapBuffers();
     void    setIMEKeyboardState(bool bOpen);
 
+    // @note RobTop Addition
     void setMousePosition(float x, float y);
 
     // static function
@@ -55,6 +56,10 @@ public:
     static CCEGLView* sharedOpenGLView();
 
     static GEODE_DLL CCEGLView* get();
+
+public:
+    float m_fMouseX;
+    float m_fMouseY;
 };
 
 NS_CC_END
