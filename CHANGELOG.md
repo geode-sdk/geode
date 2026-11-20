@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v6.0.0-beta.1
+ * Fix opacity being set on `geode::Scrollbar` every frame (d6614a470)
+ * Fix compileShader patch on Windows (b22fecf8f)
+
 ## v6.0.0-alpha.3
  * Make `ZStringView` constexpr and thread safe, add more string_view functions (886595ba5)
  * Add `geode::TextInput` cursor utils (c0ded9bea)
