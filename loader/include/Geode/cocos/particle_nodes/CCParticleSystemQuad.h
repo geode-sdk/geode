@@ -161,8 +161,10 @@ public:
     GLushort m_uParticleIdx;
     // @note Robtop Addition
     GLubyte m_uOpacity;
+#ifdef GEODE_IS_ANDROID
     // @note Robtop Addition
     void* m_pUnk;
+#endif
 
 public:
     /**
