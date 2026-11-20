@@ -561,6 +561,7 @@ bool ModPopup::init(ModSource&& src) {
     m_installStatusLabel = Label::create("", "bigFont.fnt");
     m_installStatusLabel->setOpacity(120);
     m_installStatusLabel->setVisible(false);
+    m_installStatusLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .65f));
     m_installMenu->addChild(m_installStatusLabel);
 
     m_installMenu->setLayout(RowLayout::create()->setAutoScale(false));

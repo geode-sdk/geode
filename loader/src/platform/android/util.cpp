@@ -65,6 +65,13 @@ bool utils::clipboard::write(ZStringView data) {
     return false;
 }
 
+void cocos::setMousePos(cocos2d::CCPoint const& pos) {
+    CCEGLView::get()->setMousePosition(
+        pos.x,
+        CCDirector::get()->getWinSize().height - pos.y
+    );
+}
+
 std::string utils::clipboard::read() {
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "readClipboard", "()Ljava/lang/String;")) {
@@ -77,10 +84,6 @@ std::string utils::clipboard::read() {
         return result;
     }
     return "";
-}
-
-CCPoint cocos::getMousePos() {
-    return CCPoint(0, 0);
 }
 
 namespace {

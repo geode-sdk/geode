@@ -1329,7 +1329,7 @@ void Loader::Impl::installModManuallyFromFile(asp::fs::PathView path, geode::Fun
         )->show();
     }
 
-    auto doInstallModFromFile = [this, path, meta, after = std::move(after)]() mutable {
+    auto doInstallModFromFile = [this, path = path.toPath(), meta, after = std::move(after)]() mutable {
         static size_t MAX_ATTEMPTS = 10;
 
         // Figure out a free path to install to
@@ -1420,7 +1420,7 @@ void Loader::Impl::installModManuallyFromFile(asp::fs::PathView path, geode::Fun
                 existing->getVersion()
             ),
             "Cancel", "Replace",
-            [doInstallModFromFile = std::move(doInstallModFromFile), path, existing, meta](auto, bool btn2) mutable {
+            [doInstallModFromFile = std::move(doInstallModFromFile), existing, meta](auto, bool btn2) mutable {
                 if (!btn2) return;
 
                 if (auto e = asp::fs::remove(existing->getPackagePath()).err()) {

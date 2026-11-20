@@ -521,7 +521,6 @@ bool StringSettingNodeV3::init(std::shared_ptr<StringSettingV3> setting, float w
         );
         m_arrowRightBtn->setScale(0.4f);
         this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, {-5.0f, 0.0f});
-        this->getButtonMenu()->addChildAtPosition(m_arrowRightBtn, Anchor::Right, {-5.0f, 0.0f});
     }
 
     this->updateState(nullptr);

@@ -181,6 +181,25 @@ arc::Future<file::PickResult> file::pick(PickMode mode, FilePickOptions options)
     co_return Ok(std::move(path));
 }
 
+void cocos::setMousePos(cocos2d::CCPoint const& pos) {
+    auto view = CCEGLView::get();
+    auto winSize = CCDirector::get()->getWinSize();
+    HWND hwnd = WindowFromDC(wglGetCurrentDC());
+    RECT rect;
+    if (!GetClientRect(hwnd, &rect)) return;
+
+    auto pt = POINT {
+        static_cast<LONG>(pos.x / winSize.width * (rect.right - rect.left)),
+        static_cast<LONG>((1.f - pos.y / winSize.height) * (rect.bottom - rect.top))
+    };
+
+    if (!ClientToScreen(hwnd, &pt) || !SetCursorPos(pt.x, pt.y)) return;
+
+    auto frame = view->getFrameSize();
+    view->m_fMouseX = pos.x / winSize.width * frame.width;
+    view->m_fMouseY = (1.f - pos.y / winSize.height) * frame.height;
+}
+
 arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
     std::vector<asp::fs::Path> paths;
     bool picked = ARC_CO_UNWRAP(co_await asyncNfdPick(NFDMode::OpenFiles, std::move(options), &paths));
@@ -193,15 +212,6 @@ arc::Future<file::PickManyResult> file::pickMany(FilePickOptions options) {
 
 void utils::web::openLinkUnsafe(ZStringView url) {
     ShellExecuteW(0, 0, utils::string::utf8ToWide(url).c_str(), 0, 0, SW_SHOW);
-}
-
-CCPoint cocos::getMousePos() {
-    auto* director = CCDirector::get();
-    auto* gl = director->getOpenGLView();
-    auto winSize = director->getWinSize();
-    auto frameSize = gl->getFrameSize();
-    auto mouse = gl->getMousePosition() / frameSize;
-    return ccp(mouse.x, 1.f - mouse.y) * winSize;
 }
 
 asp::fs::Path dirs::getGameDir() {
