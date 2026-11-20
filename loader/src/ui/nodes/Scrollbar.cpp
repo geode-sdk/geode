@@ -111,7 +111,7 @@ float Scrollbar::Impl::calcThumbHeightP() {
         }
 
         if (overScroll > 0)
-            percent *= (1.0f / (1.0f + (overScroll / m_target->getScaledContentHeight())));    
+            percent *= (1.0f / (1.0f + (overScroll / m_target->getScaledContentHeight())));
     }
 
     if (m_target->m_contentLayer->getScaledContentHeight() <= m_target->getScaledContentHeight())
@@ -156,10 +156,8 @@ void Scrollbar::Impl::draw() {
 
     if (m_touchDown) {
         m_thumb->setColor(ccc3(m_selectedColor.r, m_selectedColor.g, m_selectedColor.b));
-        m_thumb->setOpacity(m_selectedColor.a);
     } else {
         m_thumb->setColor(ccc3(m_normalColor.r, m_normalColor.g, m_normalColor.b));
-        m_thumb->setOpacity(m_normalColor.a);
     }
 
 
@@ -198,6 +196,7 @@ void Scrollbar::Impl::setStyle(Scrollbar::Style style) {
             m_track->setOpacity(0);
 
             m_thumb = NineSlice::create("cc_2x2_white_image");
+            m_thumb->setOpacity(125);
 
             m_width = 3;
             m_resizeThumb = true;
@@ -261,27 +260,27 @@ void Scrollbar::Impl::setStyle(Scrollbar::Style style) {
 Scrollbar::Scrollbar() : m_impl(std::make_unique<Scrollbar::Impl>(this)) {}
 Scrollbar::~Scrollbar() = default;
 
-bool Scrollbar::ccTouchBegan(CCTouch* touch, CCEvent* event) { 
-    return m_impl->ccTouchBegan(touch, event); 
+bool Scrollbar::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    return m_impl->ccTouchBegan(touch, event);
 }
-void Scrollbar::ccTouchEnded(CCTouch* t, CCEvent* e) { 
-    m_impl->ccTouchEnded(t, e); 
+void Scrollbar::ccTouchEnded(CCTouch* t, CCEvent* e) {
+    m_impl->ccTouchEnded(t, e);
 }
-void Scrollbar::ccTouchCancelled(CCTouch* t, CCEvent* e) { 
-    m_impl->ccTouchCancelled(t, e); 
+void Scrollbar::ccTouchCancelled(CCTouch* t, CCEvent* e) {
+    m_impl->ccTouchCancelled(t, e);
 }
-void Scrollbar::ccTouchMoved(CCTouch* t, CCEvent* e) { 
-    m_impl->ccTouchMoved(t, e); 
+void Scrollbar::ccTouchMoved(CCTouch* t, CCEvent* e) {
+    m_impl->ccTouchMoved(t, e);
 }
 // TODO: 2.209
 bool Scrollbar::scrollWheel(float x, float y) {
     return m_impl->scrollWheel(x, y);
 }
-void Scrollbar::registerWithTouchDispatcher() { 
-    m_impl->registerWithTouchDispatcher(); 
+void Scrollbar::registerWithTouchDispatcher() {
+    m_impl->registerWithTouchDispatcher();
 }
-void Scrollbar::draw() { 
-    m_impl->draw(); 
+void Scrollbar::draw() {
+    m_impl->draw();
 }
 bool Scrollbar::init(CCScrollLayerExt* target, Style style) {
     return m_impl->init(target, style);
@@ -342,6 +341,7 @@ bool Scrollbar::getTouchInThumb() const {
 void Scrollbar::setThumbColors(cocos2d::ccColor4B normal, cocos2d::ccColor4B selected) {
     m_impl->m_normalColor = normal;
     m_impl->m_selectedColor = selected;
+    m_impl->m_thumb->setOpacity(m_impl->m_touchDown ? selected.a : normal.a);
 }
 
 Scrollbar* Scrollbar::create(CCScrollLayerExt* target, Style style) {
