@@ -115,6 +115,8 @@ public:
     size_t availableThreadCount();
 
 public:
+    // @note RobTop Addition
+    void* _threadPool;
     int _timeoutForConnect;
     int _timeoutForRead;
 
