@@ -47,7 +47,7 @@ public:
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCEGLView, CCEGLViewProtocol)
 
     virtual bool isOpenGLReady(void);
-    virtual double getPlatformTimestamp();
+    // virtual double getPlatformTimestamp();
     virtual bool setContentScaleFactor(float contentScaleFactor);
     virtual void end();
     virtual void swapBuffers(void);
