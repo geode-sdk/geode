@@ -64,7 +64,7 @@ protected:
     bool init(ModSource&& src);
 
     void setupTabs();
-    CCNode* createContainer(CCSize const& size);
+    CCNode* createContainer(CCSize const& size, AxisAlignment alignment = AxisAlignment::End);
     RepoPlatform getRepoPlatform(std::string_view url);
     ZStringView getPlatformSprite(std::optional<std::string> const& url);
     void updateState();

@@ -369,6 +369,7 @@ bool ModPopup::init(ModSource&& src) {
     leftColumn->addChild(tagsTitle);
 
     auto tagsContainer = this->createContainer({leftColumn->getContentWidth(), 35.0f});
+    tagsContainer->setID("tags-container");
 
     m_tags = CCNode::create();
     m_tags->ignoreAnchorPointForPosition(false);
@@ -419,10 +420,12 @@ bool ModPopup::init(ModSource&& src) {
 
     leftColumn->addChild(manageContainer);
 
-    auto installContainer = this->createContainer({leftColumn->getContentWidth(), 25.0f});
+    auto installContainer = this->createContainer({leftColumn->getContentWidth(), 25.0f}, AxisAlignment::Between);
+    installContainer->setID("install-container");
     m_installBG = installContainer->getChildByType<NineSlice>(0);
 
     m_installMenu = CCNode::create();
+    m_installMenu->setID("install-menu");
     m_installMenu->ignoreAnchorPointForPosition(false);
     m_installMenu->setContentSize(installContainer->getContentSize() - CCSize{10.0f, 10.0f});
     m_installMenu->setAnchorPoint({0.5f, 0.5f});
@@ -561,7 +564,7 @@ bool ModPopup::init(ModSource&& src) {
     m_installStatusLabel = Label::create("", "bigFont.fnt");
     m_installStatusLabel->setOpacity(120);
     m_installStatusLabel->setVisible(false);
-    m_installStatusLabel->setLayoutOptions(AxisLayoutOptions::create()->setScaleLimits(std::nullopt, .65f));
+    m_installStatusLabel->setLimitLabelWidth(m_installMenu->getContentWidth(), 0.65f);
     m_installMenu->addChild(m_installStatusLabel);
 
     m_installMenu->setLayout(RowLayout::create()->setAutoScale(false));
@@ -571,7 +574,7 @@ bool ModPopup::init(ModSource&& src) {
 
     // Links
 
-    auto linksContainer = this->createContainer({leftColumn->getContentWidth() - 40, 30});
+    auto linksContainer = this->createContainer({leftColumn->getContentWidth() - 40.0f, 30.0f});
 
     auto linksMenu = CCNode::create();
     linksMenu->setID("links-container");
@@ -843,11 +846,11 @@ void ModPopup::setupTabs() {
     m_rightColumn->addChildAtPosition(tabsMenu, Anchor::Top);
 };
 
-CCNode* ModPopup::createContainer(CCSize const& size) {
+CCNode* ModPopup::createContainer(CCSize const& size, AxisAlignment alignment) {
     auto container = CCNode::create();
     container->setContentSize(size);
     container->setAnchorPoint({0.5f, 0.5f});
-    container->setLayoutOptions(AxisLayoutOptions::create()->setCrossAxisAlignment(AxisAlignment::End));
+    container->setLayoutOptions(AxisLayoutOptions::create()->setCrossAxisAlignment(alignment));
 
     auto bg = NineSlice::create("square02b_001.png");
     bg->setColor({0, 0, 0});
