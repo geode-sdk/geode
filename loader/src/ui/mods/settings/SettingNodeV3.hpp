@@ -83,6 +83,18 @@ public:
     static BoolSettingNodeV3* create(std::shared_ptr<BoolSettingV3> setting, float width);
 };
 
+namespace {
+    template <typename T>
+    bool isAlmostEqual(T x, float y) {
+        if (x == y) {
+            return true;
+        }
+
+        // text input shows at most 3 digits of precision
+        return std::fabs(x - y) < 0.0001;
+    }
+}
+
 template <class S>
 class NumberSettingNodeV3 : public SettingValueNodeV3<S> {
 protected:
@@ -186,7 +198,7 @@ protected:
             m_slider = SliderNode::create([this](auto, float v) {
                 ValueType value = v;
 
-                if (value != this->getValue()) {
+                if (!isAlmostEqual(value, this->getValue())) {
                     this->setValue(value, m_slider);
                 }
             });
