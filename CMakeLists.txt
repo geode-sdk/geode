@@ -256,6 +256,12 @@ if (WIN32)
 		add_compile_options(--target=x86_64-pc-windows-msvc)
 		add_link_options(--target=x86_64-pc-windows-msvc)
 	endif()
+
+	# When building debug/rwdi, lld defaults to 0 code elimination, preserving all functions in the binary
+	# This is very rarely wanted, so force /OPT:REF to eliminate unused functions
+	if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		target_link_options(${PROJECT_NAME} INTERFACE "-Wl,/OPT:REF")
+	endif()
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
