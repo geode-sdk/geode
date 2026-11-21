@@ -1,16 +1,16 @@
 #pragma once
 
+#include <Geode/ui/Popup.hpp>
+#include <Geode/ui/Toggler.hpp>
 #include "../../GeodeStyle.hpp"
 #include "../sources/ModListSource.hpp"
-
-#include <Geode/ui/Popup.hpp>
 
 using namespace geode::prelude;
 
 class SortPopup : public geode::GeodePopup {
 protected:
     ModListSource* m_source;
-    std::vector<CCMenuItemToggler*> m_options;
+    std::vector<Toggler*> m_options;
     size_t m_selected;
 
     bool init(ModListSource* src);
