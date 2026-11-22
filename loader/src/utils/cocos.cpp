@@ -456,8 +456,13 @@ std::string_view geode::cocos::getObjectName(cocos2d::CCObject const* obj) {
 
     std::string ret;
 
+    // typeid().name() returns invalid itanium symbols, e.g. `9PlayLayer`
+    // convert to a valid symbol accepted by libc++ demangler by prepending _Z
+    std::string mangled = "_Z";
+    mangled += typeid(*obj).name();
+
     int status = 0;
-    auto demangle = abi::__cxa_demangle(typeid(*obj).name(), 0, 0, &status);
+    auto demangle = abi::__cxa_demangle(mangled.c_str(), 0, 0, &status);
     if (status == 0) {
         ret = demangle;
     }
