@@ -7,7 +7,7 @@
  * Add unhookable error for bindings (#2398)
  * Fix `MDTextArea::setContentSize` (b6f0b2157)
  * Fix TextInput caption label not being scaled by default (38145adc8)
- * Make float equality fuzzy in settings (bd350a19c)
+ * Fix some float settings always being marked as modified (bd350a19c)
 
 ## v6.0.0-beta.1
  * Fix opacity being set on `geode::Scrollbar` every frame (d6614a470)
