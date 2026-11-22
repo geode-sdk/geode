@@ -1905,6 +1905,7 @@ void TextInput::setLabel(std::string label) {
     caption->setID("caption-label");
     caption->setAnchorPoint({0.f, 0.f});
     caption->setPosition({0.f, this->getContentHeight() + 2.f});
+    caption->setScale(m_impl->m_fontScale);
     this->addChild(caption);
     m_impl->m_captionLabel = caption;
 }

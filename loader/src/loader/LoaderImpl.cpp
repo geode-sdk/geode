@@ -331,7 +331,7 @@ Result<> Loader::Impl::queueMods(std::vector<ModMetadata>& modQueue) {
             if (!entry.isFile() || entry.path.extension() != GEODE_MOD_EXTENSION)
                 continue;
 
-            log::debug("Found {}", entry.path.filename());
+            log::debug("Found {}", *entry.path.filename());
             log::NestScope nest;
 
             auto modMetadata = ModMetadata::createFromGeodeFile(entry.path);

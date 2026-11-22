@@ -885,6 +885,7 @@ public:
     Ref<ScrollLayer> m_scrollLayer;
     Ref<NineSlice> m_background;
     std::vector<LinkRegion> m_links;
+    bool m_updating = false;
 
     struct ActivePress {
         std::vector<std::pair<uint32_t, ccColor4B>> saved;
@@ -932,6 +933,7 @@ void MDTextArea::updateLabel() {
         return;
     }
 
+    m_impl->m_updating = true;
     CCNode* container = this;
     float fullWidth = this->getContentWidth();
     float contentWidth = fullWidth;
@@ -958,6 +960,8 @@ void MDTextArea::updateLabel() {
     if (m_impl->m_scrollLayer) {
         m_impl->m_scrollLayer->moveToTop();
     }
+
+    m_impl->m_updating = false;
 }
 
 void MDTextArea::setText(std::string text) {
@@ -1096,12 +1100,39 @@ void MDTextArea::registerWithTouchDispatcher() {
     );
 }
 
+void MDTextArea::setContentSize(CCSize const& contentSize) {
+    auto originalSize = this->getContentSize();
+    CCLayer::setContentSize(contentSize);
+
+    if (m_impl->m_scrollLayer) {
+        m_impl->m_scrollLayer->setContentSize(contentSize);
+    }
+
+    if (m_impl->m_background) {
+        m_impl->m_background->setContentSize(contentSize);
+    }
+
+    if (!m_impl->m_updating) {
+        if (originalSize.width != contentSize.width) {
+            this->updateLabel();
+        }
+
+        if (originalSize.height != contentSize.height && m_impl->m_scrollLayer) {
+            auto contentLayer = m_impl->m_scrollLayer->m_contentLayer;
+            contentLayer->setPositionY(contentLayer->getPositionY() - (originalSize.height - contentSize.height));
+        }
+    }
+}
+
 bool MDTextArea::init(std::string str, float maxWidth, MDConfig config) {
     if (!CCLayer::init()) return false;
 
     this->ignoreAnchorPointForPosition(false);
     this->setAnchorPoint({ .5f, .5f });
+
+    m_impl->m_updating = true;
     this->setContentSize({maxWidth, 0});
+    m_impl->m_updating = false;
 
     m_impl->m_text = std::move(str);
     m_impl->m_config = std::move(config);
@@ -1117,7 +1148,10 @@ bool MDTextArea::initClipped(std::string str, CCSize size, MDConfig config) {
 
     this->ignoreAnchorPointForPosition(false);
     this->setAnchorPoint({ .5f, .5f });
+
+    m_impl->m_updating = true;
     this->setContentSize(size);
+    m_impl->m_updating = false;
 
     m_impl->m_text = std::move(str);
     m_impl->m_config = std::move(config);

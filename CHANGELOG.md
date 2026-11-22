@@ -1,5 +1,15 @@
 # Geode Changelog
 
+## v6.0.0-beta.2
+ * Fix Android not having 2.2091 in getGameVersion (8fc965063)
+ * Fix wine startup crash (6d62f4fd9)
+ * Fix Event listener race condition (#2403)
+ * Add linker flag to eliminate dead code on windows (233ecb2f3)
+ * Add unhookable error for bindings (#2398)
+ * Fix `MDTextArea::setContentSize` (b6f0b2157)
+ * Fix TextInput caption label not being scaled by default (38145adc8)
+ * Fix some float settings always being marked as modified (bd350a19c)
+
 ## v6.0.0-beta.1
  * Fix opacity being set on `geode::Scrollbar` every frame (d6614a470)
  * Fix compileShader patch on Windows (b22fecf8f)
