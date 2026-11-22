@@ -3,6 +3,7 @@
 ## v6.0.0-beta.2
  * Fix Android not having 2.2091 in getGameVersion (8fc965063)
  * Fix wine startup crash (6d62f4fd9)
+ * Fix Event listener race condition (#2403)
  * Add linker flag to eliminate dead code on windows (233ecb2f3)
  * Add unhookable error for bindings (#2398)
  * Fix `MDTextArea::setContentSize` (b6f0b2157)
