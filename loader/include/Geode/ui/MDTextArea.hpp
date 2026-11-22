@@ -161,7 +161,6 @@ namespace geode {
         void activateLink(utils::md::LinkKind kind, std::string href);
 
     public:
-
         /// Create a Markdown text area without scroll container.
         /// @param str String to render
         /// @param maxWidth Width of the textarea
@@ -202,5 +201,7 @@ namespace geode {
         void ccTouchCancelled(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
 
         void registerWithTouchDispatcher() override;
+
+        void setContentSize(cocos2d::CCSize const& contentSize) override;
     };
 }
