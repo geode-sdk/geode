@@ -25,11 +25,11 @@ using namespace geode::prelude;
 
 class $modify(MenuLayer) {
 	void onNews(CCObject*) {
-		FLAlertLayer::create(
+		geode::createQuickPopup(
 			"Geode",
 			"Hello World from my Custom Mod!",
 			"OK"
-		)->show();
+		);
 	}
 };
 ```
