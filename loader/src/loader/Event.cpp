@@ -161,7 +161,7 @@ bool OpaquePort::send(OpaqueCallable::SendFunction opaqueFunction) {
 class EventCenterGlobal::Impl {
 public:
     using KeyType = std::shared_ptr<BaseFilter>;
-    using ValueType = std::unique_ptr<OpaquePort>;
+    using ValueType = std::shared_ptr<OpaquePort>;
     using MapType = std::unordered_map<KeyType, ValueType, BaseFilterHash, BaseFilterEqual>;
 
     std::recursive_mutex m_mutex;
@@ -189,7 +189,7 @@ bool EventCenterGlobal::Impl::send(BaseFilter const* filter, OpaqueCallable::Sen
     auto const end = m_ports.end();
 
     if (it != end) {
-        auto* opaquePort = it->second.get();
+        auto opaquePort = it->second;
         lock.unlock();
         return opaquePort->send(std::move(sendFunction));
     }
@@ -203,7 +203,7 @@ ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, Op
     auto const end = m_ports.end();
 
     if (it != end) {
-        auto* opaquePort = it->second.get();
+        auto opaquePort = it->second;
         auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority);
 
         return ListenerHandle(it->first, receiverHandle, nullptr);
@@ -214,7 +214,7 @@ ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, Op
         // auto filter2 = clonedFilter.get();
         // geode::console::log(fmt::format("Cloned filter for adding receiver {}, {}", (void*)filter2, cast::getRuntimeTypeName(filter2)), Severity::Debug);
 
-        auto opaquePort = std::make_unique<OpaquePort>();
+        auto opaquePort = std::make_shared<OpaquePort>();
 
         auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority);
         auto listenerHandle = ListenerHandle(clonedFilter, receiverHandle, nullptr);
@@ -229,7 +229,7 @@ size_t EventCenterGlobal::Impl::getReceiverCount(BaseFilter const* filter) noexc
     auto const end = m_ports.end();
 
     if (it != end) {
-        auto* opaquePort = it->second.get();
+        auto opaquePort = it->second;
 
         lock.unlock();
         return opaquePort->getReceiverCount();
@@ -244,7 +244,7 @@ size_t EventCenterGlobal::Impl::removeReceiver(BaseFilter const* filter, Receive
     auto const end = m_ports.end();
 
     if (it != end) {
-        auto* opaquePort = it->second.get();
+        auto opaquePort = it->second;
 
         auto size = opaquePort->removeReceiver(handle);
         if (size == 0) {
