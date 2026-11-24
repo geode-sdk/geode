@@ -1,5 +1,10 @@
 # Geode Changelog
 
+## v6.0.0-beta.3
+ * Fix Event use after free (ef0ae012b)
+ * Fix C++ demangler for Android (e134b1547)
+ * Update Windows MessageBox fix (4370ab69b)
+
 ## v6.0.0-beta.2
  * Fix Android not having 2.2091 in getGameVersion (8fc965063)
  * Fix wine startup crash (6d62f4fd9)
