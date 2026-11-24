@@ -1,5 +1,9 @@
 # Geode Changelog
 
+## v6.0.0
+ * Add support for const functions for event export macro (b9cf709ef)
+ * Fix intel macOS crash
+
 ## v6.0.0-beta.3
  * Fix Event use after free (ef0ae012b)
  * Fix C++ demangler for Android (e134b1547)

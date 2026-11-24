@@ -217,6 +217,10 @@ int api::Test::asStatic(int a, int b) {
     return a + b;
 }
 
+int api::Test::constQualified(int a) const {
+    return a + 1;
+}
+
 int api::randomNumber() {
     // chosen by fair dice roll.
     // guaranteed to be random.

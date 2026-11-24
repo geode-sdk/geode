@@ -42,43 +42,48 @@ Result<int> api::addNumbers(int a, int b) {
 #undef GEODE_EVENT_EXPORT_ID
 #undef GEODE_EVENT_EXPORT_MEMBER
 #undef GEODE_EVENT_EXPORT_MEMBER_ID
+#undef GEODE_EVENT_EXPORT_MEMBER_QUALS
+#undef GEODE_EVENT_EXPORT_MEMBER_QUALS_ID
 #undef GEODE_EVENT_EXPORT_MEMBER_STATIC
 #undef GEODE_EVENT_EXPORT_MEMBER_STATIC_ID
 
 #ifndef GEODE_DEFINE_EVENT_EXPORTS
-    #define GEODE_EVENT_EXPORT(ret, name, params, args) \
-        GEODE_EVENT_EXPORT_CALL(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
-
     #define GEODE_EVENT_EXPORT_ID(ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_CALL(ret, name, params, args, (eventID))
-
-    #define GEODE_EVENT_EXPORT_MEMBER(Class, ret, name, params, args) \
-        GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
 
     #define GEODE_EVENT_EXPORT_MEMBER_ID(Class, ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, (eventID))
 
-    #define GEODE_EVENT_EXPORT_MEMBER_STATIC(ret, name, params, args) \
-        GEODE_EVENT_EXPORT_CALL_MEMBER_STATIC(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
+    #define GEODE_EVENT_EXPORT_MEMBER_QUALS_ID(Class, ret, name, params, quals, args, eventID) \
+        GEODE_EVENT_EXPORT_CALL_MEMBER_QUALS(Class, ret, name, params, quals, args, (eventID))
 
     #define GEODE_EVENT_EXPORT_MEMBER_STATIC_ID(ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_CALL_MEMBER_STATIC(ret, name, params, args, (eventID))
 #else
-    #define GEODE_EVENT_EXPORT(ret, name, params, args) \
-        GEODE_EVENT_EXPORT_DEFINE(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
-
     #define GEODE_EVENT_EXPORT_ID(ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_DEFINE(ret, name, params, args, (eventID))
-
-    #define GEODE_EVENT_EXPORT_MEMBER(Class, ret, name, params, args) \
-        GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
 
     #define GEODE_EVENT_EXPORT_MEMBER_ID(Class, ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, (eventID))
 
-    #define GEODE_EVENT_EXPORT_MEMBER_STATIC(ret, name, params, args) \
-        GEODE_EVENT_EXPORT_DEFINE_MEMBER_STATIC(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
+    #define GEODE_EVENT_EXPORT_MEMBER_QUALS_ID(Class, ret, name, params, quals, args, eventID) \
+        GEODE_EVENT_EXPORT_DEFINE_MEMBER_QUALS(Class, ret, name, params, quals, args, (eventID))
 
     #define GEODE_EVENT_EXPORT_MEMBER_STATIC_ID(ret, name, params, args, eventID) \
         GEODE_EVENT_EXPORT_DEFINE_MEMBER_STATIC(ret, name, params, args, (eventID))
 #endif
+
+#define GEODE_EVENT_EXPORT(ret, name, params, args) \
+    GEODE_EVENT_EXPORT_ID(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
+
+#define GEODE_EVENT_EXPORT_MEMBER(Class, ret, name, params, args) \
+    GEODE_EVENT_EXPORT_MEMBER_ID(Class, ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
+
+#define GEODE_EVENT_EXPORT_MEMBER_QUALS(Class, ret, name, params, quals, args) \
+    GEODE_EVENT_EXPORT_MEMBER_QUALS_ID(Class, ret, name, params, quals, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
+
+#define GEODE_EVENT_EXPORT_MEMBER_CONST(Class, ret, name, params, args) \
+    GEODE_EVENT_EXPORT_MEMBER_QUALS(Class, ret, name, params, const, args)
+
+#define GEODE_EVENT_EXPORT_MEMBER_STATIC(ret, name, params, args) \
+    GEODE_EVENT_EXPORT_MEMBER_STATIC_ID(ret, name, params, args, GEODE_EVENT_EXPORT_ID_FOR(#name, #args))
