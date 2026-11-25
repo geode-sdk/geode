@@ -15,10 +15,10 @@ enum class ModListDisplay {
 
 class ModListItem : public CCNode {
 protected:
-    ModListDisplay m_display = ModListDisplay::SmallList;
-    float m_targetWidth = 300;
     NineSlice* m_bg;
-    CCMenu* m_viewMenu;
+    ModListDisplay m_display = ModListDisplay::SmallList;
+    float m_targetWidth = 300.0f;
+    CCNode* m_viewMenu;
 
     bool init();
 
