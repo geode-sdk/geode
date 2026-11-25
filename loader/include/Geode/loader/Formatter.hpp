@@ -172,14 +172,14 @@ namespace geode::format {
     };
 
     template <class Type>
-    struct LogFormatEvent : public ThreadSafeEvent<LogFormatEventMarker, bool(std::string& output, cocos2d::CCObject* obj, std::string_view specifier)> {
-        using ThreadSafeEvent::ThreadSafeEvent;
+    struct LogFormatEvent : public Event<LogFormatEventMarker, bool(std::string& output, cocos2d::CCObject* obj, std::string_view specifier)> {
+        using Event::Event;
 
         template<class Callable>
         ListenerHandle listen(cocos2d::CCObject* priorityFinder, Callable listener, int priority = 0) const noexcept {
             auto comparableDepth = cast::getComparableDepth(priorityFinder);
 
-            return ThreadSafeEvent::listen([listener = std::move(listener)](std::string& output, cocos2d::CCObject* obj, std::string_view specifier) {
+            return Event::listen([listener = std::move(listener)](std::string& output, cocos2d::CCObject* obj, std::string_view specifier) {
                 if (auto casted = geode::cast::typeinfo_cast<Type*>(obj)) {
                     if constexpr (std::is_invocable_r_v<bool, Callable, std::string&, Type*, std::string_view>) {
                         return std::invoke(listener, output, casted, specifier);
@@ -200,7 +200,7 @@ namespace geode::format {
 
         template<class Callable>
         ListenerHandle listen(Callable listener) const noexcept {
-            return ThreadSafeEvent::listen([listener = std::move(listener)](std::string& output, cocos2d::CCObject* obj, std::string_view specifier) {
+            return Event::listen([listener = std::move(listener)](std::string& output, cocos2d::CCObject* obj, std::string_view specifier) {
                 if (auto casted = geode::cast::typeinfo_cast<Type*>(obj)) {
                     if constexpr (std::is_invocable_r_v<bool, Callable, std::string&, Type*, std::string_view>) {
                         return std::invoke(listener, output, casted, specifier);

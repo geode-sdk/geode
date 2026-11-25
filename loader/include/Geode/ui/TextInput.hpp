@@ -68,11 +68,11 @@ namespace geode {
             Scale, // Overflow is scaled down to fit
         };
 
-        struct FocusEvent : GlobalEvent<FocusEvent, bool(TextInput* sender, FocusState), bool(), TextInput*, FocusState> {
+        struct FocusEvent : GlobalEvent<FocusEvent, bool(), void(TextInput* sender, FocusState state)> {
             using GlobalEvent::GlobalEvent;
         };
 
-        struct TextChangedEvent : GlobalEvent<TextChangedEvent, bool(TextInput* sender, std::string const& value), bool(std::string const& value), TextInput*> {
+        struct TextChangedEvent : GlobalEvent<TextChangedEvent, bool(std::string const& value), void(TextInput* sender)> {
             using GlobalEvent::GlobalEvent;
         };
 
@@ -187,6 +187,12 @@ namespace geode {
         /// Set a callback function that is called when text input is focused or unfocused.
         void setFocusCallback(Function<void(FocusState state)> onFocusChange);
 
+        /// Set a callback function that is called when text input may be covered by floating keyboard and get the offset.
+        void setKeyboardOffsetCallback(Function<void(float offset)> onKeyboardOffset);
+
+        /// Set a callback function that is called when the floating keyboard is hidden.
+        void setKeyboardHideCallback(Function<void()> onKeyboardHide);
+
         template <class Callback>
         void addTextChangedCallback(ZStringView id, Callback&& callback, int priority = 0) {
             this->addEventListener(id, TextChangedEvent(this), std::forward<Callback>(callback), priority);
@@ -209,6 +215,18 @@ namespace geode {
 
         /// Get the current value of the input
         std::string const& getString() const;
+
+        /// Set the cursor position to index. Negative values are relative to the end of the string.
+        void setCursorPos(int pos);
+
+        /// Get current cursor position
+        int getCursorPos() const;
+
+        /// Get the selected text substring. Empty if no selection.
+        std::string_view getSelectedText() const;
+
+        /// Set the selection range. Negative values are relative to the end of the string.
+        void setSelection(int start, int end);
 
         /// Focus this input (activate the cursor)
         void focus();
@@ -234,10 +252,16 @@ namespace geode {
         void deleteForward() override;
         char const* getContentText() override;
 
+        void keyboardWillHide(cocos2d::CCIMEKeyboardNotificationInfo& info) override;
+        void keyboardWillShow(cocos2d::CCIMEKeyboardNotificationInfo& info) override;
+
         bool initWithWidth(float width, std::string placeholder, ZStringView font);
         bool initWithSize(cocos2d::CCSize const& size, std::string placeholder, ZStringView font, bool multiline);
 
     private:
+        void applyKeyboardOffset(cocos2d::CCRect keyboardRect);
+        void returnKeyboardOffset();
+
         struct Impl;
         std::unique_ptr<Impl> m_impl;
     };

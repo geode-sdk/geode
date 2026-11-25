@@ -12,9 +12,9 @@
 
 namespace geode {
     template <class... Args>
-    class Dispatch : public ThreadSafeEvent<Dispatch<Args...>, bool(Args...), std::string> {
+    class Dispatch : public Event<Dispatch<Args...>, bool(Args...), std::string> {
     public:
-        using ThreadSafeEvent<Dispatch<Args...>, bool(Args...), std::string>::ThreadSafeEvent;
+        using Event<Dispatch<Args...>, bool(Args...), std::string>::Event;
     };
 
     template<class... Args>
@@ -57,16 +57,49 @@ namespace geode::geode_internal {
         }
     }
 
-    template <class Class, class Fn>
-    struct MemFnPtr;
+    template <typename Dst, bool Const, bool Volatile>
+    struct ApplyCv {
+        using type = Dst;
+    };
 
-    template <class Class, class R, class... Args>
-    struct MemFnPtr<Class, R (*)(Args...)> {
-        using type = R (Class::*)(Args...);
+    template <typename Dst>
+    struct ApplyCv<Dst, true, false> {
+        using type = const Dst;
+    };
+    template <typename Dst>
+    struct ApplyCv<Dst, false, true> {
+        using type = volatile Dst;
+    };
+    template <typename Dst>
+    struct ApplyCv<Dst, true, true> {
+        using type = const volatile Dst;
+    };
+
+    // Function specializations
+    template <typename R, typename... Args>
+    struct ApplyCv<R(Args...), true, false> {
+        using type = R(Args...) const;
+    };
+    template <typename R, typename... Args>
+    struct ApplyCv<R(Args...), false, true> {
+        using type = R(Args...) volatile;
+    };
+    template <typename R, typename... Args>
+    struct ApplyCv<R(Args...), true, true> {
+        using type = R(Args...) const volatile;
+    };
+
+    template <typename Dst, bool Const, bool Volatile>
+    using ApplyCvT = typename ApplyCv<Dst, Const, Volatile>::type;
+
+    /// Takes a potentially cv-qualified function and a class to create a memfn pointer
+    template <class Class, class Fn>
+    struct AddClass {
+        using type = Fn Class::*;
     };
 
     template <class Class, class Fn>
-    using MemFnPtrT = typename MemFnPtr<Class, Fn>::type;
+    using AddClassT = typename AddClass<std::remove_cvref_t<Class>, Fn>::type;
 }
 
 // Workaround for exported member functions on Windows, note that this only supports clang and there is no MSVC equivalent
@@ -88,8 +121,14 @@ namespace geode::geode_internal {
         return &uniq_name; \
     }())
 
-#define GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, uniq_name) \
-    ::geode::geode_internal::MemFnPtrT<Class, GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, uniq_name)>
+#define GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, quals, uniq_name) \
+    ::geode::geode_internal::AddClassT<Class, \
+        ::geode::geode_internal::ApplyCvT< \
+            std::remove_pointer_t<GEODE_EVENT_EXPORT_GET_FNTYPE(ret, params, uniq_name)>, \
+            std::is_const_v<int quals>, \
+            std::is_volatile_v<int quals> \
+        > \
+    >
 
 #define GEODE_EVENT_EXPORT_UNIQ_NAME(sfx) \
     GEODE_CONCAT(GEODE_CONCAT(GEODE_CONCAT(_priv_call_fn_type, sfx), __COUNTER__), __LINE__)
@@ -102,13 +141,16 @@ namespace geode::geode_internal {
         return storage args;                                                                            \
     }
 
-#define GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, eventID)                                \
-    GEODE_INTERNAL_LINKAGE inline ret (name) params {                                                          \
-        using FnType = GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, GEODE_EVENT_EXPORT_UNIQ_NAME(name)); \
+#define GEODE_EVENT_EXPORT_CALL_MEMBER_QUALS(Class, ret, name, params, quals, args, eventID)                                \
+    GEODE_INTERNAL_LINKAGE inline ret (name) params quals {                                                          \
+        using FnType = GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, quals, GEODE_EVENT_EXPORT_UNIQ_NAME(name)); \
         static auto storage = geode::geode_internal::callEventExportListener<FnType>(eventID);                  \
         if (!storage) return geode::geode_internal::getValueOnFailed<ret>();                                   \
         return storage args;                                                                                   \
     }
+
+#define GEODE_EVENT_EXPORT_CALL_MEMBER(Class, ret, name, params, args, eventID) \
+    GEODE_EVENT_EXPORT_CALL_MEMBER_QUALS(Class, ret, name, params, , args, eventID)
 
 #define GEODE_EVENT_EXPORT_DEFINE(ret, name, params, args, eventID)                                \
     ret name params;                                                                               \
@@ -118,12 +160,15 @@ namespace geode::geode_internal {
         eventID                                                                                    \
     );
 
-#define GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, eventID)                               \
-    ret name params;                                                                                            \
+#define GEODE_EVENT_EXPORT_DEFINE_MEMBER_QUALS(Class, ret, name, params, quals, args, eventID)                               \
+    ret name params quals;                                                                                  \
     static inline bool GEODE_EVENT_EXPORT_UNIQ_NAME(_geode_event_export_reg_)                         \
     = geode::geode_internal::getEventExportListener(static_cast<                                                \
-        GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, GEODE_EVENT_EXPORT_UNIQ_NAME(name)) \
+        GEODE_EVENT_EXPORT_GET_MEMBERFNTYPE(Class, ret, params, quals, GEODE_EVENT_EXPORT_UNIQ_NAME(name)) \
     >(&Class::name), eventID);
+
+#define GEODE_EVENT_EXPORT_DEFINE_MEMBER(Class, ret, name, params, args, eventID) \
+    GEODE_EVENT_EXPORT_DEFINE_MEMBER_QUALS(Class, ret, name, params, , args, eventID)
 
 #define GEODE_EVENT_EXPORT_DEFINE_MEMBER_STATIC(ret, name, params, args, eventID) \
     static ret name params;                                                                             \

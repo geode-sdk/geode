@@ -178,6 +178,8 @@ public:
     // @note RobTop Addition
     bool m_idk;
     // @note RobTop Addition
+    CCPoint m_tOriginPosition;
+    // @note RobTop Addition
     CC_SYNTHESIZE_NV(float, m_fMaxSeg, M_fMaxSeg);
     // @note RobTop Addition
     CC_SYNTHESIZE_NV(bool, m_bDontOpacityFade, DontOpacityFade);

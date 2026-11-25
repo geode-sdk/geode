@@ -105,7 +105,7 @@ namespace geode {
      *
      * If an event is stopped by a listener, the corresponding event within Cocos will not be triggered.
      */
-    class AndroidRichInputEvent final : public Event<AndroidRichInputEvent, bool(int64_t, int, int, AndroidRichInput)> {
+    class AndroidRichInputEvent final : public Event<AndroidRichInputEvent, bool(int64_t timestamp, int deviceID, int eventSource, AndroidRichInput data)> {
     public:
         // listener params timestamp, deviceID, eventSource, data
         using Event::Event;
@@ -116,7 +116,7 @@ namespace geode {
     };
 
     /** Event that represents some change in input devices, namely removal/addition. */
-    class AndroidInputDeviceEvent final : public Event<AndroidInputDeviceEvent, bool(int, AndroidInputDeviceStatus)> {
+    class AndroidInputDeviceEvent final : public Event<AndroidInputDeviceEvent, bool(int deviceID, AndroidInputDeviceStatus status)> {
     public:
         // listener params deviceID, status
         using Event::Event;

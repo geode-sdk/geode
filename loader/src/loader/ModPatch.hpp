@@ -11,13 +11,13 @@ public:
     bool m_autoEnable = true;
 
     [[nodiscard]] Mod* getOwner() const;
-    Result<> setOwner(Mod* mod);
+    Result<void, HookError> setOwner(Mod* mod);
 
     [[nodiscard]] bool isEnabled() const;
-    virtual Result<> enable() = 0;
-    virtual Result<> disable() = 0;
-    virtual Result<> toggle() = 0;
-    virtual Result<> toggle(bool enable) = 0;
+    virtual Result<void, HookError> enable() = 0;
+    virtual Result<void, HookError> disable() = 0;
+    virtual Result<void, HookError> toggle() = 0;
+    virtual Result<void, HookError> toggle(bool enable) = 0;
 
     [[nodiscard]] bool getAutoEnable() const;
     void setAutoEnable(bool autoEnable);

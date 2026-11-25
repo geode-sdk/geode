@@ -39,7 +39,7 @@ THE SOFTWARE.
         "When iterating over the children of a node, `for (CCNode* node : node->getChildrenExt())` or"\
         " `for (CCNode* node : node->getChildrenExt<NodeType*>())` can also be used\n" \
     );
-    
+
 #define CCARRAY_FOREACH_REVERSE(...) \
     static_assert(false, "Please use CCArrayExt with a range-based loop instead, this macro has been removed in Geode v5");
 
@@ -74,7 +74,14 @@ public:
     /**
      * @lua NA
      */
-    ~CCArray();
+    ~CCArray() {
+        if (!data) return;
+        while (data->num > 0) {
+            (data->arr[--data->num])->release();
+        }
+        free((void*)data->arr);
+        free(data);
+    }
 
     /** Create an array */
     static CCArray* create();
@@ -249,11 +256,15 @@ public:
     /**
      *  @lua NA
      */
-    CCArray();
+    CCArray() : data(nullptr) {
+        init();
+    }
     /**
      *  @lua NA
      */
-    CCArray(unsigned int capacity);
+    CCArray(unsigned int capacity) : data(nullptr) {
+        initWithCapacity(capacity);
+    }
 };
 
 // end of data_structure group

@@ -11,9 +11,10 @@ namespace geode {
     class BasicZStringView {
     public:
         using value_type = C;
+        static constexpr size_t npos = std::basic_string_view<C>::npos;
 
-        BasicZStringView() : BasicZStringView(nullptr) {}
-        BasicZStringView(C const* str) {
+        constexpr BasicZStringView() : BasicZStringView(nullptr) {}
+        constexpr BasicZStringView(C const* str) {
             if (str) {
                 m_str = str;
             } else {
@@ -30,82 +31,168 @@ namespace geode {
                 }
             }
         }
-        BasicZStringView(std::basic_string<C> const& str) : m_str(str.c_str()), m_length(str.size()) {}
 
-        BasicZStringView(BasicZStringView const& other) = default;
-        BasicZStringView& operator=(BasicZStringView const& other) = default;
+        constexpr BasicZStringView(std::basic_string<C> const& str) : m_str(str.c_str()) {}
 
-        explicit operator C const*() const {
+        constexpr BasicZStringView(BasicZStringView const& other) = default;
+        constexpr BasicZStringView& operator=(BasicZStringView const& other) = default;
+
+        constexpr explicit operator C const*() const {
             return m_str;
         }
 
-        operator std::basic_string_view<C>() const {
+        constexpr operator std::basic_string_view<C>() const {
             return this->view();
         }
 
-        operator std::basic_string<C>() const {
-            return std::basic_string<C>(m_str, _size());
+        constexpr operator std::basic_string<C>() const {
+            return std::basic_string<C>(m_str, this->size());
         }
 
         operator asp::fs::Path() const {
             return asp::fs::Path(this->view());
         }
 
-        C const* c_str() const {
+        constexpr C const* c_str() const {
             return m_str;
         }
 
-        C const* data() const {
+        constexpr C const* data() const {
             return m_str;
         }
 
-        std::basic_string_view<C> view() const {
-            return std::basic_string_view<C>(m_str, _size());
+        constexpr std::basic_string_view<C> view() const {
+            return std::basic_string_view<C>(m_str, this->size());
         }
 
-        size_t size() const {
-            return _size();
+        constexpr size_t size() const {
+            return std::char_traits<C>::length(m_str);
         }
 
-        size_t length() const {
-            return _size();
+        constexpr size_t length() const {
+            return size();
         }
 
-        bool empty() const {
+        constexpr bool empty() const {
             return m_str[0] == C(0);
         }
 
-        auto begin() const {
+        constexpr auto begin() const {
             return m_str;
         }
 
-        auto end() const {
-            return m_str + _size();
+        constexpr auto end() const {
+            return m_str + this->size();
         }
 
-        auto operator<=>(BasicZStringView const& other) const {
+        constexpr auto operator<=>(BasicZStringView const& other) const {
             return std::basic_string_view<C>(*this) <=> std::basic_string_view<C>(other);
         }
 
-        bool operator==(BasicZStringView const& other) const {
+        constexpr bool operator==(BasicZStringView const& other) const {
             return std::basic_string_view<C>(*this) == std::basic_string_view<C>(other);
         }
 
-        bool operator==(C const* other) const {
+        constexpr bool operator==(C const* other) const {
             return std::basic_string_view<C>(*this) == std::basic_string_view<C>(other);
+        }
+
+        // Methods from string_view
+        // Note that we simply forward those to std::basic_string_view<C>, so it's a little inefficient,
+        // as every call is an additional strlen(). But this is fine for most cases, users who care can call .view() beforehand.
+
+        // Returns a reference to the character at the given position. Undefined behavior if pos >= size().
+        constexpr C const& operator[](size_t pos) const {
+            return m_str[pos];
+        }
+
+        // Returns a reference to the character at the given position. Throws std::out_of_range if pos >= size().
+        constexpr C const& at(size_t pos) const {
+            return this->view().at(pos);
+        }
+
+        // Returns a reference to the first character. Undefined behavior if empty().
+        constexpr C const& front() const {
+            return m_str[0];
+        }
+
+        // Returns a reference to the last character. Undefined behavior if empty().
+        constexpr C const& back() const {
+            return this->view().back();
+        }
+
+        // Returns a substring, note that this can only return `string_view` and not ZStringView due to lack of null termination
+        constexpr std::basic_string_view<C> substr(size_t pos = 0, size_t count = std::basic_string_view<C>::npos) const {
+            return this->view().substr(pos, count);
+        }
+
+        // Returns whether the string starts with the given prefix
+        constexpr bool starts_with(std::basic_string_view<C> pfx) const {
+            return this->view().starts_with(pfx);
+        }
+
+        // Returns whether the string ends with the given suffix
+        constexpr bool ends_with(std::basic_string_view<C> sfx) const {
+            return this->view().ends_with(sfx);
+        }
+
+        // Returns whether the string contains the given substring
+        constexpr bool contains(std::basic_string_view<C> str) const {
+            return this->view().contains(str);
+        }
+
+        // Returns the index of the first occurrence of the given substring, or npos if not found
+        constexpr size_t find(std::basic_string_view<C> str, size_t pos = 0) const {
+            return this->view().find(str, pos);
+        }
+
+        // Returns the index of the first occurrence of the given character, or npos if not found
+        constexpr size_t find(C ch, size_t pos = 0) const {
+            return this->view().find(ch, pos);
+        }
+
+        // Returns the index of the last occurrence of the given substring, or npos if not found
+        constexpr size_t rfind(std::basic_string_view<C> str, size_t pos = std::basic_string_view<C>::npos) const {
+            return this->view().rfind(str, pos);
+        }
+
+        // Returns the index of the last occurrence of the given character, or npos if not found
+        constexpr size_t rfind(C ch, size_t pos = std::basic_string_view<C>::npos) const {
+            return this->view().rfind(ch, pos);
+        }
+
+        // Returns the index of the first occurrence of any character in the given set, or npos if not found
+        constexpr size_t find_first_of(std::basic_string_view<C> str, size_t pos = 0) const {
+            return this->view().find_first_of(str, pos);
+        }
+
+        // Returns the index of the last occurrence of any character in the given set, or npos if not found
+        constexpr size_t find_last_of(std::basic_string_view<C> str, size_t pos = std::basic_string_view<C>::npos) const {
+            return this->view().find_last_of(str, pos);
+        }
+
+        // Returns the index of the first occurrence of any character not in the given set, or npos if not found
+        constexpr size_t find_first_not_of(std::basic_string_view<C> str, size_t pos = 0) const {
+            return this->view().find_first_not_of(str, pos);
+        }
+
+        // Returns the index of the first occurrence of any character not equal to the given character, or npos if not found
+        constexpr size_t find_first_not_of(C ch, size_t pos = 0) const {
+            return this->view().find_first_not_of(ch, pos);
+        }
+
+        // Returns the index of the last occurrence of any character not in the given set, or npos if not found
+        constexpr size_t find_last_not_of(std::basic_string_view<C> str, size_t pos = std::basic_string_view<C>::npos) const {
+            return this->view().find_last_not_of(str, pos);
+        }
+
+        // Returns the index of the last occurrence of any character not equal to the given character, or npos if not found
+        constexpr size_t find_last_not_of(C ch, size_t pos = std::basic_string_view<C>::npos) const {
+            return this->view().find_last_not_of(ch, pos);
         }
 
     private:
         C const* m_str;
-        mutable size_t m_length = (size_t)-1;
-
-        size_t _size() const {
-            if (m_length == (size_t)-1) {
-                m_length = std::char_traits<C>::length(m_str);
-            }
-
-            return m_length;
-        }
 
         friend std::basic_ostream<C>& operator<<(std::basic_ostream<C>& os, BasicZStringView const& zsv) {
             os << zsv.view();
@@ -172,10 +259,6 @@ struct matjson::Serialize<geode::ZStringView> {
         return matjson::Value(value.view());
     }
 };
-
-// inline std::string_view format_as(geode::ZStringView zsv) {
-//     return std::string_view(zsv);
-// }
 
 template <>
 struct fmt::formatter<geode::ZStringView> : formatter<string_view> {

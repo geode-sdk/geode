@@ -3,7 +3,7 @@
 #ifndef GEODE_IS_IOS
 
 #include "LoaderImpl.hpp"
-#include "ui/mods/GeodeStyle.hpp"
+#include "ui/GeodeStyle.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/GJKeybindManager.hpp>
@@ -367,10 +367,12 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         );
         m_mainLayer->updateLayout();
 
-        auto scrollbar = Scrollbar::create(nullptr);
+        auto scrollbar = Scrollbar::create(nullptr, Scrollbar::Style::GDScrollbar);
+        scrollbar->setZOrder(1);
+        scrollbar->setAnchorPoint(ccp(1, 0.5f));
         scrollbar->setID("scrollbar");
         m_mainLayer->addChildAtPosition(
-            scrollbar, Anchor::Right, {(-list::VIEW_PADDING_X / 2) - 1.5f, 0}
+            scrollbar, Anchor::Center, {370.f / 2, 0}
         );
         m_fields->scrollbar = scrollbar;
 
@@ -490,7 +492,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         }
 
         auto scrollbar = m_fields->scrollbar;
-        scrollbar->updateAnchoredPosition(Anchor::Right, {(-list::VIEW_PADDING_X / 2) - 1.5f, offsetY});
+        scrollbar->updateAnchoredPosition(Anchor::Center, {viewW / 2, offsetY});
         this->updateScrollbar();
 
         LoaderImpl::get()->queueInMainThread([self = Ref(this)] {

@@ -627,6 +627,14 @@ static void abortHandler(int sig) {
     TerminateProcess(GetCurrentProcess(), 1);
 }
 
+static BOOL WINAPI ctrlHandler(DWORD type) {
+    if (type == CTRL_C_EVENT || type == CTRL_BREAK_EVENT || type == CTRL_CLOSE_EVENT) {
+        TerminateProcess(GetCurrentProcess(), STATUS_CONTROL_C_EXIT);
+    }
+
+    return FALSE;
+}
+
 bool crashlog::setupPlatformHandler() {
     SetUnhandledExceptionFilter(exceptionHandler);
 
@@ -641,6 +649,7 @@ bool crashlog::setupPlatformHandler() {
     });
 
     signal(SIGABRT, abortHandler);
+    SetConsoleCtrlHandler(ctrlHandler, TRUE);
 
     // suppress WER and debug msg my masking out both flags
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);

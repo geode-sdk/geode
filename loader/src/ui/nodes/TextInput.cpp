@@ -126,6 +126,10 @@ struct TextInput::Impl {
     ListenerHandle m_focusedListener;
     ListenerHandle m_unfocusedListener;
 
+    Function<void(float)> m_onKeyboardOffset;
+    Function<void()> m_onKeyboardHide;
+    bool m_keyboardShowing = false;
+
     bool m_refocusOnEnter = false;
 
     OverflowMode m_overflow = OverflowMode::Scale;
@@ -167,7 +171,7 @@ struct TextInput::Impl {
             m_stopPositions[i] = m_label->getCursorPosition(queryIdx).value_or(CCPoint{});
         }
 
-        m_placeholderLabel->setVisible(m_text.empty());
+        m_placeholderLabel->setVisible(m_text.empty() && !m_hasFocus);
 
         if (m_textU32.empty()) m_scroll = CCPoint{0.f, 0.f};
 
@@ -1157,6 +1161,53 @@ bool TextInput::detachWithIME() {
     return true;
 }
 
+static bool s_keyboardVisible = false;
+static CCRect s_keyboardRect;
+
+void TextInput::applyKeyboardOffset(CCRect keyboardRect) {
+    auto size = this->getContentSize();
+    auto bl = this->convertToWorldSpace({0.f, 0.f});
+    auto tr = this->convertToWorldSpace({size.width, size.height});
+    CCRect rect{bl.x, bl.y, tr.x - bl.x, tr.y - bl.y};
+    rect.origin.y -= 4.f;
+
+    float offset = keyboardRect.getMaxY() - rect.getMinY();
+
+    auto test = rect;
+    if (offset < 0.f) test.origin.y += offset;
+    if (!test.intersectsRect(keyboardRect)) return;
+
+    m_impl->m_keyboardShowing = true;
+    if (m_impl->m_onKeyboardOffset) {
+        m_impl->m_onKeyboardOffset(offset);
+    }
+}
+
+void TextInput::returnKeyboardOffset() {
+    if (!m_impl->m_keyboardShowing) return;
+    m_impl->m_keyboardShowing = false;
+    if (m_impl->m_onKeyboardHide) {
+        m_impl->m_onKeyboardHide();
+    }
+}
+
+void TextInput::keyboardWillHide(CCIMEKeyboardNotificationInfo& info) {
+    s_keyboardVisible = false;
+    if (m_impl->m_hasFocus) {
+        this->detachWithIME();
+    }
+
+    this->returnKeyboardOffset();
+}
+
+void TextInput::keyboardWillShow(CCIMEKeyboardNotificationInfo& info) {
+    s_keyboardVisible = true;
+    s_keyboardRect = info.end;
+
+    if (!m_impl->m_hasFocus) return;
+    this->applyKeyboardOffset(info.end);
+}
+
 void TextInput::onEnter() {
     CCNode::onEnter();
     this->registerWithTouchDispatcher();
@@ -1303,12 +1354,79 @@ void TextInput::setFocusCallback(Function<void(FocusState state)> onFocusChange)
     });
 }
 
+void TextInput::setKeyboardOffsetCallback(Function<void(float offset)> onKeyboardOffset) {
+    m_impl->m_onKeyboardOffset = std::move(onKeyboardOffset);
+}
+
+void TextInput::setKeyboardHideCallback(Function<void()> onKeyboardHide) {
+    m_impl->m_onKeyboardHide = std::move(onKeyboardHide);
+}
+
 void TextInput::setString(std::string_view str, bool triggerCallback) {
     m_impl->setString(str, triggerCallback);
 }
 
 std::string const& TextInput::getString() const {
     return m_impl->m_text;
+}
+
+void TextInput::setCursorPos(int pos) {
+    auto len = m_impl->m_textU32.size();
+
+    auto r = pos < 0 ? len + pos + 1 : pos;
+    pos = std::clamp<int>(r, 0, len);
+
+    pos = m_impl->snapToStop(pos);
+
+    m_impl->m_cursorPos = pos;
+    m_impl->m_selectionStart = -1;
+    m_impl->m_goalX = -1.f;
+
+    m_impl->updateCaretPosition();
+    m_impl->updateSelectionHighlight();
+    if (m_impl->m_hasFocus) m_impl->resetCaretBlink();
+}
+
+int TextInput::getCursorPos() const {
+    return m_impl->m_cursorPos;
+}
+
+std::string_view TextInput::getSelectedText() const {
+    if (!m_impl->hasSelection()) return {};
+
+    int a = std::min(m_impl->m_selectionStart, m_impl->m_cursorPos);
+    int b = std::max(m_impl->m_selectionStart, m_impl->m_cursorPos);
+    if (a >= b) return {};
+
+    size_t byteStart = simdutf::utf8_length_from_utf32(m_impl->m_textU32.data(), a);
+    size_t byteEnd = simdutf::utf8_length_from_utf32(m_impl->m_textU32.data(), b);
+
+    return std::string_view(m_impl->m_text.data() + byteStart, byteEnd - byteStart);
+}
+
+void TextInput::setSelection(int start, int end) {
+    int len = m_impl->m_textU32.size();
+
+    auto resolve = [len](int p) -> int {
+        auto r = p < 0 ? len + p + 1 : p;
+        return std::clamp(r, 0, len);
+    };
+
+    start = m_impl->snapToStop(resolve(start));
+    end = m_impl->snapToStop(resolve(end));
+
+    if (start == end) {
+        m_impl->m_cursorPos = start;
+        m_impl->m_selectionStart = -1;
+    } else {
+        m_impl->m_selectionStart = start;
+        m_impl->m_cursorPos = end;
+    }
+
+    m_impl->m_goalX = -1.f;
+    m_impl->updateCaretPosition();
+    m_impl->updateSelectionHighlight();
+    if (m_impl->m_hasFocus) m_impl->resetCaretBlink();
 }
 
 void TextInput::focus() {
@@ -1350,6 +1468,7 @@ bool TextInput::canDetachWithIME() {
 void TextInput::didAttachWithIME() {
     m_impl->m_hasFocus = true;
     m_impl->m_caret->setVisible(true);
+    m_impl->m_placeholderLabel->setVisible(false);
     m_impl->resetCaretBlink();
     m_impl->updateCaretPosition();
 
@@ -1360,12 +1479,17 @@ void TextInput::didAttachWithIME() {
     m_impl->setupKeyboardListener();
 
     FocusEvent(this, FocusState::Focused).send();
+
+    if (s_keyboardVisible) {
+        this->applyKeyboardOffset(s_keyboardRect);
+    }
 }
 
 void TextInput::didDetachWithIME() {
     ContextMenu::closeAll();
     m_impl->m_hasFocus = false;
     m_impl->m_caret->setVisible(false);
+    m_impl->m_placeholderLabel->setVisible(m_impl->m_text.empty());
 
     if (auto gl = CCEGLView::get()) {
         gl->setIMEKeyboardState(false);
@@ -1376,6 +1500,7 @@ void TextInput::didDetachWithIME() {
     m_impl->m_keyListener.destroy();
 
     FocusEvent(this, FocusState::Unfocused).send();
+    this->returnKeyboardOffset();
 }
 
 void TextInput::insertText(char const* text, int len, enumKeyCodes key) {
@@ -1780,6 +1905,7 @@ void TextInput::setLabel(std::string label) {
     caption->setID("caption-label");
     caption->setAnchorPoint({0.f, 0.f});
     caption->setPosition({0.f, this->getContentHeight() + 2.f});
+    caption->setScale(m_impl->m_fontScale);
     this->addChild(caption);
     m_impl->m_captionLabel = caption;
 }

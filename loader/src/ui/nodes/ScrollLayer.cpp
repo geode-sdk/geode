@@ -119,7 +119,8 @@ bool ScrollLayer::Impl::scrollWheel(float y, float x) {
     if (m_scrollClipping && !pointInsideRect(cocos::getMousePos())) return false;
 #endif
 
-    m_self->scrollLayer(y);
+    if (!m_self->m_touchDown) m_self->scrollLayer(y);
+
     return true;
 }
 
@@ -127,9 +128,14 @@ void ScrollLayer::Impl::enableScrollWheel(bool enable) { m_scrollWheelEnabled = 
 
 bool ScrollLayer::Impl::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     m_alreadyCancelled = false;
-    if (nodeIsVisible(m_self)) {
-        return m_self->CCScrollLayerExt::ccTouchBegan(touch, event);
+
+    if (nodeIsVisible(m_self) && m_self->CCScrollLayerExt::ccTouchBegan(touch, event)) {
+        m_self->m_scrollDecay = 0.f;
+        m_self->m_scrolling = false;
+        m_self->unschedule(schedule_selector(CCScrollLayerExt::updateScrollDecay));
+        return true;
     }
+
     return false;
 }
 

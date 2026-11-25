@@ -16,18 +16,10 @@ namespace geode {
         AllLower,
     };
 
-    // enum only as these are flags
-    enum TextStyle {
-        TextStyleRegular = 0b0,
-        TextStyleBold = 0b1,
-        TextStyleItalic = 0b10,
-    };
-
-    // enum only as these are flags
-    enum TextDecoration {
-        TextDecorationNone = 0b0,
-        TextDecorationUnderline = 0b1,
-        TextDecorationStrikethrough = 0b10,
+    enum TextStyle : uint8_t {
+        TextStyleRegular = 0,
+        TextStyleBold    = 1 << 0,
+        TextStyleItalic  = 1 << 1,
     };
 
     class TextDecorationWrapper;

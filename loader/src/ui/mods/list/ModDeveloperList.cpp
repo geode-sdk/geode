@@ -1,46 +1,39 @@
 #include "ModDeveloperList.hpp"
 
-#include <Geode/cocos/base_nodes/CCNode.h>
-#include <Geode/ui/Layout.hpp>
-#include <Geode/cocos/cocoa/CCGeometry.h>
-#include <Geode/cocos/platform/CCPlatformMacros.h>
-#include <Geode/utils/cocos.hpp>
-#include <Geode/ui/ScrollLayer.hpp>
-#include <Geode/ui/SimpleAxisLayout.hpp>
-#include <Geode/loader/Loader.hpp>
-#include <Geode/loader/Mod.hpp>
 #include "ui/mods/list/ModDeveloperItem.hpp"
 #include "ui/mods/sources/ModSource.hpp"
 
+#include <Geode/cocos/base_nodes/CCNode.h>
+#include <Geode/cocos/cocoa/CCGeometry.h>
+#include <Geode/cocos/platform/CCPlatformMacros.h>
+#include <Geode/loader/Loader.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <Geode/ui/Layout.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
+#include <Geode/ui/SimpleAxisLayout.hpp>
+#include <Geode/utils/cocos.hpp>
+
 bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize const& size) {
-    if (!CCNode::init()) {
-        return false;
-    }
+    if (!CCNode::init()) return false;
 
     m_source = source;
     this->setContentSize(size);
-    this->setAnchorPoint({ 0.5f, 0.5f });
+    this->setAnchorPoint({0.5f, 0.5f});
 
     NineSlice* bg = NineSlice::create("square02b_001.png");
-    bg->setColor({ 0, 0, 0 });
+    bg->setColor({0, 0, 0});
     bg->setOpacity(75);
-    bg->setScale(.3f);
-    bg->setContentSize(size / bg->getScale());
+    bg->setScaleMultiplier(.3f);
+    bg->setContentSize(size);
     m_bg = bg;
-    this->addChildAtPosition(
-        m_bg,
-        Anchor::Center
-    );
+    this->addChildAtPosition(m_bg, Anchor::Center);
 
     // mfw fod created a scrolllayer with layouts
     m_list = ScrollLayer::create({ size.width - 10.f, size.height - 10.f });
     m_list->m_contentLayer->setLayout(ScrollLayer::createDefaultListLayout(5.f));
     this->addChildAtPosition(m_list, Anchor::Center);
 
-    CCSize itemSize = {
-        m_list->getScaledContentWidth(),
-        20.f
-    };
+    CCSize itemSize = {m_list->getScaledContentWidth(), 20.f};
 
     m_source.visit(makeVisitor {
         [this, popup, itemSize](Mod* mod) {
@@ -54,8 +47,10 @@ bool ModDeveloperList::init(DevListPopup* popup, ModSource const& source, CCSize
             }
         },
     });
+
     m_list->m_contentLayer->updateLayout();
     m_list->scrollToTop();
+
     return true;
 }
 
