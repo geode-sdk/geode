@@ -30,7 +30,7 @@ bool KeybindEditPopup::init(
 
     m_setting = std::move(setting);
     m_callback = std::move(callback);
-    m_currentKeybind = std::move(keybind);
+    m_currentKeybind = keybind;
 
     auto bottomMenu = CCNode::create();
     bottomMenu->setID("bottom-menu");

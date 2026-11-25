@@ -116,7 +116,7 @@ namespace fts {
                 }
 
                 // Recursive call that "skips" this match
-                uint8_t recursiveMatches[256];
+                uint8_t recursiveMatches[256]{};
                 int recursiveScore;
                 if (fuzzy_match_recursive(pattern, str + 1, recursiveScore, strBegin, matches, recursiveMatches, sizeof(recursiveMatches), nextMatch, recursionCount, recursionLimit)) {
 
