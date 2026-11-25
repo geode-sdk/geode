@@ -20,25 +20,30 @@ endif()
 
 # https://stackoverflow.com/a/63924044/9124836
 # https://stackoverflow.com/a/72396471
-execute_process(
-	COMMAND git describe --always --dirty
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	OUTPUT_VARIABLE GEODE_COMMIT_HASH
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-	ERROR_QUIET
-)
+
+if (NOT DEFINED GEODE_COMMIT_HASH)
+	execute_process(
+		COMMAND git describe --always --dirty
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		OUTPUT_VARIABLE GEODE_COMMIT_HASH
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		ERROR_QUIET
+	)
+endif()
 
 if (NOT GEODE_COMMIT_HASH)
 	set(GEODE_COMMIT_HASH "(?)")
 endif()
 
-execute_process(
-	COMMAND git describe --always --dirty
-	WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
-	OUTPUT_VARIABLE GEODE_BINDINGS_COMMIT_HASH
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-	ERROR_QUIET
-)
+if (NOT DEFINED GEODE_BINDINGS_COMMIT_HASH)
+	execute_process(
+		COMMAND git describe --always --dirty
+		WORKING_DIRECTORY ${GEODE_BINDINGS_REPO_PATH}
+		OUTPUT_VARIABLE GEODE_BINDINGS_COMMIT_HASH
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		ERROR_QUIET
+	)
+endif()
 
 if (NOT GEODE_BINDINGS_COMMIT_HASH)
 	set(GEODE_BINDINGS_COMMIT_HASH "(?)")
@@ -211,9 +216,20 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 if (APPLE)
 	# For profiling
-	target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
+	# target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
 	# target_link_options(${PROJECT_NAME} PRIVATE "-Wl,-e,_dynamicInit")
 	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+endif()
+
+if (ANDROID)
+	if (CMAKE_BUILD_TYPE STREQUAL "Release")
+		add_custom_command(
+			TARGET "${PROJECT_NAME}" POST_BUILD
+			DEPENDS "${PROJECT_NAME}"
+			COMMAND $<$<CONFIG:release>:${CMAKE_STRIP}>
+			ARGS -S $<TARGET_FILE:${PROJECT_NAME}>
+		)
+	endif()
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING MAT_JSON_EXPORTING)
@@ -225,6 +241,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 # set GEODE_MOD_ID for loader itself
 target_compile_definitions(${PROJECT_NAME} PRIVATE GEODE_MOD_ID="geode.loader")
+
+# fixes warnings about mismatch in visibility/dllimport
+target_compile_definitions(GeodeBindings PRIVATE GEODE_EXPORTING)
 
 # These are only needed for building source :-)
 if (NOT GEODE_BUILDING_DOCS)
@@ -347,9 +366,11 @@ elseif (WIN32)
 
 	target_compile_definitions(${PROJECT_NAME} PUBLIC ISOLATION_AWARE_ENABLED=1)
 
+	# disable "skipping imported DllMain symbol" warning for xinput
 	if (MSVC)
-		# disable warnings about CCNode::setID
-		target_link_options(${PROJECT_NAME} PUBLIC /ignore:4217)
+		target_link_options(${PROJECT_NAME} PUBLIC "/IGNORE:importeddllmain")
+	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		target_link_options(${PROJECT_NAME} PUBLIC "-Wl,/IGNORE:importeddllmain")
 	endif()
 
 	set(LAUNCHER_TARGET ProxyLoader Updater)

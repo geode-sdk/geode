@@ -177,7 +177,11 @@ public:
      */
     float getScaleY() const;
 
+    // @note RobTop Addition
 	virtual void pollInputEvents();
+
+    // @note RobTop Addition
+	virtual CCPoint getMousePosition() const;
 
     // @note RobTop Addition
     double getPlatformTimestamp();

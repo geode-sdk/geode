@@ -1,6 +1,6 @@
 #include <Geode/utils/JsonValidation.hpp>
 #include <Geode/utils/ranges.hpp>
-#include <unordered_set>
+#include <Geode/utils/StringMap.hpp>
 
 using namespace geode::prelude;
 
@@ -25,7 +25,7 @@ public:
     matjson::Value& scope;
     std::string scopeName;
     std::string key;
-    std::unordered_set<std::string> knownKeys;
+    StringSet knownKeys;
 
     Impl()
       : shared(nullptr),
@@ -82,7 +82,7 @@ matjson::Value JsonExpectedValue::json() const {
 }
 matjson::Value JsonExpectedValue::takeJson() {
     // TODO: there should be an std::move here BUT it needs to be fixed in matjson first
-    return m_impl->scope;
+    return std::move(m_impl->scope);
 }
 std::string JsonExpectedValue::key() const {
     return m_impl->key;

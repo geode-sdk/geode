@@ -5,13 +5,13 @@
 #include <Geode/ui/NineSlice.hpp>
 #include <Geode/ui/Label.hpp>
 #include "../sources/ModSource.hpp"
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 #include "../UpdateModListState.hpp"
 #include <server/DownloadManager.hpp>
 
 using namespace geode::prelude;
 
-class ModPopup : public GeodePopup {
+class ModPopup : public geode::GeodePopup {
 public:
     enum class Tab {
         Details,

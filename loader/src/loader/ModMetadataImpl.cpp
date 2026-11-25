@@ -624,7 +624,7 @@ std::vector<std::string> const& ModMetadata::getSpritesheets() const {
 std::vector<std::pair<std::string, matjson::Value>> const& ModMetadata::getSettings() const {
     return m_impl->m_settings;
 }
-std::unordered_set<std::string> const& ModMetadata::getTags() const {
+StringSet const& ModMetadata::getTags() const {
     return m_impl->m_tags;
 }
 bool ModMetadata::needsEarlyLoad() const {
@@ -769,7 +769,7 @@ void ModMetadata::setSpritesheets(std::vector<std::string> value) {
 void ModMetadata::setSettings(std::vector<std::pair<std::string, matjson::Value>> value) {
     m_impl->m_settings = std::move(value);
 }
-void ModMetadata::setTags(std::unordered_set<std::string> value) {
+void ModMetadata::setTags(StringSet value) {
     m_impl->m_tags = std::move(value);
 }
 void ModMetadata::setNeedsEarlyLoad(bool value) {

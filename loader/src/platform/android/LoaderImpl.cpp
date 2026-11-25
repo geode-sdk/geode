@@ -43,6 +43,8 @@ std::string Loader::Impl::getGameVersion() {
             case 39: m_gdVersion = "2.206"; break;
             case 40: m_gdVersion = "2.2074"; break;
             case 41: m_gdVersion = "2.2081"; break;
+            case 42: m_gdVersion = "2.209"; break;
+            case 43: m_gdVersion = "2.2091"; break;
             default: m_gdVersion = std::to_string(versionCode);
         }
     }
@@ -59,7 +61,7 @@ bool Loader::Impl::supportsLaunchArguments() const {
 }
 
 std::string Loader::Impl::getLaunchCommand() const {
-    std::string launchArgs = "";
+    std::string launchArgs;
 
     JniMethodInfo t;
     if (JniHelper::getStaticMethodInfo(t, "com/geode/launcher/utils/GeodeUtils", "getLaunchArguments", "()Ljava/lang/String;")) {

@@ -71,7 +71,7 @@ find_gd_installation() {
     verbose_log "Searching for Geometry Dash..."
     local DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
-    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.steam/debian-installation" "$HOME/.var/app/com.valvesoftware.Steam/data/Steam" "$HOME/snap/steam/common/.steam/steam"; do
+    for GD_IDX in "$DATA_HOME/Steam" "$HOME/Steam" "$HOME/.steam/debian-installation" "$HOME/.var/app/com.valvesoftware.Steam/data/Steam" "$HOME/snap/steam/common/.steam/steam" "/steam"; do
         local PATH_TEST="$GD_IDX/steamapps/common/Geometry Dash"
         verbose_log "- Testing path ${YELLOW}$PATH_TEST${NC}"
 
@@ -125,6 +125,11 @@ ask_gd_path() {
             echo -e "* Invalid path: ${RED}$LAST_VALID_GD_PATH_ERR${NC}"
         fi
     done
+    # incase of ctrl+d
+    if [ -z "$POTENTIAL_PATH" ]; then
+        echo ""
+        exit 1
+    fi
 }
 
 install() {

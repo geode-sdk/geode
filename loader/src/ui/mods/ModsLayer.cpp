@@ -1,6 +1,6 @@
 #include "ModsLayer.hpp"
 
-#include "GeodeStyle.hpp"
+#include "../GeodeStyle.hpp"
 #include "SwelvyBG.hpp"
 #include "popups/ConfirmInstall.hpp"
 #include "settings/KeybindsPopup.hpp"

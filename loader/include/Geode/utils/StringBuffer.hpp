@@ -2,7 +2,6 @@
 
 #include <Geode/platform/platform.hpp>
 #include <fmt/format.h>
-#include <iterator>
 
 namespace geode::utils {
 
@@ -56,7 +55,7 @@ public:
     template <typename... Args>
     void append(fmt::format_string<Args...> fmtStr, Args&&... args) {
         fmt::format_to(
-            std::back_inserter(m_buffer),
+            fmt::basic_appender<CharType>(m_buffer),
             fmtStr,
             std::forward<Args>(args)...
         );

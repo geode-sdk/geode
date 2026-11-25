@@ -5,6 +5,7 @@
 #include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/platform/CCFileUtils.h>
 #include <Geode/cocos/robtop/keyboard_dispatcher/CCKeyboardDispatcher.h>
+#include <Geode/cocos/robtop/mouse_dispatcher/CCMouseDispatcher.h>
 #include <Geode/cocos/sprite_nodes/CCSpriteFrameCache.h>
 #include <Geode/cocos/textures/CCTextureCache.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchDispatcher.h>
@@ -20,6 +21,10 @@ CCKeyboardDispatcher* CCKeyboardDispatcher::get() {
 
 CCTouchDispatcher* CCTouchDispatcher::get() {
     return CCDirector::sharedDirector()->getTouchDispatcher();
+}
+
+CCMouseDispatcher* CCMouseDispatcher::get() {
+    return CCDirector::get()->getMouseDispatcher();
 }
 
 CCApplication* CCApplication::get() {

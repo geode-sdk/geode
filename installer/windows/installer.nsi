@@ -55,6 +55,7 @@
     !insertmacro GEODE_LANGUAGE "SpanishInternational"
     !insertmacro GEODE_LANGUAGE "Italian"
     !insertmacro GEODE_LANGUAGE "Swedish"
+    !insertmacro GEODE_LANGUAGE "Hungarian"
     !insertmacro GEODE_LANGUAGE "Greek"
     !insertmacro GEODE_LANGUAGE "Finnish"
     !insertmacro GEODE_LANGUAGE "Polish"
@@ -68,6 +69,8 @@
     !insertmacro GEODE_LANGUAGE "SimpChinese"
     !insertmacro GEODE_LANGUAGE "TradChinese"
     !insertmacro GEODE_LANGUAGE "Korean"
+    !insertmacro GEODE_LANGUAGE "Indonesian"
+    !insertmacro GEODE_LANGUAGE "Romanian"
 
     !insertmacro MUI_RESERVEFILE_LANGDLL
 

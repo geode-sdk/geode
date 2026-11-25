@@ -67,10 +67,10 @@ void ServerModListSource::setSearchQuery(std::string query) {
     }
 }
 
-std::unordered_set<std::string> ServerModListSource::getModTags() const {
+StringSet ServerModListSource::getModTags() const {
     return m_query.tags;
 }
-void ServerModListSource::setModTags(std::unordered_set<std::string> const& tags) {
+void ServerModListSource::setModTags(StringSet const& tags) {
     m_query.tags = tags;
     this->clearCache();
 }

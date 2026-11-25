@@ -19,7 +19,7 @@ $on_mod(Loaded) {
         GetProcAddress(
             GetModuleHandle("libcocos2d.dll"), "?compileShader@CCGLProgram@cocos2d@@AEAA_NPEAIIPEBD@Z"
         )
-    ) + 0xbb;
+    ) + 0xd1;
 
     (void) Mod::get()->patch(reinterpret_cast<void*>(addr), {
         0x31, 0xc0, // xor eax, eax

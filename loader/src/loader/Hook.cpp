@@ -24,19 +24,19 @@ bool Hook::isEnabled() const {
     return m_impl->isEnabled();
 }
 
-Result<> Hook::enable() {
+Result<void, HookError> Hook::enable() {
     return m_impl->enable();
 }
 
-Result<> Hook::disable() {
+Result<void, HookError> Hook::disable() {
     return m_impl->disable();
 }
 
-Result<> Hook::toggle() {
+Result<void, HookError> Hook::toggle() {
     return m_impl->toggle();
 }
 
-Result<> Hook::toggle(bool enable) {
+Result<void, HookError> Hook::toggle(bool enable) {
     return m_impl->toggle(enable);
 }
 

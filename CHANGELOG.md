@@ -1,5 +1,68 @@
 # Geode Changelog
 
+## v6.0.0
+ * Add support for const functions for event export macro (b9cf709ef)
+ * Fix intel macOS crash
+
+## v6.0.0-beta.3
+ * Fix Event use after free (ef0ae012b)
+ * Fix C++ demangler for Android (e134b1547)
+ * Update Windows MessageBox fix (4370ab69b)
+
+## v6.0.0-beta.2
+ * Fix Android not having 2.2091 in getGameVersion (8fc965063)
+ * Fix wine startup crash (6d62f4fd9)
+ * Fix Event listener race condition (#2403)
+ * Add linker flag to eliminate dead code on windows (233ecb2f3)
+ * Add unhookable error for bindings (#2398)
+ * Fix `MDTextArea::setContentSize` (b6f0b2157)
+ * Fix TextInput caption label not being scaled by default (38145adc8)
+ * Fix some float settings always being marked as modified (bd350a19c)
+
+## v6.0.0-beta.1
+ * Fix opacity being set on `geode::Scrollbar` every frame (d6614a470)
+ * Fix compileShader patch on Windows (b22fecf8f)
+
+## v6.0.0-alpha.3
+ * Make `ZStringView` constexpr and thread safe, add more string_view functions (886595ba5)
+ * Add `geode::TextInput` cursor utils (c0ded9bea)
+ * Remove `geode::RichTextArea` (#2379)
+ * Add templated `CCNode::getLayout` (#2393)
+ * Add user agent getter in WebRequest (#2391)
+ * Remove ThreadSafe event classes (343c5d746)
+   * All events are thread-safe now
+ * Tweak API for BoxedLabel & ProcessPopup (#2369)
+ * Improve geode::Scrollbar (#2343)
+ * Fix NineSlice with content size 0 on either axis (#2382)
+ * Allow event filter args to be specified as a function type (5aa435283)
+ * Improve getMousePos() and add setMousePos() util (#2388)
+ * Fix linker warnings for bindings (a18caf66c)
+ * Add an optional index parameter to `getChildBySpriteFrameName` (#2265)
+ * Migrate Settings UIs to use Geode's custom nodes (#2306)
+ * Fix `Button::createWithLabel` (#2387)
+ * SimpleTextArea Cleanup + Improvements (#2381)
+ * Close game properly on console interrupt (2e16dfccf)
+ * Fix filesystem issues with geode files (5b2caa663, 80becdfa5)
+
+## v6.0.0-alpha.2
+ * `geode::TextInput` rewrite (#2331)
+ * `geode::MDTextArea` rewrite (#2370)
+ * Remove regular callbacks for `geode::Button`, `geode::SliderNode` and `geode::Toggler` in favor of events (#2287)
+ * Add `useBoundingBox` to `AxisLayout` and `SimpleAxisLayout` (#2373)
+ * Use single search path for mod resources (#2260)
+ * Remove broken `Signal.hpp` api
+ * Add self extracting linux installer (#2360)
+ * Expose Geode UI Style header publicly (#2273)
+ * Make mod icons slightly larger (#2339)
+ * Improve `geode::ScrollLayer` (#2300)
+ * Better warning when disabling a mod with dependencies (#2288)
+ * Fix `geode::NineSlice` breaking with rotated sprites in a spritesheet (#2332)
+ * Use Geode's nodes in `geode::Popup` (#2302)
+ * Handle SIGABRT for windows crashlogs (d22af24)
+ * Add char overloads for split and splitView (#2192)
+ * Add `NumParseError`, `ModifyError`, `HookError`, `FileError` with appropriate `Result<>` returns changed to use the error values (#2374)
+ * Update asp, arc, matjson, Result and Tuliphook
+
 ## v6.0.0-alpha.1
  * Geometry Dash 2.209x support
  * Rework our own keybind system to integrate with robtop's (#2280, #2278)

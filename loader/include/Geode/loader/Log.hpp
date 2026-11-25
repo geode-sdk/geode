@@ -149,8 +149,8 @@ namespace geode {
             void formatTo(utils::StringBuffer<N>& buf, bool millis = false) const;
         };
 
-        struct LogEvent final : ThreadSafeEvent<LogEvent, bool(BorrowedLog const&)> {
-            using ThreadSafeEvent::ThreadSafeEvent;
+        struct LogEvent final : Event<LogEvent, bool(BorrowedLog const& log)> {
+            using Event::Event;
         };
     }
 }

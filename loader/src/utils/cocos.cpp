@@ -1,3 +1,5 @@
+#include <Geode/cocos/CCDirector.h>
+#include <Geode/cocos/platform/CCEGLView.h>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 #include <Geode/cocos/platform/CCFileUtils.h>
 #include <Geode/cocos/textures/CCTextureCache.h>
@@ -262,6 +264,12 @@ std::string geode::cocos::cc4bToHexString(ccColor4B const& color) {
     return output;
 }
 
+cocos2d::CCPoint geode::cocos::getMousePos() {
+    auto pos = CCEGLView::get()->getMousePosition();
+    pos.y = CCDirector::get()->getWinSize().height - pos.y;
+    return pos;
+}
+
 bool WeakRefController::isManaged() {
     WeakRefPool::get()->check(m_obj);
     return m_obj;
@@ -349,10 +357,29 @@ bool geode::cocos::isSpriteFrameName(CCNode* node, const char* name) {
     return false;
 }
 
-CCNode* geode::cocos::getChildBySpriteFrameName(CCNode* parent, const char* name) {
-    for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
-        if (::isSpriteFrameName(static_cast<CCNode*>(child), name)) {
-            return child;
+CCNode* geode::cocos::getChildBySpriteFrameName(CCNode* parent, const char* name, int index) {
+    size_t indexCounter = 0;
+    if (parent->getChildrenCount() == 0) return nullptr;
+    if (index < 0) {
+        index = -index - 1;
+        for (size_t i = parent->getChildrenCount() - 1;; i--) {
+            auto obj = geode::cast::typeinfo_cast<CCNode*>(parent->getChildren()->objectAtIndex(i));
+            if (obj != nullptr && isSpriteFrameName(obj, name)) {
+                if (indexCounter == index) {
+                    return obj;
+                }
+                ++indexCounter;
+            }
+            if (i == 0) break;
+        }
+    } else {
+        for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
+            if (isSpriteFrameName(child, name)) {
+                if (indexCounter == index) {
+                    return child;
+                }
+                ++indexCounter;
+            }
         }
     }
     return nullptr;
@@ -380,10 +407,29 @@ bool geode::cocos::isSpriteName(CCNode* node, const char* name) {
     return false;
 }
 
-CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name) {
-    for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
-        if (::isSpriteName(static_cast<CCNode*>(child), name)) {
-            return child;
+CCNode* geode::cocos::getChildBySpriteName(CCNode* parent, const char* name, int index) {
+    size_t indexCounter = 0;
+    if (parent->getChildrenCount() == 0) return nullptr;
+    if (index < 0) {
+        index = -index - 1;
+        for (size_t i = parent->getChildrenCount() - 1;; i--) {
+            auto obj = geode::cast::typeinfo_cast<CCNode*>(parent->getChildren()->objectAtIndex(i));
+            if (obj != nullptr && isSpriteName(obj, name)) {
+                if (indexCounter == index) {
+                    return obj;
+                }
+                ++indexCounter;
+            }
+            if (i == 0) break;
+        }
+    } else {
+        for (auto child : CCArrayExt<CCNode*>(parent->getChildren())) {
+            if (isSpriteName(child, name)) {
+                if (indexCounter == index) {
+                    return child;
+                }
+                ++indexCounter;
+            }
         }
     }
     return nullptr;
@@ -410,8 +456,13 @@ std::string_view geode::cocos::getObjectName(cocos2d::CCObject const* obj) {
 
     std::string ret;
 
+    // typeid().name() returns invalid itanium symbols, e.g. `9PlayLayer`
+    // convert to a valid symbol accepted by libc++ demangler by prepending _Z
+    std::string mangled = "_Z";
+    mangled += typeid(*obj).name();
+
     int status = 0;
-    auto demangle = abi::__cxa_demangle(typeid(*obj).name(), 0, 0, &status);
+    auto demangle = abi::__cxa_demangle(mangled.c_str(), 0, 0, &status);
     if (status == 0) {
         ret = demangle;
     }

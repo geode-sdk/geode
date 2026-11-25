@@ -14,10 +14,10 @@ ModPackListSource* ModPackListSource::get() {
 
 void ModPackListSource::setSearchQuery(std::string query) {}
 
-std::unordered_set<std::string> ModPackListSource::getModTags() const {
+StringSet ModPackListSource::getModTags() const {
     return {};
 }
-void ModPackListSource::setModTags(std::unordered_set<std::string> const& set) {}
+void ModPackListSource::setModTags(StringSet const& set) {}
 bool ModPackListSource::isDefaultQuery() const {
     return true;
 }

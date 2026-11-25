@@ -6,11 +6,13 @@ using namespace geode::prelude;
 
 class Toggler::Impl final {
 public:
-    ToggleCallback m_toggleCallback = nullptr;
     bool m_isToggled = false;
 
     CCNode* m_offNode = nullptr;
     CCNode* m_onNode = nullptr;
+
+    ToggleCallback m_toggleCallback;
+    geode::ListenerHandle m_toggleListener;
 };
 
 Toggler::Toggler() : m_impl(std::make_unique<Impl>()) {}
@@ -122,6 +124,9 @@ bool Toggler::init(
     m_impl->m_offNode = offNode;
     m_impl->m_onNode = onNode;
     m_impl->m_toggleCallback = std::move(toggleCallback);
+    m_impl->m_toggleListener = ToggleEvent(this).listen([this] (bool isToggled) {
+        if (m_impl->m_toggleCallback) m_impl->m_toggleCallback(this, isToggled);
+    });
 
     addChild(offNode);
     addChild(onNode);
@@ -141,8 +146,8 @@ void Toggler::setToggled(bool toggled, bool triggerCallback) {
     m_impl->m_isToggled = toggled;
     updateDisplay();
 
-    if (triggerCallback && m_impl->m_toggleCallback) {
-        m_impl->m_toggleCallback(this, toggled);
+    if (triggerCallback) {
+        ToggleEvent(this).send(toggled);
     }
 }
 

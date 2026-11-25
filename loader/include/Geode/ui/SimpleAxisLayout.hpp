@@ -195,6 +195,12 @@ public:
      */
     SimpleAxisLayout* setPadding(Padding const& padding);
 
+    /**
+     * If true, the layout will use the bounding box of the node's children instead of the
+     * content size. 
+     */
+    SimpleAxisLayout* useBoundingBox(bool use);
+
     Axis getAxis() const;
     AxisScaling getMainAxisScaling() const;
     AxisScaling getCrossAxisScaling() const;
@@ -206,6 +212,7 @@ public:
     std::optional<float> getMinRelativeScale() const;
     std::optional<float> getMaxRelativeScale() const;
     Padding getPadding() const;
+    bool isUsingBoundingBox() const;
 };
 
 class GEODE_DLL SimpleRowLayout final : public SimpleAxisLayout {

@@ -1,4 +1,9 @@
 #include <Geode/utils/cocos.hpp>
+#include <Geode/mapping/CCClippingNode.hpp>
+#include <Geode/mapping/CCEGLView.hpp>
+#include <Geode/mapping/CCShaderCache.hpp>
+#include <Geode/cocos/kazmath/include/kazmath/GL/matrix.h>
+
 
 using namespace cocos2d;
 

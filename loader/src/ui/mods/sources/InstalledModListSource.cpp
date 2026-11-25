@@ -295,10 +295,10 @@ void InstalledModListSource::setSearchQuery(std::string query) {
     m_query.query = query.size() ? std::optional(std::move(query)) : std::nullopt;
 }
 
-std::unordered_set<std::string> InstalledModListSource::getModTags() const {
+StringSet InstalledModListSource::getModTags() const {
     return m_query.tags;
 }
-void InstalledModListSource::setModTags(std::unordered_set<std::string> const& tags) {
+void InstalledModListSource::setModTags(StringSet const& tags) {
     m_query.tags = tags;
     this->clearCache();
 }

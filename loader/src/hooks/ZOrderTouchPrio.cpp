@@ -270,6 +270,7 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
                         delegate->ccTouchCancelled(touch, event);
                         claimedTouches->removeObject(touch);
                         break;
+                    default: break;
                 }
             }
 
@@ -331,6 +332,7 @@ struct ZOrderTouchDispatcher : Modify<ZOrderTouchDispatcher, CCTouchDispatcher> 
                 case CCTOUCHMOVED: delegate->ccTouchesMoved(touches, event); break;
                 case CCTOUCHENDED: delegate->ccTouchesEnded(touches, event); break;
                 case CCTOUCHCANCELLED: delegate->ccTouchesCancelled(touches, event); break;
+                default: break;
             }
         }
     }

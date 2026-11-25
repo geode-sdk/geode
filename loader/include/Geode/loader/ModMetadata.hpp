@@ -4,7 +4,7 @@
 #include <Geode/utils/ZStringView.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "Types.hpp"
-#include <unordered_set>
+#include <Geode/utils/StringMap.hpp>
 #include <asp/fs/Path.hpp>
 #include <matjson.hpp>
 #include <memory>
@@ -211,7 +211,7 @@ namespace geode {
         /**
          * Get the tags for this mod
          */
-        [[nodiscard]] std::unordered_set<std::string> const& getTags() const;
+        [[nodiscard]] utils::StringSet const& getTags() const;
         /**
          * Whether this mod has to be loaded before the loading screen or not
          */
@@ -292,7 +292,7 @@ namespace geode {
         void setIncompatibilities(std::vector<Incompatibility> value);
         void setSpritesheets(std::vector<std::string> value);
         void setSettings(std::vector<std::pair<std::string, matjson::Value>> value);
-        void setTags(std::unordered_set<std::string> value);
+        void setTags(utils::StringSet value);
         void setNeedsEarlyLoad(bool value);
         void setIsAPI(bool value);
         void setGameVersion(std::string value);

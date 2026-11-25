@@ -3,17 +3,17 @@
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include "../sources/ModListSource.hpp"
-#include "../GeodeStyle.hpp"
+#include "../../GeodeStyle.hpp"
 #include <server/Server.hpp>
 #include <Geode/utils/async.hpp>
 
 using namespace geode::prelude;
 
-class FiltersPopup : public GeodePopup {
+class FiltersPopup : public geode::GeodePopup {
 protected:
     ModListSource* m_source;
     CCMenu* m_tagsMenu;
-    std::unordered_set<std::string> m_selectedTags;
+    StringSet m_selectedTags;
     ListenerHandle m_tagsHandle;
     async::TaskHolder<server::ServerResult<std::vector<server::ServerTag>>> m_tagsListener;
     CCMenuItemToggler* m_enabledModsOnly = nullptr;
