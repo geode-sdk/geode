@@ -342,9 +342,6 @@ std::vector<TextRenderer::Label> TextRenderer::renderStringEx(
     Label label;
     bool newLine = true;
 
-    auto lastIndent =
-        m_indentationStack.size() > 1 ? m_indentationStack.at(m_indentationStack.size() - 1) : .0f;
-
     if (m_cursor.x < m_origin.x + this->getCurrentIndent()) {
         m_cursor.x = this->getCurrentIndent();
     }
@@ -559,9 +556,10 @@ void TextRenderer::popFont() {
 
 TextRenderer::FontRef TextRenderer::getCurrentFont() const {
     if (!m_fontStack.size()) {
-        return [](int) -> Label {
+        static auto func = [](int) -> Label {
             return geode::Label::create("", "bigFont.fnt");
         };
+        return func;
     }
     return m_fontStack.back();
 }

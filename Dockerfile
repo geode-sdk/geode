@@ -12,7 +12,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android32 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android32 \
     --mount=type=bind,from=bindings,target=/bindings \
-    cmake --preset android32-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
+    cmake --preset android32-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
     && cmake --build --preset android32-cache && \
     ls /workspace/bin/nightly && sccache --show-stats
 
@@ -32,7 +32,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-android64 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-android64 \
     --mount=type=bind,from=bindings,target=/bindings \
-    cmake --preset android64-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
+    cmake --preset android64-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
     && cmake --build --preset android64-cache && \
     ls /workspace/bin/nightly && sccache --show-stats
 
@@ -52,7 +52,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-ios \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-ios \
     --mount=type=bind,from=bindings,target=/bindings \
-    cmake --preset ios-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
+    cmake --preset ios-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
     && cmake --build --preset ios-cache && \
     ls /workspace/bin/nightly && sccache --show-stats
 
@@ -92,7 +92,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-macm1 \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-macm1 \
     --mount=type=bind,from=bindings,target=/bindings \
-    cmake --preset macm1-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
+    cmake --preset macm1-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
     && cmake --build --preset macm1-cache && \
     ls /workspace/bin/nightly && sccache --show-stats
 
@@ -112,7 +112,7 @@ RUN curl -Lf https://raw.githubusercontent.com/geode-sdk/geode-docker/refs/heads
 RUN --mount=type=cache,target=/cpm-cache,id=cpm-macintel \
     --mount=type=cache,target=/opt/sccache/cache,id=sccache-macintel \
     --mount=type=bind,from=bindings,target=/bindings \
-    cmake --preset macintel-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
+    cmake --preset macintel-cache -DGEODE_DISABLE_PRECOMPILED_HEADERS=On -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=On -DGEODE_COMMIT_HASH=${GEODE_COMMIT_HASH} \
     && cmake --build --preset macintel-cache && \
     ls /workspace/bin/nightly && sccache --show-stats
 

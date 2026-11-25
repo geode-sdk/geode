@@ -135,7 +135,6 @@ void Scrollbar::Impl::draw() {
 
     if (!m_target) return;
 
-    auto contentHeight = m_target->m_contentLayer->getScaledContentHeight();
     auto targetHeight = m_target->getScaledContentHeight();
 
     if (m_trackIsRotated) {

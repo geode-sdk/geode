@@ -576,7 +576,7 @@ void Loader::Impl::loadModGraph(Mod* node, bool early) {
     };
 
     auto res = [this, node, early, unzipFunction]() {
-    auto unzipped = m_unzipResults.find(node);
+        auto unzipped = m_unzipResults.find(node);
         if (early) {
             // Early load mods are eagerly unzipped
             return unzipFunction();

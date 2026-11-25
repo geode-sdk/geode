@@ -19,6 +19,7 @@ ccArray* cocos2d::ccArrayNew(unsigned int capacity)
 	arr->num = 0;
 	arr->arr =  (CCObject**)calloc(capacity, sizeof(CCObject*));
 	arr->max = capacity;
+    arr->childIndex = -1;
 
 	return arr;
 }
@@ -448,18 +449,6 @@ void cocos2d::ccCArrayFullRemoveArray(ccCArray *arr, ccCArray *minusArr)
 	arr->num -= back;
 }
 
-CCArray::CCArray()
-: data(NULL)
-{
-    init();
-}
-
-CCArray::CCArray(unsigned int capacity)
-: data(NULL)
-{
-    initWithCapacity(capacity);
-}
-
 CCArray* CCArray::create()
 {
     CCArray* pArray = new CCArray();
@@ -786,11 +775,6 @@ void CCArray::reverseObjects()
 void CCArray::reduceMemoryFootprint()
 {
     ccArrayShrink(data);
-}
-
-CCArray::~CCArray()
-{
-    ccArrayFree(data);
 }
 
 CCObject* CCArray::copyWithZone(CCZone* pZone)

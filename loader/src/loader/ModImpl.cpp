@@ -385,8 +385,8 @@ Result<> Mod::Impl::loadBinary() {
 
     LoaderImpl::get()->releaseNextMod();
 
-    ModStateEvent(ModEventType::Loaded, std::move(m_self)).send();
-    ModStateEvent(ModEventType::DataLoaded, std::move(m_self)).send();
+    ModStateEvent(ModEventType::Loaded, m_self).send();
+    ModStateEvent(ModEventType::DataLoaded, m_self).send();
 
     // do we not have a function for getting all the dependencies of a mod directly? ok then
     // Anyway this lets all of this mod's dependencies know it has been loaded

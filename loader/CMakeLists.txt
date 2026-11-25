@@ -216,9 +216,20 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 if (APPLE)
 	# For profiling
-	target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
+	# target_compile_options(${PROJECT_NAME} PUBLIC "-ftime-trace")
 	# target_link_options(${PROJECT_NAME} PRIVATE "-Wl,-e,_dynamicInit")
 	#set_property(TARGET ${PROJECT_NAME} PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
+endif()
+
+if (ANDROID)
+	if (CMAKE_BUILD_TYPE STREQUAL "Release")
+		add_custom_command(
+			TARGET "${PROJECT_NAME}" POST_BUILD
+			DEPENDS "${PROJECT_NAME}"
+			COMMAND $<$<CONFIG:release>:${CMAKE_STRIP}>
+			ARGS -S $<TARGET_FILE:${PROJECT_NAME}>
+		)
+	endif()
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING MAT_JSON_EXPORTING)

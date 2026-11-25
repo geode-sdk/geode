@@ -372,7 +372,7 @@ class $modify(GeodeKeybindingsLayer, KeybindingsLayer) {
         scrollbar->setAnchorPoint(ccp(1, 0.5f));
         scrollbar->setID("scrollbar");
         m_mainLayer->addChildAtPosition(
-            scrollbar, Anchor::Center, {370 / 2, 0}
+            scrollbar, Anchor::Center, {370.f / 2, 0}
         );
         m_fields->scrollbar = scrollbar;
 
