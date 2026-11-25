@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/platform/platform.hpp>
+#include <Geode/cocos/base_nodes/CCNode.h>
 #include <optional>
 #include <memory>
 
