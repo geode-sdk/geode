@@ -82,7 +82,7 @@ class $modify(CCSprite) {
 
     static CCSprite* create(const char* name) {
         auto* sprite = CCSprite::create(name);
-        if (sprite == nullptr) {
+        if (sprite == nullptr && !Mod::get()->getSettingValue<bool>("disable-fallback")) {
             geode::log::warn("CCSprite::create - Using fallback texture for `{}`", name);
 
             sprite = CCSprite::createWithTexture(getFallbackTexture());
@@ -119,8 +119,10 @@ class $modify(CCSprite) {
     }
 
     virtual bool initWithSpriteFrame(CCSpriteFrame* frame) {
-        if (CCSprite::initWithSpriteFrame(frame)) {
-            return true;
+        bool result = CCSprite::initWithSpriteFrame(frame);
+        
+        if (result || Mod::get()->getSettingValue<bool>("disable-fallback")) {
+            return result;
         }
 
         geode::log::warn("CCSprite::initWithSpriteFrame - Using fallback texture for `{}`", frame);
@@ -130,8 +132,11 @@ class $modify(CCSprite) {
     }
 
     virtual bool initWithFile(const char *pszFilename) {
-        if (CCSprite::initWithFile(pszFilename))
-            return true;
+        bool result = CCSprite::initWithFile(pszFilename);
+
+        if (result || Mod::get()->getSettingValue<bool>("disable-fallback")) {
+            return result;
+        }
 
         geode::log::warn("CCSprite::initWithFile - Using fallback texture for `{}`", pszFilename);
 
@@ -140,8 +145,11 @@ class $modify(CCSprite) {
     }
 
     virtual bool initWithFile(const char *pszFilename, const CCRect& rect) {
-        if (CCSprite::initWithFile(pszFilename, rect))
-            return true;
+        bool result = CCSprite::initWithFile(pszFilename, rect);
+
+        if (result || Mod::get()->getSettingValue<bool>("disable-fallback")) {
+            return result;
+        }
 
         geode::log::warn("CCSprite::initWithFile - Using fallback texture for `{}`", pszFilename);
 
@@ -179,6 +187,10 @@ class $modify(CCSpriteFrameCache) {
             }
         }
 
+        if (Mod::get()->getSettingValue<bool>("disable-fallback")) {
+            return nullptr;
+        }
+
         geode::log::warn("CCSpriteFrameCache::spriteFrameByName - Using fallback texture for `{}`", name);
 
         // check if the fallback was already added
@@ -205,7 +217,7 @@ class $modify (CCSpriteBatchNode)
 
     bool initWithTexture(CCTexture2D *tex, unsigned int capacity)
     {
-        if (!tex)
+        if (!tex && !Mod::get()->getSettingValue<bool>("disable-fallback"))
         {
             geode::log::warn("CCSpriteBatchNode::initWithTexture - using fallback");
 
