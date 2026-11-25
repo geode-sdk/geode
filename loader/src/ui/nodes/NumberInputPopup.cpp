@@ -2,6 +2,7 @@
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/Button.hpp>
+#include <Geode/ui/SliderNode.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <Geode/utils/general.hpp>
 #include <Geode/loader/Mod.hpp>
@@ -14,10 +15,11 @@ public:
 
     TextInput* m_input;
     CCNode* m_inputContainer;
+    SliderNode* m_slider;
     Button* m_submitBtn = nullptr;
     Button* m_resetBtn;
 
-    double m_current = 0.0;
+    double m_value = 0.0;
     double m_default = 0.0;
 
     double m_max = std::numeric_limits<double>::max();
@@ -28,12 +30,14 @@ public:
     size_t m_precision = 0;
 
     void updateInput(double step = 0.0) {
-        m_current = std::clamp(m_current + step, m_min, m_max);
-        m_input->setString(fmt::format("{:.{}f}", m_current, m_precision));
+        m_value = std::clamp(m_value + step, m_min, m_max);
+
+        m_input->setString(fmt::format("{:.{}f}", m_value, m_precision));
+        m_slider->setValue(m_value);
     }
 
     void validateString(std::string const& str) {
-        m_current = numFromString<double>(str).unwrapOr(m_default);
+        m_value = numFromString<double>(str).unwrapOr(m_default);
         this->updateInput();
     }
 };
@@ -42,9 +46,9 @@ NumberInputPopup::NumberInputPopup() : m_impl(std::make_unique<Impl>()) {}
 NumberInputPopup::~NumberInputPopup() = default;
 
 bool NumberInputPopup::init(double defValue, std::string title, ZStringView bg, std::optional<double> min, std::optional<double> max) {
-    if (!Popup::init({225.0f, 125.0f}, bg)) return false;
+    if (!Popup::init({225.0f, 140.0f}, bg)) return false;
 
-    m_impl->m_current = defValue;
+    m_impl->m_value = defValue;
     m_impl->m_default = defValue;
 
     if (min.has_value()) m_impl->m_min = *min;
@@ -65,7 +69,7 @@ bool NumberInputPopup::init(double defValue, std::string title, ZStringView bg, 
             ->setAutoGrowAxis(0.1f)
             ->setGrowCrossAxis(true)
     );
-    m_mainLayer->addChildAtPosition(m_impl->m_inputContainer, Anchor::Center);
+    m_mainLayer->addChildAtPosition(m_impl->m_inputContainer, Anchor::Center, {0.0f, 5.0f});
 
     m_impl->m_input = TextInput::create(55.0f, "Num");
     m_impl->m_input->setID("page-input");
@@ -108,6 +112,25 @@ bool NumberInputPopup::init(double defValue, std::string title, ZStringView bg, 
 
     m_impl->m_inputContainer->updateLayout();
 
+    m_impl->m_slider = SliderNode::create([this](auto, float value){
+        m_impl->m_value = value;
+        log::info("hold {}", value);
+    });
+    m_impl->m_slider->setID("slider");
+    m_impl->m_slider->setScale(0.75f);
+    m_impl->m_slider->setMin(m_impl->m_min);
+    m_impl->m_slider->setMax(m_impl->m_max);
+    m_impl->m_slider->linkTextInput(m_impl->m_input, m_impl->m_precision);
+
+    m_impl->m_slider->setReleaseCallback([this](auto, float value) {
+        this->setValue(value);
+        log::info("rel {}", value);
+    });
+    
+    m_mainLayer->addChildAtPosition(m_impl->m_slider, Anchor::Center, {0.0f, -20.0f});
+
+    this->enableSlider(false);
+
     m_impl->m_resetBtn = Button::createWithSpriteFrameName(
         "GJ_resetBtn_001.png",
         [this](auto) {
@@ -148,9 +171,23 @@ void NumberInputPopup::setSubmitCallback(SubmitCallback cb) {
 }
 
 void NumberInputPopup::setValue(double value) {
-    m_impl->m_current = value;
+    m_impl->m_value = value;
     m_impl->updateInput();
 }
+
+void NumberInputPopup::setMin(double min) {
+    m_impl->m_min = min;
+    m_impl->m_slider->setMin(min);
+
+    m_impl->updateInput();
+};
+
+void NumberInputPopup::setMax(double max) {
+    m_impl->m_max = max;
+    m_impl->m_slider->setMax(max);
+
+    m_impl->updateInput();
+};
 
 void NumberInputPopup::setArrowStep(double step) {
     m_impl->m_step = std::abs(step);
@@ -158,6 +195,8 @@ void NumberInputPopup::setArrowStep(double step) {
 
 void NumberInputPopup::setPrecision(size_t precision) {
     m_impl->m_precision = precision;
+    m_impl->m_slider->setTextInputPrecision(precision);
+
     m_impl->updateInput();
 }
 
@@ -175,12 +214,17 @@ void NumberInputPopup::showResetButton(bool show) {
     m_title->setLimitLabelWidth(m_mainLayer->getContentWidth() - (show ? 65.0f : 20.0f), 0.7f);
 }
 
+void NumberInputPopup::enableSlider(bool enable) {
+    m_impl->m_slider->setVisible(enable);
+    m_impl->m_slider->setEnabled(enable);
+}
+
 void NumberInputPopup::resetSubmitCallback() {
     m_impl->m_callback = nullptr;
 }
 
 double NumberInputPopup::getValue() const noexcept {
-    return m_impl->m_current;
+    return m_impl->m_value;
 }
 
 double NumberInputPopup::getMin() const noexcept {
@@ -221,3 +265,47 @@ NumberInputPopup* NumberInputPopup::create(double defValue, std::string title, Z
     delete ret;
     return nullptr;
 }
+
+// testing this shit
+
+#include <Geode/modify/MenuLayer.hpp>
+#include <Geode/utils/random.hpp>
+#include <Geode/ui/Notification.hpp>
+
+class $modify(MenuLayer) {
+    bool init() {
+        if (!MenuLayer::init()) return false;
+
+        if (auto menu = getChildByID("main-menu")) menu->setVisible(false);
+
+        queueInMainThread([]() {
+            auto popup = NumberInputPopup::create(6.7, "Pick a totally awesome number!", "GE_square01.png"_spr, -6.66, 49.99999);
+            popup->setupSubmitBtn("Submit", "GE_button_05.png"_spr);
+            popup->setCloseButtonColor(CircleBaseColor::DarkPurple);
+            popup->setInputWidth(65.f);
+            popup->setArrowStep(.67);
+            popup->setPrecision(2);
+            popup->enableSlider(true);
+            popup->setSubmitCallback([](NumberInputPopup* sender, double num) {
+                auto yes = num > random::generate<double>(1., 100.);
+                Notification::create(
+                    yes ? "Lucky!" : "Unlucky...",
+                    yes ? NotificationIcon::Success : NotificationIcon::Error
+                )->show();
+
+                if (yes) createQuickPopup(
+                    "Confirm",
+                    fmt::format("You got lucky with <cy>{}</c>! Would you like to <cr>close the popup</c> now?", num),
+                    "Cancel",
+                    "Yes",
+                    [sender](auto, bool ok) {
+                        if (ok) sender->onClose(nullptr);
+                    }
+                );
+            });
+            popup->show();
+        });
+
+        return true;
+    };
+};

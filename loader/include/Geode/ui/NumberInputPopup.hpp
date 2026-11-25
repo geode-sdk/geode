@@ -52,6 +52,9 @@ namespace geode {
         /// @note This will not fire the callback
         void setValue(double value);
 
+        void setMin(double min);
+        void setMax(double max);
+
         /// Set the step of the number input
         /// @param step The amount to increment/decrement the value by when using the arrow buttons
         void setArrowStep(double step);
@@ -71,6 +74,9 @@ namespace geode {
 
         /// Show or hide the reset button, which sets the input to the default value provided on creation
         void showResetButton(bool show);
+
+        /// Show or hide the slider below the text input
+        void enableSlider(bool enable);
 
         /// Reset the callback that would've been called when the user submitted a number
         void resetSubmitCallback();
