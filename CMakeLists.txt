@@ -75,6 +75,28 @@ if (DEFINED ENV{GEODE_BINDINGS_REPO_PATH})
 	string(REPLACE "\\" "/" GEODE_BINDINGS_REPO_PATH ${temp})
 endif()
 
+if (GEODE_BINDINGS_REPO_PATH)
+  file(GLOB GEODE_BINDINGS_CONTENTS "${GEODE_BINDINGS_REPO_PATH}/*")
+  list(LENGTH GEODE_BINDINGS_CONTENTS GEODE_BINDINGS_COUNT)
+
+  if(GEODE_BINDINGS_COUNT EQUAL 0)
+    set(GEODE_BINDINGS_REPO_PATH "")
+  endif()
+
+  if (EXISTS "${GEODE_BINDINGS_REPO_PATH}/.pull-latest-promise")
+    find_package(Git)
+    if (Git_FOUND)
+      message(DEBUG "Found pull promise, updating bindings to latest")
+      execute_process(
+        COMMAND ${GIT_EXECUTABLE} pull
+        WORKING_DIRECTORY "${GEODE_BINDINGS_REPO_PATH}"
+        ERROR_QUIET
+      )
+      file(REMOVE "${GEODE_BINDINGS_REPO_PATH}/.pull-latest-promise")
+    endif()
+  endif()
+endif()
+
 if (NOT GEODE_BINDINGS_REPO_PATH)
 	message(STATUS
 		"No override path for bindings provided, using CPM to clone default. "
@@ -234,6 +256,12 @@ if (WIN32)
 		add_compile_options(--target=x86_64-pc-windows-msvc)
 		add_link_options(--target=x86_64-pc-windows-msvc)
 	endif()
+
+	# When building debug/rwdi, lld defaults to 0 code elimination, preserving all functions in the binary
+	# This is very rarely wanted, so force /OPT:REF to eliminate unused functions
+	if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		target_link_options(${PROJECT_NAME} INTERFACE "-Wl,/OPT:REF")
+	endif()
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -258,18 +286,19 @@ if (ANDROID)
 	endif()
 endif()
 
+CPMAddPackage("gh:geode-sdk/result#1668d22")
 set(MAT_JSON_AS_INTERFACE ON)
-CPMAddPackage("gh:geode-sdk/result@1.5.0")
-CPMAddPackage("gh:geode-sdk/json@4.0.1")
+set(MAT_JSON_BUILD_IMPL ${PROJECT_IS_TOP_LEVEL})
+CPMAddPackage("gh:geode-sdk/json@4.1.0")
 CPMAddPackage("gh:geode-sdk/nontype_functional#6d1d08c")
 CPMAddPackage("gh:fmtlib/fmt#12.2.0")
 
 # allow overriding asp / arc versions
 if (NOT DEFINED GEODE_ARC_VERSION)
-	set(GEODE_ARC_VERSION "@1.6.4" CACHE STRING "")
+	set(GEODE_ARC_VERSION "@1.6.6" CACHE STRING "")
 endif()
 if (NOT DEFINED GEODE_ASP_VERSION)
-	set(GEODE_ASP_VERSION "@1.5.3" CACHE STRING "")
+	set(GEODE_ASP_VERSION "@1.6.4" CACHE STRING "")
 endif()
 
 CPMAddPackage("gh:dankmeme01/asp2${GEODE_ASP_VERSION}")
@@ -325,7 +354,7 @@ if (DEFINED GEODE_TULIPHOOK_REPO_PATH)
 	message(STATUS "Using ${GEODE_TULIPHOOK_REPO_PATH} for TulipHook")
 	add_subdirectory(${GEODE_TULIPHOOK_REPO_PATH} ${GEODE_TULIPHOOK_REPO_PATH}/build)
 else()
-	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.15")
+	CPMAddPackage("gh:geode-sdk/TulipHook@3.1.16")
 endif()
 set(CMAKE_WARN_DEPRECATED ON CACHE BOOL "" FORCE)
 

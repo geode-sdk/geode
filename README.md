@@ -24,7 +24,7 @@ Here's a **Hello World** mod in Geode:
 using namespace geode::prelude;
 
 class $modify(MenuLayer) {
-	void onMoreGames(CCObject*) {
+	void onNews(CCObject*) {
 		FLAlertLayer::create(
 			"Geode",
 			"Hello World from my Custom Mod!",
@@ -34,7 +34,7 @@ class $modify(MenuLayer) {
 };
 ```
 
-This code modifies what happens when the "More Games" button is clicked on the home scene in Geometry Dash, showing a custom popup.
+This code modifies what happens when the "News" button is clicked on the home scene in Geometry Dash, showing a custom popup.
 
 ## Documentation
 

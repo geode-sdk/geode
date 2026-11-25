@@ -48,6 +48,10 @@ $register_ids(MenuLayer) {
 
     setIDSafe<CCLabelBMFont>(this, labelOffset++, "player-username");
 
+    if (!GM->getGameVariable("0048") && GM->m_clickedGarage) {
+        setIDSafe<CCSprite>(this, spriteOffset++, "view-profile-hint");
+    }
+
     if(auto node = this->getChildByID("settings-gamepad-icon")) {
         // hide it until someone figures out how to bind the positioning to the actual button
         node->setVisible(false);
@@ -78,6 +82,25 @@ $register_ids(MenuLayer) {
             profileMenu->updateLayout();
         }
 
+        if (GM->modUIRank() == 2) {
+            if (auto queueBtn = setIDSafe(menu, 3, "mod-queue-button")) {
+                auto modQueueMenu = detachAndCreateMenu(
+                    this, "mod-queue-menu",
+                    SimpleRowLayout::create()
+                        ->setMainAxisAlignment(MainAxisAlignment::Start)
+                        ->ignoreInvisibleChildren(false)
+                        ->setGap(5.f),
+                    queueBtn
+                );
+                modQueueMenu->setContentSize({ 150.f, 50.f });
+                modQueueMenu->setPositionX(
+                    modQueueMenu->getPositionX() + 150.f / 2 -
+                        queueBtn->getScaledContentSize().width / 2
+                );
+                modQueueMenu->updateLayout();
+            }
+        }
+
         // the buttons are added in order play, icon, editor which doesn't work
         // well with setLayout that deals with children in order
         menu->swapChildIndices(playBtn, iconBtn);
@@ -96,7 +119,9 @@ $register_ids(MenuLayer) {
         auto ach = setIDSafe(menu, 0, "achievements-button");
         setIDSafe(menu, 1, "settings-button");
         setIDSafe(menu, 2, "stats-button");
-        setIDSafe(menu, 3, "newgrounds-button");
+        if(!GM->safeModeEnabled()) {
+            setIDSafe(menu, 3, "newgrounds-button");
+        }
 
         // move daily chest to its own menu
 
@@ -129,10 +154,10 @@ $register_ids(MenuLayer) {
         setIDSafe(menu, 5, "discord-button");
     }
 
-    // more games menu
+    // news menu
     if (auto menu = this->getChildByType<CCMenu>(3)) {
-        menu->setID("more-games-menu");
-        auto moreGamesBtn = setIDSafe(menu, 0, "more-games-button");
+        menu->setID("news-menu");
+        auto newsBtn = setIDSafe(menu, 0, "news-button");
 
         // move close button to its own menu
 
@@ -156,7 +181,7 @@ $register_ids(MenuLayer) {
         menu->setContentSize({ 100.f, 50.f });
         menu->setPositionX(
             menu->getPositionX() - 100.f / 2 +
-                getSizeSafe(moreGamesBtn).width / 2
+                getSizeSafe(newsBtn).width / 2
         );
         menu->setLayout(
             SimpleRowLayout::create()

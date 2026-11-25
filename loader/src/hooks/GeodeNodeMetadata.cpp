@@ -552,6 +552,7 @@ namespace geode {
         virtual void removeAll() {}
         virtual void visit(float) {}
 
+        // NOLINTNEXTLINE(misc-new-delete-overloads)
         static void operator delete(void* ptr) {
             // this is a disgusting hack oh my god
         }

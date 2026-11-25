@@ -33,7 +33,7 @@ namespace geode {
         void onReset(cocos2d::CCObject* sender);
         void onClose(cocos2d::CCObject* sender) override;
 
-        void textChanged(CCTextInputNode* input) override;
+        void textChanged(TextInput* input);
         void colorValueChanged(cocos2d::ccColor3B color) override;
 
         void updateState(cocos2d::CCNode* except = nullptr);

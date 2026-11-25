@@ -177,6 +177,8 @@ bool BitmapFont::initWithContents(std::string_view text) {
 
                 if (key == "lineHeight") {
                     m_commonHeight = utils::numFromString<int>(value).unwrapOrDefault();
+                } else if (key == "base") {
+                    m_base = utils::numFromString<int>(value).unwrapOrDefault();
                 } else if (key == "scaleW") {
                     auto val = utils::numFromString<int>(value).unwrapOrDefault();
                     m_atlasSize.width = val;
@@ -263,6 +265,7 @@ void BitmapFont::initBakedValues() {
     }
 
     m_commonHeightScaled = m_commonHeight * scale;
+    m_baseScaled = m_base * scale;
 }
 
 void BitmapFont::setFontFile(std::string file) noexcept {
@@ -301,8 +304,17 @@ float BitmapFont::getCommonHeight() const noexcept {
     return m_commonHeight;
 }
 
+float BitmapFont::getBase() const noexcept {
+    return m_base;
+}
+
 float BitmapFont::getCommonHeightScaled() const noexcept {
     return m_commonHeightScaled;
+}
+
+float BitmapFont::getBaseScaled() const noexcept {
+    if (m_baseScaled > 0.f) return m_baseScaled;
+    return m_commonHeightScaled * 0.8f;
 }
 
 float BitmapFont::getKerning(char32_t first, char32_t second) const noexcept {
@@ -392,7 +404,7 @@ struct EmojiRegistry::Impl {
 
         for (auto& item : entries) {
             m_keys.push_back(std::get<0>(item));
-            m_entries.push_back(std::move(std::get<1>(item)));
+            m_entries.push_back(std::get<1>(item));
         }
 
         std::vector<size_t> indices(m_keys.size());
@@ -428,6 +440,7 @@ struct EmojiRegistry::Impl {
     }
 };
 
+namespace {
 class SharedIndexBuffer {
 public:
     static SharedIndexBuffer& get() {
@@ -604,6 +617,8 @@ struct ShapedItem {
 
     uint32_t srcIndex = 0;
     uint32_t srcLength = 1;
+    float nodeHeight = 0.0f;
+    bool keepSize = false;
 };
 
 struct WordSpan {
@@ -623,6 +638,12 @@ struct StyleSpan {
     std::optional<ccColor3B> color;
 };
 
+struct DecoSpan {
+    uint32_t start, end;
+    int flags;
+};
+}
+
 struct Label::Impl {
     std::string m_text;
     asp::SmallVec<BitmapFont*, 2> m_fonts;
@@ -638,6 +659,10 @@ struct Label::Impl {
     std::vector<ShapedItem> m_shaped;
     asp::SmallVec<WordSpan, 3> m_words;
     asp::SmallVec<LineSpan, 1> m_lines;
+    std::vector<Run> m_runs;
+
+    std::vector<DecoSpan> m_decoSpans;
+    LabelFontBatch m_decoBatch;
 
     std::vector<StyleSpan> m_styles;
 
@@ -680,7 +705,9 @@ struct Label::Impl {
     bool m_quadsDirty = true;
     bool m_sizeDirty = true;
 
-    Impl(Label* label) : m_label(label) {}
+    Impl(Label* label)
+        : m_label(label),
+          m_decoBatch(CCTextureCache::get()->textureForKey("cc_2x2_white_image")) {}
 
     float getFontScale(size_t fontIndex) const {
         if (fontIndex == 0 || m_fonts.empty()) return 1.0f;
@@ -690,6 +717,13 @@ struct Label::Impl {
 
         if (fallbackHeight <= 0.0f) return 1.0f;
         return baseHeight / fallbackHeight;
+    }
+
+    float getSpaceWidthForFont(uint8_t fontIndex) const {
+        if (fontIndex >= m_fonts.size()) return m_spaceWidth;
+        auto const& chars = m_fonts[fontIndex]->getCharDefs();
+        auto it = chars.find(U' ');
+        return it != chars.end() ? it->second.xAdvanceScaled : m_spaceWidth;
     }
 
     ccColor4B getEffectiveColor(ccColor3B color) const {
@@ -756,7 +790,7 @@ struct Label::Impl {
         return static_cast<uint8_t>(m_emojiBatches.size() - 1);
     }
 
-    bool tryMatchEmojiOrNode(std::u32string_view str, size_t& index) {
+    bool tryMatchEmojiOrNode(std::u32string_view str, size_t& index, uint32_t globalOffset = 0) {
         if (!m_emojiRegistry || m_fonts.empty()) return false;
 
         size_t srcIndex = index;
@@ -779,7 +813,7 @@ struct Label::Impl {
                     .fontIndex = batchIndex,
                     .advance = frameW * scale,
                     .emoji = emoji,
-                    .srcIndex = static_cast<uint32_t>(srcIndex),
+                    .srcIndex = static_cast<uint32_t>(globalOffset + srcIndex),
                     .srcLength = static_cast<uint32_t>(index - srcIndex + 1),
                 });
             }
@@ -801,7 +835,7 @@ struct Label::Impl {
                 .fontIndex = 0,
                 .advance = size.width * (baseHeight / (size.height > 0.f ? size.height : 1.f)),
                 .node = node,
-                .srcIndex = static_cast<uint32_t>(srcIndex),
+                .srcIndex = static_cast<uint32_t>(globalOffset + srcIndex),
                 .srcLength = static_cast<uint32_t>(index - srcIndex + 1),
             });
 
@@ -812,22 +846,35 @@ struct Label::Impl {
         return true;
     }
 
-    std::tuple<BitmapFont::CharDef const*, uint8_t> findGlyphDef(char32_t& ch) {
+    std::tuple<BitmapFont::CharDef const*, uint8_t> findGlyphDef(char32_t& ch, uint8_t startFont = 0) {
         char32_t upper = (ch >= U'a' && ch <= U'z') ? (ch - U'a' + U'A') : ch; // backwards compat with CCLabelBMFont
 
-        for (uint8_t j = 0; j < m_fonts.size(); ++j) {
+        auto tryFont = [&](uint8_t j) -> BitmapFont::CharDef const* {
             auto const& chars = m_fonts[j]->getCharDefs();
             auto it = chars.find(ch);
-            if (it != chars.end()) {
-                return { &it->second, j };
-            }
+            if (it != chars.end()) return &it->second;
 
             if (ch != upper) {
                 auto it2 = chars.find(upper);
                 if (it2 != chars.end()) {
                     ch = upper;
-                    return {&it2->second, j};
+                    return &it2->second;
                 }
+            }
+
+            return nullptr;
+        };
+
+        if (startFont < m_fonts.size()) {
+            if (auto def = tryFont(startFont)) {
+                return { def, startFont };
+            }
+        }
+
+        for (uint8_t j = 0; j < m_fonts.size(); ++j) {
+            if (j == startFont) continue;
+            if (auto def = tryFont(j)) {
+                return { def, j };
             }
         }
 
@@ -1055,6 +1102,136 @@ struct Label::Impl {
         closeSpan(m_shaped.size());
     }
 
+    void reshapeRuns() {
+        uint32_t prevCp = 0;
+        uint8_t prevFontIndex = 0;
+        uint32_t globalIndex = 0;
+
+        for (auto& run : m_runs) {
+            if (run.node) {
+                CCNode* node = run.node();
+                auto size = node ? node->getScaledContentSize() : CCSize{};
+                m_shaped.push_back(ShapedItem{
+                    .kind = ShapedItem::Kind::Node,
+                    .fontIndex = 0,
+                    .advance = size.width,
+                    .node = node,
+                    .srcIndex = globalIndex,
+                    .srcLength = 1,
+                    .nodeHeight = size.height,
+                    .keepSize = true,
+                });
+
+                if (node) {
+                    m_label->addChild(node);
+                    m_embeddedNodes.push_back(node);
+                }
+
+                ++globalIndex;
+                continue;
+            }
+
+            if (run.text.empty()) continue;
+
+            fmt::basic_memory_buffer<char32_t> buffer;
+            buffer.resize(simdutf::utf32_length_from_utf8(run.text));
+            if (simdutf::convert_utf8_to_utf32(run.text.data(), run.text.size(), buffer.data()) == 0)
+                continue;
+
+            auto text = std::u32string_view(buffer.data(), buffer.size());
+
+            uint8_t runFontIndex = 0;
+            if (run.font) {
+                bool found = false;
+                for (uint8_t j = 0; j < m_fonts.size(); ++j) {
+                    if (m_fonts[j] == run.font) {
+                        runFontIndex = j;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    if (auto tex = CCTextureCache::get()->addImage(run.font->getAtlasName().c_str(), false)) {
+                        m_fonts.emplace_back(run.font);
+                        m_batches.emplace_back(tex);
+                        runFontIndex = m_fonts.size() - 1;
+                    }
+                }
+            }
+
+            float spaceWidth = this->getSpaceWidthForFont(runFontIndex);
+            uint32_t spanStart = m_shaped.size();
+            for (size_t i = 0; i < text.size(); i++) {
+                char32_t ch = text[i];
+                switch (ch) {
+                    case '\n': {
+                        m_shaped.push_back(ShapedItem{
+                            .kind = ShapedItem::Kind::Newline,
+                            .fontIndex = 0,
+                            .advance = 0.f,
+                            .def = nullptr,
+                            .srcIndex = globalIndex + static_cast<uint32_t>(i),
+                            .srcLength = 1,
+                        });
+                        prevCp = 0;
+                        break;
+                    }
+                    case ' ':
+                    case '\t': {
+                        float advance = spaceWidth + m_extraKerning;
+                        if (ch == '\t') advance *= 4.f;
+                        m_shaped.push_back(ShapedItem{
+                            .kind = ShapedItem::Kind::Space,
+                            .fontIndex = 0,
+                            .advance = advance,
+                            .def = nullptr,
+                            .srcIndex = globalIndex + static_cast<uint32_t>(i),
+                            .srcLength = 1,
+                        });
+                        prevCp = ch; prevFontIndex = 0;
+                        break;
+                    }
+                    default: {
+                        if (m_emojiRegistry && this->tryMatchEmojiOrNode(text, i, globalIndex)) {
+                            prevCp = 0;
+                            continue;
+                        }
+                        auto [def, fontIdx] = this->findGlyphDef(ch, runFontIndex);
+                        if (!def) break;
+                        this->appendGlyphItem(
+                            ch, def, fontIdx,
+                            globalIndex + static_cast<uint32_t>(i),
+                            prevCp, prevFontIndex
+                        );
+                        break;
+                    }
+                }
+            }
+
+            uint32_t spanEnd = m_shaped.size();
+            if (spanEnd > spanStart) {
+                if (!m_styles.empty() && m_styles.back().end == spanStart && m_styles.back().color == run.color) {
+                    m_styles.back().end = spanEnd;
+                } else {
+                    m_styles.push_back(StyleSpan{spanStart, spanEnd, run.color});
+                }
+
+                if (run.decoration != TextDecorationNone) {
+                    if (!m_decoSpans.empty() && m_decoSpans.back().end == spanStart && m_decoSpans.back().flags == run.decoration) {
+                        m_decoSpans.back().end = spanEnd;
+                    } else {
+                        m_decoSpans.push_back(DecoSpan{spanStart, spanEnd, run.decoration});
+                    }
+                }
+            }
+
+            globalIndex += text.size();
+        }
+
+        m_codepointCount = globalIndex;
+    }
+
     void reshape() {
         for (auto& node : m_embeddedNodes) {
             node->removeFromParent();
@@ -1063,6 +1240,12 @@ struct Label::Impl {
         m_embeddedNodes.clear();
         m_shaped.clear();
         m_styles.clear();
+        m_decoSpans.clear();
+
+        if (!m_runs.empty()) {
+            this->reshapeRuns();
+            return;
+        }
 
         fmt::basic_memory_buffer<char32_t> buffer;
         buffer.resize(simdutf::utf32_length_from_utf8(m_text));
@@ -1292,6 +1475,97 @@ struct Label::Impl {
         }
     }
 
+    static ccV2F_C4B_T2F_Quad makeQuad(float x0, float y0, float x1, float y1, ccColor4B color) {
+        return {
+            .bl = { .vertices = {x0, y0}, .colors = color, .texCoords = {0.f, 0.f} },
+            .br = { .vertices = {x1, y0}, .colors = color, .texCoords = {1.f, 0.f} },
+            .tl = { .vertices = {x0, y1}, .colors = color, .texCoords = {0.f, 1.f} },
+            .tr = { .vertices = {x1, y1}, .colors = color, .texCoords = {1.f, 1.f} },
+        };
+    }
+
+    void emitDecoQuads() {
+        m_decoBatch.quads.clear();
+        m_decoBatch.isDirty = true;
+
+        if (m_decoSpans.empty() || m_fonts.empty() || m_shaped.empty()) return;
+
+        auto labelColor = this->getEffectiveColor();
+        float commonHeight = m_fonts[0]->getCommonHeightScaled();
+        float base = m_fonts[0]->getBaseScaled();
+        float descent = std::max(commonHeight - base, 0.f);
+
+        static constexpr float UNDERLINE_DESCENT_RATIO = 0.35f;
+        static constexpr float UNDERLINE_MIN_GAP = 1.f;
+        static constexpr float UNDERLINE_THICK = 1.f;
+        static constexpr float STRIKE_BASE_RATIO = 0.25f;
+        static constexpr float STRIKE_THICK = 1.5f;
+
+        float underlineGap = std::max(descent * UNDERLINE_DESCENT_RATIO, UNDERLINE_MIN_GAP);
+        float underlineCenterOffset = -underlineGap;
+        float strikeCenterOffset = base * STRIKE_BASE_RATIO;
+
+        size_t decoIdx = 0;
+        size_t styleIdx = 0;
+
+        for (uint32_t i = 0; i < m_shaped.size(); ++i) {
+            auto const& item = m_shaped[i];
+            if (
+                item.kind == ShapedItem::Kind::Newline
+                || item.kind == ShapedItem::Kind::Node
+                || item.kind == ShapedItem::Kind::Emoji
+            ) {
+                continue;
+            }
+
+            while (decoIdx + 1 < m_decoSpans.size() && i >= m_decoSpans[decoIdx].end) {
+                ++decoIdx;
+            }
+
+            int deco = (decoIdx < m_decoSpans.size() && i >= m_decoSpans[decoIdx].start && i < m_decoSpans[decoIdx].end)
+                ? m_decoSpans[decoIdx].flags : TextDecorationNone;
+
+            if (deco == TextDecorationNone) continue;
+
+            while (styleIdx + 1 < m_styles.size() && i >= m_styles[styleIdx].end) {
+                ++styleIdx;
+            }
+
+            ccColor4B color = labelColor;
+            if (
+                styleIdx < m_styles.size()
+                && i >= m_styles[styleIdx].start
+                && i <  m_styles[styleIdx].end
+                && m_styles[styleIdx].color
+            ) {
+                color = this->getEffectiveColor(*m_styles[styleIdx].color);
+            }
+
+            auto const& pen = m_itemPens[i];
+            float x0 = pen.x;
+            float x1 = pen.x + item.advance;
+            float baselineY = pen.y - base;
+
+            if (deco & TextDecorationUnderline) {
+                float center = baselineY + underlineCenterOffset;
+                m_decoBatch.quads.push_back(this->makeQuad(
+                    x0, center - UNDERLINE_THICK * 0.5f,
+                    x1, center + UNDERLINE_THICK * 0.5f,
+                    color
+                ));
+            }
+
+            if (deco & TextDecorationStrikethrough) {
+                float center = baselineY + strikeCenterOffset;
+                m_decoBatch.quads.push_back(this->makeQuad(
+                    x0, center - STRIKE_THICK * 0.5f,
+                    x1, center + STRIKE_THICK * 0.5f,
+                    color
+                ));
+            }
+        }
+    }
+
     void emitQuads() {
         for (auto& batch : m_batches) {
             batch.quads.clear();
@@ -1325,13 +1599,44 @@ struct Label::Impl {
         float commonHeight = m_fonts[0]->getCommonHeightScaled();
         float lineHeight = commonHeight + m_extraLineSpacing;
 
+        bool hasTallNodes = false;
+        for (auto const& it : m_shaped) {
+            if (it.kind == ShapedItem::Kind::Node && it.keepSize && it.nodeHeight > lineHeight) {
+                hasTallNodes = true;
+                break;
+            }
+        }
+
+        std::vector<float> lineH;
+        if (hasTallNodes) {
+            lineH.assign(m_lines.size(), lineHeight);
+            for (size_t li = 0; li < m_lines.size(); ++li) {
+                auto const& line = m_lines[li];
+                for (uint32_t wi = line.start; wi < line.end; ++wi) {
+                    auto const& word = m_words[wi];
+                    for (uint32_t ii = word.start; ii < word.end; ++ii) {
+                        auto const& item = m_shaped[ii];
+                        if (item.kind == ShapedItem::Kind::Node && item.keepSize) {
+                            lineH[li] = std::max(lineH[li], item.nodeHeight);
+                        }
+                    }
+                }
+            }
+        }
+
+        auto lineHeightAt = [&](size_t li) -> float {
+            return lineH.empty() ? lineHeight : lineH[li];
+        };
+
+        float totalHeight = 0.f;
+        for (size_t li = 0; li < m_lines.size(); ++li) totalHeight += lineHeightAt(li);
+
         float maxLineWidth = 0.f;
-        float totalHeight = lineHeight * m_lines.size();
         float y = totalHeight;
 
         size_t styleIdx = 0;
         auto getColor = [&](uint32_t i) -> ccColor4B {
-            if (!m_useRichText) return color;
+            if (!m_useRichText && m_runs.empty()) return color;
 
             while (styleIdx + 1 < m_styles.size() && i >= m_styles[styleIdx].end) {
                 ++styleIdx;
@@ -1347,6 +1652,10 @@ struct Label::Impl {
         for (uint32_t li = 0; li < m_lines.size(); ++li) {
             auto const& line = m_lines[li];
             bool isLastLine = li == m_lines.size() - 1;
+
+            float lineTop = y;
+            float lh = lineHeightAt(li);
+            float textY = lineTop - (lh - lineHeight) * 0.5f;
 
             float startX = 0.f;
             float extraPerGap = 0.f;
@@ -1377,7 +1686,7 @@ struct Label::Impl {
                 for (uint32_t ii = word.start; ii < word.end; ++ii) {
                     auto const& item = m_shaped[ii];
 
-                    m_itemPens[ii] = CCPoint{x, y};
+                    m_itemPens[ii] = CCPoint{x, textY};
                     m_penCovered[ii] = 1;
 
                     switch (item.kind) {
@@ -1414,22 +1723,38 @@ struct Label::Impl {
                             break;
                         }
                         case ShapedItem::Kind::Node: {
-                            auto size = item.node->getContentSize();
-                            float scale = size.height > 0.f ? commonHeight / size.height : 1.f;
-                            item.node->setScale(scale);
-                            item.node->setPosition({ x + size.width * scale * 0.5f, y + commonHeight * 0.5f - commonHeight });
-                            if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(item.node)) {
+                            if (!item.node) break;
+
+                            auto anchor = item.node->getAnchorPoint();
+                            float w, h, cx, cy;
+
+                            if (item.keepSize) {
+                                w = item.advance;
+                                h = item.nodeHeight;
+                                cx = x + w * anchor.x;
+                                cy = lineTop - lh * 0.5f + h * (anchor.y - 0.5f);
+                            } else {
+                                auto size = item.node->getContentSize();
+                                float s = size.height > 0.f ? commonHeight / size.height : 1.f;
+                                item.node->setScale(s);
+                                w = size.width * s;
+                                h = size.height * s;
+                                cx = x + w * anchor.x;
+                                cy = textY - commonHeight * 0.5f + h * (anchor.y - 0.5f);
+                            }
+
+                            item.node->setPosition({cx, cy});
+
+                            if (auto* rgba = typeinfo_cast<CCRGBAProtocol*>(item.node)) {
                                 if (m_customNodesColors) rgba->setColor(m_color);
                                 rgba->setOpacity(m_opacity);
                             }
 
-                            auto pos = item.node->getPosition();
                             m_glyphs.push_back(GlyphInfo{
                                 CCRect{
-                                    pos.x - size.width * scale * 0.5f,
-                                    pos.y - size.height * scale * 0.5f,
-                                    size.width * scale,
-                                    size.height * scale
+                                    cx - w * anchor.x,
+                                    cy - h * anchor.y,
+                                    w, h
                                 },
                                 item.srcIndex, item.srcLength, GlyphKind::Node,
                             });
@@ -1526,7 +1851,7 @@ struct Label::Impl {
             }
 
             maxLineWidth = std::max(maxLineWidth, lineMaxX);
-            y -= lineHeight;
+            y = lineTop - lh;
         }
 
         for (size_t i = 0; i < m_shaped.size(); ++i) {
@@ -1545,14 +1870,15 @@ struct Label::Impl {
             }
         }
 
-        m_label->setContentSize({ maxLineWidth, lineHeight * m_lines.size() });
+        m_label->setContentSize({ maxLineWidth, totalHeight });
         m_sizeDirty = true;
+        this->emitDecoQuads();
     }
 
     void updateQuads() {
         auto color = this->getEffectiveColor();
 
-        if (!m_useRichText || m_styles.empty()) {
+        if ((!m_useRichText && m_runs.empty()) || m_styles.empty()) {
             for (auto& batch : m_batches) {
                 for (auto& quad : batch.quads) {
                     quad.bl.colors = color;
@@ -1610,6 +1936,8 @@ struct Label::Impl {
                 rgba->setOpacity(m_opacity);
             }
         }
+
+        this->emitDecoQuads();
     }
 
     void applyLimitScale() {
@@ -2502,10 +2830,14 @@ void Label::draw() {
         maxQuads = std::max(maxQuads, batch.quads.size());
     }
 
+    m_impl->m_decoBatch.upload();
+    maxQuads = std::max(maxQuads, m_impl->m_decoBatch.quads.size());
+
     if (maxQuads == 0) return;
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, SharedIndexBuffer::get().getIBO(maxQuads));
 
+    m_impl->m_decoBatch.draw();
     for (auto const& batch : m_impl->m_batches) { batch.draw(); }
     ccGLBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for (auto const& batch : m_impl->m_emojiBatches) { batch.draw(); }
@@ -2682,6 +3014,7 @@ void Label::setLimitLabelWidth(float width, float maxScale, float minScale) noex
     m_impl->m_minScale = minScale;
     m_impl->m_limitChanged = true;
     m_impl->m_fitLabelSize = false;
+    m_impl->m_sizeDirty = true;
 }
 
 void Label::setLimitLabelHeight(float height, float maxScale, float minScale) noexcept {
@@ -2690,6 +3023,7 @@ void Label::setLimitLabelHeight(float height, float maxScale, float minScale) no
     m_impl->m_minScale = minScale;
     m_impl->m_limitChanged = true;
     m_impl->m_fitLabelSize = false;
+    m_impl->m_sizeDirty = true;
 }
 
 void Label::setLimitLabelSize(CCSize size, float maxScale, float minScale) noexcept {
@@ -2698,6 +3032,7 @@ void Label::setLimitLabelSize(CCSize size, float maxScale, float minScale) noexc
     m_impl->m_minScale = minScale;
     m_impl->m_limitChanged = true;
     m_impl->m_fitLabelSize = false;
+    m_impl->m_sizeDirty = true;
 }
 
 void Label::removeLabelSizeLimit() noexcept {
@@ -2748,6 +3083,14 @@ void Label::setCharColor(uint32_t index, ccColor4B color) {
     quad.tr.colors = color;
 
     m_impl->m_batches[ref.batchIndex].isDirty = true;
+}
+
+ccColor4B Label::getCharColor(uint32_t index) noexcept {
+    this->validate();
+    auto& chars = m_impl->m_chars;
+    if (index >= chars.size()) return {255, 255, 255, 255};
+    auto ref = chars[index];
+    return m_impl->m_batches[ref.batchIndex].quads[ref.charIndex].bl.colors;
 }
 
 size_t Label::getCharCount() noexcept {
@@ -2827,6 +3170,32 @@ std::optional<CCRect> Label::getCharBounds(size_t codepointIndex) noexcept {
     return CCRect{ pen.x, pen.y - lineHeight, 0.f, lineHeight };
 }
 
+std::vector<CCRect> Label::getRangeRects(size_t startIndex, size_t endIndex) noexcept {
+    this->validate();
+
+    std::vector<CCRect> out;
+
+    float lineHeight = this->getLineHeight();
+    auto const& shaped = m_impl->m_shaped;
+    for (size_t i = 0; i < shaped.size(); ++i) {
+        auto const& item = shaped[i];
+
+        if (item.srcIndex + item.srcLength <= startIndex) continue;
+        if (item.srcIndex >= endIndex) break;
+        if (item.kind == ShapedItem::Kind::Newline) continue;
+
+        auto const& pen = m_impl->m_itemPens[i];
+        float y = pen.y - lineHeight;
+        if (!out.empty() && std::abs(out.back().origin.y - y) < 0.01f) {
+            out.back().size.width = pen.x + item.advance - out.back().origin.x;
+        } else {
+            out.push_back({ pen.x, y, item.advance, lineHeight });
+        }
+    }
+
+    return out;
+}
+
 std::optional<CCPoint> Label::getCursorPosition(size_t codepointIndex) noexcept {
     this->validate();
 
@@ -2846,6 +3215,30 @@ std::optional<CCPoint> Label::getCursorPosition(size_t codepointIndex) noexcept 
     return CCPoint{ pen.x, pen.y - lineHeight };
 }
 
+std::optional<size_t> Label::getCodepointAt(CCPoint localPoint) noexcept {
+    this->validate();
+    auto const& shaped = m_impl->m_shaped;
+    if (shaped.empty()) return std::nullopt;
+
+    float lineHeight = this->getLineHeight();
+
+    for (size_t i = 0; i < shaped.size(); ++i) {
+        auto const& item = shaped[i];
+        auto const& pen = m_impl->m_itemPens[i];
+
+        float x0 = pen.x;
+        float x1 = pen.x + item.advance;
+        float y0 = pen.y - lineHeight;
+        float y1 = pen.y;
+
+        if (localPoint.x >= x0 && localPoint.x < x1 && localPoint.y >= y0 && localPoint.y < y1) {
+            return item.srcIndex;
+        }
+    }
+
+    return std::nullopt;
+}
+
 void Label::setEmojiRegistry(EmojiRegistry const& registry) {
     m_impl->m_emojiRegistry = registry.m_impl;
     m_impl->m_textDirty = true;
@@ -2856,6 +3249,10 @@ EmojiRegistry Label::getEmojiRegistry() {
         return EmojiRegistry();
     }
     return EmojiRegistry(m_impl->m_emojiRegistry);
+}
+
+void Label::disableEmojis() {
+    this->setEmojiRegistry(EmojiRegistry());
 }
 
 void Label::setColor(ccColor3B const& color) {
@@ -3004,11 +3401,12 @@ bool Label::isCascadeOpacityEnabled() {
 }
 
 void Label::setText(std::string text) noexcept {
-    if (m_impl->m_text == text) {
+    if (m_impl->m_text == text && m_impl->m_runs.empty()) {
         return;
     }
 
     m_impl->m_text = std::move(text);
+    m_impl->m_runs.clear();
     m_impl->m_textDirty = true;
 }
 
@@ -3020,14 +3418,10 @@ void Label::setRichText(std::string text) {
     bool wasRich = m_impl->m_useRichText;
     m_impl->m_useRichText = true;
 
-    if (m_impl->m_text == text) {
-        if (!wasRich) {
-            m_impl->m_textDirty = true;
-        }
-        return;
-    }
+    if (m_impl->m_text == text && wasRich && m_impl->m_runs.empty()) return;
 
     m_impl->m_text = std::move(text);
+    m_impl->m_runs.clear();
     m_impl->m_textDirty = true;
 }
 
@@ -3041,12 +3435,21 @@ bool Label::isRichTextEnabled() const noexcept {
     return m_impl->m_useRichText;
 }
 
+void Label::setRuns(std::vector<Run> runs) {
+    std::string combined;
+    for (auto& r : runs) combined.append(r.node ? "\xEF\xBF\xBC" : r.text);
+    m_impl->m_runs = std::move(runs);
+    m_impl->m_text = std::move(combined);
+    m_impl->m_textDirty = true;
+}
+
 void Label::setString(char const* label) {
-    if (m_impl->m_text == label) {
+    if (m_impl->m_text == label && m_impl->m_runs.empty()) {
         return;
     }
 
     m_impl->m_text = label;
+    m_impl->m_runs.clear();
     m_impl->m_textDirty = true;
 }
 

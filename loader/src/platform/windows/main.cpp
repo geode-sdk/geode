@@ -433,7 +433,7 @@ static constexpr errc codes[] = {
 }
 
 static void fixThrowCppErrorStub() {
-    auto address = reinterpret_cast<void*>(&std::_Throw_Cpp_error);
+    auto address = addresser::getNonVirtual(&std::_Throw_Cpp_error);
 
     // movabs rax, <hook>
     std::vector<uint8_t> patchBytes = {
@@ -448,7 +448,7 @@ static void fixThrowCppErrorStub() {
     patchBytes.push_back(0xff);
     patchBytes.push_back(0xe0);
 
-    if (auto res = Mod::get()->patch(address, patchBytes)) {} else {
+    if (auto res = Mod::get()->patch((void*)address, patchBytes)) {} else {
         log::warn("_Throw_Cpp_error hook failed: {}", res.unwrapErr());
     }
 }

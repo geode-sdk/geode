@@ -65,13 +65,18 @@ size_t OpaquePort::Impl::removeReceiver(ReceiverHandle handle) noexcept {
     auto size = m_receivers.size();
     for (int i = 0; i < size; ++i) {
         if (m_receivers[i]->getHandle() == handle) {
+            std::unique_ptr<OpaqueCallable> toDestroy;
+
             if (m_sending > 0) {
                 // geode::console::log(fmt::format("Added handler with id {} to toRemove", handle), Severity::Debug);
                 m_toRemove.push_back(handle);
             } else {
                 // geode::console::log(fmt::format("Removed handler with id {} from receivers", handle), Severity::Debug);
+                // defer destruction to avoid calling dtor while under the lock
+                toDestroy = std::move(m_receivers[i]);
                 m_receivers.erase(m_receivers.begin() + i);
             }
+            lock.unlock();
             // size - 1, return for symmetry
             return size - 1;
         }
@@ -156,10 +161,10 @@ bool OpaquePort::send(OpaqueCallable::SendFunction opaqueFunction) {
 class EventCenterGlobal::Impl {
 public:
     using KeyType = std::shared_ptr<BaseFilter>;
-    using ValueType = std::unique_ptr<OpaquePort>;
+    using ValueType = std::shared_ptr<OpaquePort>;
     using MapType = std::unordered_map<KeyType, ValueType, BaseFilterHash, BaseFilterEqual>;
 
-    std::mutex m_mutex;
+    std::recursive_mutex m_mutex;
     MapType m_ports;
 
     bool send(BaseFilter const* filter, OpaqueCallable::SendFunction sendFunction);
@@ -179,12 +184,12 @@ EventCenterGlobal* EventCenterGlobal::get() {
 bool EventCenterGlobal::Impl::send(BaseFilter const* filter, OpaqueCallable::SendFunction sendFunction) {
     // log::debug("EventCenterGlobal sending event for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
-    auto lock = std::unique_lock<std::mutex>(m_mutex);
+    auto lock = std::unique_lock(m_mutex);
     auto it = m_ports.find(filter);
     auto const end = m_ports.end();
 
     if (it != end) {
-        auto* opaquePort = it->second.get();
+        auto opaquePort = it->second;
         lock.unlock();
         return opaquePort->send(std::move(sendFunction));
     }
@@ -193,12 +198,12 @@ bool EventCenterGlobal::Impl::send(BaseFilter const* filter, OpaqueCallable::Sen
 ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, OpaqueCallable* opaqueCallable, int priority) noexcept {
     // log::debug("EventCenterGlobal adding receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
-    auto lock = std::unique_lock<std::mutex>(m_mutex);
+    auto lock = std::unique_lock(m_mutex);
     auto it = m_ports.find(filter);
     auto const end = m_ports.end();
 
     if (it != end) {
-        auto* opaquePort = it->second.get();
+        auto opaquePort = it->second;
         auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority);
 
         return ListenerHandle(it->first, receiverHandle, nullptr);
@@ -206,10 +211,10 @@ ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, Op
     else {
         auto clonedFilter = Impl::KeyType(filter->clone());
         if (!clonedFilter) return ListenerHandle();
-        auto filter2 = clonedFilter.get();
+        // auto filter2 = clonedFilter.get();
         // geode::console::log(fmt::format("Cloned filter for adding receiver {}, {}", (void*)filter2, cast::getRuntimeTypeName(filter2)), Severity::Debug);
 
-        auto opaquePort = std::make_unique<OpaquePort>();
+        auto opaquePort = std::make_shared<OpaquePort>();
 
         auto receiverHandle = opaquePort->addReceiver(opaqueCallable, priority);
         auto listenerHandle = ListenerHandle(clonedFilter, receiverHandle, nullptr);
@@ -219,12 +224,12 @@ ListenerHandle EventCenterGlobal::Impl::addReceiver(BaseFilter const* filter, Op
     }
 }
 size_t EventCenterGlobal::Impl::getReceiverCount(BaseFilter const* filter) noexcept {
-    auto lock = std::unique_lock<std::mutex>(m_mutex);
+    auto lock = std::unique_lock(m_mutex);
     auto it = m_ports.find(filter);
     auto const end = m_ports.end();
 
     if (it != end) {
-        auto* opaquePort = it->second.get();
+        auto opaquePort = it->second;
 
         lock.unlock();
         return opaquePort->getReceiverCount();
@@ -234,12 +239,12 @@ size_t EventCenterGlobal::Impl::getReceiverCount(BaseFilter const* filter) noexc
 size_t EventCenterGlobal::Impl::removeReceiver(BaseFilter const* filter, ReceiverHandle handle) noexcept {
     // log::debug("EventCenterGlobal removing receiver for filter {}, {}", (void*)filter, cast::getRuntimeTypeName(filter));
 
-    auto lock = std::unique_lock<std::mutex>(m_mutex);
+    auto lock = std::unique_lock(m_mutex);
     auto it = m_ports.find(filter);
     auto const end = m_ports.end();
 
     if (it != end) {
-        auto* opaquePort = it->second.get();
+        auto opaquePort = it->second;
 
         auto size = opaquePort->removeReceiver(handle);
         if (size == 0) {

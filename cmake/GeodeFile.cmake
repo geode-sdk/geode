@@ -1,4 +1,4 @@
-set(GEODE_CLI_MINIMUM_VERSION 4.0.0)
+set(GEODE_CLI_MINIMUM_VERSION 4.0.1)
 
 # Find Geode CLI
 if (NOT DEFINED GEODE_CLI OR GEODE_CLI STREQUAL "GEODE_CLI-NOTFOUND")
@@ -253,6 +253,8 @@ function(setup_geode_mod proname)
         target_link_libraries(${proname} ${SETUP_GEODE_MOD_LINK_TYPE} ${libs_to_link})
 
     endif()
+
+    geode_build_check(${proname})
 
     # Add package target + make output name the mod id
     set_target_properties(${proname} PROPERTIES PREFIX "")

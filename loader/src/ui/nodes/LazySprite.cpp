@@ -212,7 +212,7 @@ void LazySprite::Impl::doInitFromBytes(std::vector<uint8_t> data, std::string ca
 
             // store texture
             if (!cacheKey.empty()) {
-                CCTextureCache::get()->m_pTextures->setObject(texture, cacheKey.c_str());
+                CCTextureCache::get()->m_pTextures->setObject(texture, cacheKey);
             }
 
             // this is weird but don't touch it unless you should

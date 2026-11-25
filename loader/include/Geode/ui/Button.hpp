@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/loader/Event.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/touch_dispatcher/CCTouchDelegateProtocol.h>
@@ -9,6 +10,17 @@
 namespace geode {
     class GEODE_DLL Button : public cocos2d::CCNodeRGBA, public cocos2d::CCTouchDelegate {
     public:
+
+        enum class ClickType {
+            Selected,
+            Activated,
+            Unselected
+        };
+
+        class ClickedEvent : public geode::GlobalEvent<ClickedEvent, bool(Button*, ClickType), bool(), Button*, ClickType> {
+            using GlobalEvent::GlobalEvent;
+        };
+
         using ButtonCallback = geode::Function<void(Button* sender)>;
 
         enum class AnimationType {
@@ -57,7 +69,7 @@ namespace geode {
          * @param font The font of the label
          * @param activateCallback The callback for when the button is activated
          */
-        static Button* createWithLabel(geode::ZStringView text, geode::ZStringView font, ButtonCallback activateCallback = nullptr);
+        static Button* createWithLabel(std::string text, geode::ZStringView font, ButtonCallback activateCallback = nullptr);
 
         /**
          * Get the Display Node, which was created or passed in on button creation
@@ -103,6 +115,30 @@ namespace geode {
          * Set a callback for when the button is unselected
          */
         void setUnselectCallback(ButtonCallback callback);
+
+        /**
+         * Add a callback for when the button is activated
+         */
+        template <class Callback>
+        void addActivateCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Button::ClickedEvent(this, Button::ClickType::Activated), std::forward<Callback>(callback), priority);
+        }
+
+        /**
+         * Add a callback for when the button is selected
+         */
+        template <class Callback>
+        void addSelectCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Button::ClickedEvent(this, Button::ClickType::Selected), std::forward<Callback>(callback), priority);
+        }
+
+        /**
+         * Add a callback for when the button is unselected
+         */
+        template <class Callback>
+        void addUnselectCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Button::ClickedEvent(this, Button::ClickType::Unselected), std::forward<Callback>(callback), priority);
+        }
 
         /**
          * Set the touch priority of the Button
@@ -196,7 +232,7 @@ namespace geode {
         bool initWithNode(cocos2d::CCNode* node, ButtonCallback activateCallback);
         bool initWithSprite(geode::ZStringView fileName, ButtonCallback activateCallback);
         bool initWithSpriteFrameName(geode::ZStringView frameName, ButtonCallback activateCallback);
-        bool initWithLabel(geode::ZStringView text, geode::ZStringView font, ButtonCallback activateCallback);
+        bool initWithLabel(std::string text, geode::ZStringView font, ButtonCallback activateCallback);
 
     private:
         class Impl;

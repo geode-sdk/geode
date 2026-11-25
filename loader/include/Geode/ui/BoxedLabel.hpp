@@ -14,26 +14,21 @@ namespace geode {
 
         void resize();
 
-        bool init(std::string text, ZStringView font, ZStringView bg, float width);
+        bool init(std::string text, ZStringView font, ZStringView bg, std::optional<float> width);
 
     public:
         /// Create a label visually encased by a NineSlice
         /// @param text Text to display on the label
         /// @param font Name of the label's font `.fnt` file
-        static BoxedLabel* create(std::string text, ZStringView font);
+        /// @param width Text label width limit, set to `std::nullopt` for dynamic width
+        static BoxedLabel* create(std::string text, ZStringView font, std::optional<float> width = std::nullopt);
 
-        /// Create a label visually encased by a NineSlice with a width limit
-        /// @param text Text to display on the label
-        /// @param font Name of the label's font `.fnt` file
-        /// @param width Text label width limit, set to 0 for dynamic width
-        static BoxedLabel* create(std::string text, ZStringView font, float width);
-
-        /// Create a label visually encased by a NineSlice with a distinct background and width limit
+        /// Create a label visually encased by a NineSlice with a distinct background
         /// @param text Text to display on the label
         /// @param font Name of the label's font `.fnt` file
         /// @param bg Sprite name for the box background
-        /// @param width Text label width limit, set to 0 for dynamic width
-        static BoxedLabel* create(std::string text, ZStringView font, ZStringView bg, float width = .0f);
+        /// @param width Text label width limit, set to `std::nullopt` for dynamic width
+        static BoxedLabel* create(std::string text, ZStringView font, ZStringView bg, std::optional<float> width = std::nullopt);
 
         /// Change the label text
         /// @param text Text to display on the label
@@ -51,32 +46,32 @@ namespace geode {
         /// @param alignment Direction the label expands from
         void setTextAlignment(Label::Alignment alignment);
 
-        /// Set the maximum width of the label
-        void setMaxLabelWidth(float width);
+        /// Set the maximum width of the box
+        void setMaxWidth(float width);
 
         /// Change the padding between the edges of the box and the text label
         void setPadding(float padding);
 
         /// Change the sprite of the NineSlice surrounding the text label
-        void setBGSprite(ZStringView spriteName);
+        void setBoxSprite(ZStringView spriteName);
 
         /// Change the color of the NineSlice surrounding the text label
-        void setBGColor(cocos2d::ccColor3B const& color);
+        void setBoxColor(cocos2d::ccColor3B const& color);
 
         /// Change the opacity of the NineSlice surrounding the text label
-        void setBGOpacity(GLubyte opacity);
+        void setBoxOpacity(GLubyte opacity);
 
         /// Change the scale multiplier of the NineSlice surrounding the text label
-        void setBGScale(float scale);
+        void setBoxScale(float scale);
 
-        /// Lock the box at the maximum width if set, instead of dynamically expanding with the label
-        void lockBGWidth(bool lock);
+        /// Lock the box at the maximum width, instead of dynamically expanding with the label
+        void lockWidth(bool lock);
 
-        float getMaxLabelWidth() const noexcept;
+        float getMaxWidth() const noexcept;
         float getPadding() const noexcept;
-        bool isBGWidthLocked() const noexcept;
+        bool isWidthLocked() const noexcept;
 
         Label* getLabelNode() const noexcept;
-        NineSlice* getBGSprite() const noexcept;
+        NineSlice* getBoxSprite() const noexcept;
     };
 };

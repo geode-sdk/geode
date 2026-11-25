@@ -148,7 +148,7 @@ GEODE_DLL arc::Future<file::PickResult> file::pick(file::PickMode mode, file::Fi
             auto FileExtension = [NSString stringWithUTF8String:options.defaultPath->c_str()];
             FileURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:FileExtension]];
         }
-        
+
         // just for the picker not to crash, it gotta have a file to "save" then the writing is handled in the mod once we save the file somewhere
         [@"" writeToURL:FileURL atomically:NO encoding:NSUTF8StringEncoding error:nil];
 
@@ -370,9 +370,7 @@ void geode::utils::game::launchLoaderUninstaller(bool deleteSaveData) {
     log::error("Launching Geode uninstaller is not supported on iOS");
 }
 
-CCPoint cocos::getMousePos() {
-    return CCPoint(0, 0);
-}
+void cocos::setMousePos(cocos2d::CCPoint const& pos) {}
 
 namespace {
     std::string s_savedBaseDir = "";
@@ -396,12 +394,12 @@ asp::fs::Path dirs::getGameDir() {
     return getBaseDir() / "game";
 }
 
-asp::fs::Path dirs::getModRuntimeDir() {
-    return dirs::getGeodeDir() / "unzipped";
-}
-
 asp::fs::Path dirs::getSaveDir() {
     return getBaseDir() / "save";
+}
+
+asp::fs::Path dirs::getGeodeInternalDir() {
+    return dirs::getGeodeDir();
 }
 
 asp::fs::Path dirs::getResourcesDir() {
@@ -410,9 +408,9 @@ asp::fs::Path dirs::getResourcesDir() {
 
 bool geode::utils::permission::getPermissionStatus(Permission permission) {
     switch (permission) {
-        case Permission::RecordAudio: 
+        case Permission::RecordAudio:
             return [[AVAudioSession sharedInstance] recordPermission] == AVAudioSessionRecordPermissionGranted;
-        default: 
+        default:
             return false;
     }
 }
@@ -515,7 +513,7 @@ cocos2d::CCRect geode::utils::getSafeAreaRect() {
             0, 0,
             winSize.width, winSize.height
         );
-    
+
     auto scaleX = glView->m_fScaleX;
     auto scaleY = glView->m_fScaleY;
 
@@ -626,7 +624,8 @@ bool geode::utils::platform::isWine() {
 }
 
 const char* getCurrentArch() {
-    if (@available(iOS 16.0, *)) {
+    NSOperatingSystemVersion version = {16, 0, 0};
+    if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:version]) {
         return macho_arch_name_for_mach_header(nullptr);
     } else {
         return "arm64";

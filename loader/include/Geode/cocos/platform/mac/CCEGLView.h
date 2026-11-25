@@ -61,6 +61,8 @@ public:
 
 	void showCursor(bool state);
 
+    CCPoint getMousePosition() const;
+
 private:
     static CCEGLView* s_sharedView;
 

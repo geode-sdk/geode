@@ -60,6 +60,13 @@ namespace geode::dirs {
     /**
      * Directory where mods' unzipped packages are stored at runtime
      *
+     * Windows/macOS/iOS: `getGeodeDir()`
+     * Android: {Android Launcher's internal files directory}/geode
+     */
+    GEODE_DLL asp::fs::Path getGeodeInternalDir();
+    /**
+     * Directory where mods' unzipped packages are stored at runtime
+     *
      * Windows/macOS/iOS: `getGeodeDir()`/unzipped
      * Android: {Android Launcher's internal files directory}/geode/unzipped
      */

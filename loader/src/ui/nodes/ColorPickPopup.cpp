@@ -176,7 +176,13 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
     m_impl->m_rInput = TextInput::create(50.f, "R");
     m_impl->m_rInput->setScale(.7f);
-    m_impl->m_rInput->setDelegate(this, TAG_R_INPUT);
+    m_impl->m_rInput->setMaxCharCount(3);
+    m_impl->m_rInput->setCommonFilter(CommonFilter::Uint);
+    m_impl->m_rInput->setNumericMode(true);
+    m_impl->m_rInput->setTag(TAG_R_INPUT);
+    m_impl->m_rInput->setCallback([this](auto& value) {
+        this->textChanged(m_impl->m_rInput);
+    });
     m_impl->m_rInput->setID("r-input");
     rColumn->addChild(m_impl->m_rInput);
 
@@ -205,7 +211,13 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
     m_impl->m_gInput = TextInput::create(50.f, "G");
     m_impl->m_gInput->setScale(.7f);
-    m_impl->m_gInput->setDelegate(this, TAG_G_INPUT);
+    m_impl->m_gInput->setMaxCharCount(3);
+    m_impl->m_gInput->setCommonFilter(CommonFilter::Uint);
+    m_impl->m_gInput->setNumericMode(true);
+    m_impl->m_gInput->setTag(TAG_G_INPUT);
+    m_impl->m_gInput->setCallback([this](auto& value) {
+        this->textChanged(m_impl->m_gInput);
+    });
     m_impl->m_gInput->setID("g-input");
     gColumn->addChild(m_impl->m_gInput);
 
@@ -234,7 +246,13 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
     m_impl->m_bInput = TextInput::create(50.f, "B");
     m_impl->m_bInput->setScale(.7f);
-    m_impl->m_bInput->setDelegate(this, TAG_B_INPUT);
+    m_impl->m_bInput->setMaxCharCount(3);
+    m_impl->m_bInput->setCommonFilter(CommonFilter::Uint);
+    m_impl->m_bInput->setNumericMode(true);
+    m_impl->m_bInput->setTag(TAG_B_INPUT);
+    m_impl->m_bInput->setCallback([this](auto& value) {
+        this->textChanged(m_impl->m_bInput);
+    });
     m_impl->m_bInput->setID("b-input");
     bColumn->addChild(m_impl->m_bInput);
 
@@ -263,7 +281,11 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
     m_impl->m_hexInput = TextInput::create(165.f, "Hex");
     m_impl->m_hexInput->setScale(.7f);
-    m_impl->m_hexInput->setDelegate(this, TAG_HEX_INPUT);
+    m_impl->m_hexInput->setCommonFilter(CommonFilter::Hex);
+    m_impl->m_hexInput->setTag(TAG_HEX_INPUT);
+    m_impl->m_hexInput->setCallback([this](auto& value) {
+        this->textChanged(m_impl->m_hexInput);
+    });
     m_impl->m_hexInput->setID("hex-input");
     hexColumn->addChild(m_impl->m_hexInput);
 
@@ -317,7 +339,13 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 
         m_impl->m_opacityInput = TextInput::create(60.f, "Opacity");
         m_impl->m_opacityInput->setScale(.7f);
-        m_impl->m_opacityInput->setDelegate(this, TAG_OPACITY_INPUT);
+        m_impl->m_opacityInput->setMaxCharCount(3);
+        m_impl->m_opacityInput->setCommonFilter(CommonFilter::Uint);
+        m_impl->m_opacityInput->setNumericMode(true);
+        m_impl->m_opacityInput->setTag(TAG_OPACITY_INPUT);
+        m_impl->m_opacityInput->setCallback([this](auto& value) {
+            this->textChanged(m_impl->m_opacityInput);
+        });
         m_impl->m_opacityInput->setID("opacity-input");
         opacitySection->addChild(m_impl->m_opacityInput);
 
@@ -341,9 +369,9 @@ bool ColorPickPopup::init(ccColor4B const& color, bool isRGBA) {
 }
 
 void ColorPickPopup::updateState(CCNode* except) {
-    #define IF_NOT_EXCEPT(inp, value)                  \
-        if (inp->getInputNode() != except) {           \
-            inp->setString(value, false);              \
+    #define IF_NOT_EXCEPT(inp, value)     \
+        if (inp != except) {              \
+            inp->setString(value, false); \
         }
 
     IF_NOT_EXCEPT(m_impl->m_rInput, numToString<int>(m_impl->m_color.r));
@@ -382,7 +410,7 @@ void ColorPickPopup::onClose(CCObject* sender) {
     Popup::onClose(sender);
 }
 
-void ColorPickPopup::textChanged(CCTextInputNode* input) {
+void ColorPickPopup::textChanged(TextInput* input) {
     if (input->getString().size()) {
         switch (input->getTag()) {
             case TAG_HEX_INPUT:

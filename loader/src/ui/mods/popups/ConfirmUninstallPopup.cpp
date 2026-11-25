@@ -1,75 +1,74 @@
 #include "ConfirmUninstallPopup.hpp"
+#include "../UpdateModListState.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/TextArea.hpp>
 #include <Geode/ui/Label.hpp>
 
 bool ConfirmUninstallPopup::init(Mod* mod) {
-    if (!Popup::init(300.f, 150.f, "square01_001.png"))
-        return false;
+    if (!Popup::init(300.0f, 150.0f, "square01_001.png")) return false;
 
     m_mod = mod;
 
     this->setTitle(fmt::format("Uninstall {}", mod->getName()));
 
-    // TODO: 2.209 (change to Label?)
-    auto text = TextArea::create(
-        fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{:.100}</c>?", mod->getName()),
-        "chatFont.fnt",
-        1.f, m_size.width - 35,
-        ccp(.5f, .5f), 20.f, false, 0
-    );
-    m_mainLayer->addChildAtPosition(text, Anchor::Center, ccp(0, 20));
+    auto text = Label::createRich(fmt::format("Are you sure you want to \n<cr>uninstall</c> <cy>{}</c>?", mod->getName()), "chatFont.fnt");
+    text->setMaxWidth(m_mainLayer->getContentWidth() - 35.0f);
+    text->setAlignment(Label::Alignment::Center);
+    m_mainLayer->addChildAtPosition(text, Anchor::Center, {0.0f, 20.0f});
 
     auto deleteDataLabel = Label::create("Delete the Mod's save data", "bigFont.fnt");
-    deleteDataLabel->setScale(.35f);
-    m_buttonMenu->addChildAtPosition(deleteDataLabel, Anchor::Center, ccp(-70, -15), ccp(0, .5f));
+    deleteDataLabel->setScale(0.35f);
+    m_mainLayer->addChildAtPosition(deleteDataLabel, Anchor::Center, {-70.0f, -15.0f}, {0.0f, 0.5f});
 
     if (mod->isInternal()) {
         deleteDataLabel->setText("Delete ALL mods and their save data");
         deleteDataLabel->setScale(0.275f);
     }
 
-    m_deleteDataToggle = CCMenuItemToggler::createWithStandardSprites(this, nullptr, .6f);
-    m_buttonMenu->addChildAtPosition(m_deleteDataToggle, Anchor::Center, ccp(-88, -15));
+    m_deleteDataToggle = Toggler::createWithStandardSprites(nullptr);
+    m_deleteDataToggle->setScale(0.6f);
+    m_mainLayer->addChildAtPosition(m_deleteDataToggle, Anchor::Center, {-88.0f, -15.0f});
 
-    auto cancelSpr = ButtonSprite::create("Cancel", "goldFont.fnt", "GJ_button_01.png", .8f);
-    cancelSpr->setScale(.85f);
-    auto cancelBtn = CCMenuItemSpriteExtra::create(
-        cancelSpr, this, menu_selector(ConfirmUninstallPopup::onClose)
+    auto cancelBtn = Button::createWithNode(
+        ButtonSprite::create("Cancel", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+        [this](Button* sender) {
+            this->onClose(sender);
+        }
     );
-    m_buttonMenu->addChildAtPosition(cancelBtn, Anchor::Bottom, ccp(-52, 28));
+    cancelBtn->setScale(0.85f);
+    cancelBtn->setScaleMultiplier(1.125f);
+    m_mainLayer->addChildAtPosition(cancelBtn, Anchor::Bottom, {-52.0f, 28.0f});
 
-    auto uninstallSpr = ButtonSprite::create("Uninstall", "goldFont.fnt", "GJ_button_01.png", .8f);
-    uninstallSpr->setScale(.85f);
-    auto uninstallBtn = CCMenuItemSpriteExtra::create(
-        uninstallSpr, this, menu_selector(ConfirmUninstallPopup::onUninstall)
+    auto uninstallBtn = Button::createWithNode(
+        ButtonSprite::create("Uninstall", "goldFont.fnt", "GJ_button_01.png", 0.8f),
+        [this](auto) {
+            auto res = m_mod->uninstall(m_deleteDataToggle->isToggled());
+
+            if (res) {
+                createQuickPopup(
+                    "Mod Uninstalled",
+                    fmt::format("{} has been uninstalled!", m_mod->getName()),
+                    "OK", nullptr, nullptr
+                );
+            }
+            else {
+                createQuickPopup(
+                    "Error Uninstalling",
+                    fmt::format("Error uninstalling {}: {}", m_mod->getName(), res.unwrapErr()),
+                    "OK", nullptr, nullptr
+                );
+            }
+
+            UpdateModListStateEvent().send(UpdateModState(m_mod->getID()));
+
+            this->onClose(nullptr);
+        }
     );
-    m_buttonMenu->addChildAtPosition(uninstallBtn, Anchor::Bottom, ccp(42, 28));
+    uninstallBtn->setScale(0.85f);
+    uninstallBtn->setScaleMultiplier(1.125f);
+    m_mainLayer->addChildAtPosition(uninstallBtn, Anchor::Bottom, {42.0f, 28.0f});
 
     return true;
-}
-
-void ConfirmUninstallPopup::onUninstall(CCObject*) {
-    auto res = m_mod->uninstall(m_deleteDataToggle->isToggled());
-
-    if (res) {
-        FLAlertLayer::create(
-            "Mod Uninstalled",
-            fmt::format("{:.400} has been uninstalled!", m_mod->getName()),
-            "OK"
-        )->show();
-    }
-    else {
-        FLAlertLayer::create(
-            "Error Uninstalling",
-            fmt::format("Error uninstalling {:.400}: {}", m_mod->getName(), res.unwrapErr()),
-            "OK"
-        )->show();
-    }
-
-    UpdateModListStateEvent().send(UpdateModState(m_mod->getID()));
-
-    this->onClose(nullptr);
 }
 
 ConfirmUninstallPopup* ConfirmUninstallPopup::create(Mod* mod) {

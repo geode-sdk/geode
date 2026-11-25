@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Geode/loader/Event.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/utils/function.hpp>
 #include <Geode/ui/Button.hpp>
@@ -8,6 +9,11 @@ namespace geode {
     /// A toggle button that supports on/off visuals and state callbacks.
     class GEODE_DLL Toggler : public Button {
     public:
+
+        class ToggleEvent : public geode::GlobalEvent<ToggleEvent, bool(Toggler*, bool), bool(bool isToggled), Toggler*> {
+            using GlobalEvent::GlobalEvent;
+        };
+
         using ToggleCallback = geode::Function<void(Toggler* sender, bool isToggled)>;
 
         /// Creates a toggle with on/off nodes.
@@ -156,6 +162,16 @@ namespace geode {
         ///
         /// @param callback Callback to invoke when the toggle changes.
         void setToggleCallback(ToggleCallback callback);
+
+        /// Add a callback
+        ///
+        /// @param ID ID to identify the event listener.
+        /// @param callback Callback to invoke when the toggle changes.
+        /// @param priority The event priority.
+        template <class Callback>
+        void addToggleCallback(ZStringView id, Callback&& callback, int priority = 0) {
+            addEventListener(id, Toggler::ToggleEvent(this), std::forward<Callback>(callback), priority);
+        }
 
         void activate() override;
 

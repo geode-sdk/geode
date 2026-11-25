@@ -1,18 +1,17 @@
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
-#include "../UpdateModListState.hpp"
+#include <Geode/ui/Toggler.hpp>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 
 class ConfirmUninstallPopup : public Popup {
 protected:
     Mod* m_mod;
-    CCMenuItemToggler* m_deleteDataToggle;
+    Toggler* m_deleteDataToggle;
 
     bool init(Mod* mod);
-
-    void onUninstall(CCObject*);
 
 public:
     static ConfirmUninstallPopup* create(Mod* mod);

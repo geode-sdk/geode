@@ -21,10 +21,6 @@ static bool isInsideClippers(CCNode* node, CCPoint worldPoint) {
 
 class Button::Impl final {
 public:
-    ButtonCallback m_activateCallback = nullptr;
-    ButtonCallback m_selectCallback = nullptr;
-    ButtonCallback m_unselectCallback = nullptr;
-
     bool m_enabled = true;
     bool m_selected = false;
     bool m_defaultsSet = false;
@@ -54,6 +50,15 @@ public:
     cocos2d::CCNode* m_displayNode = nullptr;
 
     geode::Ref<cocos2d::CCNodeRGBA> m_defaults = nullptr;
+
+    ButtonCallback m_activateCallback = nullptr;
+    ButtonCallback m_selectedCallback = nullptr;
+    ButtonCallback m_unselectedCallback = nullptr;
+
+    geode::ListenerHandle m_activateListener;
+    geode::ListenerHandle m_selectedListener;
+    geode::ListenerHandle m_unselectedListener;
+
 };
 
 Button::Button() : m_impl(std::make_unique<Impl>()) {}
@@ -82,7 +87,7 @@ Button* Button::createWithNode(CCNode* node, ButtonCallback activateCallback) {
 
 Button* Button::createWithSprite(ZStringView fileName, ButtonCallback activateCallback) {
     auto ret = new Button();
-    if (ret->initWithSprite(std::move(fileName), std::move(activateCallback))) {
+    if (ret->initWithSprite(fileName, std::move(activateCallback))) {
         ret->autorelease();
         return ret;
     }
@@ -92,7 +97,7 @@ Button* Button::createWithSprite(ZStringView fileName, ButtonCallback activateCa
 
 Button* Button::createWithSpriteFrameName(ZStringView frameName, ButtonCallback activateCallback) {
     auto ret = new Button();
-    if (ret->initWithSpriteFrameName(std::move(frameName),std::move(activateCallback))) {
+    if (ret->initWithSpriteFrameName(frameName, std::move(activateCallback))) {
         ret->autorelease();
         return ret;
     }
@@ -100,9 +105,9 @@ Button* Button::createWithSpriteFrameName(ZStringView frameName, ButtonCallback 
     return nullptr;
 }
 
-Button* Button::createWithLabel(ZStringView text, ZStringView font, ButtonCallback activateCallback) {
+Button* Button::createWithLabel(std::string text, ZStringView font, ButtonCallback activateCallback) {
     auto ret = new Button();
-    if (ret->initWithLabel(std::move(text), std::move(font), std::move(activateCallback))) {
+    if (ret->initWithLabel(std::move(text), font, std::move(activateCallback))) {
         ret->autorelease();
         return ret;
     }
@@ -113,7 +118,19 @@ Button* Button::createWithLabel(ZStringView text, ZStringView font, ButtonCallba
 bool Button::init(ButtonCallback activateCallback) {
     if (!CCNodeRGBA::init()) return false;
     m_impl->m_defaults = CCNodeRGBA::create();
+
     m_impl->m_activateCallback = std::move(activateCallback);
+    m_impl->m_activateListener = Button::ClickedEvent(this, Button::ClickType::Activated).listen([this]  {
+        if (m_impl->m_activateCallback) m_impl->m_activateCallback(this);
+    });
+
+    m_impl->m_selectedListener = Button::ClickedEvent(this, Button::ClickType::Selected).listen([this]  {
+        if (m_impl->m_selectedCallback) m_impl->m_selectedCallback(this);
+    });
+
+    m_impl->m_unselectedListener = Button::ClickedEvent(this, Button::ClickType::Unselected).listen([this]  {
+        if (m_impl->m_unselectedCallback) m_impl->m_unselectedCallback(this);
+    });
 
     setCascadeColorEnabled(true);
     setCascadeOpacityEnabled(true);
@@ -160,10 +177,10 @@ bool Button::initWithSpriteFrameName(ZStringView frameName, ButtonCallback activ
     return true;
 }
 
-bool Button::initWithLabel(ZStringView text, ZStringView font, ButtonCallback activateCallback) {
+bool Button::initWithLabel(std::string text, ZStringView font, ButtonCallback activateCallback) {
     if (!Button::init(std::move(activateCallback))) return false;
 
-    m_impl->m_displayNode = Label::create(text, font);
+    m_impl->m_displayNode = Label::create(std::move(text), font);
     if (!m_impl->m_displayNode) return false;
 
     setContentSize(m_impl->m_displayNode->getScaledContentSize());
@@ -310,7 +327,7 @@ void Button::selected() {
         runAction(m_impl->m_activeClickAction);
     }
 
-    if (m_impl->m_selectCallback) m_impl->m_selectCallback(this);
+    Button::ClickedEvent(this, Button::ClickType::Selected).send();
 
     m_impl->m_selected = true;
 }
@@ -327,7 +344,7 @@ void Button::unselected() {
         runAction(m_impl->m_activeReleaseAction);
     }
 
-    if (m_impl->m_unselectCallback) m_impl->m_unselectCallback(this);
+    Button::ClickedEvent(this, Button::ClickType::Unselected).send();
 
     m_impl->m_selected = false;
 }
@@ -338,7 +355,7 @@ void Button::activate() {
 
     resetDefaults();
 
-    if (m_impl->m_activateCallback) m_impl->m_activateCallback(this);
+    Button::ClickedEvent(this, Button::ClickType::Activated).send();
 }
 
 void Button::setScaleMultiplier(float multiplier) {
@@ -350,7 +367,7 @@ float Button::getScaleMultiplier() {
 }
 
 void Button::setMoveOffset(cocos2d::CCPoint const& offset) {
-    m_impl->m_offset = std::move(offset);
+    m_impl->m_offset = offset;
 }
 
 cocos2d::CCPoint Button::getMoveOffset() {
@@ -466,11 +483,11 @@ void Button::setActivateCallback(ButtonCallback callback) {
 }
 
 void Button::setSelectCallback(ButtonCallback callback) {
-    m_impl->m_selectCallback = std::move(callback);
+    m_impl->m_selectedCallback = std::move(callback);
 }
 
 void Button::setUnselectCallback(ButtonCallback callback) {
-    m_impl->m_unselectCallback = std::move(callback);
+    m_impl->m_unselectedCallback = std::move(callback);
 }
 
 void Button::setSwallowTouches(bool swallow) {

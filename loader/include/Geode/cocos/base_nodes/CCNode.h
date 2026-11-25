@@ -678,7 +678,7 @@ public:
      * @returns A pointer to the parnet node
      */
     virtual CCNode* getParent();
-    
+
     /**
      * Util function to add multiple children in one call
      * @note Geode addition
@@ -1049,6 +1049,17 @@ public:
      */
     GEODE_DLL geode::Layout* getLayout();
     /**
+     * Get the Layout for this node
+     * @tparam T `geode::Layout`-based class
+     * @returns The current layout, or nullptr if no layout is set or the template type doesn't match
+     * @note Geode addition
+     */
+    template <class T>
+        requires std::derived_from<std::remove_pointer_t<T>, geode::Layout>
+    auto getLayout() {
+        return geode::cast::typeinfo_cast<std::remove_pointer_t<T>*>(this->getLayout());
+    }
+    /**
      * Update the layout of this node using the current Layout. If no layout is
      * set, nothing happens
      * @note Geode addition
@@ -1232,7 +1243,7 @@ public:
         // start from end for negative index
         if (index < 0) {
             index = -index - 1;
-            for (size_t i = this->getChildrenCount() - 1; i >= 0; i--) {
+            for (size_t i = this->getChildrenCount() - 1;; i--) {
                 auto obj = geode::cast::typeinfo_cast<T*>(this->getChildren()->objectAtIndex(i));
                 if (obj != nullptr) {
                     if (indexCounter == index) {
@@ -2051,7 +2062,7 @@ NS_CC_END
 
 #ifndef GEODE_IS_MEMBER_TEST
 namespace geode {
-    class UserObjectSetEvent final : public Event<UserObjectSetEvent, bool(cocos2d::CCNode*, cocos2d::CCObject*), std::string>  {
+    class UserObjectSetEvent final : public Event<UserObjectSetEvent, bool(cocos2d::CCNode* node, cocos2d::CCObject* value), void(std::string targetID)>  {
     public:
         // listener params node, value
         // filter params targetID

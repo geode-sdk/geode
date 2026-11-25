@@ -17,7 +17,7 @@ namespace geode {
     /**
      * Event that is fired when a mod is loaded / unloaded / enabled / disabled
      */
-    class ModStateEvent final : public GlobalEvent<ModStateEvent, bool(), ModEventType, Mod*> {
+    class ModStateEvent final : public GlobalEvent<ModStateEvent, bool(), void(ModEventType type, Mod* targetMod)> {
     public:
         // filter params type, targetMod
         using GlobalEvent::GlobalEvent;
@@ -26,7 +26,7 @@ namespace geode {
     /**
      * Event posted to a mod when another mod that depends on it is loaded
      */
-    class DependencyLoadedEvent final : public Event<DependencyLoadedEvent, bool(Mod*), Mod*> {
+    class DependencyLoadedEvent final : public Event<DependencyLoadedEvent, bool(Mod* dependency), void(Mod* target)> {
     public:
         // listener params dependency
         // filter params target

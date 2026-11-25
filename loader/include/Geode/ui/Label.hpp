@@ -3,6 +3,12 @@
 #include <variant>
 
 namespace geode {
+    enum TextDecoration : uint8_t {
+        TextDecorationNone          = 0,
+        TextDecorationUnderline     = 1 << 0,
+        TextDecorationStrikethrough = 1 << 1,
+    };
+
     /// A bitmap font cache that acts similarly to cocos2d::CCBMFontConfiguration, but is more performant.
     class GEODE_DLL BitmapFont final {
     public:
@@ -96,9 +102,13 @@ namespace geode {
         Padding getPadding() const noexcept;
         cocos2d::CCSize getAtlasSize() const noexcept;
         float getCommonHeight() const noexcept;
+        float getBase() const noexcept;
 
         /// @return Same as getCommonHeight(), but divided by content scale factor.
         float getCommonHeightScaled() const noexcept;
+
+        /// @return Same as getBase(), but divided by content scale factor.
+        float getBaseScaled() const noexcept;
 
         float getKerning(char32_t first, char32_t second) const noexcept;
 
@@ -111,6 +121,8 @@ namespace geode {
         cocos2d::CCSize m_atlasSize{};
         float m_commonHeight = 0.f;
         float m_commonHeightScaled = 0.f;
+        float m_base = 0.f;
+        float m_baseScaled = 0.f;
     };
 
     /// Container that stores mappings for emojis/custom nodes used by Label
@@ -322,6 +334,16 @@ namespace geode {
 
         BitmapFont* getFont(size_t index = 0) noexcept;
 
+        /// Represents a single run of text with a specific font, color and style.
+        /// Alternatively can be used to add a custom node inside the label.
+        struct Run {
+            std::string text;
+            BitmapFont* font = nullptr; // nullptr to use the primary font
+            std::optional<cocos2d::ccColor3B> color;
+            int decoration = TextDecorationNone;
+            Function<CCNode*()> node;
+        };
+
         /// Sets the text of the label.
         /// If rich-text mode is enabled (see setRichTextEnabled()), the text is parsed for color tags.
         void setText(std::string text) noexcept;
@@ -335,6 +357,9 @@ namespace geode {
         /// When enabled, text assigned through setText()/setString() is parsed for color tags.
         void setRichTextEnabled(bool enabled) noexcept;
         bool isRichTextEnabled() const noexcept;
+
+        /// Sets the label's content as a series of runs.
+        void setRuns(std::vector<Run> runs);
 
         /// Sets the label string. Provided by CCLabelProtocol.
         /// @note Prefer using Label::setText to avoid a string copy.
@@ -391,6 +416,10 @@ namespace geode {
         /// @note You have to call validate() before attempting to change colors, otherwise the changes will be overwritten.
         void setCharColor(uint32_t index, cocos2d::ccColor4B color);
 
+        /// Gets the color for a specified character index (ignores whitespace).
+        /// Returns white if out of range.
+        cocos2d::ccColor4B getCharColor(uint32_t index) noexcept;
+
         /// Gets total amount of characters currently visible (excluding whitespace, emojis and custom nodes).
         /// @note Indices here match setCharColor(). See getGlyphCount() for a count that also includes emojis and custom nodes.
         size_t getCharCount() noexcept;
@@ -437,10 +466,18 @@ namespace geode {
         /// @return The bounds, or nullopt if out of range.
         std::optional<cocos2d::CCRect> getCharBounds(size_t codepointIndex) noexcept;
 
+        /// Gets bounds for a sequence of characters, potentially more than one rect if sequence spans multiple lines.
+        std::vector<cocos2d::CCRect> getRangeRects(size_t startIndex, size_t endIndex) noexcept;
+
         /// Gets the position where a text cursor would be placed at `codepointIndex`.
         /// @param codepointIndex Index of the codepoint, 0 to getCodepointCount() inclusive
         /// @return The pen position in content space. Returns nullopt if out of range.
         std::optional<cocos2d::CCPoint> getCursorPosition(size_t codepointIndex) noexcept;
+
+        /// Returns the codepoint (UTF-32) index whose cell contains `localPoint`.
+        /// @param localPoint Point in label's content space.
+        /// @return Codepoint index, or nullopt if the point is outside any cell.
+        std::optional<size_t> getCodepointAt(cocos2d::CCPoint localPoint) noexcept;
 
         /// Assigns the emoji registry container and enables the rendering of emojis.
         void setEmojiRegistry(EmojiRegistry const& registry);
@@ -448,6 +485,9 @@ namespace geode {
         /// @return The registry currently in use by the label (shared state),
         /// or an empty registry if none was assigned.
         EmojiRegistry getEmojiRegistry();
+
+        /// Resets the emoji registry to an empty one
+        void disableEmojis();
 
         void setColor(cocos2d::ccColor3B const& color) override;
         cocos2d::ccColor3B const& getColor() override;

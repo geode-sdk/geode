@@ -30,7 +30,7 @@ $on_mod(Loaded) {
 
         dlclose(handle);
     #elif defined(GEODE_IS_IOS)
-        void* addr = reinterpret_cast<void*>(base::get() + 0x8ceeb8);
+        void* addr = reinterpret_cast<void*>(base::get() + 0x9cc4a0);
         (void) Mod::get()->patch(addr, geode::toBytes(&cast::typeinfoCastInternal));
     #endif
 }

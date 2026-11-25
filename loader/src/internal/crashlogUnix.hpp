@@ -176,6 +176,8 @@ inline void writeSignalDetail(crashlog::Buffer& stream, crashlog::CrashContext& 
             stream.append("Breakpoint was hit at ");
             ctx.formatAddress(siginfo->si_addr, stream);
         } break;
+
+        default: break;
     }
 
 }

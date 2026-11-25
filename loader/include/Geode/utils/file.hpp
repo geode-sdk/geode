@@ -28,9 +28,45 @@ struct matjson::Serialize<asp::fs::Path> {
 };
 
 namespace geode::utils::file {
-    GEODE_DLL Result<std::string> readString(asp::fs::PathView path);
+    struct FileError {
+        enum {
+            Unknown = -1,
+            AspError = 0,
+            TemporaryFileError,
+        };
+
+        decltype(Unknown) m_value = Unknown;
+        asp::fs::Error m_error = asp::fs::ErrorKind::Success;
+
+        constexpr FileError() = default;
+        constexpr FileError(decltype(Unknown) value) : m_value(value) {}
+        constexpr FileError(asp::fs::Error error) : m_value(AspError), m_error(std::move(error)) {}
+        constexpr FileError(decltype(Unknown) value, asp::fs::Error error) : m_value(value), m_error(std::move(error)) {}
+        constexpr FileError& operator=(decltype(Unknown) value) {
+            m_value = value;
+            return *this;
+        }
+        constexpr decltype(Unknown) value() const {
+            return m_value;
+        }
+
+        GEODE_DLL std::string toString() const;
+        operator std::string() const {
+            return this->toString();
+        }
+    };
+
+    inline std::string format_as(FileError const& err) {
+        return err.toString();
+    }
+
+    inline std::ostream& operator<<(std::ostream& os, FileError const& err) {
+        return os << err.toString();
+    }
+
+    GEODE_DLL Result<std::string, FileError> readString(asp::fs::PathView path);
     GEODE_DLL Result<matjson::Value> readJson(asp::fs::PathView path);
-    GEODE_DLL Result<ByteVector> readBinary(asp::fs::PathView path);
+    GEODE_DLL Result<ByteVector, FileError> readBinary(asp::fs::PathView path);
 
     template <class T>
     Result<T> readFromJson(asp::fs::PathView file) {
@@ -45,7 +81,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeString(asp::fs::PathView path, std::string_view data);
+    GEODE_DLL Result<void, FileError> writeString(asp::fs::PathView path, std::string_view data);
 
     /**
      * Write a string to a file. Unlike the regular writeString, it first writes to a temporary file
@@ -56,7 +92,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeStringSafe(asp::fs::PathView path, std::string_view data);
+    GEODE_DLL Result<void, FileError> writeStringSafe(asp::fs::PathView path, std::string_view data);
 
     /**
      * Write binary data to a file
@@ -65,7 +101,7 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeBinary(asp::fs::PathView path, ByteSpan data);
+    GEODE_DLL Result<void, FileError> writeBinary(asp::fs::PathView path, ByteSpan data);
 
     /**
      * Write binary data to a file. Unlike the regular writeBinary, it first writes to a temporary file
@@ -76,17 +112,18 @@ namespace geode::utils::file {
      * @param data Data to write to the file
      * @returns Result indicating success or failure
      */
-    GEODE_DLL Result<> writeBinarySafe(asp::fs::PathView path, ByteSpan data);
+    GEODE_DLL Result<void, FileError> writeBinarySafe(asp::fs::PathView path, ByteSpan data);
 
     template <class T>
-    Result<> writeToJson(asp::fs::PathView path, T const& data) {
+    Result<void, FileError> writeToJson(asp::fs::PathView path, T const& data) {
         GEODE_UNWRAP(writeString(path, matjson::Value(data).dump()));
         return Ok();
     }
 
-    GEODE_DLL Result<> createDirectory(asp::fs::PathView path);
-    GEODE_DLL Result<> createDirectoryAll(asp::fs::PathView path);
-    GEODE_DLL Result<std::vector<asp::fs::Path>> readDirectory(
+    GEODE_DLL Result<void, FileError> createDirectory(asp::fs::PathView path);
+    GEODE_DLL Result<void, FileError> createDirectoryAll(asp::fs::PathView path);
+    GEODE_DLL Result<void, FileError> moveDirectoryContents(asp::fs::PathView source, asp::fs::PathView target);
+    GEODE_DLL Result<std::vector<asp::fs::Path>, FileError> readDirectory(
         asp::fs::PathView path, bool recursive = false
     );
 
@@ -267,7 +304,7 @@ namespace geode::utils::file {
             // Name of the filter
             std::string description;
             // Extensions (*.txt, *.doc, *.mp3, etc.)
-            std::unordered_set<std::string> files;
+            StringSet files;
         };
 
         /**

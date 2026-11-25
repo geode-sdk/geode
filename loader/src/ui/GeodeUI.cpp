@@ -1,18 +1,19 @@
+#include "GeodeStyle.hpp"
 #include "mods/ModsLayer.hpp"
+#include "mods/popups/ModPopup.hpp"
+#include "mods/settings/KeybindsPopup.hpp"
+#include "mods/settings/ModSettingsPopup.hpp"
+
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/loader/Dirs.hpp>
 #include <Geode/ui/GeodeUI.hpp>
-#include <Geode/ui/MDPopup.hpp>
-#include <Geode/ui/LoadingSpinner.hpp>
 #include <Geode/ui/Label.hpp>
 #include <Geode/ui/LazySprite.hpp>
+#include <Geode/ui/LoadingSpinner.hpp>
+#include <Geode/ui/MDPopup.hpp>
 #include <Geode/utils/ColorProvider.hpp>
 #include <Geode/utils/web.hpp>
 #include <server/Server.hpp>
-#include "mods/GeodeStyle.hpp"
-#include "mods/settings/ModSettingsPopup.hpp"
-#include "mods/settings/KeybindsPopup.hpp"
-#include "mods/popups/ModPopup.hpp"
 
 class LoadServerModLayer : public Popup {
 protected:
@@ -186,25 +187,18 @@ void geode::openSupportPopup(ModMetadata const& metadata) {
 void geode::openInfoPopup(Mod* mod) {
     ModPopup::create(mod)->show();
 }
-std::optional<arc::TaskHandle<bool>> geode::openInfoPopup(std::string modID) {
+
+std::optional<arc::TaskHandle<void>> geode::openInfoPopup(std::string modID) {
     if (auto mod = Loader::get()->getInstalledMod(modID)) {
         openInfoPopup(mod);
         return std::nullopt;
     }
 
     auto popup = LoadServerModLayer::create(std::move(modID));
-    return async::spawn([popup = Ref(popup)] mutable -> arc::Future<bool> {
-        auto ret = co_await popup->listen();
+    return async::spawn(popup->listen(), [popup = Ref(popup)](bool ret) {
         if (ret) {
-            geode::queueInMainThread([popup = std::move(popup)] {
-                popup->show();
-            });
+            popup->show();
         }
-
-        // move it again to avoid destroying in async code, yes this is a potential double move but it doesn't really matter
-        geode::queueInMainThread([popup = std::move(popup)] {});
-
-        co_return ret;
     });
 }
 

@@ -20,6 +20,7 @@ using namespace geode::prelude;
 #import <AppKit/AppKit.h>
 #import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
+#import <Geode/cocos/platform/mac/EAGLView.h>
 #undef CommentType
 
 template <typename T>
@@ -238,12 +239,34 @@ GEODE_DLL arc::Future<Result<std::vector<asp::fs::Path>>> file::pickMany(file::F
     co_return Ok(std::move(res).unwrap());
 }
 
-CCPoint cocos::getMousePos() {
-    auto windowFrame = NSApp.mainWindow.frame;
-    auto viewFrame = NSApp.mainWindow.contentView.frame;
-    auto scaleFactor = CCPoint(CCDirector::get()->getWinSize()) / ccp(viewFrame.size.width, viewFrame.size.height);
-    auto mouse = [NSEvent mouseLocation];
-    return ccp(mouse.x - windowFrame.origin.x, mouse.y - windowFrame.origin.y) * scaleFactor;
+void cocos::setMousePos(cocos2d::CCPoint const& pos) {
+    static Class eaglViewClass = objc_getClass("EAGLView");
+
+    id glview = [eaglViewClass sharedEGLView];
+    NSWindow* window = [glview window];
+    if (!glview || !window) return;
+
+    const auto winSize = CCDirector::get()->getWinSize();
+    const auto npos = pos / winSize;
+    const auto viewPos = NSPoint {
+        npos.x * [glview getWidth],
+        npos.y * [glview getHeight]
+    };
+
+    const auto windowPos = [glview convertPoint:viewPos toView:nil];
+    const auto screenPos = [window convertPointToScreen:windowPos];
+    const auto height = [[[NSScreen screens] firstObject] frame].size.height;
+    CGWarpMouseCursorPosition(CGPointMake(screenPos.x, height - screenPos.y));
+    CGAssociateMouseAndMouseCursorPosition(true);
+
+    //make sure mouse-pos cache isn't stale. y is flipped to match storeEventPoint's impl
+    auto cls = object_getClass(glview);
+    auto ivarX = class_getInstanceVariable(cls, "_mouseX");
+    auto ivarY = class_getInstanceVariable(cls, "_mouseY");
+    if (!ivarX || !ivarY) return;
+
+    *reinterpret_cast<float*>(reinterpret_cast<intptr_t>(glview) + ivar_getOffset(ivarX)) = viewPos.x;
+    *reinterpret_cast<float*>(reinterpret_cast<intptr_t>(glview) + ivar_getOffset(ivarY)) = [glview getHeight] - viewPos.y;
 }
 
 asp::fs::Path dirs::getGameDir() {
@@ -273,12 +296,12 @@ asp::fs::Path dirs::getSaveDir() {
     return path;
 }
 
-asp::fs::Path dirs::getModRuntimeDir() {
-    return dirs::getGeodeDir() / "unzipped";
-}
-
 asp::fs::Path dirs::getResourcesDir() {
     return dirs::getGameDir() / "Resources";
+}
+
+asp::fs::Path dirs::getGeodeInternalDir() {
+    return dirs::getGeodeDir();
 }
 
 void geode::utils::game::exit(bool save) {
@@ -418,12 +441,6 @@ std::string geode::utils::thread::getDefaultName() {
 void geode::utils::thread::platformSetName(ZStringView name) {
     pthread_setname_np(name.c_str());
 }
-
-@interface EAGLView : NSOpenGLView
-+(EAGLView*) sharedEGLView;
-
--(float) getBackingFactor;
-@end
 
 float geode::utils::getDisplayFactor() {
     // while this is also accessible from the NSWindow, the game uses the value in EAGLView

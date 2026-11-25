@@ -12,6 +12,10 @@ Checks: |
   -clang-analyzer-optin.portability.UnixAPI,
   -clang-analyzer-optin.taint.*,
   -clang-analyzer-optin.cplusplus.VirtualCall,
+  # unnecessary for cocos nodes
+  -clang-analyzer-optin.cplusplus.UninitializedObject,
+  # misfires for things that realistically cannot be null
+  -clang-analyzer-nullability.NullablePassedToNonnull,
 
   # bugs #
   bugprone-*,
@@ -106,6 +110,7 @@ Checks: |
   -misc-header-include-cycle,
   -modernize-use-override,
   -modernize-use-nullptr,
+  -modernize-deprecated-headers,
   -bugprone-unchecked-optional-access, ## this one maybe dont
   -bugprone-branch-clone, ## often harmless
   -performance-faster-string-find,

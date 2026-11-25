@@ -2,6 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include "../ui/EnterLayerEvent.hpp"
+#include <Geode/utils/StringMap.hpp>
 
 namespace cocos2d {
     class CCNode;
@@ -19,7 +20,7 @@ namespace geode {
         using Provider = void(GEODE_CALL*)(T*);
 
     protected:
-        std::unordered_map<std::string, Provider<cocos2d::CCNode>> m_providers;
+        utils::StringMap<Provider<cocos2d::CCNode>> m_providers;
 
         NodeIDs();
         ~NodeIDs();
