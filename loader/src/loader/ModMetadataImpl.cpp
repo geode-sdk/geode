@@ -310,6 +310,22 @@ ModMetadata ModMetadata::Impl::parse(ModJson const& rawJson, std::optional<std::
     if (root.has("api")) {
         impl->m_isAPI = true;
     }
+    if (auto reqs = root.has("requires")) {
+        reqs.assertIsObject();
+        if (auto preqs = reqs.has(GEODE_PLATFORM_SHORT_IDENTIFIER_NOARCH)) {
+            for (auto& item : preqs.items()) {
+                if (!item.isString()) continue;
+                const auto& type = item.get<std::string>();
+                if (type == "patching") {
+                    impl->m_needsPatching = true;
+                } else if (type == "wine") {
+                    impl->m_windowsPlatform = WindowsPlatform::Wine;
+                } else if (type == "windows") {
+                    impl->m_windowsPlatform = WindowsPlatform::Windows;
+                }
+            }
+        }
+    }
 
     root.has("load-priority").into(impl->m_loadPriority);
 
@@ -636,6 +652,11 @@ bool ModMetadata::isAPI() const {
 bool ModMetadata::needsPatching() const {
     return m_impl->m_needsPatching;
 }
+
+WindowsPlatform ModMetadata::getWindowsPlatform() const {
+    return m_impl->m_windowsPlatform;
+}
+
 std::optional<std::string> ModMetadata::getGameVersion() const {
     if (m_impl->m_gdVersion.empty()) return std::nullopt;
     return m_impl->m_gdVersion;

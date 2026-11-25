@@ -49,6 +49,12 @@ namespace geode {
 #endif
     };
 
+    enum class WindowsPlatform : uint8_t {
+        Windows = 1 << 0,
+        Wine = 1 << 1,
+        Either = Windows | Wine,
+    };
+
     /**
      * Represents all the data gather-able
      * from mod.json
@@ -224,6 +230,10 @@ namespace geode {
          * Whether this mod requires runtime memory patching
          */
         [[nodiscard]] bool needsPatching() const;
+        /**
+         * Whether this mod is windows only, wine only, or either
+         */
+        [[nodiscard]] WindowsPlatform getWindowsPlatform() const;
 
         /**
          * Gets the target GD version for the current platform.
