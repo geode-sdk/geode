@@ -21,6 +21,7 @@
 #include "ui/NineSlice.hpp"
 #include "ui/NodeEvent.hpp"
 #include "ui/Notification.hpp"
+#include "ui/NumberInputPopup.hpp"
 #include "ui/OverlayManager.hpp"
 #include "ui/Popup.hpp"
 #include "ui/ProcessPopup.hpp"
