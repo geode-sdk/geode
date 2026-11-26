@@ -655,8 +655,20 @@ void Loader::Impl::findProblems() {
         }
 
         if (m_isPatchless && mod->getMetadata().needsPatching()) {
-            this->addProblem({ LoadProblem::Type::Unknown, mod, "This mod requires JIT" });
+            this->addProblem({ LoadProblem::Type::Platform, mod, "This mod requires JIT" });
             log::error("{} requires JIT, but loader is JIT-less", id);
+            continue;
+        }
+
+        auto wine = platform::isWine();
+        if (wine && mod->getMetadata().getWindowsPlatform() == WindowsPlatform::Windows) {
+            this->addProblem({ LoadProblem::Type::Platform, mod, "This mod doesn't work when running through Wine." });
+            log::error("{} requires Windows, but loader is running with Wine", id);
+            continue;
+        }
+        if (!wine && mod->getMetadata().getWindowsPlatform() == WindowsPlatform::Wine) {
+            this->addProblem({ LoadProblem::Type::Platform, mod, "This mod only works when running through Wine." });
+            log::error("{} requires Wine, but loader is running with Windows", id);
             continue;
         }
 

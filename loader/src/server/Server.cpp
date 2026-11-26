@@ -712,6 +712,7 @@ ServerFuture<ServerModsList> server::getMods(ModsQuery query, bool useCache) {
     req.param("geode", Loader::get()->getVersion().toNonVString());
     if (Loader::get()->isPatchless())
         req.param("jitless", "true");
+    req.param("wine", platform::isWine() ? "true" : "false");
 
     if (query.platforms.size()) {
         std::string plats;
@@ -914,6 +915,7 @@ ServerFuture<ServerModUpdateAllCheck> server::batchedCheckUpdates(std::vector<st
     req.param("geode", Loader::get()->getVersion().toNonVString());
     if (Loader::get()->isPatchless())
         req.param("jitless", "true");
+    req.param("wine", platform::isWine() ? "true" : "false");
 
     req.param("ids", ranges::join(batch, ";"));
     auto response = co_await req.get(formatServerURL("/mods/updates"));

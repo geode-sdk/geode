@@ -102,6 +102,7 @@ namespace geode {
         bool m_needsEarlyLoad = false;
         bool m_isAPI = false;
         bool m_needsPatching = false;
+        WindowsPlatform m_windowsPlatform = WindowsPlatform::Either;
         LoadPriority m_loadPriority = 0;
         std::vector<std::string> m_errors;
         bool m_completelyUnparseable = false;

@@ -970,6 +970,7 @@ void ModItem::onViewError(CCObject*) {
                 case LoadProblem::Type::MissingDependencies: title = "Missing dependencies"; break;
                 case LoadProblem::Type::Outdated: title = "Outdated"; break;
                 case LoadProblem::Type::HasIncompatibilities: title = "Incompatibilities"; break;
+                case LoadProblem::Type::Platform: title = "Wrong Platform"; break;
             }
             MDPopup::create(title, problem->message, "OK")->show();
         }

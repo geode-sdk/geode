@@ -28,6 +28,8 @@ namespace geode {
             Outdated = 3,
             /// This mod is explicitly incompatible with another mod
             HasIncompatibilities = 4,
+            /// This mod requires a different platform.
+            Platform = 5,
         };
         Type type;
         std::variant<asp::fs::Path, ModMetadata, Mod*> cause;
