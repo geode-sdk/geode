@@ -37,7 +37,7 @@ namespace geode {
         Alphabetic   = Lowercase | Uppercase,                        // Allow letters (a-z, A-Z)
         Alphanumeric = Alphabetic | Uint,                            // Allow letters, numbers (a-z, A-Z, 0-9)
         ID           = Lowercase | Uint | Hyphen | Underscore | Dot, // Allow letters, numbers, dashes, underscores, and dots (a-z, 0-9, - _ .)
-        Name         = Alphabetic | Underscore | Space,              // Allow word-like characters & spaces (a-z, A-Z, _ (space))
+        Name         = Alphabetic | Underscore | Space | Uint,       // Allow word-like characters, spaces & numbers (a-z, A-Z, 0-9, _ (space))
         Base64Normal = Alphanumeric | Plus | Slash | Equals,         // Allow a non-URL-safe Base64 number
         Base64URL    = Alphanumeric | Plus | Underscore | Equals,    // Allow a URL-safe Base64 number
 
