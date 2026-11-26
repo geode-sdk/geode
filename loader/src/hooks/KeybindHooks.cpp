@@ -1,13 +1,13 @@
 #include <Geode/platform/cplatform.h>
 
-#ifndef GEODE_IS_IOS
-
 #include "LoaderImpl.hpp"
 #include "ui/GeodeStyle.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/GJKeybindManager.hpp>
+#ifdef GEODE_IS_MOBILE
 #include <Geode/binding/GameSettingsLayer.hpp>
+#endif
 #include <Geode/binding/KeybindSource.hpp>
 #include <Geode/binding/KeybindingsLayer.hpp>
 #include <Geode/binding/LevelBindingsLayer.hpp>
@@ -26,6 +26,7 @@
 #include <Geode/modify/IDManager.hpp>
 #include <Geode/modify/KeybindingsLayer.hpp>
 #include <Geode/modify/TabbedPopupLayer.hpp>
+#include <Geode/modify/GameSettingsLayer.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/ui/Button.hpp>
 #include <Geode/ui/GeodeUI.hpp>
@@ -1014,4 +1015,21 @@ class $modify(TabbedPopupLayer) {
     }
 };
 
+#ifdef GEODE_IS_MOBILE
+class $modify(GameSettingsLayer) {
+    void setupTabs() {
+        GameSettingsLayer::setupTabs();
+        auto button = CCMenuItemSpriteExtra::create(ButtonSprite::create("Keys",58,0,.475f,false,"goldFont.fnt","GJ_button_05.png",25.f), this, menu_selector(GameSettingsLayer::onCustomButton));
+        button->setTag(-1003);
+        m_buttonMenu->addChild(button);
+
+        auto items = CCArray::create();
+        for (int i = 0; i < m_tabs.size(); i++) {
+            items->addObject(m_buttonMenu->getChildByTag(i));
+        }
+        items->addObject(button);
+        auto ws = CCDirector::get()->getWinSize();
+        GameToolbox::alignItemsHorisontally(items, 4.0, m_buttonMenu->convertToNodeSpace(CCPoint{ws.width / 2, (ws.height + m_height) / 2 - 20}), false);
+    }
+};
 #endif
