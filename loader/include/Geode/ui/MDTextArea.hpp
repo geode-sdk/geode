@@ -146,6 +146,21 @@ namespace geode {
     /// Use `user:<accountID>` to link to a GD
     /// account; `level:<id>` to link to a GD level and
     /// `mod:<id>` to link to another Geode mod.
+    ///
+    /// Images can be loaded from sprite files or registered sprite frames.
+    /// Use `![alt](my.mod-id/image.png)` for a sprite file and
+    /// `![alt](frame:my.mod-id/image.png)` for a sprite frame.
+    ///
+    /// Images support the following query parameters:
+    ///  - `scale`: Image scale (defaults to the MDConfig image scale).
+    ///  - `width`: Scale the image to fit the specified width.
+    ///  - `height`: Scale the image to fit the specified height.
+    ///
+    /// Multiple parameters can be combined using `&`, for example:
+    /// `![alt](frame:my.mod-id/image.png?width=100&height=50)`.
+    /// Width and height preserve the aspect ratio and override `scale`.
+    ///
+    /// Remote images (HTTP and HTTPS) are not supported.
     class GEODE_DLL MDTextArea : public cocos2d::CCLayer, public cocos2d::CCLabelProtocol {
     private:
         class Impl;
