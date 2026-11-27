@@ -17,6 +17,7 @@ public:
     , m_fShakeIntensity(0.0f)
     , m_fShakeElapsed(0.0f)
     , m_nShakeIndex(0)
+    , m_nCharIndex(0)
     {}
     virtual ~CCFontSprite() {}
     GEODE_CUSTOM_CONSTRUCTOR_COCOS(CCFontSprite, CCSpriteExtra);
@@ -30,6 +31,7 @@ public:
     float m_fShakeElapsed;
     int m_nShakeIndex;
     CCPoint m_obShakePosition;
+    int m_nCharIndex;
 };
 
 NS_CC_END

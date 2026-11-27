@@ -34,6 +34,9 @@
 
 NS_CC_EXT_BEGIN
 
+// @note RobTop Addition
+class CCThreadPool;
+
 /**
  * @addtogroup Network
  * @{
@@ -115,6 +118,8 @@ public:
     size_t availableThreadCount();
 
 public:
+    // @note RobTop Addition
+    CCThreadPool* _threadPool;
     int _timeoutForConnect;
     int _timeoutForRead;
 

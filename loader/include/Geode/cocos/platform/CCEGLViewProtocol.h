@@ -184,7 +184,11 @@ public:
 	virtual CCPoint getMousePosition() const;
 
     // @note RobTop Addition
+// #ifdef GEODE_IS_MACOS
+//     virtual double getPlatformTimestamp() = 0;
+// #else
     double getPlatformTimestamp();
+// #endif
 
     // @note RobTop Addition
     void handleRightClick(float, float);

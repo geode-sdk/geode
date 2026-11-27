@@ -155,14 +155,16 @@ public:
 
     // @note Robtop Addition
     CCRect m_tTextureRect;
+#ifdef GEODE_IS_ANDROID
+    // @note Robtop Addition
+    float m_unkFloat;
+#endif
     // @note Robtop Addition
     ccColor4B m_tQuadColor;
     // @note Robtop Addition
     GLushort m_uParticleIdx;
     // @note Robtop Addition
     GLubyte m_uOpacity;
-    // @note Robtop Addition
-    void* m_pUnk;
 
 public:
     /**
