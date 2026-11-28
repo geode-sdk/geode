@@ -1055,7 +1055,6 @@ public:
      * @note Geode addition
      */
     template <class T>
-        requires std::derived_from<std::remove_pointer_t<T>, geode::Layout>
     auto getLayout() {
         return geode::cast::typeinfo_cast<std::remove_pointer_t<T>*>(this->getLayout());
     }
@@ -1087,7 +1086,6 @@ public:
      * @note Geode addition
      */
     template <class T>
-        requires std::derived_from<std::remove_pointer_t<T>, geode::LayoutOptions>
     auto getLayoutOptions() {
         return geode::cast::typeinfo_cast<std::remove_pointer_t<T>*>(this->getLayoutOptions());
     }
