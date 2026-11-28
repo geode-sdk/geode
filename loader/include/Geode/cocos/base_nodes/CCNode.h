@@ -1081,6 +1081,17 @@ public:
      */
     GEODE_DLL geode::LayoutOptions* getLayoutOptions();
     /**
+     * Get the layout options for this node
+     * @tparam T `geode::LayoutOptions`-based class
+     * @returns The current layout options, or nullptr if no options are set or the template type doesn't match
+     * @note Geode addition
+     */
+    template <class T>
+        requires std::derived_from<std::remove_pointer_t<T>, geode::LayoutOptions>
+    auto getLayoutOptions() {
+        return geode::cast::typeinfo_cast<std::remove_pointer_t<T>*>(this->getLayoutOptions());
+    }
+    /**
      * Adds a child at an anchored position with an offset. The node is placed
      * in its parent where the anchor specifies, and then the offset is used to
      * relatively adjust the node's position
